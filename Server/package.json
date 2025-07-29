@@ -1,0 +1,29 @@
+{
+	"name": "websterlocksite",
+	"version": "1.0.0",
+	"description": "will be a collection of multiple sites in the future (for now its a material request and inventory management app)",
+	"license": "ISC",
+	"author": "Lenddy",
+	"type": "commonjs",
+	"main": "server.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"dev": "nodemon server.js"
+	},
+	"dependencies": {
+		"@apollo/server": "latest",
+		"@graphql-tools/merge": "latest",
+		"bcrypt": "latest",
+		"cors": "latest",
+		"dotenv": "latest",
+		"express": "latest",
+		"graphql": "latest",
+		"graphql-ws": "latest",
+		"http": "latest",
+		"jsonwebtoken": "latest",
+		"moment": "latest",
+		"mongoose": "latest",
+		"socket.io": "latest",
+		"uuid": "latest"
+	}
+}

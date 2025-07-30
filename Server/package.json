@@ -4,7 +4,7 @@
 	"description": "will be a collection of multiple sites in the future (for now its a material request and inventory management app)",
 	"license": "ISC",
 	"author": "Lenddy",
-	"type": "commonjs",
+	"type": "module",
 	"main": "server.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
@@ -12,18 +12,24 @@
 	},
 	"dependencies": {
 		"@apollo/server": "latest",
+		"@as-integrations/express4": "latest",
 		"@graphql-tools/merge": "latest",
+		"@graphql-tools/schema": "latest",
+		"apollo-server-errors": "latest",
 		"bcrypt": "latest",
 		"cors": "latest",
 		"dotenv": "latest",
 		"express": "latest",
 		"graphql": "latest",
+		"graphql-subscriptions": "latest",
+		"graphql-tag": "latest",
 		"graphql-ws": "latest",
 		"http": "latest",
 		"jsonwebtoken": "latest",
 		"moment": "latest",
 		"mongoose": "latest",
 		"socket.io": "latest",
-		"uuid": "latest"
+		"uuid": "latest",
+		"ws": "latest"
 	}
 }

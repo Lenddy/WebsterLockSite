@@ -1,8 +1,12 @@
 // Importing Manager model, uuid for unique IDs, and pubsub for event publishing
-const Manager = require("../../models/manager.model");
-const { v4: uuidv4 } = require("uuid");
-const pubsub = require("../pubsub");
-const mongoose = require("mongoose");
+import Manager from "../../models/manager.model.js";
+// const Manager = require("../../models/manager.model");
+// import {v4: uuidv4} from "uuid"
+//!! const { v4: uuidv4 } = require("uuid"); you can use the internal ids of mongooDB
+// const pubsub = require("../pubsub");
+import pubsub from "../pubsub.js";
+// const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const managerResolvers = {
 	Query: {
@@ -478,4 +482,4 @@ const managerResolvers = {
 	},
 };
 
-module.exports = { managerResolvers };
+export { managerResolvers };

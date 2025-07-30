@@ -1,11 +1,13 @@
 // Importing AuthenticationError for handling authentication errors
-const { AuthenticationError } = require("apollo-server-express");
+// const { AuthenticationError } = require("apollo-server-express");
+import { AuthenticationError } from "apollo-server-express";
 
 // Importing jsonwebtoken for token verification
-const jwt = require("jsonwebtoken");
+// const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
 
 // Exporting a function that takes the context object as a parameter
-module.exports = (context) => {
+export default (context) => {
 	// Extracting the authorization header from the context
 	const authHeader = context.req.header.authorization;
 	// console.log(process.env.Secret_Key);

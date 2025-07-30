@@ -1,13 +1,18 @@
 // Importing necessary modules
-const User = require("../../models/user.model"); // Importing the User model
-const { v4: uuidv4 } = require("uuid"); // Importing UUID for generating unique IDs
-const pubsub = require("../pubsub"); // Importing pubsub for subscriptions
+import User from "../../models/user.model.js"; // Importing the User model
+// const User = require("../../models/user.model");
+//!! const { v4: uuidv4 } = require("uuid"); you can use the internal ids of mongooDB
+// const pubsub = require("../pubsub"); // Importing pubsub for subscriptions
+import pubsub from "../pubsub.js";
 
-const { ApolloError } = require("apollo-server-errors");
+import { ApolloError } from "apollo-server-errors";
+// const { ApolloError } = require("apollo-server-errors");
 
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
+// const jwt = require("jsonwebtoken");
 
-const bcrypt = require("bcrypt"); // Module for hashing passwords
+import bcrypt from "bcrypt";
+// const bcrypt = require("bcrypt"); // Module for hashing passwords
 
 // const authenticator = require("../../middleware/tokenAuthenticator");
 
@@ -291,4 +296,4 @@ const userResolver = {
 	},
 };
 
-module.exports = { userResolver }; // Export the resolver
+export { userResolver }; // Export the resolver

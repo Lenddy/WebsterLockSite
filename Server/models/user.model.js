@@ -1,7 +1,10 @@
 // Importing Schema and model to create the schema and saving it to the database
-const { Schema, model } = require("mongoose");
-const bcrypt = require("bcrypt"); // Module for hashing passwords
-const { encrypt, decrypt } = require("../middleware/encrypt_decrypt"); // Importing encryption and decryption functions
+// const { Schema, model } = require("mongoose");
+import { Schema, model } from "mongoose";
+import bcrypt from "bcrypt";
+// const bcrypt = require("bcrypt"); // Module for hashing passwords
+import { encrypt, decrypt } from "../middleware/encrypt_decrypt.js";
+// const { encrypt, decrypt } = require("../middleware/encrypt_decrypt"); // Importing encryption and decryption functions
 
 // Defining the User schema
 const UserSchema = new Schema(
@@ -85,4 +88,4 @@ UserSchema.pre("save", function (next) {
 // Creating a User model from the schema
 const User = model("Users", UserSchema);
 
-module.exports = User; // Exporting the User model
+export default User; // Exporting the User model

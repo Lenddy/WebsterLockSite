@@ -1,8 +1,6 @@
 // Importing necessary modules
-const { gql } = require("apollo-server-express");
-
-// Importing custom scalar DateTime (assuming it's defined in "dateTime.js")
-require("../scalar/dateTime");
+import { gql } from "graphql-tag";
+import "../scalar/dateTime.js"; // Importing custom scalar DateTime
 
 // Defining GraphQL schema using gql template literal
 const userTypeDef = gql`
@@ -79,4 +77,4 @@ const userTypeDef = gql`
 `;
 
 // Exporting the userTypeDef for use in other modules
-module.exports = { userTypeDef };
+export { userTypeDef };

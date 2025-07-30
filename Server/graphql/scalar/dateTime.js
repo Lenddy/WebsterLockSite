@@ -1,6 +1,8 @@
-const { GraphQLScalarType, Kind } = require("graphql"); // Import GraphQLScalarType and Kind from graphql
+import { GraphQLScalarType, Kind } from "graphql"; // Import GraphQLScalarType and Kind from graphql
 
-module.exports = {
+// const { GraphQLScalarType, Kind } = require("graphql");
+
+export default {
 	DateTime: new GraphQLScalarType({
 		name: "DateTime", // Name of the custom scalar
 		description: "scalar type for setting the date and the time", // Description of the scalar type

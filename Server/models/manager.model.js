@@ -1,5 +1,6 @@
 // Importing Schema and model to create the schema and saving it to the database
-const { Schema, model } = require("mongoose");
+import { Schema, model } from "mongoose";
+// const { Schema, model } = require("mongoose");
 
 const ManagerSchema = new Schema(
 	{
@@ -36,7 +37,7 @@ const ManagerSchema = new Schema(
 
 const Manager = model("Managers", ManagerSchema); // Naming the table(document) in the database
 
-module.exports = Manager; // Exporting the schema
+export default Manager; // Exporting the schema
 
 // !! no phone numbers
 // cellPhones: {

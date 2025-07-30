@@ -1,5 +1,9 @@
-const { gql } = require("apollo-server-express");
-require("../scalar/dateTime");
+// import { gql } from "apollo-server-express";
+import { gql } from "graphql-tag";
+// const { gql } = require("apollo-server-express");
+import "../scalar/dateTime.js";
+
+// require("../scalar/dateTime");
 
 const managerTypeDef = gql`
 	scalar DateTime
@@ -88,7 +92,9 @@ const managerTypeDef = gql`
 	}
 `;
 
-module.exports = { managerTypeDef };
+export { managerTypeDef };
+// console.log(typeof managerTypeDef);
+// console.dir(managerTypeDef, { depth: null });
 
 // const { gql } = require("apollo-server-express");
 // require("../scalar/dateTime");

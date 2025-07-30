@@ -1,5 +1,8 @@
-const { mongoose } = require("mongoose"); // Import mongoose for MongoDB
-require("dotenv").config(); // Load environment variables from the .env file
+// const { mongoose } = require("mongoose");
+import { mongoose } from "mongoose"; // Import mongoose for MongoDB
+import "dotenv/config"; // Load environment variables from the .env file
+// dotenv.config();
+// require("dotenv").config(); // Load environment variables from the .env file
 
 mongoose.set("strictQuery", true); // Enable strict query mode for mongoose (only the defined fields will be saved in the schema)
 mongoose

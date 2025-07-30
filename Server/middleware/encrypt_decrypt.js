@@ -1,18 +1,18 @@
-const crypto = require("crypto");
-
+// const crypto = require("crypto");
+import crypto from "crypto";
 // Define encryption and decryption methods
 const algorithm = "aes-256-cbc";
 const secretKey = process.env.ENCRYPTION_SECRET_KEY;
 const iv = crypto.randomBytes(16);
 
-const encrypt = (text) => {
+export const encrypt = (text) => {
 	const cipher = crypto.createCipheriv(algorithm, Buffer.from(secretKey, "hex"), iv);
 	let encrypted = cipher.update(text);
 	encrypted = Buffer.concat([encrypted, cipher.final()]);
 	return `${iv.toString("hex")}:${encrypted.toString("hex")}`;
 };
 
-const decrypt = (text) => {
+export const decrypt = (text) => {
 	const textParts = text.split(":");
 	const iv = Buffer.from(textParts.shift(), "hex");
 	const encryptedText = Buffer.from(textParts.join(":"), "hex");
@@ -22,4 +22,4 @@ const decrypt = (text) => {
 	return decrypted.toString();
 };
 
-module.exports = { encrypt, decrypt };
+export default { encrypt, decrypt };

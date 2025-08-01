@@ -1,9 +1,7 @@
 // Importing AuthenticationError for handling authentication errors
-// const { AuthenticationError } = require("apollo-server-express");
-import { AuthenticationError } from "apollo-server-express";
+import { AuthenticationError } from "apollo-server-errors";
 
 // Importing jsonwebtoken for token verification
-// const jwt = require("jsonwebtoken");
 import jwt from "jsonwebtoken";
 
 // Exporting a function that takes the context object as a parameter

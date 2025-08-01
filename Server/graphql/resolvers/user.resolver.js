@@ -1,19 +1,9 @@
 // Importing necessary modules
 import User from "../../models/user.model.js"; // Importing the User model
-// const User = require("../../models/user.model");
-//!! const { v4: uuidv4 } = require("uuid"); you can use the internal ids of mongooDB
-// const pubsub = require("../pubsub"); // Importing pubsub for subscriptions
 import pubsub from "../pubsub.js";
-
 import { ApolloError } from "apollo-server-errors";
-// const { ApolloError } = require("apollo-server-errors");
-
 import jwt from "jsonwebtoken";
-// const jwt = require("jsonwebtoken");
-
 import bcrypt from "bcrypt";
-// const bcrypt = require("bcrypt"); // Module for hashing passwords
-
 // const authenticator = require("../../middleware/tokenAuthenticator");
 
 // Resolver object for user-related operations
@@ -28,8 +18,11 @@ const userResolver = {
 		// Resolver to fetch all users
 		getAllUsers: async (_, __, { user }) => {
 			console.log("this the token info ", user);
-			if (!user || user.role !== "admin") {
-				throw new Error("Unauthorized: Admin access required.");
+			if (!user) {
+				throw new Error("Unauthorized: No user was found.");
+			}
+			if ((user.role !== "admin") | (user.role !== "subadmin")) {
+				throw new Error("Unauthorized: Admin or sub admin access required.");
 			}
 			try {
 				// Find all users in the database
@@ -47,7 +40,7 @@ const userResolver = {
 		getOneUser: async (_, { id }, { user }) => {
 			try {
 				// If the user is an admin, they can access any user
-				if (user && user.role === "admin") {
+				if (user && (user.role === "admin") | (user.role !== "subadmin")) {
 					// Admin can access any user's data
 					const userToReturn = await User.findById(id);
 					if (!userToReturn) {
@@ -57,9 +50,6 @@ const userResolver = {
 				}
 
 				// If the user is a normal user, they can only access their own information
-				// if(user && user.role === "user"){
-
-				// }
 				if (user && (user.userId !== id || user.email !== user.email) && user.role === "user") {
 					throw new Error("Unauthorized: You can only access your own information.");
 				}
@@ -79,57 +69,15 @@ const userResolver = {
 
 	Mutation: {
 		// Resolver to create a new user
-		// registerUser: async (_, { registerInput: { name, email, password, confirmPassword } }) => {
-		// 	const createdAt = new Date().toISOString(); // Use toISOString() for custom DateTime scalar
-		// 	const updatedAt = new Date().toISOString(); // Use toISOString() for custom DateTime scalar
-
-		// 	const addedUser = { name, email, password, confirmPassword, createdAt, updatedAt };
-		// 	console.log("new user info", addedUser);
-		// 	try {
-		// 		const oldUser = await User.findOne({ email }); // Find existing user with the provided email
-		// 		if (oldUser) {
-		// 			throw new ApolloError(`user with email: ${email} is already register`, "USER_ALREADY_EXIST"); // Throw error if user already exists
-		// 		}
-
-		// 		// Create a new User object with the provided details
-		// 		const newUser = new User(addedUser);
-
-		// 		// Generate a JWT token for the new user
-		// 		const token = jwt.sign(
-		// 			{
-		// 				//information store in the jwt token
-		// 				userId: newUser.id,
-		// 				email,
-		// 			},
-		// 			process.env.Secret_Key
-		// 			// {
-		// 			// 	expiresIn: "2h", // Token expiration time
-		// 			// }
-		// 		);
-
-		// 		newUser.token = token; // Assign the generated token to the newUser object
-		// 		authenticator(token);
-		// 		// Save the newly created user to the database
-		// 		const res = await newUser.save();
-		// 		const info = {
-		// 			id: res.id,
-		// 			...res._doc,
-		// 		};
-
-		// 		console.log(newUser); // Logging the newly created user
-		// 		return info; // Returning the newly created user
-		// 	} catch (err) {
-		// 		console.log("error registering a new user", err); // Logging error if creation fails
-		// 		throw err; // Throwing error
-		// 	}
-		// },
-
 		registerUser: async (_, { registerInput: { name, email, password, confirmPassword, role = "user" } }) => {
 			try {
 				// Check if user already exists
 				const oldUser = await User.findOne({ email });
 				if (oldUser) {
 					throw new ApolloError(`User with email: ${email} already exists`, "USER_ALREADY_EXIST");
+				}
+				if (((role !== "admin") | "subadmin", role !== "user")) {
+					role = "norole";
 				}
 
 				// Create new user
@@ -140,7 +88,6 @@ const userResolver = {
 					{ userId: newUser.id, email, role: newUser.role }, // Include role in token payload
 					process.env.Secret_Key
 				);
-
 				newUser.token = token;
 
 				// Save user to the database
@@ -156,7 +103,7 @@ const userResolver = {
 			}
 		},
 
-		// Resolver to log in a user
+		// Resolver to login in a user
 		loginUser: async (_, { loginInput: { email, password } }) => {
 			try {
 				// Find the user by email in the database
@@ -195,7 +142,7 @@ const userResolver = {
 					return info; // Returning the logged-in user
 				} else {
 					console.log("user and password fail"); // Logging failed login attempt
-					throw new ApolloError("Incorrect Password", "INCORRECT_PASSWORD"); // Throwing error for incorrect password
+					throw new ApolloError("Incorrect Email OR Password", "INCORRECT_EMAIL_PASSWORD"); // Throwing error for incorrect email or password
 				}
 			} catch (err) {
 				console.log("error logging in user", err); // Logging error if login fails
@@ -204,8 +151,23 @@ const userResolver = {
 		},
 
 		// Resolver to update a user's personal information
-		updateOneUserName: async (_, { id, name }) => {
+		updateOneUserName: async (_, { id, name }, { user }) => {
 			try {
+				//todo: check to see if the one making the change is an admin or the same user if it is a different user or not a admin dont allow them
+
+				// If the user is an admin, they can access any user
+				if (user && user.role === "admin") {
+					// Admin can access any user's data
+					// Construct an update object based on the provided fields
+					const update = {};
+					if (name) {
+						update.name = name;
+					}
+				}
+				if (user && (user.userId !== id || user.email !== user.email) && user.role === "user") {
+					throw new Error("Unauthorized: You can only access your own information.");
+				}
+
 				// Construct an update object based on the provided fields
 				const update = {};
 				if (name) {
@@ -254,20 +216,177 @@ const userResolver = {
 			}
 		},
 
-		// Resolver to delete a user by ID
-		// deleteOneUser: async (_, { id }) => {
+		updateUserProfile: async (_, { id, updateUserProfile: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword } }, { user }) => {
+			try {
+				// makes sure that there is a user token with some basic information
+				if (!user) {
+					throw new Error("Unauthorized: No user context provided.");
+				}
+
+				// Find the user to be updated
+				const targetUser = await User.findById(id);
+
+				// confirms that the current users is still save in the db
+				if (!targetUser) {
+					throw new ApolloError("User not found", "USER_NOT_FOUND");
+				}
+
+				const isSelf = user.userId === id; //grabs the id info from the user token
+
+				// makes sure that you are only updating you (own) personal information
+				if (!isSelf) {
+					throw new Error("Unauthorized: You can only update your own information.");
+				}
+
+				// Check if new email is already in use
+				if (newEmail) {
+					const existingUser = await User.findOne({ email: newEmail }); //tries to find a user with the email that was provided for update
+					//confirms that there are no users in the db with the new email provided
+					if (existingUser && existingUser.id !== id) {
+						throw new ApolloError(`User with email: ${newEmail} already exists`, "USER_ALREADY_EXIST");
+					}
+
+					// confirms that a previous(current) email is provided
+					if (!previousEmail) {
+						throw new ApolloError("Previous email is required to update email", "EMAIL_VALIDATION_ERROR");
+					}
+
+					// confirms that the  previous(current) email provided match the email save in the db
+					if (targetUser.email !== previousEmail) {
+						throw new ApolloError("Previous email does not match", "PREVIOUS_EMAIL_MISMATCH");
+					}
+				}
+
+				// Check if a new Password is being provided
+				if (newPassword) {
+					// confirms that previous(current) pass word is provided
+					if (!previousPassword) {
+						throw new ApolloError("Previous password is required to update your password", "PASSWORD_VALIDATION_ERROR");
+					}
+
+					// confirms that the users previous password inputted matches their password in the database
+					if ((await bcrypt.compare(previousPassword, targetUser.password)) == false) {
+						throw new ApolloError(`Previous password does not match your old(current) password`, "PREVIOUS_PASSWORD_MISMATCH");
+					}
+
+					// confirms that the new password and the confirms password inputted are the same
+					if (newPassword !== confirmNewPassword) {
+						throw new ApolloError("password and confirm Password don't match", "PASSWORD_VALIDATION_ERROR");
+					}
+				}
+				// Update fields
+				if (name) targetUser.name = name;
+				if (newEmail) targetUser.email = newEmail;
+				if (newPassword && confirmNewPassword) {
+					targetUser.password = newPassword;
+					targetUser.confirmPassword = confirmNewPassword;
+				}
+
+				//  Regenerate and save JWT token with updated data
+				const newToken = jwt.sign(
+					{
+						userId: targetUser.id,
+						email: targetUser.email,
+						role: targetUser.role,
+					},
+					process.env.Secret_Key
+				);
+
+				targetUser.token = newToken;
+
+				// Save updated user
+				await targetUser.save();
+
+				return targetUser;
+			} catch (error) {
+				console.error("Error updating user profile:", error);
+				throw error;
+			}
+		},
+
+		// adminChangeUserProfile: async (_, { id, updateUserProfile: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword } }, { user }) => {
 		// 	try {
-		// 		// Find the user by ID and delete it
-		// 		const deletedUser = await User.findByIdAndDelete(id);
-		// 		if (!deletedUser) {
-		// 			throw new ApolloError("User not found", "USER_NOT_FOUND"); // Throw ApolloError if user not found
+		// 		// makes sure that there is a user token with some basic information
+		// 		if (!user) {
+		// 			throw new Error("Unauthorized: No user context provided.");
 		// 		}
 
-		// 		// Return the deleted user
-		// 		return deletedUser;
+		// 		if (((user.role !== "admin") | "subadmin", role !== "user")) {
+		// 			throw new Error("Unauthorized: You dont have permission to change this users information.");
+		// 		}
+		// 		// Find the user to be updated
+		// 		const targetUser = await User.findById(id);
+
+		// 		// confirms that the current users is still save in the db
+		// 		if (!targetUser) {
+		// 			throw new ApolloError("User not found", "USER_NOT_FOUND");
+		// 		}
+
+		// 		const isSelf = user.userId === id; //grabs the id info from the user token
+
+		// 		// Check if new email is already in use
+		// 		if (newEmail) {
+		// 			const existingUser = await User.findOne({ email: newEmail }); //tries to find a user with the email that was provided for update
+		// 			//confirms that there are no users in the db with the new email provided
+		// 			if (existingUser && existingUser.id !== id) {
+		// 				throw new ApolloError(`User with email: ${newEmail} already exists`, "USER_ALREADY_EXIST");
+		// 			}
+
+		// 			// confirms that a previous(current) email is provided
+		// 			if (!previousEmail) {
+		// 				throw new ApolloError("Previous email is required to update email", "EMAIL_VALIDATION_ERROR");
+		// 			}
+
+		// 			// confirms that the  previous(current) email provided match the email save in the db
+		// 			if (targetUser.email !== previousEmail) {
+		// 				throw new ApolloError("Previous email does not match", "PREVIOUS_EMAIL_MISMATCH");
+		// 			}
+		// 		}
+
+		// 		// Check if a new Password is being provided
+		// 		if (newPassword) {
+		// 			// confirms that previous(current) pass word is provided
+		// 			if (!previousPassword) {
+		// 				throw new ApolloError("Previous password is required to update your password", "PASSWORD_VALIDATION_ERROR");
+		// 			}
+
+		// 			// confirms that the users previous password inputted matches their password in the database
+		// 			if ((await bcrypt.compare(previousPassword, targetUser.password)) == false) {
+		// 				throw new ApolloError(`Previous password does not match your old(current) password`, "PREVIOUS_PASSWORD_MISMATCH");
+		// 			}
+
+		// 			// confirms that the new password and the confirms password inputted are the same
+		// 			if (newPassword !== confirmNewPassword) {
+		// 				throw new ApolloError("password and confirm Password don't match", "PASSWORD_VALIDATION_ERROR");
+		// 			}
+		// 		}
+		// 		// Update fields
+		// 		if (name) targetUser.name = name;
+		// 		if (newEmail) targetUser.email = newEmail;
+		// 		if (newPassword && confirmNewPassword) {
+		// 			targetUser.password = newPassword;
+		// 			targetUser.confirmPassword = confirmNewPassword;
+		// 		}
+
+		// 		//  Regenerate and save JWT token with updated data
+		// 		const newToken = jwt.sign(
+		// 			{
+		// 				userId: targetUser.id,
+		// 				email: targetUser.email,
+		// 				role: targetUser.role,
+		// 			},
+		// 			process.env.Secret_Key
+		// 		);
+
+		// 		targetUser.token = newToken;
+
+		// 		// Save updated user
+		// 		await targetUser.save();
+
+		// 		return targetUser;
 		// 	} catch (error) {
-		// 		console.error("Error deleting user:", error); // Logging error if deletion fails
-		// 		throw error; // Throwing error
+		// 		console.error("Error updating user profile:", error);
+		// 		throw error;
 		// 	}
 		// },
 
@@ -285,7 +404,7 @@ const userResolver = {
 		// Subscription resolver
 		onChange: {
 			// Subscribe to certain events
-			subscribe: () => pubsub.asyncIterator(["USER_ADDED", "USER_UPDATED", "USER_DELETED"]),
+			subscribe: () => pubsub.asyncIterableIterator(["USER_ADDED", "USER_UPDATED", "USER_DELETED"]),
 		},
 	},
 

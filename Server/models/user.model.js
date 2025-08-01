@@ -36,7 +36,7 @@ const UserSchema = new Schema(
 			type: String,
 			required: true,
 		},
-		role: { type: String, enum: ["user", "admin"], default: "user" }, // Role field with default value
+		role: { type: String, enum: ["admin", "subadmin", "user", "norole"], default: "user" }, // Role field with default value
 	},
 	{
 		timestamps: true, // Automatically include createdAt and updatedAt fields

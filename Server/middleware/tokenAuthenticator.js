@@ -1,6 +1,6 @@
 // tokenAuthenticator.js
 import jwt from "jsonwebtoken";
-
+// import "dotenv/config"; // Load environment variables from the .env file
 const authenticator = async (token) => {
 	if (!token) {
 		throw new Error("Authentication token is missing.");

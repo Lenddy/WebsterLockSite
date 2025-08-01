@@ -10,12 +10,26 @@ const userTypeDef = gql`
 		id: ID! # Unique identifier for the user
 		name: String! # User's first name
 		email: String! # User's email address
-		password: String # User's password (should not be returned in queries for security reasons)
+		password: String! # User's password (should not be returned in queries for security reasons)
 		confirmPassword: String # Confirmation of user's password (used for validation)
-		token: String # Token for user authentication
-		role: String
+		token: String! # Token for user authentication
+		role: UserRole!
 		createdAt: DateTime # Timestamp indicating when the user was created
 		updatedAt: DateTime # Timestamp indicating when the user was last updated
+	}
+
+	enum UserRole {
+		admin
+		subadmin
+		user
+		norole
+	}
+
+	type User {
+		id: ID!
+		email: String!
+		name: String!
+		role: UserRole!
 	}
 
 	# Type representing changes in user data for subscriptions
@@ -47,10 +61,13 @@ const userTypeDef = gql`
 		newEmail: String! # New email address
 	}
 
-	input PasswordUpdateInput {
-		previousPassword: String! # Previous password
-		newPassword: String! # New password
-		confirmNewPassword: String! # Confirmation of new password
+	input UpdateUserProfileInput {
+		name: String # User's first name
+		previousEmail: String # Previous email address
+		newEmail: String # New email address
+		previousPassword: String # Previous password
+		newPassword: String # New password
+		confirmNewPassword: String # Confirmation of new password
 	}
 
 	# Queries for fetching user data
@@ -67,7 +84,7 @@ const userTypeDef = gql`
 		updateOneUserName(id: ID!, name: String!): User! # Mutation to update an existing user's personal info
 		deleteOneUser(id: ID!): User! # Mutation to delete an existing user
 		updateEmail(id: ID!, emailUpdateInput: EmailUpdateInput): User! # Mutation to update a user's email
-		updatePassword(id: ID!, passwordUpdateInput: PasswordUpdateInput): User! # Mutation to update the password of a user
+		updateUserProfile(id: ID!, updateUserProfile: UpdateUserProfileInput): User! # Mutation to update a user's profile information
 	}
 
 	# Subscription type for real-time data updates

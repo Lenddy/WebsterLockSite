@@ -1,97 +1,127 @@
 // Importing necessary modules
-import { gql } from "graphql-tag";
-import "../scalar/dateTime.js"; // Importing custom scalar DateTime
+import { gql } from "graphql-tag"; // Used to parse GraphQL schema definitions
+import "../scalar/dateTime.js"; // Importing custom scalar for DateTime values
 
 // Defining GraphQL schema using gql template literal
 const userTypeDef = gql`
-	scalar DateTime # Custom scalar type for handling DateTime values
-	# Object type representing a User
+	# Custom scalar to handle date and time values
+	scalar DateTime
+
+	# Core user type returned in queries/mutations
 	type User {
-		id: ID! # Unique identifier for the user
-		name: String! # User's first name
-		email: String! # User's email address
-		password: String! # User's password (should not be returned in queries for security reasons)
-		confirmPassword: String # Confirmation of user's password (used for validation)
-		token: String! # Token for user authentication
-		role: UserRole!
-		createdAt: DateTime # Timestamp indicating when the user was created
-		updatedAt: DateTime # Timestamp indicating when the user was last updated
+		id: ID! # Unique user ID
+		name: String! # User's name
+		email: String! # Email address
+		password: String! # User's password
+		confirmPassword: String # Optional, for internal validation
+		token: String! # JWT token for session/auth
+		role: UserRole! # Assigned role enum
+		job: Job # Nested job object
+		permissions: Permissions # Nested permissions object
+		createdAt: DateTime # Timestamp for when user was created
+		updatedAt: DateTime # Timestamp for last update to user profile
 	}
 
+	# Enum defining all possible user roles
 	enum UserRole {
-		admin
-		subadmin
-		user
-		norole
+		headAdmin # Highest level: can manage all users and permissions
+		admin # Mid-level: can manage subAdmins, users, and noRoles
+		subAdmin # Can manage users and noRoles, but cannot assign roles
+		user # Regular user: limited permissions
+		noRole # Placeholder for users without a defined role
 	}
 
-	type User {
-		id: ID!
-		email: String!
-		name: String!
-		role: UserRole!
+	# Object type representing a user's job info
+	type Job {
+		title: String # Job title of the user (e.g., Manager, Engineer)
+		description: String # Optional description of user's job or responsibilities
 	}
 
-	# Type representing changes in user data for subscriptions
+	# Object type representing a user's permission settings
+	type Permissions {
+		canEditUsers: Boolean # Can this user edit other users?
+		canDeleteUsers: Boolean # Can this user delete other users?
+		canChangeRole: Boolean # Can this user assign or change roles?
+		canViewUsers: Boolean # Can this user view a list of users?
+		canViewAllUsers: Boolean # Can this user view all users?
+		canEditSelf: Boolean # Can this user update their own profile info?
+		canViewSelf: Boolean # Can this user view their own profile?
+		canDeleteSelf: Boolean # Can this user delete their own account?
+	}
+
+	# Used in subscriptions to indicate type of change and changed user
 	type Change {
 		eventType: String # Type of change (e.g., "created", "updated", "deleted")
-		Changes: User! # User object representing the changed data
+		Changes: User! # Updated user object after the change
 	}
 
-	# Input type for creating a new user
+	# Input object for job data, used in registration or profile update
+	input JobInput {
+		title: String # Job title to assign
+		description: String # Optional job description
+	}
+
+	# Input type for Permissions (optional, allows custom permissions on register)
+	input PermissionsInput {
+		canEditUsers: Boolean
+		canDeleteUsers: Boolean
+		canChangeRole: Boolean
+		canViewUsers: Boolean
+		canViewAllUsers: Boolean
+		canEditSelf: Boolean
+		canViewSelf: Boolean
+		canDeleteSelf: Boolean
+	}
+
+	# Input object for registering a user
 	input RegisterInput {
-		name: String! # User's first name
-		email: String! # User's email address
-		password: String # User's password
-		role: String
-		confirmPassword: String # Confirmation of user's password
+		name: String! # Full name of the user
+		email: String! # Email address
+		password: String # Password for login
+		confirmPassword: String # For password match validation
+		role: UserRole # Initial role to assign
+		job: JobInput # Optional job data
+		permissions: PermissionsInput # Optional custom permissions for the user
 	}
 
+	# Input object for user login
 	input LoginInput {
-		email: String! # User's email address
-		password: String # User's password
+		email: String! # Email used to log in
+		password: String # Corresponding password
 	}
 
-	input UserPersonalInfoInput {
-		name: String # User's first name
-	}
-
-	input EmailUpdateInput {
-		previousEmail: String! # Previous email address
-		newEmail: String! # New email address
-	}
-
+	# Input object for updating a user profile
 	input UpdateUserProfileInput {
-		name: String # User's first name
-		previousEmail: String # Previous email address
-		newEmail: String # New email address
-		previousPassword: String # Previous password
-		newPassword: String # New password
-		confirmNewPassword: String # Confirmation of new password
+		name: String # New name (optional)
+		previousEmail: String # For verification
+		newEmail: String # New email to update to
+		previousPassword: String # For verification
+		newPassword: String # New password to update to
+		confirmNewPassword: String # Confirm the new password
+		job: JobInput # Optional update to job details
 	}
 
-	# Queries for fetching user data
+	# Root query operations (read-only)
 	type Query {
-		hello: String # Just a test query
-		getAllUsers: [User]! # Query to fetch all users
-		getOneUser(id: ID!): User! # Query to fetch a single user by ID
+		hello: String # Test query to verify schema
+		getAllUsers: [User]! # Fetch list of all users
+		getOneUser(id: ID!): User! # Fetch a single user by ID
 	}
 
-	# Mutations for creating, updating, and deleting users
+	# Root mutation operations (write/update)
 	type Mutation {
-		registerUser(registerInput: RegisterInput): User! # Mutation to register a new user
-		loginUser(loginInput: LoginInput): User! # Mutation to authenticate user login
-		updateOneUserName(id: ID!, name: String!): User! # Mutation to update an existing user's personal info
-		deleteOneUser(id: ID!): User! # Mutation to delete an existing user
-		updateEmail(id: ID!, emailUpdateInput: EmailUpdateInput): User! # Mutation to update a user's email
-		updateUserProfile(id: ID!, updateUserProfile: UpdateUserProfileInput): User! # Mutation to update a user's profile information
+		registerUser(registerInput: RegisterInput): User! # Register a new user
+		loginUser(loginInput: LoginInput): User! # Authenticate a user and return token
+		updateUserProfile(id: ID!, updateUserProfile: UpdateUserProfileInput): User! # Update personal user data
+		adminChangeUserProfile(id: ID!, updateUserProfile: UpdateUserProfileInput): User! # Update others users data
+		deleteOneUser(id: ID!): User! # Permanently delete a user
 	}
 
-	# Subscription type for real-time data updates
+	# Root subscription operations (real-time updates)
 	type Subscription {
-		onChange: Change # Subscription event triggered on user data change
+		onChange: Change # Emits whenever a user is created, updated, or deleted
 	}
 `;
 
-// Exporting the userTypeDef for use in other modules
+// Exporting the userTypeDef for use in resolvers and schema setup
 export { userTypeDef };

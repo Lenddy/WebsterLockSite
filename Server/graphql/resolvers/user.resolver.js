@@ -17,82 +17,106 @@ const userResolver = {
 
 		// Resolver to fetch all users
 		getAllUsers: async (_, __, { user }) => {
-			console.log("this the token info ", user);
-			if (!user) {
-				throw new Error("Unauthorized: No user was found.");
-			}
-			if ((user.role !== "admin") | (user.role !== "subadmin")) {
-				throw new Error("Unauthorized: Admin or sub admin access required.");
-			}
 			try {
-				// Find all users in the database
+				console.log("Token user info:", user);
+
+				// Ensure user token exists (authentication)
+				if (!user) {
+					throw new Error("Unauthorized: No user token was found.");
+				}
+
+				// Check if user has permission to view all users
+				// Using permissions.canViewAllUsers to allow granular control
+				if (!user.permissions || !user.permissions.canViewAllUsers) {
+					throw new Error("Unauthorized: You do not have permission to view all users.");
+				}
+				// Fetch all users from database
 				const users = await User.find();
 
-				console.log("user making the call ", users); // Logging all users
-				console.log("all the users", users); // Logging all users
-				return users; // Returning all users
+				console.log("Users fetched by caller:", users);
+				return users;
 			} catch (error) {
-				console.error("Error fetching all users", error); // Logging error if fetching fails
-				throw error; // Throwing error
+				console.error("Error fetching all users:", error);
+				throw error;
 			}
 		},
 
 		getOneUser: async (_, { id }, { user }) => {
 			try {
-				// If the user is an admin, they can access any user
-				if (user && (user.role === "admin") | (user.role !== "subadmin")) {
-					// Admin can access any user's data
-					const userToReturn = await User.findById(id);
-					if (!userToReturn) {
-						throw new Error("User not found"); // User not found in the database
-					}
+				if (!user) {
+					throw new Error("Unauthorized: No user token was found.");
+				}
+				console.dir(user);
+
+				// Fetch the target user data
+				const userToReturn = await User.findById(id);
+				if (!userToReturn) {
+					throw new Error("User not found.");
+				}
+
+				// Allow if requester has global permission to view all users
+				if (user.permissions?.canViewAllUsers || (user.permissions?.canViewSelf && user.userId === userToReturn.id)) {
 					return userToReturn;
 				}
 
-				// If the user is a normal user, they can only access their own information
-				if (user && (user.userId !== id || user.email !== user.email) && user.role === "user") {
-					throw new Error("Unauthorized: You can only access your own information.");
-				}
-
-				// If they are a normal user and are accessing their own information, proceed
-				const userToReturn = await User.findById(id);
-				if (!userToReturn) {
-					throw new Error("User not found");
-				}
-				return userToReturn;
+				// Otherwise, deny access
+				throw new Error("Unauthorized: You do not have permission to view this user.");
 			} catch (error) {
-				console.error("Error fetching user by ID:", error); // Logging error
-				throw error; // Throw the error to the GraphQL client
+				console.error("Error fetching user by ID:", error);
+				throw error;
 			}
 		},
 	},
 
 	Mutation: {
 		// Resolver to create a new user
-		registerUser: async (_, { registerInput: { name, email, password, confirmPassword, role = "user" } }) => {
+		registerUser: async (_, { registerInput: { name, email, password, confirmPassword, role = "user", job, permissions } }, { pubsub }) => {
 			try {
 				// Check if user already exists
 				const oldUser = await User.findOne({ email });
 				if (oldUser) {
 					throw new ApolloError(`User with email: ${email} already exists`, "USER_ALREADY_EXIST");
 				}
-				if (((role !== "admin") | "subadmin", role !== "user")) {
-					role = "norole";
+
+				// Validate role; if invalid, default to noRole
+				const validRoles = ["headAdmin", "admin", "subAdmin", "user", "noRole"];
+				if (!validRoles.includes(role)) {
+					role = "noRole";
 				}
 
-				// Create new user
-				const newUser = new User({ name, email, password, confirmPassword, role });
+				// Use permissions as passed, or empty object if none provided
+				const finalPermissions = permissions || {};
 
-				// Generate JWT token with role included
-				const token = jwt.sign(
-					{ userId: newUser.id, email, role: newUser.role }, // Include role in token payload
-					process.env.Secret_Key
-				);
+				// Create new user with the provided permissions and job info
+				const newUser = new User({
+					name,
+					email,
+					password,
+					confirmPassword,
+					role,
+					job,
+					permissions: finalPermissions,
+				});
+
+				// Generate JWT token with role and permissions included
+				const tokenPayload = {
+					userId: newUser.id,
+					email,
+					role: newUser.role,
+					permissions: newUser.permissions,
+				};
+				const token = jwt.sign(tokenPayload, process.env.Secret_Key);
 				newUser.token = token;
 
 				// Save user to the database
 				const res = await newUser.save();
-
+				// Publish to subscription
+				await pubsub.publish("USER_ADDED", {
+					onChange: {
+						eventType: "created",
+						Changes: res,
+					},
+				});
 				return {
 					id: res.id,
 					...res._doc,
@@ -103,292 +127,258 @@ const userResolver = {
 			}
 		},
 
-		// Resolver to login in a user
 		loginUser: async (_, { loginInput: { email, password } }) => {
 			try {
-				// Find the user by email in the database
+				// Find the user by email
 				const user = await User.findOne({ email });
-				console.log("this is the users id ", user.id); // Logging user's ID
 
-				// Check if the user exists and the provided password matches the hashed password in the database
 				if (user && (await bcrypt.compare(password, user.password))) {
-					console.log("user and password success"); // Logging successful login
+					// Build payload with permissions and role
 
-					// Generate a JWT token for the logged-in user
+					// Build payload with permissions and role Sign token
 					const token = jwt.sign(
 						{
-							// Information stored in the JWT token
-							user_id: user.id,
-							email,
+							userId: user.id,
+							email: user.email,
+							role: user.role,
+							permissions: user.permissions,
 						},
-						process.env.Secret_Key // Secret key used for token signing
-						// {
-						// 	expiresIn: "2h", // Token expiration time
-						// }
+						process.env.Secret_Key
 					);
 
-					// Validate the token using the authenticator middleware
-					// authenticator(token);
-
-					// Assign the generated token to the user object
+					// Attach token to user
 					user.token = token;
 
-					const info = {
+					// Return full user object
+					return {
 						id: user.id,
-						...user._doc, // Spread the user's document data
+						...user._doc,
 					};
-
-					console.log(user); // Logging the logged-in user
-					return info; // Returning the logged-in user
 				} else {
-					console.log("user and password fail"); // Logging failed login attempt
-					throw new ApolloError("Incorrect Email OR Password", "INCORRECT_EMAIL_PASSWORD"); // Throwing error for incorrect email or password
+					throw new ApolloError("Incorrect Email OR Password", "INCORRECT_EMAIL_PASSWORD");
 				}
 			} catch (err) {
-				console.log("error logging in user", err); // Logging error if login fails
-				throw err; // Throwing error
-			}
-		},
-
-		// Resolver to update a user's personal information
-		updateOneUserName: async (_, { id, name }, { user }) => {
-			try {
-				//todo: check to see if the one making the change is an admin or the same user if it is a different user or not a admin dont allow them
-
-				// If the user is an admin, they can access any user
-				if (user && user.role === "admin") {
-					// Admin can access any user's data
-					// Construct an update object based on the provided fields
-					const update = {};
-					if (name) {
-						update.name = name;
-					}
-				}
-				if (user && (user.userId !== id || user.email !== user.email) && user.role === "user") {
-					throw new Error("Unauthorized: You can only access your own information.");
-				}
-
-				// Construct an update object based on the provided fields
-				const update = {};
-				if (name) {
-					update.name = name;
-				}
-
-				// Update the user document in the database
-				const updatedUser = await User.findByIdAndUpdate(id, update, { new: true });
-				if (!updatedUser) {
-					throw new ApolloError("User not found", "USER_NOT_FOUND"); // Throw ApolloError if user not found
-				}
-
-				// Return the updated user
-				return updatedUser;
-			} catch (error) {
-				console.error("Error updating user's personal info:", error); // Logging error if update fails
-				throw error; // Throwing error
-			}
-		},
-
-		// Resolver to update a user's email
-		updateEmail: async (_, { id, previousEmail, newEmail }) => {
-			try {
-				// Find the user by ID
-				const user = await User.findById(id);
-				if (!user) {
-					throw new ApolloError("User not found", "USER_NOT_FOUND"); // Throw ApolloError if user not found
-				}
-
-				// Check if the previous email matches the user's current email
-				if (user.email !== previousEmail) {
-					throw new ApolloError("Previous email does not match", "PREVIOUS_EMAIL_MISMATCH"); // Throw ApolloError if previous email does not match
-				}
-
-				// Update the user's email
-				user.email = newEmail;
-
-				// Save the updated user
-				const updatedUser = await user.save();
-
-				// Return the updated user
-				return updatedUser;
-			} catch (error) {
-				console.error("Error updating email:", error); // Log error if update fails
-				throw error; // Throw error
+				console.log("error logging in user", err);
+				throw err;
 			}
 		},
 
 		updateUserProfile: async (_, { id, updateUserProfile: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword } }, { user }) => {
 			try {
-				// makes sure that there is a user token with some basic information
 				if (!user) {
-					throw new Error("Unauthorized: No user context provided.");
+					throw new Error("Unauthorized: No user context.");
 				}
 
-				// Find the user to be updated
-				const targetUser = await User.findById(id);
+				//  Check permissions
+				if (!user.permissions?.canEditSelf) {
+					throw new Error("Unauthorized: You do not have permission to update your profile.");
+				}
 
-				// confirms that the current users is still save in the db
+				const targetUser = await User.findById(id);
 				if (!targetUser) {
 					throw new ApolloError("User not found", "USER_NOT_FOUND");
 				}
 
-				const isSelf = user.userId === id; //grabs the id info from the user token
-
-				// makes sure that you are only updating you (own) personal information
+				const isSelf = user.userId === id;
 				if (!isSelf) {
-					throw new Error("Unauthorized: You can only update your own information.");
+					throw new Error("Unauthorized: You can only update your own profile.");
 				}
 
-				// Check if new email is already in use
+				// Email update logic
 				if (newEmail) {
-					const existingUser = await User.findOne({ email: newEmail }); //tries to find a user with the email that was provided for update
-					//confirms that there are no users in the db with the new email provided
+					const existingUser = await User.findOne({ email: newEmail });
 					if (existingUser && existingUser.id !== id) {
 						throw new ApolloError(`User with email: ${newEmail} already exists`, "USER_ALREADY_EXIST");
 					}
 
-					// confirms that a previous(current) email is provided
 					if (!previousEmail) {
 						throw new ApolloError("Previous email is required to update email", "EMAIL_VALIDATION_ERROR");
 					}
 
-					// confirms that the  previous(current) email provided match the email save in the db
 					if (targetUser.email !== previousEmail) {
 						throw new ApolloError("Previous email does not match", "PREVIOUS_EMAIL_MISMATCH");
 					}
+
+					targetUser.email = newEmail;
 				}
 
-				// Check if a new Password is being provided
+				// Password update logic
 				if (newPassword) {
-					// confirms that previous(current) pass word is provided
 					if (!previousPassword) {
 						throw new ApolloError("Previous password is required to update your password", "PASSWORD_VALIDATION_ERROR");
 					}
 
-					// confirms that the users previous password inputted matches their password in the database
-					if ((await bcrypt.compare(previousPassword, targetUser.password)) == false) {
-						throw new ApolloError(`Previous password does not match your old(current) password`, "PREVIOUS_PASSWORD_MISMATCH");
+					const passwordMatch = await bcrypt.compare(previousPassword, targetUser.password);
+					if (!passwordMatch) {
+						throw new ApolloError("Previous password does not match", "PREVIOUS_PASSWORD_MISMATCH");
 					}
 
-					// confirms that the new password and the confirms password inputted are the same
 					if (newPassword !== confirmNewPassword) {
-						throw new ApolloError("password and confirm Password don't match", "PASSWORD_VALIDATION_ERROR");
+						throw new ApolloError("Password and confirm password don't match", "PASSWORD_VALIDATION_ERROR");
 					}
-				}
-				// Update fields
-				if (name) targetUser.name = name;
-				if (newEmail) targetUser.email = newEmail;
-				if (newPassword && confirmNewPassword) {
+
 					targetUser.password = newPassword;
 					targetUser.confirmPassword = confirmNewPassword;
 				}
 
-				//  Regenerate and save JWT token with updated data
+				if (name) targetUser.name = name;
+
+				// New token
 				const newToken = jwt.sign(
 					{
 						userId: targetUser.id,
 						email: targetUser.email,
 						role: targetUser.role,
+						permissions: targetUser.permissions,
 					},
 					process.env.Secret_Key
 				);
 
 				targetUser.token = newToken;
 
-				// Save updated user
 				await targetUser.save();
 
-				return targetUser;
+				return {
+					id: targetUser.id,
+					name: targetUser.name,
+					email: targetUser.email,
+					permissions: targetUser.permissions,
+					role: targetUser.role,
+					token: newToken,
+				};
 			} catch (error) {
 				console.error("Error updating user profile:", error);
 				throw error;
 			}
 		},
 
-		// adminChangeUserProfile: async (_, { id, updateUserProfile: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword } }, { user }) => {
-		// 	try {
-		// 		// makes sure that there is a user token with some basic information
-		// 		if (!user) {
-		// 			throw new Error("Unauthorized: No user context provided.");
-		// 		}
+		adminChangeUserProfile: async (_, { id, updateUserProfile: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, newRole, newPermissions } }, { user }) => {
+			// todo you need correct the permission validations and test that the code works as intended
+			try {
+				if (!user) {
+					throw new Error("Unauthorized: No user context.");
+				}
 
-		// 		if (((user.role !== "admin") | "subadmin", role !== "user")) {
-		// 			throw new Error("Unauthorized: You dont have permission to change this users information.");
-		// 		}
-		// 		// Find the user to be updated
-		// 		const targetUser = await User.findById(id);
+				const requesterRole = user.role;
+				const perms = user.permissions || {};
+				const targetUser = await User.findById(id);
+				if (!targetUser) {
+					throw new ApolloError("User not found", "USER_NOT_FOUND");
+				}
 
-		// 		// confirms that the current users is still save in the db
-		// 		if (!targetUser) {
-		// 			throw new ApolloError("User not found", "USER_NOT_FOUND");
-		// 		}
+				const isSelf = user.userId === id;
+				const targetRole = targetUser.role;
 
-		// 		const isSelf = user.userId === id; //grabs the id info from the user token
+				// Define role hierarchy
+				const roleRank = {
+					headAdmin: 3,
+					admin: 2,
+					subAdmin: 1,
+					user: 0,
+					noRole: -1,
+				};
 
-		// 		// Check if new email is already in use
-		// 		if (newEmail) {
-		// 			const existingUser = await User.findOne({ email: newEmail }); //tries to find a user with the email that was provided for update
-		// 			//confirms that there are no users in the db with the new email provided
-		// 			if (existingUser && existingUser.id !== id) {
-		// 				throw new ApolloError(`User with email: ${newEmail} already exists`, "USER_ALREADY_EXIST");
-		// 			}
+				// Step 1: Confirm requester is allowed to perform updates
+				const allowedRoles = ["headAdmin", "admin", "subAdmin"];
+				if (!allowedRoles.includes(requesterRole)) {
+					throw new Error("Unauthorized: Your role cannot update users.");
+				}
 
-		// 			// confirms that a previous(current) email is provided
-		// 			if (!previousEmail) {
-		// 				throw new ApolloError("Previous email is required to update email", "EMAIL_VALIDATION_ERROR");
-		// 			}
+				const hasAllRequiredPerms = perms.canEditUsers === true && perms.canViewUsers === true && perms.canViewAllUsers === true;
 
-		// 			// confirms that the  previous(current) email provided match the email save in the db
-		// 			if (targetUser.email !== previousEmail) {
-		// 				throw new ApolloError("Previous email does not match", "PREVIOUS_EMAIL_MISMATCH");
-		// 			}
-		// 		}
+				if (!hasAllRequiredPerms) {
+					throw new Error("Unauthorized: You lack required permissions to update users.");
+				}
 
-		// 		// Check if a new Password is being provided
-		// 		if (newPassword) {
-		// 			// confirms that previous(current) pass word is provided
-		// 			if (!previousPassword) {
-		// 				throw new ApolloError("Previous password is required to update your password", "PASSWORD_VALIDATION_ERROR");
-		// 			}
+				// Step 2: Sub-admin cannot change roles unless they have canChangeRole
+				if (requesterRole === "subAdmin" && newRole && perms.canChangeRole !== true) {
+					throw new Error("Unauthorized: Sub-admins cannot change roles without permission.");
+				}
 
-		// 			// confirms that the users previous password inputted matches their password in the database
-		// 			if ((await bcrypt.compare(previousPassword, targetUser.password)) == false) {
-		// 				throw new ApolloError(`Previous password does not match your old(current) password`, "PREVIOUS_PASSWORD_MISMATCH");
-		// 			}
+				// Step 3: Prevent updating someone with equal or higher role (unless self or headAdmin)
+				if (!isSelf && roleRank[requesterRole] <= roleRank[targetRole]) {
+					throw new Error("Unauthorized: You cannot update users with equal or higher role.");
+				}
 
-		// 			// confirms that the new password and the confirms password inputted are the same
-		// 			if (newPassword !== confirmNewPassword) {
-		// 				throw new ApolloError("password and confirm Password don't match", "PASSWORD_VALIDATION_ERROR");
-		// 			}
-		// 		}
-		// 		// Update fields
-		// 		if (name) targetUser.name = name;
-		// 		if (newEmail) targetUser.email = newEmail;
-		// 		if (newPassword && confirmNewPassword) {
-		// 			targetUser.password = newPassword;
-		// 			targetUser.confirmPassword = confirmNewPassword;
-		// 		}
+				// Step 4: Admin limitations
+				if (requesterRole === "admin" && newRole) {
+					if (newRole === "headAdmin") {
+						throw new Error("Unauthorized: Admins cannot promote users to head admin.");
+					}
+					if (targetRole === "admin" && newRole !== "admin") {
+						throw new Error("Unauthorized: Admins cannot demote other admins.");
+					}
+				}
 
-		// 		//  Regenerate and save JWT token with updated data
-		// 		const newToken = jwt.sign(
-		// 			{
-		// 				userId: targetUser.id,
-		// 				email: targetUser.email,
-		// 				role: targetUser.role,
-		// 			},
-		// 			process.env.Secret_Key
-		// 		);
+				// Step 5: Ensure canChangeRole permission if role update is requested
+				if (newRole && perms.canChangeRole !== true && requesterRole !== "headAdmin") {
+					throw new Error("Unauthorized: You do not have permission to change roles.");
+				}
 
-		// 		targetUser.token = newToken;
+				// Step 6: Handle email change
+				if (newEmail) {
+					const existingUser = await User.findOne({ email: newEmail });
+					if (existingUser && existingUser.id !== id) {
+						throw new ApolloError(`Email already in use`, "USER_ALREADY_EXIST");
+					}
 
-		// 		// Save updated user
-		// 		await targetUser.save();
+					if (!previousEmail) {
+						throw new ApolloError("Previous email is required.", "EMAIL_VALIDATION_ERROR");
+					}
 
-		// 		return targetUser;
-		// 	} catch (error) {
-		// 		console.error("Error updating user profile:", error);
-		// 		throw error;
-		// 	}
-		// },
+					if (targetUser.email !== previousEmail) {
+						throw new ApolloError("Previous email does not match.", "PREVIOUS_EMAIL_MISMATCH");
+					}
+
+					targetUser.email = newEmail;
+				}
+
+				// Step 7: Handle password change
+				if (newPassword) {
+					if (requesterRole !== "headAdmin") {
+						if (!previousPassword) {
+							throw new ApolloError("Previous password is required.", "PASSWORD_REQUIRED");
+						}
+
+						const isMatch = await bcrypt.compare(previousPassword, targetUser.password);
+						if (!isMatch) {
+							throw new ApolloError("Previous password is incorrect.", "PASSWORD_INCORRECT");
+						}
+					}
+
+					if (newPassword !== confirmNewPassword) {
+						throw new ApolloError("Passwords do not match.", "PASSWORD_MISMATCH");
+					}
+
+					targetUser.password = newPassword;
+					targetUser.confirmPassword = confirmNewPassword;
+				}
+
+				// Step 8: Apply updates
+				if (name) targetUser.name = name;
+				if (newRole) targetUser.role = newRole;
+				if (newPermissions) targetUser.permissions = { ...targetUser.permissions, newPermissions };
+
+				// Step 9: Regenerate token
+				const newToken = jwt.sign(
+					{
+						userId: targetUser.id,
+						email: targetUser.email,
+						role: targetUser.role,
+						permissions: targetUser.permissions,
+					},
+					process.env.Secret_Key
+				);
+
+				targetUser.token = newToken;
+				await targetUser.save();
+
+				return targetUser;
+			} catch (error) {
+				console.error("Error in adminChangeUserProfile:", error);
+				throw error;
+			}
+		},
 
 		deleteOneUser: async (_, { id }, { user }) => {
 			console.log("this is the token", user);

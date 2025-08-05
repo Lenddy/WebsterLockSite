@@ -24,14 +24,14 @@ import authenticator from "./middleware/tokenAuthenticator.js";
 import pubsub from "./graphql/pubsub.js";
 
 // GraphQL Types & Resolvers
-import { managerTypeDef } from "./graphql/types/manager.typeDef.js";
-import { managerResolvers } from "./graphql/resolvers/manager.resolver.js";
 import { userTypeDef } from "./graphql/types/user.typeDef.js";
 import { userResolver } from "./graphql/resolvers/user.resolver.js";
+import { materialRequestTypeDef } from "./graphql/types/materialRequest.typeDef.js";
+import { materialRequestResolvers } from "./graphql/resolvers/materialRequest.resolver.js";
 
 // Merge GraphQL schema
-const typeDefs = mergeTypeDefs([managerTypeDef, userTypeDef]);
-const resolvers = mergeResolvers([managerResolvers, userResolver]);
+const typeDefs = mergeTypeDefs([userTypeDef, materialRequestTypeDef]);
+const resolvers = mergeResolvers([userResolver, materialRequestResolvers]);
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 // Async startup function

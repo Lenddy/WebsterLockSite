@@ -2,42 +2,39 @@
 import { Schema, model } from "mongoose";
 // const { Schema, model } = require("mongoose");
 
-const ManagerSchema = new Schema(
+const MaterialRequestSchema = new Schema(
 	{
-		// Attributes for the database
-		name: {
-			type: String,
-			required: true,
-			min: [2, "Name Of The Manager Must Be At Least 2 Characters Long"],
-		},
-
-		addresses: {
-			type: [
-				{
-					address: String,
-					city: String,
-					state: String,
-					zipCode: String,
-					keys: {
-						type: [
-							{
-								keyWay: String,
-								keyCode: String,
-								doorLocation: String,
-							},
-						],
-					},
-				},
-			],
+		requesterId: {
+			type: Schema.Types.ObjectId,
+			ref: "User",
 			required: true,
 		},
+		reviewerId: {
+			type: Schema.Types.ObjectId,
+			ref: "User",
+		},
+		description: String,
+		comment: String,
+		addedDate: {
+			type: Date,
+			default: Date.now,
+		},
+		items: [
+			{
+				_id: { type: Schema.Types.ObjectId, auto: true },
+				quantity: { type: Number, required: true },
+				itemName: { type: String, required: true },
+			},
+		],
 	},
-	{ timestamps: true }
+	{
+		timestamps: true, // still keeps createdAt & updatedAt too
+	}
 );
 
-const Manager = model("Managers", ManagerSchema); // Naming the table(document) in the database
-
-export default Manager; // Exporting the schema
+// Exporting model
+const MaterialRequest = model("MaterialRequest", MaterialRequestSchema);
+export default MaterialRequest;
 
 // !! no phone numbers
 // cellPhones: {

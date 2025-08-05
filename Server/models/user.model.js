@@ -128,3 +128,27 @@ const User = model("Users", UserSchema);
 
 // Exporting the User model for use elsewhere in the app
 export default User;
+
+// !! no phone numbers
+// cellPhones: {
+// 	type: [
+// 		{
+// 			numberId: {
+// 				type: String,
+// 				// required: true
+// 			},
+// 			number: {
+// 				type: String,
+// 				required: true,
+// 				validate: {
+// 					validator: function (v) {
+// 						// Example regex for validating US phone numbers
+// 						return /\(\d{3}\)\d{3}-\d{4}/.test(v);
+// 					},
+// 					message: (props) => `${props.value} is not a valid phone number!`,
+// 				},
+// 			},
+// 		},
+// 	],
+// 	//!! required: true,
+// },

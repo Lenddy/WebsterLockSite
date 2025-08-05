@@ -129,6 +129,7 @@ const userResolver = {
 
 		loginUser: async (_, { loginInput: { email, password } }) => {
 			try {
+				console.log("credentials ", email, password);
 				// Find the user by email
 				const user = await User.findOne({ email });
 
@@ -163,7 +164,7 @@ const userResolver = {
 			}
 		},
 
-		updateUserProfile: async (_, { id, updateUserProfile: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword } }, { user }) => {
+		updateUserProfile: async (_, { id, updateUserProfile: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword } }, { user, pubsub }) => {
 			try {
 				if (!user) {
 					throw new Error("Unauthorized: No user context.");
@@ -177,6 +178,10 @@ const userResolver = {
 				const targetUser = await User.findById(id);
 				if (!targetUser) {
 					throw new ApolloError("User not found", "USER_NOT_FOUND");
+				}
+
+				if (targetUser.permissions.canNotBeUpdated) {
+					throw new ApolloError("Unauthorized: user cant not be updated");
 				}
 
 				const isSelf = user.userId === id;
@@ -238,6 +243,14 @@ const userResolver = {
 
 				await targetUser.save();
 
+				// Publish to subscription
+				await pubsub.publish("USER_UPDATED", {
+					onChange: {
+						eventType: "updated",
+						Changes: targetUser,
+					},
+				});
+
 				return {
 					id: targetUser.id,
 					name: targetUser.name,
@@ -252,18 +265,24 @@ const userResolver = {
 			}
 		},
 
-		adminChangeUserProfile: async (_, { id, updateUserProfile: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, newRole, newPermissions } }, { user }) => {
-			// todo you need correct the permission validations and test that the code works as intended
+		adminChangeUserProfile: async (_, { id, adminChangeUserProfileInput: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, newRole, newPermissions, job } }, { user, pubsub }) => {
 			try {
 				if (!user) {
 					throw new Error("Unauthorized: No user context.");
 				}
-
+				// { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, newRole, newPermissions }
+				// adminChangeUserProfileInput
 				const requesterRole = user.role;
+				// console.log(" users role that is being given ", requesterRole, " ", "id of the targeted user ", id, " ", "new info ", { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, newRole, newPermissions, job });
 				const perms = user.permissions || {};
 				const targetUser = await User.findById(id);
+				// console.dir("targeted user before update", targetUser);
 				if (!targetUser) {
 					throw new ApolloError("User not found", "USER_NOT_FOUND");
+				}
+
+				if (targetUser.permissions.canNotBeUpdated) {
+					throw new ApolloError("Unauthorized: user cant not be updated");
 				}
 
 				const isSelf = user.userId === id;
@@ -281,6 +300,7 @@ const userResolver = {
 				// Step 1: Confirm requester is allowed to perform updates
 				const allowedRoles = ["headAdmin", "admin", "subAdmin"];
 				if (!allowedRoles.includes(requesterRole)) {
+					// console.log("users making the changes role", allowedRoles.includes(requesterRole));
 					throw new Error("Unauthorized: Your role cannot update users.");
 				}
 
@@ -354,10 +374,25 @@ const userResolver = {
 					targetUser.confirmPassword = confirmNewPassword;
 				}
 
+				const allowedPermissionKeys = ["canEditUsers", "canDeleteUsers", "canChangeRole", "canViewUsers", "canViewAllUsers", "canEditSelf", "canViewSelf", "canDeleteSelf"];
+
 				// Step 8: Apply updates
 				if (name) targetUser.name = name;
+				if (job) targetUser.job = job;
 				if (newRole) targetUser.role = newRole;
-				if (newPermissions) targetUser.permissions = { ...targetUser.permissions, newPermissions };
+				if (newPermissions) {
+					const filteredPermissions = Object.keys(newPermissions)
+						.filter((key) => allowedPermissionKeys.includes(key))
+						.reduce((obj, key) => {
+							obj[key] = newPermissions[key];
+							return obj;
+						}, {});
+
+					targetUser.permissions = {
+						...targetUser.permissions,
+						...filteredPermissions,
+					};
+				}
 
 				// Step 9: Regenerate token
 				const newToken = jwt.sign(
@@ -372,21 +407,52 @@ const userResolver = {
 
 				targetUser.token = newToken;
 				await targetUser.save();
+				// console.log("targeted user after update ", targetUser);
 
-				return targetUser;
+				// Publish to subscription
+				await pubsub.publish("USER_UPDATED", {
+					onChange: {
+						eventType: "updated",
+						Changes: targetUser,
+					},
+				});
+
+				return {
+					id: targetUser.id,
+					name: targetUser.name,
+					email: targetUser.email,
+					permissions: targetUser.permissions,
+					role: targetUser.role,
+					token: newToken,
+				};
 			} catch (error) {
 				console.error("Error in adminChangeUserProfile:", error);
 				throw error;
 			}
 		},
 
-		deleteOneUser: async (_, { id }, { user }) => {
-			console.log("this is the token", user);
-			if (!user || user.role !== "admin") {
-				throw new Error("Unauthorized: Admin access required.");
+		deleteOneUser: async (_, { id }, { user, pubsub }) => {
+			if (!user) throw new Error("Unauthorized: No context provided.");
+
+			const isSelf = user.userId.toString() === id;
+
+			if (isSelf) {
+				if (user.permissions.canNotBeDeleted) throw new ApolloError("You cannot delete your own account.");
+				if (!user.permissions.canDeleteSelf) throw new ApolloError("You lack permission to delete your account.");
+			} else {
+				if (!user.permissions.canDeleteUsers) throw new ApolloError("You lack permission to delete other users.");
+
+				const targetUser = await User.findById(id);
+				if (!targetUser) throw new ApolloError("User not found.");
+				if (targetUser.permissions?.canNotBeDeleted) throw new ApolloError("This user cannot be deleted.");
 			}
 
-			return await User.findByIdAndDelete(id);
+			const deletedUser = await User.findByIdAndDelete(id);
+			await pubsub.publish("USER_DELETED", {
+				onChange: { eventType: "deleted", Changes: deletedUser },
+			});
+
+			return deletedUser;
 		},
 	},
 

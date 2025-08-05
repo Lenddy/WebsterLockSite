@@ -47,6 +47,8 @@ const userTypeDef = gql`
 		canEditSelf: Boolean # Can this user update their own profile info?
 		canViewSelf: Boolean # Can this user view their own profile?
 		canDeleteSelf: Boolean # Can this user delete their own account?
+		canNotBeDeleted: Boolean
+		canNotBeUpdated: Boolean
 	}
 
 	# Used in subscriptions to indicate type of change and changed user
@@ -71,6 +73,8 @@ const userTypeDef = gql`
 		canEditSelf: Boolean
 		canViewSelf: Boolean
 		canDeleteSelf: Boolean
+		canNotBeDeleted: Boolean
+		canNotBeUpdated: Boolean
 	}
 
 	# Input object for registering a user
@@ -101,6 +105,19 @@ const userTypeDef = gql`
 		job: JobInput # Optional update to job details
 	}
 
+	# Input object for updating a user profile
+	input AdminChangeUserProfileInput {
+		name: String # New name (optional)
+		previousEmail: String # For verification
+		newEmail: String # New email to update to
+		previousPassword: String # For verification
+		newPassword: String # New password to update to
+		confirmNewPassword: String # Confirm the new password
+		job: JobInput # Optional update to job details
+		newRole: UserRole
+		newPermissions: PermissionsInput
+	}
+
 	# Root query operations (read-only)
 	type Query {
 		hello: String # Test query to verify schema
@@ -113,7 +130,7 @@ const userTypeDef = gql`
 		registerUser(registerInput: RegisterInput): User! # Register a new user
 		loginUser(loginInput: LoginInput): User! # Authenticate a user and return token
 		updateUserProfile(id: ID!, updateUserProfile: UpdateUserProfileInput): User! # Update personal user data
-		adminChangeUserProfile(id: ID!, updateUserProfile: UpdateUserProfileInput): User! # Update others users data
+		adminChangeUserProfile(id: ID!, adminChangeUserProfileInput: AdminChangeUserProfileInput): User! # Update others users data
 		deleteOneUser(id: ID!): User! # Permanently delete a user
 	}
 

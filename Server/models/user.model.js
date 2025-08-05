@@ -70,6 +70,8 @@ const UserSchema = new Schema(
 			canEditSelf: { type: Boolean, default: true }, // Permission to edit own profile
 			canViewSelf: { type: Boolean, default: true }, // Permission to view own profile
 			canDeleteSelf: { type: Boolean, default: false }, // Permission to delete own account
+			canNotBeDeleted: { type: Boolean, default: false }, // Permission to not be able to be delete
+			canNotBeUpdated: { type: Boolean, default: false }, // Permission to not be able to be updated
 		},
 	},
 	{

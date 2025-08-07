@@ -1,24 +1,36 @@
-// Importing Schema and model to create the schema and saving it to the database
 import { Schema, model } from "mongoose";
-// const { Schema, model } = require("mongoose");
 
 const MaterialRequestSchema = new Schema(
 	{
 		requesterId: {
 			type: Schema.Types.ObjectId,
-			ref: "User",
+			ref: "Users",
 			required: true,
+			immutable: true,
 		},
+
+		description: { type: String },
+
 		reviewerId: {
 			type: Schema.Types.ObjectId,
-			ref: "User",
+			ref: "Users",
+			immutable: true,
 		},
-		description: String,
-		comment: String,
+		approvalStatus: {
+			approved: { type: Boolean, default: false },
+			denied: { type: Boolean, default: false },
+			reviewedAt: {
+				type: Date,
+				default: null,
+			},
+			comment: { type: String },
+		},
+
 		addedDate: {
 			type: Date,
 			default: Date.now,
 		},
+
 		items: [
 			{
 				_id: { type: Schema.Types.ObjectId, auto: true },
@@ -28,34 +40,16 @@ const MaterialRequestSchema = new Schema(
 		],
 	},
 	{
-		timestamps: true, // still keeps createdAt & updatedAt too
+		timestamps: true,
 	}
 );
 
-// Exporting model
+MaterialRequestSchema.pre("save", function (next) {
+	if (this.isModified("approvalStatus.approved") && this.approvalStatus.approved && !this.approvalStatus.reviewedAt) {
+		this.approvalStatus.reviewedAt = new Date();
+	}
+	next();
+});
+
 const MaterialRequest = model("MaterialRequest", MaterialRequestSchema);
 export default MaterialRequest;
-
-// !! no phone numbers
-// cellPhones: {
-// 	type: [
-// 		{
-// 			numberId: {
-// 				type: String,
-// 				// required: true
-// 			},
-// 			number: {
-// 				type: String,
-// 				required: true,
-// 				validate: {
-// 					validator: function (v) {
-// 						// Example regex for validating US phone numbers
-// 						return /\(\d{3}\)\d{3}-\d{4}/.test(v);
-// 					},
-// 					message: (props) => `${props.value} is not a valid phone number!`,
-// 				},
-// 			},
-// 		},
-// 	],
-// 	//!! required: true,
-// },

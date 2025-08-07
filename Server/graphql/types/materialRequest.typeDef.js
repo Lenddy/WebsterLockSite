@@ -3,10 +3,11 @@ import { gql } from "graphql-tag";
 // const { gql } = require("apollo-server-express");
 import "../scalar/dateTime.js";
 
-// require("../scalar/dateTime");
+import { userTypeDef } from "./user.typeDef.js";
 
 const materialRequestTypeDef = gql`
 	scalar DateTime
+	${userTypeDef}
 
 	type MaterialRequest {
 		id: ID!
@@ -14,6 +15,7 @@ const materialRequestTypeDef = gql`
 		reviewerId: User
 		description: String
 		comment: String
+		approvalStatus: ApprovalStatus
 		addedDate: String
 		items: [MaterialRequestItem!]!
 		createdAt: String
@@ -26,18 +28,20 @@ const materialRequestTypeDef = gql`
 		quantity: Int!
 	}
 
-	type User {
-		id: ID!
-		name: String
+	type ApprovalStatus {
+		approved: Boolean
+		denied: Boolean
+		reviewedAt: String
+		comment: String
 	}
 
 	input MaterialRequestItemInput {
-		itemName: String!
 		quantity: Int!
+		itemName: String!
 	}
 
 	input CreateOneMaterialRequestInput {
-		requesterId: ID!
+		# requesterId: ID!
 		description: String
 		comment: String
 		items: [MaterialRequestItemInput!]!
@@ -45,7 +49,6 @@ const materialRequestTypeDef = gql`
 
 	input UpdateMaterialRequestInput {
 		id: ID!
-		reviewerId: ID
 		description: String
 		comment: String
 		items: [MaterialRequestItemInput!]
@@ -53,7 +56,7 @@ const materialRequestTypeDef = gql`
 
 	type Query {
 		getAllMaterialRequests: [MaterialRequest]!
-		materialRequest(id: ID!): MaterialRequest
+		getOneMaterialRequest(id: ID!): MaterialRequest!
 	}
 
 	type Mutation {

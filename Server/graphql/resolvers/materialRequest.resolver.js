@@ -1,6 +1,7 @@
 // Importing Manager model, uuid for unique IDs, and pubsub for event publishing
+import { ApolloError } from "apollo-server-errors";
 import MaterialRequest from "../../models/materialRequest.model.js";
-import User from "../../models/user.model.js";
+// import "../../models/user.model.js";
 
 import pubsub from "../pubsub.js";
 // const mongoose = require("mongoose");
@@ -14,41 +15,60 @@ const materialRequestResolvers = {
 		},
 
 		// Get all managers - available for all users (admin and non-admin)
-		getAllMaterialRequests: async (_, __) => {
+		getAllMaterialRequests: async (_, __, { user }) => {
 			try {
-				const materialRequest = await MaterialRequest.find();
-				console.log("all the Material requests", materialRequest, "\n____________________");
+				// Ensure user token exists (authentication)
+				if (!user) {
+					throw new Error("Unauthorized: No user token was found.");
+				}
+
+				// Check if user has permission to view all users
+				// Using permissions.canViewAllUsers to allow granular control
+				if (!user.permissions || !user.permissions.canViewAllUsers) {
+					throw new Error("Unauthorized: You do not have permission to view all Material Request.");
+				}
+
+				const materialRequest = await MaterialRequest.find().populate("requesterId").populate("reviewerId");
+
 				return materialRequest;
-			} catch (err) {
-				console.log("there was an error fetching all the Managers", err, "\n____________________");
-				throw err;
+			} catch (error) {
+				console.log("there was an error fetching all the Material Request", error);
+				throw error;
 			}
 		},
 
-		// // Get a single manager by ID - available for all users
-		// getOneManager: async (_, { id }) => {
-		// 	try {
-		// 		const manager = await Manager.findById(id);
-		// 		console.log("one Manager", manager, "\n____________________", "\n____________________", manager?.addresses?.keys[0]?._id, "\n____________________");
-		// 		return manager;
-		// 	} catch (err) {
-		// 		console.log("there was an error fetching one Manager", err, "\n____________________");
-		// 		throw err;
-		// 	}
-		// },
+		getOneMaterialRequest: async (_, { id }, { user }) => {
+			try {
+				// Ensure user token exists (authentication)
+				if (!user) {
+					throw new Error("Unauthorized: No user token was found.");
+				}
+
+				// Check if user has permission to view all users
+				// Using permissions.canViewAllUsers to allow granular control
+				if (!user.permissions || !user.permissions.canViewAllUsers) {
+					throw new Error("Unauthorized: You do not have permission to view Material Requests.");
+				}
+
+				const materialRequest = await MaterialRequest.findById(id).populate("requesterId").populate("reviewerId");
+
+				return materialRequest;
+			} catch (err) {
+				console.log("there was an error fetching one Material request", err, "\n____________________");
+				throw err;
+			}
+		},
 	},
 
 	Mutation: {
-		// Create a new manager - only admins can create new managers
-		createONeMaterialRequest: async (_, { input: { requesterId, description, comment, items } }, { user }) => {
-			// todo: you need to figure out why the users field is not being populated
+		createONeMaterialRequest: async (_, { input: { description, comment, items } }, { user }) => {
 			if (!user) {
 				throw new Error("Unauthorized: no user context given.");
 			}
 
 			try {
 				const newMaterialRequest = new MaterialRequest({
-					requesterId,
+					requesterId: user.userId,
 					description,
 					comment,
 					items,
@@ -58,7 +78,7 @@ const materialRequestResolvers = {
 				await newMaterialRequest.save();
 
 				//  Populate requesterId before returning
-				await newMaterialRequest.populate("requesterId");
+				await newMaterialRequest.populate([{ path: "requesterId" }, { path: "reviewerId" }]);
 
 				console.log("new Material request created", newMaterialRequest, "\n____________________");
 
@@ -66,6 +86,78 @@ const materialRequestResolvers = {
 			} catch (err) {
 				console.log("Error creating material request", err, "\n____________________");
 				throw err;
+			}
+		},
+
+		updateOneMaterialRequest: async (_, { input: { id, description, items, approvalStatus } }, { user, pubsub }) => {
+			try {
+				if (!user) throw new Error("Unauthorized: No user context."); //shows an error if no user token is present
+				if ((!user.permissions.canEditUsers === true && user.role === "user") || user.role === "noRole") throw new Error("Unauthorized: You lack permission."); //if users does not have permission to edits users and is a user or a noRole throws an error
+
+				const updateOps = []; //! determine if you will be using bulk updates
+
+				const target = await MaterialRequest.findById(id);
+				if (!target) throw new ApolloError("Material request was not found");
+
+				if (description) target.description = description;
+				if (approvalStatus) {
+					target.approvalStatus.reviewedAt = Date.now();
+					if (approvalStatus.approved === true) target.approvalStatus.approved = true;
+					if (approvalStatus.denied === true) target.approvalStatus.denied = true;
+					if (approvalStatus.comment) target.approvalStatus.comment = approvalStatus.comment;
+				}
+
+				if (items && Array.isArray(items)) {
+					const bulkOps = [];
+
+					for (const item of items) {
+						const { _id, itemName, quantity, status } = item;
+
+						if (status === "toBeAdded") {
+							// Push new item into items array
+							bulkOps.push({
+								updateOne: {
+									filter: { _id: id },
+									update: { $push: { items: { itemName, quantity } } },
+								},
+							});
+						} else if (status === "toBeUpdated" && _id) {
+							// Update existing item by _id inside the array using arrayFilters
+							bulkOps.push({
+								updateOne: {
+									filter: { _id: id },
+									update: {
+										$set: {
+											"items.$[elem].itemName": itemName,
+											"items.$[elem].quantity": quantity,
+										},
+									},
+									arrayFilters: [{ "elem._id": _id }],
+								},
+							});
+						} else if (status === "toBeDeleted" && _id) {
+							// Pull the item from the array by _id
+							bulkOps.push({
+								updateOne: {
+									filter: { _id: id },
+									update: { $pull: { items: { _id: _id } } },
+								},
+							});
+						}
+					}
+
+					if (bulkOps.length > 0) {
+						await MaterialRequest.bulkWrite(bulkOps);
+					}
+				}
+
+				// Reload updated document to return
+				const updatedRequest = await MaterialRequest.findById(id);
+
+				return updatedRequest;
+			} catch (error) {
+				console.error("Error updating material request:", error);
+				throw error;
 			}
 		},
 

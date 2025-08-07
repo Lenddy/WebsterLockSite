@@ -5,7 +5,7 @@ import MaterialRequest from "../../models/materialRequest.model.js";
 
 import pubsub from "../pubsub.js";
 // const mongoose = require("mongoose");
-import mongoose from "mongoose";
+// import {ObjectId} from "mongoose";
 
 const materialRequestResolvers = {
 	Query: {
@@ -89,72 +89,122 @@ const materialRequestResolvers = {
 			}
 		},
 
+		// todo: the update works correctly now test it a bit more , add the logic for the if is not the same reviewerId or is not an admin dont dont allow them ot make updates
+		//! i think that the id of the reviewer is not being added look into that
+		// ! the user does have the id but is not adding it to the db  find out why
 		updateOneMaterialRequest: async (_, { input: { id, description, items, approvalStatus } }, { user, pubsub }) => {
 			try {
-				if (!user) throw new Error("Unauthorized: No user context."); //shows an error if no user token is present
-				if ((!user.permissions.canEditUsers === true && user.role === "user") || user.role === "noRole") throw new Error("Unauthorized: You lack permission."); //if users does not have permission to edits users and is a user or a noRole throws an error
-
-				const updateOps = []; //! determine if you will be using bulk updates
+				if (!user) throw new Error("Unauthorized: No user context.");
+				if ((!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole") throw new Error("Unauthorized: You lack permission.");
 
 				const target = await MaterialRequest.findById(id);
+
+				// console.log("this are the items", items);
+				console.log("user", user);
+				// console.log("before the update");
+				// console.dir(target._doc.items);
 				if (!target) throw new ApolloError("Material request was not found");
 
-				if (description) target.description = description;
+				let shouldSave = false;
+
+				// Update description
+				if (description) {
+					target.description = description;
+					shouldSave = true;
+				}
+
+				// Update approval status
 				if (approvalStatus) {
 					target.approvalStatus.reviewedAt = Date.now();
 					if (approvalStatus.approved === true) target.approvalStatus.approved = true;
 					if (approvalStatus.denied === true) target.approvalStatus.denied = true;
 					if (approvalStatus.comment) target.approvalStatus.comment = approvalStatus.comment;
+					shouldSave = true;
 				}
 
-				if (items && Array.isArray(items)) {
-					const bulkOps = [];
+				if (!target.reviewerId) {
+					console.log("adding new id", user.userId);
+					target.reviewerId = user.userId;
+				}
 
+				const bulkOps = [];
+				const newAddition = [];
+				const newUpdate = [];
+				const newDeletion = [];
+
+				if (Array.isArray(items)) {
 					for (const item of items) {
-						const { _id, itemName, quantity, status } = item;
+						const { id: itemId, itemName, quantity, action } = item;
 
-						if (status === "toBeAdded") {
-							// Push new item into items array
+						if (action.toBeAdded === true) {
+							newAddition.push(item);
 							bulkOps.push({
 								updateOne: {
 									filter: { _id: id },
 									update: { $push: { items: { itemName, quantity } } },
 								},
 							});
-						} else if (status === "toBeUpdated" && _id) {
-							// Update existing item by _id inside the array using arrayFilters
+						} else if (action.toBeUpdated && itemId) {
+							newUpdate.push(item);
 							bulkOps.push({
 								updateOne: {
-									filter: { _id: id },
+									filter: { _id: id, "items._id": itemId },
 									update: {
 										$set: {
-											"items.$[elem].itemName": itemName,
-											"items.$[elem].quantity": quantity,
+											"items.$.quantity": quantity,
+											"items.$.itemName": itemName,
 										},
+										// $[indexItem].
 									},
-									arrayFilters: [{ "elem._id": _id }],
+									// arrayFilters: [{ "indexItem._id": itemId }],
 								},
 							});
-						} else if (status === "toBeDeleted" && _id) {
-							// Pull the item from the array by _id
+						}
+						// else
+						else if (action.toBeDeleted && itemId) {
+							newDeletion.push(item);
 							bulkOps.push({
 								updateOne: {
 									filter: { _id: id },
-									update: { $pull: { items: { _id: _id } } },
+									update: { $pull: { items: { _id: itemId } } },
 								},
 							});
 						}
 					}
-
-					if (bulkOps.length > 0) {
-						await MaterialRequest.bulkWrite(bulkOps);
-					}
 				}
+				console.log("new additions");
+				console.dir(newAddition, { depth: null });
+				console.log("new update");
+				console.dir(newUpdate, { depth: null });
+				console.log("new deletion");
+				console.dir(newDeletion, { depth: null });
 
-				// Reload updated document to return
-				const updatedRequest = await MaterialRequest.findById(id);
+				let bulkResult = null;
 
-				return updatedRequest;
+				// if (bulkOps.length > 0) {
+				// 	bulkResult = await MaterialRequest.bulkWrite(bulkOps);
+				// 	console.log("bulkWrite result:");
+				// 	console.dir(bulkResult, { depth: null });
+				// 	console.log("operation in the bulkOps");
+				// 	console.dir(bulkOps, { depth: null });
+				// } else {
+				// 	console.log(" No bulk updates were needed.");
+				// }
+
+				console.log("__________________________________________________________________________________________");
+
+				// Run both updates (main doc + bulk items) in parallel
+				// console.log(" Starting update...");
+
+				await Promise.all([shouldSave ? target.save() : null, bulkOps.length > 0 ? MaterialRequest.bulkWrite(bulkOps) : null]);
+
+				const updatedTarget = await MaterialRequest.findById(id).populate([{ path: "requesterId" }, { path: "reviewerId" }]);
+
+				// console.log(" Final updated document:");
+				// console.dir(updatedTarget, { depth: null });
+
+				// Return the already-updated object (reloaded version optional)
+				return updatedTarget;
 			} catch (error) {
 				console.error("Error updating material request:", error);
 				throw error;

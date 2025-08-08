@@ -61,12 +61,13 @@ const materialRequestResolvers = {
 					addedDate: new Date().toISOString(), // Set creation date
 				});
 
-				await newMaterialRequest.save(); // Save to DB
+				await newMaterialRequest.save().populate([{ path: "requesterId" }, { path: "reviewerId" }]); // Save to DB // Populate requester and reviewer fields
 
-				// Populate requester and reviewer fields
 				await newMaterialRequest.populate([{ path: "requesterId" }, { path: "reviewerId" }]);
 
-				console.log("new Material request created", newMaterialRequest, "\n____________________"); // Log creation
+				await pubsub.publish("MATERIAL_REQUEST_ADDED", {
+					onChange: { eventType: "created", Changes: newMaterialRequest }, // Publish event
+				});
 
 				return newMaterialRequest; // Return created request
 			} catch (err) {
@@ -167,6 +168,10 @@ const materialRequestResolvers = {
 
 				// Fetch updated document with populated fields
 				const updatedTarget = await MaterialRequest.findById(id).populate([{ path: "requesterId" }, { path: "reviewerId" }]);
+
+				await pubsub.publish("MATERIAL_REQUEST_UPDATED", {
+					onChange: { eventType: "updated", Changes: updatedTarget }, // Publish event
+				});
 
 				return updatedTarget; // Return updated request
 			} catch (error) {

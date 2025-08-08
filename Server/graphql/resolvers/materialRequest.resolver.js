@@ -1,119 +1,99 @@
-// Importing Manager model, uuid for unique IDs, and pubsub for event publishing
-import { ApolloError } from "apollo-server-errors";
-import MaterialRequest from "../../models/materialRequest.model.js";
-// import "../../models/user.model.js";
-
-import pubsub from "../pubsub.js";
-// const mongoose = require("mongoose");
-// import {ObjectId} from "mongoose";
+// Import necessary modules and models
+import { ApolloError } from "apollo-server-errors"; // For GraphQL error handling
+import MaterialRequest from "../../models/materialRequest.model.js"; // Mongoose model for MaterialRequest
+import pubsub from "../pubsub.js"; // PubSub instance for subscriptions
 
 const materialRequestResolvers = {
+	// Query resolvers
 	Query: {
+		// Simple test query
 		hello: async () => {
-			console.log("it hit");
-			return "hello world";
+			console.log("it hit"); // Log when called
+			return "hello world"; // Return test string
 		},
 
-		// Get all managers - available for all users (admin and non-admin)
+		// Fetch all material requests (admin only)
 		getAllMaterialRequests: async (_, __, { user }) => {
 			try {
-				// Ensure user token exists (authentication)
-				if (!user) {
-					throw new Error("Unauthorized: No user token was found.");
-				}
+				if (!user) throw new Error("Unauthorized: No user token was found."); // Require authentication
+				if (!user.permissions || !user.permissions.canViewAllUsers) throw new Error("Unauthorized: You do not have permission to view all Material Request."); // Require permission
 
-				// Check if user has permission to view all users
-				// Using permissions.canViewAllUsers to allow granular control
-				if (!user.permissions || !user.permissions.canViewAllUsers) {
-					throw new Error("Unauthorized: You do not have permission to view all Material Request.");
-				}
-
+				// Fetch all requests, populating requester and reviewer
 				const materialRequest = await MaterialRequest.find().populate("requesterId").populate("reviewerId");
 
-				return materialRequest;
+				return materialRequest; // Return result
 			} catch (error) {
-				console.log("there was an error fetching all the Material Request", error);
-				throw error;
+				console.log("there was an error fetching all the Material Request", error); // Log error
+				throw error; // Rethrow error
 			}
 		},
 
+		// Fetch a single material request by ID (admin only)
 		getOneMaterialRequest: async (_, { id }, { user }) => {
 			try {
-				// Ensure user token exists (authentication)
-				if (!user) {
-					throw new Error("Unauthorized: No user token was found.");
-				}
+				if (!user) throw new Error("Unauthorized: No user token was found."); // Require authentication
+				if (!user.permissions || !user.permissions.canViewAllUsers) throw new Error("Unauthorized: You do not have permission to view Material Requests."); // Require permission
 
-				// Check if user has permission to view all users
-				// Using permissions.canViewAllUsers to allow granular control
-				if (!user.permissions || !user.permissions.canViewAllUsers) {
-					throw new Error("Unauthorized: You do not have permission to view Material Requests.");
-				}
-
+				// Find by ID and populate fields
 				const materialRequest = await MaterialRequest.findById(id).populate("requesterId").populate("reviewerId");
 
-				return materialRequest;
+				return materialRequest; // Return result
 			} catch (err) {
-				console.log("there was an error fetching one Material request", err, "\n____________________");
-				throw err;
+				console.log("there was an error fetching one Material request", err, "\n____________________"); // Log error
+				throw err; // Rethrow error
 			}
 		},
 	},
 
+	// Mutation resolvers
 	Mutation: {
+		// Create a new material request
 		createONeMaterialRequest: async (_, { input: { description, comment, items } }, { user }) => {
-			if (!user) {
-				throw new Error("Unauthorized: no user context given.");
-			}
+			if (!user) throw new Error("Unauthorized: no user context given."); // Require authentication
 
 			try {
+				// Create new request document
 				const newMaterialRequest = new MaterialRequest({
-					requesterId: user.userId,
-					description,
-					comment,
-					items,
-					addedDate: new Date().toISOString(),
+					requesterId: user.userId, // Set requester
+					description, // Set description
+					comment, // Set comment
+					items, // Set items array
+					addedDate: new Date().toISOString(), // Set creation date
 				});
 
-				await newMaterialRequest.save();
+				await newMaterialRequest.save(); // Save to DB
 
-				//  Populate requesterId before returning
+				// Populate requester and reviewer fields
 				await newMaterialRequest.populate([{ path: "requesterId" }, { path: "reviewerId" }]);
 
-				console.log("new Material request created", newMaterialRequest, "\n____________________");
+				console.log("new Material request created", newMaterialRequest, "\n____________________"); // Log creation
 
-				return newMaterialRequest;
+				return newMaterialRequest; // Return created request
 			} catch (err) {
-				console.log("Error creating material request", err, "\n____________________");
-				throw err;
+				console.log("Error creating material request", err, "\n____________________"); // Log error
+				throw err; // Rethrow error
 			}
 		},
 
-		// todo: the update works correctly now test it a bit more , add the logic for the if is not the same reviewerId or is not an admin dont dont allow them ot make updates
-		//! i think that the id of the reviewer is not being added look into that
-		// ! the user does have the id but is not adding it to the db  find out why
-		updateOneMaterialRequest: async (_, { input: { id, description, items, approvalStatus } }, { user, pubsub }) => {
+		// Update an existing material request
+		updateOneMaterialRequest: async (_, { input: { id, description, items, approvalStatus } }, { user }) => {
 			try {
-				if (!user) throw new Error("Unauthorized: No user context.");
-				if ((!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole") throw new Error("Unauthorized: You lack permission.");
+				if (!user) throw new Error("Unauthorized: No user context."); // Require authentication
+				if ((!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole") throw new Error("Unauthorized: You lack permission."); // Require permission
 
-				const target = await MaterialRequest.findById(id);
+				const target = await MaterialRequest.findById(id); // Find request by ID
+				console.log("user", user); // Log user info
+				if (!target) throw new ApolloError("Material request was not found"); // Error if not found
 
-				// console.log("this are the items", items);
-				console.log("user", user);
-				// console.log("before the update");
-				// console.dir(target._doc.items);
-				if (!target) throw new ApolloError("Material request was not found");
+				let shouldSave = false; // Track if save is needed
 
-				let shouldSave = false;
-
-				// Update description
+				// Update description if provided
 				if (description) {
 					target.description = description;
 					shouldSave = true;
 				}
 
-				// Update approval status
+				// Update approval status if provided
 				if (approvalStatus) {
 					target.approvalStatus.reviewedAt = Date.now();
 					if (approvalStatus.approved === true) target.approvalStatus.approved = true;
@@ -122,20 +102,27 @@ const materialRequestResolvers = {
 					shouldSave = true;
 				}
 
+				// Set reviewer if not already set
 				if (!target.reviewerId) {
-					console.log("adding new id", user.userId);
 					target.reviewerId = user.userId;
 				}
 
-				const bulkOps = [];
-				const newAddition = [];
-				const newUpdate = [];
-				const newDeletion = [];
+				// Only allow original reviewer or admin to update
+				if (target.reviewerId !== user.userId || user.role === "user" || user.role !== "noRole" || user.permissions.canEditUsers == false) {
+					throw new ApolloError("Unauthorized: You lack permission to change this Material request you have to be the original reviewer or an admin to be able to make changes.");
+				}
 
+				const bulkOps = []; // Array for bulk operations
+				const newAddition = []; // Track new items
+				const newUpdate = []; // Track updated items
+				const newDeletion = []; // Track deleted items
+
+				// Handle item changes if provided
 				if (Array.isArray(items)) {
 					for (const item of items) {
 						const { id: itemId, itemName, quantity, action } = item;
 
+						// Add new item
 						if (action.toBeAdded === true) {
 							newAddition.push(item);
 							bulkOps.push({
@@ -144,7 +131,9 @@ const materialRequestResolvers = {
 									update: { $push: { items: { itemName, quantity } } },
 								},
 							});
-						} else if (action.toBeUpdated && itemId) {
+						}
+						// Update existing item
+						else if (action.toBeUpdated && itemId) {
 							newUpdate.push(item);
 							bulkOps.push({
 								updateOne: {
@@ -154,13 +143,11 @@ const materialRequestResolvers = {
 											"items.$.quantity": quantity,
 											"items.$.itemName": itemName,
 										},
-										// $[indexItem].
 									},
-									// arrayFilters: [{ "indexItem._id": itemId }],
 								},
 							});
 						}
-						// else
+						// Delete item
 						else if (action.toBeDeleted && itemId) {
 							newDeletion.push(item);
 							bulkOps.push({
@@ -172,405 +159,53 @@ const materialRequestResolvers = {
 						}
 					}
 				}
-				console.log("new additions");
-				console.dir(newAddition, { depth: null });
-				console.log("new update");
-				console.dir(newUpdate, { depth: null });
-				console.log("new deletion");
-				console.dir(newDeletion, { depth: null });
-
-				let bulkResult = null;
-
-				// if (bulkOps.length > 0) {
-				// 	bulkResult = await MaterialRequest.bulkWrite(bulkOps);
-				// 	console.log("bulkWrite result:");
-				// 	console.dir(bulkResult, { depth: null });
-				// 	console.log("operation in the bulkOps");
-				// 	console.dir(bulkOps, { depth: null });
-				// } else {
-				// 	console.log(" No bulk updates were needed.");
-				// }
 
 				console.log("__________________________________________________________________________________________");
 
-				// Run both updates (main doc + bulk items) in parallel
-				// console.log(" Starting update...");
-
+				// Save main document and perform bulk item updates in parallel
 				await Promise.all([shouldSave ? target.save() : null, bulkOps.length > 0 ? MaterialRequest.bulkWrite(bulkOps) : null]);
 
+				// Fetch updated document with populated fields
 				const updatedTarget = await MaterialRequest.findById(id).populate([{ path: "requesterId" }, { path: "reviewerId" }]);
 
-				// console.log(" Final updated document:");
-				// console.dir(updatedTarget, { depth: null });
-
-				// Return the already-updated object (reloaded version optional)
-				return updatedTarget;
+				return updatedTarget; // Return updated request
 			} catch (error) {
-				console.error("Error updating material request:", error);
-				throw error;
+				console.error("Error updating material request:", error); // Log error
+				throw error; // Rethrow error
 			}
 		},
 
-		// updateOneManager: async (parent, args, { user }) => {
-		// 	if (!user || user.role !== "admin") {
-		// 		throw new Error("Unauthorized: Admin access required.");
-		// 	}
-		// 	const { id, name, addressesInfo } = args;
-		// 	const update = {};
-		// 	let hasUpdates = false;
-		// 	console.log("Received arguments:", args);
-		// 	// Update the name field if it's provided
-		// 	if (name !== null && name !== undefined) {
-		// 		update.name = name;
-		// 		hasUpdates = true;
-		// 		// console.log("Name updated:", name);
-		// 	}
-		// 	try {
-		// 		const bulkOps = []; // Array to hold bulk operations
-		// 		// Normalize addresses to an array if it's a single object
-		// 		const normalizedAddresses = Array.isArray(addressesInfo) ? addressesInfo : addressesInfo ? [addressesInfo] : []; //!! this gets the info from the addressesInfo array
-		// 		// console.log("Normalized addresses:", normalizedAddresses);
-		// 		// Process addresses and prepare bulk operations
-		// 		normalizedAddresses.forEach((address, i) => {
-		// 			//!! this loops over every element on the normalized info array
-		// 			console.log("adding the address info", i); //address
-		// 			if (!address || !address.status) {
-		// 				//!! this checks if the is actual info on the normalized info array
-		// 				// console.log("Skipping invalid address:", i, address);
-		// 				return; // Skip if no valid address or status
-		// 			}
-		// 			// Handle adding new addresses, updating, or deleting addresses (existing logic remains)
-		// 			// (Add handling logic for addresses similar to your current resolver)
-		// 			if (address.status === "add" && address.address && address.city && address.state && address.zipCode) {
-		// 				// console.log("Adding address:", address);
-		// 				// Add address first
-		// 				bulkOps.push({
-		// 					updateOne: {
-		// 						filter: { _id: id },
-		// 						update: { $push: { addresses: { ...address } } },
-		// 					},
-		// 				});
-		// 				// Now handle keys associated with the address, if any
-		// 				address.keys?.forEach((key, j) => {
-		// 					console.log("adding the key info ", j);
-		// 					if (key.status === "add" && key.keyWay && key.code && key.doorLocation) {
-		// 						// Add the key to the address after the address is added
-		// 						bulkOps.push({
-		// 							updateOne: {
-		// 								filter: { _id: id, "addresses.address": address.address },
-		// 								update: { $push: { "addresses.$.keys": key } },
-		// 							},
-		// 						});
-		// 					}
-		// 				});
-		// 			}
-		// 			// Handle updating existing addresses
-		// 			else if (address.status === "update" && address.addressId) {
-		// 				// console.log("Updating address:", address);
-		// 				// Process keys within the address for update
-		// 				address.keys.forEach((key) => {
-		// 					// console.log("got a key", key, "\n____________________", "\n____________________", "\n____________________");
-		// 					if (key.status === "add") {
-		// 						// Add key to the address using addressId
-		// 						bulkOps.push({
-		// 							updateOne: {
-		// 								filter: { _id: id, "addresses._id": address.addressId },
-		// 								update: { $push: { "addresses.$.keys": key } },
-		// 							},
-		// 						});
-		// 					}
-		// 					//TODO: the update need to be fix because is not adding the update to the keys
-		// 					else if (key.status === "update" && key.keyId) {
-		// 						// console.log("keys information :", key, "\n____________________", "\n____________________", "\n____________________");
-		// 						// console.log("Bulk Operation Query:", JSON.stringify(bulkOps, null, 2));
-		// 						bulkOps.push({
-		// 							updateOne: {
-		// 								// 	filter: { _id: id, "addresses._id": address.addressId, "addresses.keys._id": key.keyId }, // Match the manager //!! "address._id": address.addressId, "key._id": key.keyId
-		// 								// 	update: {
-		// 								// 		$set: {
-		// 								// 			"keys.$.keyWay": key.keyWay,
-		// 								// 			"keys.$.keyCode": key.keyCode,
-		// 								// 			"keys.$.doorLocation": key.doorLocation,
-		// 								// 		},
-		// 								// 	},
-		// 								// },
-		// 								filter: { _id: id }, // Match the manager
-		// 								update: {
-		// 									$set: {
-		// 										"addresses.$[address].keys.$[key].keyWay": key.keyWay,
-		// 										"addresses.$[address].keys.$[key].keyCode": key.keyCode,
-		// 										"addresses.$[address].keys.$[key].doorLocation": key.doorLocation,
-		// 									},
-		// 								},
-		// 								arrayFilters: [
-		// 									{ "address._id": address.addressId }, // Match the specific address
-		// 									{ "key._id": key.keyId }, // Match the specific key
-		// 								],
-		// 							},
-		// 						});
-		// 						//TODO: the update need to be fix because is not adding the update to the keys
-		// 					} else if (key.status === "delete" && key.keyId) {
-		// 						// Delete key from address
-		// 						bulkOps.push({
-		// 							updateOne: {
-		// 								filter: { _id: id, "addresses._id": address.addressId },
-		// 								update: { $pull: { "addresses.$.keys": { _id: key.keyId } } },
-		// 							},
-		// 						});
-		// 					}
-		// 				});
-		// 				// Update the address itself after processing keys
-		// 				bulkOps.push({
-		// 					updateOne: {
-		// 						filter: { _id: id, "addresses._id": address.addressId },
-		// 						update: {
-		// 							$set: {
-		// 								"addresses.$.address": address.address,
-		// 								"addresses.$.city": address.city,
-		// 								"addresses.$.state": address.state,
-		// 								"addresses.$.zipCode": address.zipCode,
-		// 							},
-		// 						},
-		// 					},
-		// 				});
-		// 			}
-		// 			// Handle deleting addresses
-		// 			else if (address.status === "delete" && address.addressId) {
-		// 				console.log("Deleting address:", address);
-		// 				bulkOps.push({
-		// 					updateOne: {
-		// 						filter: { _id: id },
-		// 						update: { $pull: { addresses: { _id: address.addressId } } },
-		// 					},
-		// 				});
-		// 				// If the address is deleted, delete all keys associated with it
-		// 				if (address.keys) {
-		// 					address.keys.forEach((key) => {
-		// 						if (key.keyId) {
-		// 							bulkOps.push({
-		// 								updateOne: {
-		// 									filter: { _id: id, "addresses._id": address.addressId },
-		// 									update: { $pull: { "addresses.$.keys": { _id: key.keyId } } },
-		// 								},
-		// 							});
-		// 						}
-		// 					});
-		// 				}
-		// 			}
-		// 		});
-		// 		console.log("Bulk Operation Query:", JSON.stringify(bulkOps, null, 2));
-		// 		// Execute bulk operations if any valid operations exist
-		// 		if (bulkOps.length > 0) {
-		// 			console.log("Executing bulk operations...");
-		// 			await Manager.bulkWrite(bulkOps);
-		// 			hasUpdates = true; // Flag as having performed updates
-		// 			console.log("Bulk operations completed successfully.");
-		// 		}
-		// 		// Perform the main update if there are updates
-		// 		if (hasUpdates) {
-		// 			console.log("Updating manager with id:", id);
-		// 			const updatedManager = await Manager.findByIdAndUpdate(id, update, { new: true });
-		// 			if (!updatedManager) {
-		// 				console.log("Manager not found with id:", id);
-		// 				throw new Error("Manager not found");
-		// 			}
-		// 			pubsub.publish("MANAGER_UPDATED", {
-		// 				onManagerChange: {
-		// 					eventType: "MANAGER_UPDATED",
-		// 					managerChanges: updatedManager,
-		// 				},
-		// 			});
-		// 			console.log("Manager updated successfully:", updatedManager);
-		// 			return updatedManager;
-		// 		} else {
-		// 			console.log("No valid updates provided");
-		// 			return null;
-		// 		}
-		// 	} catch (err) {
-		// 		console.error("Error updating manager", err);
-		// 		throw err;
-		// 	}
-		// },
-		// Delete manager - only admins can delete managers
-		// updateOneManager: async (parent, args, { user }) => {
-		// 	if (!user || user.role !== "admin") {
-		// 		throw new Error("Unauthorized: Admin access required.");
-		// 	}
-		// 	const { id, name, addressesInfo } = args;
-		// 	const update = {};
-		// 	let hasUpdates = false;
-		// 	console.log("Received arguments:", args);
-		// 	// Update the name field if it's provided
-		// 	if (name !== null && name !== undefined) {
-		// 		update.name = name;
-		// 		hasUpdates = true;
-		// 	}
-		// 	try {
-		// 		const bulkOps = []; // Array to hold bulk operations
-		// 		// Normalize addresses to an array if it's a single object
-		// 		const normalizedAddresses = Array.isArray(addressesInfo) ? addressesInfo : addressesInfo ? [addressesInfo] : [];
-		// 		console.log("Normalized addresses:", normalizedAddresses);
-		// 		// Process addresses and prepare bulk operations
-		// 		normalizedAddresses.forEach((address) => {
-		// 			if (!address || !address.status) return; // Skip invalid addresses
-		// 			// Add a new address
-		// 			if (address.status === "add" && address.address && address.city && address.state && address.zipCode) {
-		// 				bulkOps.push({
-		// 					updateOne: {
-		// 						filter: { _id: id },
-		// 						update: { $push: { addresses: { ...address, _id: new mongoose.Types.ObjectId() } } },
-		// 					},
-		// 				});
-		// 				// Add keys to the address if any
-		// 				address.keys?.forEach((key) => {
-		// 					if (key.status === "add" && key.keyWay && key.keyCode && key.doorLocation) {
-		// 						bulkOps.push({
-		// 							updateOne: {
-		// 								filter: { _id: id, "addresses.address": address.address },
-		// 								update: { $push: { "addresses.$.keys": { ...key, _id: new mongoose.Types.ObjectId() } } },
-		// 							},
-		// 						});
-		// 					}
-		// 				});
-		// 			}
-		// 			// Handle updating existing addresses
-		// 			else if (address.status === "update" && address.addressId) {
-		// 				// Update the address itself
-		// 				if (address.address || address.city || address.state || address.zipCode)
-		// 					bulkOps.push({
-		// 						updateOne: {
-		// 							filter: { _id: id, "addresses._id": address.addressId },
-		// 							update: {
-		// 								$set: {
-		// 									"addresses.$.address": address.address,
-		// 									"addresses.$.city": address.city,
-		// 									"addresses.$.state": address.state,
-		// 									"addresses.$.zipCode": address.zipCode,
-		// 								},
-		// 							},
-		// 						},
-		// 					});
-		// 				// Update keys inside the address
-		// 				if (address.keys) {
-		// 					address.keys?.forEach((key) => {
-		// 						if (key.status === "update" && key.keyId) {
-		// 							// Ensure arrayFilters are applied to match the correct address and key
-		// 							bulkOps.push({
-		// 								updateOne: {
-		// 									filter: { _id: id },
-		// 									update: {
-		// 										$set: {
-		// 											"addresses.$[address].keys.$[key].keyWay": key.keyWay,
-		// 											"addresses.$[address].keys.$[key].keyCode": key.keyCode,
-		// 											"addresses.$[address].keys.$[key].doorLocation": key.doorLocation,
-		// 										},
-		// 									},
-		// 									arrayFilters: [
-		// 										{ "address._id": address.addressId }, // Match the address
-		// 										{ "key._id": key.keyId }, // Match the key
-		// 									],
-		// 								},
-		// 							});
-		// 						}
-		// 						// Delete key if necessary
-		// 						else if (key.status === "delete" && key.keyId) {
-		// 							bulkOps.push({
-		// 								updateOne: {
-		// 									filter: { _id: id, "addresses._id": address.addressId },
-		// 									update: { $pull: { "addresses.$.keys": { _id: key.keyId } } },
-		// 								},
-		// 							});
-		// 						}
-		// 					});
-		// 				}
-		// 			}
-		// 			// Delete an address
-		// 			else if (address.status === "delete" && address.addressId) {
-		// 				bulkOps.push({
-		// 					updateOne: {
-		// 						filter: { _id: id },
-		// 						update: { $pull: { addresses: { _id: address.addressId } } },
-		// 					},
-		// 				});
-		// 				// Delete keys if address is deleted
-		// 				if (address.keys) {
-		// 					address.keys.forEach((key) => {
-		// 						if (key.keyId) {
-		// 							bulkOps.push({
-		// 								updateOne: {
-		// 									filter: { _id: id, "addresses._id": address.addressId },
-		// 									update: { $pull: { "addresses.$.keys": { _id: key.keyId } } },
-		// 								},
-		// 							});
-		// 						}
-		// 					});
-		// 				}
-		// 			}
-		// 		});
-		// 		// Log the bulkOps to verify the operations
-		// 		console.log("Bulk Operation Query:", JSON.stringify(bulkOps, null, 2));
-		// 		// Execute bulk operations if any valid operations exist
-		// 		if (bulkOps.length > 0) {
-		// 			console.log("Executing bulk operations...");
-		// 			await Manager.bulkWrite(bulkOps);
-		// 			hasUpdates = true;
-		// 			console.log("Bulk operations completed successfully.");
-		// 		}
-		// 		// Perform the main update if there are updates
-		// 		if (hasUpdates) {
-		// 			console.log("Updating manager with id:", id);
-		// 			const updatedManager = await Manager.findByIdAndUpdate(id, update, { new: true });
-		// 			if (!updatedManager) {
-		// 				console.log("Manager not found with id:", id);
-		// 				throw new Error("Manager not found");
-		// 			}
-		// 			pubsub.publish("MANAGER_UPDATED", {
-		// 				onManagerChange: {
-		// 					eventType: "MANAGER_UPDATED",
-		// 					managerChanges: updatedManager,
-		// 				},
-		// 			});
-		// 			console.log("Manager updated successfully:", updatedManager);
-		// 			return updatedManager;
-		// 		} else {
-		// 			console.log("No valid updates provided");
-		// 			return null;
-		// 		}
-		// 	} catch (err) {
-		// 		console.error("Error updating manager", err);
-		// 		throw err;
-		// 	}
-		// },
-		// deleteOneManager: async (_, { id }, { user }) => {
-		// 	if (!user || user.role !== "admin") {
-		// 		throw new Error("Unauthorized: Admin access required.");
-		// 	}
-		// 	return await Manager.findByIdAndDelete(id)
-		// 		.then((deletedManager) => {
-		// 			pubsub.publish("MANAGER_DELETED", {
-		// 				onManagerChange: {
-		// 					eventType: "MANAGER_DELETED",
-		// 					managerChanges: deletedManager,
-		// 				},
-		// 			});
-		// 			console.log("a manager was deleted", deletedManager, "\n____________________");
-		// 			return deletedManager;
-		// 		})
-		// 		.catch((err) => {
-		// 			console.log("there was an error deleting a Manager", err, "\n____________________");
-		// 			throw err;
-		// 		});
-		// },
+		// Delete a material request (admin only)
+		deleteOneMaterialRequest: async (_, { id }, { user }) => {
+			if (!user) throw new Error("Unauthorized: No context provided."); // Require authentication
+			if (!user.permissions.canDeleteUsers) throw new ApolloError("You lack permission to delete Material request."); // Require permission
+
+			const deletedMaterialRequest = await MaterialRequest.findByIdAndDelete(id); // Delete by ID
+			if (!deletedMaterialRequest) throw new ApolloError("Material Request not found"); // Error if not found
+
+			// Publish deletion event for subscriptions
+			await pubsub.publish("MATERIAL_REQUEST_DELETED", {
+				onChange: { eventType: "deleted", Changes: deletedMaterialRequest },
+			});
+
+			MaterialRequest;
+			return deletedMaterialRequest; // Return deleted request
+		},
 	},
 
-	// Subscription: {
-	// 	onMaterialRequestChange: {
-	// 		subscribe: () => pubsub.asyncIterator(["MATERIAL_REQUEST_ADDED", "MATERIAL_REQUEST_UPDATED", "MATERIAL_REQUEST_DELETED"]),
-	// 	},
-	// },
+	// Subscription resolvers
+	Subscription: {
+		// Listen for changes to material requests
+		onMaterialRequestChange: {
+			subscribe: () => pubsub.asyncIterableIterator(["MATERIAL_REQUEST_ADDED", "MATERIAL_REQUEST_UPDATED", "MATERIAL_REQUEST_DELETED"]),
+		},
+	},
 
+	// Field resolvers for MaterialRequest type
 	MaterialRequest: {
+		// Format createdAt as ISO string
 		createdAt: (materialRequest) => materialRequest.createdAt.toISOString(),
+		// Format updatedAt as ISO string
 		updatedAt: (materialRequest) => materialRequest.updatedAt.toISOString(),
 	},
 };

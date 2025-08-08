@@ -96,15 +96,15 @@ const materialRequestTypeDef = gql`
 		deleteOneMaterialRequest(id: ID!): Boolean!
 	}
 
-	# # (Commented out) Types for subscriptions and actions, for future use
-	# type Change {
-	# 	eventType: String # Type of change (e.g., "created", "updated", "deleted")
-	# 	Changes: MaterialRequest! # Updated user object after the change
-	# }
+	# (Commented out) Types for subscriptions and actions, for future use
+	type MaterialRequestChange {
+		eventType: String # Type of change (e.g., "created", "updated", "deleted")
+		Changes: MaterialRequest! # Updated user object after the change
+	}
 
-	# type Subscription {
-	# 	onMaterialRequestChange: Change
-	# }
+	type Subscription {
+		onMaterialRequestChange: MaterialRequestChange
+	}
 `;
 
 // Export the type definitions for use in the GraphQL server

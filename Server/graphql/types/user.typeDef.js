@@ -51,12 +51,6 @@ const userTypeDef = gql`
 		canNotBeUpdated: Boolean
 	}
 
-	# Used in subscriptions to indicate type of change and changed user
-	type Change {
-		eventType: String # Type of change (e.g., "created", "updated", "deleted")
-		Changes: User! # Updated user object after the change
-	}
-
 	# Input object for job data, used in registration or profile update
 	input JobInput {
 		title: String # Job title to assign
@@ -134,9 +128,15 @@ const userTypeDef = gql`
 		deleteOneUser(id: ID!): User! # Permanently delete a user
 	}
 
+	# Used in subscriptions to indicate type of change and changed user
+	type UserChange {
+		eventType: String # Type of change (e.g., "created", "updated", "deleted")
+		Changes: User! # Updated user object after the change
+	}
+
 	# Root subscription operations (real-time updates)
 	type Subscription {
-		onChange: Change # Emits whenever a user is created, updated, or deleted
+		onUserChange: UserChange # Emits whenever a user is created, updated, or deleted
 	}
 `;
 

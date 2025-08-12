@@ -9,8 +9,20 @@ import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { createClient } from "graphql-ws";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { onError } from "@apollo/client/link/error";
+import { setContext } from "@apollo/client/link/context";
 
 // 1 Error handling link
+/**
+ * Apollo Link error handler for logging GraphQL and network errors.
+ *
+ * This link intercepts errors from GraphQL operations and logs detailed error messages
+ * to the console. It handles both GraphQL errors (such as validation or resolver errors)
+ * and network errors (such as connectivity issues).
+ *
+ * @constant
+ * @type {import('@apollo/client').ApolloLink}
+ */
+
 const errorLink = onError(({ graphQLErrors, networkError }) => {
 	if (graphQLErrors) {
 		graphQLErrors.forEach(({ message }) => {
@@ -24,15 +36,29 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
 
 //  HTTP link (for queries & mutations)
 const httpLink = new HttpLink({
-	uri: "http://localhost:8080/graphql", // Your backend GraphQL endpoint
+	uri: import.meta.env.VITE_API_URL, // Your backend GraphQL endpoint
+});
+
+const token = localStorage.getItem("UserToken"); // Get from localStorage
+
+const authLink = setContext((_, { headers }) => {
+	// const token = import.meta.env.VITE_TOKEN; // hardcoded for testing
+
+	return {
+		headers: {
+			...headers,
+			authorization: token ? `Bearer ${token}` : "",
+		},
+	};
 });
 
 //  WebSocket link (for subscriptions)
 const wsLink = new GraphQLWsLink(
 	createClient({
-		url: "ws://localhost:8080/graphql", // IMPORTANT: ws:// for dev, wss:// for prod
+		url: import.meta.env.VITE_WS_URL, // IMPORTANT: ws:// for dev, wss:// for prod
 		connectionParams: {
 			// You can send auth headers here if needed
+			authorization: token ? `Bearer ${token}` : "",
 		},
 	})
 );
@@ -44,7 +70,7 @@ const splitLink = split(
 		return definition.kind === "OperationDefinition" && definition.operation === "subscription";
 	},
 	wsLink,
-	errorLink.concat(httpLink) // HTTP gets errors handled
+	errorLink.concat(authLink.concat(httpLink)) //  add auth before http
 );
 
 //  Apollo Client instance

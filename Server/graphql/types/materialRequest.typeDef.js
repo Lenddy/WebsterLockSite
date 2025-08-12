@@ -85,6 +85,7 @@ const materialRequestTypeDef = gql`
 
 	# Queries for fetching material requests
 	type Query {
+		hello2: String # Test query to verify schema
 		getAllMaterialRequests: [MaterialRequest]! # Get all requests
 		getOneMaterialRequest(id: ID!): MaterialRequest! # Get a single request by ID
 	}

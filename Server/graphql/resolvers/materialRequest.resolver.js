@@ -7,7 +7,7 @@ const materialRequestResolvers = {
 	// Query resolvers
 	Query: {
 		// Simple test query
-		hello: async () => {
+		hello2: async () => {
 			console.log("it hit"); // Log when called
 			return "hello world"; // Return test string
 		},

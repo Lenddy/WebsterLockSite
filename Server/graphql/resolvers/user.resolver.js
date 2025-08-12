@@ -64,7 +64,7 @@ const userResolver = {
 
 	Mutation: {
 		// Register a new user
-		registerUser: async (_, { registerInput: { name, email, password, confirmPassword, role = "user", job, permissions } }, { pubsub }) => {
+		registerUser: async (_, { input: { name, email, password, confirmPassword, role = "user", job, permissions } }, { pubsub }) => {
 			try {
 				const oldUser = await User.findOne({ email }); // Check if user exists
 				if (oldUser) {
@@ -116,7 +116,7 @@ const userResolver = {
 		},
 
 		// Login user
-		loginUser: async (_, { loginInput: { email, password } }) => {
+		loginUser: async (_, { input: { email, password } }) => {
 			try {
 				console.log("credentials ", email, password); // Log credentials (not recommended in prod)
 				const user = await User.findOne({ email }); // Find user by email
@@ -148,7 +148,7 @@ const userResolver = {
 		},
 
 		// Update user profile (self)
-		updateUserProfile: async (_, { id, updateUserProfile: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword } }, { user, pubsub }) => {
+		updateUserProfile: async (_, { id, input: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword } }, { user, pubsub }) => {
 			try {
 				if (!user) {
 					throw new Error("Unauthorized: No user context."); // Check authentication
@@ -245,7 +245,7 @@ const userResolver = {
 		},
 
 		// Admin change user profile
-		adminChangeUserProfile: async (_, { id, adminChangeUserProfileInput: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, newRole, newPermissions, job } }, { user, pubsub }) => {
+		adminChangeUserProfile: async (_, { id, input: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, newRole, newPermissions, job } }, { user, pubsub }) => {
 			try {
 				if (!user) {
 					throw new Error("Unauthorized: No user context."); // Check authentication

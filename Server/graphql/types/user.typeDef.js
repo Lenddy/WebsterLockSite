@@ -121,10 +121,10 @@ const userTypeDef = gql`
 
 	# Root mutation operations (write/update)
 	type Mutation {
-		registerUser(registerInput: RegisterInput): User! # Register a new user
-		loginUser(loginInput: LoginInput): User! # Authenticate a user and return token
-		updateUserProfile(id: ID!, updateUserProfile: UpdateUserProfileInput): User! # Update personal user data
-		adminChangeUserProfile(id: ID!, adminChangeUserProfileInput: AdminChangeUserProfileInput): User! # Update others users data
+		registerUser(input: RegisterInput): User! # Register a new user
+		loginUser(input: LoginInput): User! # Authenticate a user and return token
+		updateUserProfile(id: ID!, input: UpdateUserProfileInput): User! # Update personal user data
+		adminChangeUserProfile(id: ID!, input: AdminChangeUserProfileInput): User! # Update others users data
 		deleteOneUser(id: ID!): User! # Permanently delete a user
 	}
 

@@ -71,7 +71,7 @@ const userResolver = {
 					throw new ApolloError(`User with email: ${email} already exists`, "USER_ALREADY_EXIST"); // Duplicate email
 				}
 
-				const validRoles = ["headAdmin", "admin", "subAdmin", "user", "noRole"]; // Valid roles
+				const validRoles = ["headAdmin", "admin", "subAdmin", "user", "noRole", "technician"]; // Valid roles
 				if (!validRoles.includes(role)) {
 					role = "noRole"; // Default role if invalid
 				}
@@ -90,6 +90,7 @@ const userResolver = {
 
 				const tokenPayload = {
 					userId: newUser.id, // User ID
+					name,
 					email, // Email
 					role: newUser.role, // Role
 					permissions: newUser.permissions, // Permissions
@@ -125,6 +126,7 @@ const userResolver = {
 					const token = jwt.sign(
 						{
 							userId: user.id, // User ID
+							name: user.name, // User name
 							email: user.email, // Email
 							role: user.role, // Role
 							permissions: user.permissions, // Permissions
@@ -212,6 +214,7 @@ const userResolver = {
 				const newToken = jwt.sign(
 					{
 						userId: targetUser.id, // User ID
+						name: targetUser.name,
 						email: targetUser.email, // Email
 						role: targetUser.role, // Role
 						permissions: targetUser.permissions, // Permissions
@@ -271,7 +274,8 @@ const userResolver = {
 					admin: 2,
 					subAdmin: 1,
 					user: 0,
-					noRole: -1,
+					technician: -1,
+					noRole: -2,
 				};
 
 				const allowedRoles = ["headAdmin", "admin", "subAdmin"]; // Roles allowed to update
@@ -365,6 +369,7 @@ const userResolver = {
 				const newToken = jwt.sign(
 					{
 						userId: targetUser.id, // User ID
+						name: targetUser.name,
 						email: targetUser.email, // Email
 						role: targetUser.role, // Role
 						permissions: targetUser.permissions, // Permissions

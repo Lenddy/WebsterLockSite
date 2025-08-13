@@ -39,11 +39,8 @@ const httpLink = new HttpLink({
 	uri: import.meta.env.VITE_API_URL, // Your backend GraphQL endpoint
 });
 
-const token = localStorage.getItem("UserToken"); // Get from localStorage
-
 const authLink = setContext((_, { headers }) => {
-	// const token = import.meta.env.VITE_TOKEN; // hardcoded for testing
-
+	const token = localStorage.getItem("UserToken"); // Always read latest
 	return {
 		headers: {
 			...headers,
@@ -58,7 +55,7 @@ const wsLink = new GraphQLWsLink(
 		url: import.meta.env.VITE_WS_URL, // IMPORTANT: ws:// for dev, wss:// for prod
 		connectionParams: {
 			// You can send auth headers here if needed
-			authorization: token ? `Bearer ${token}` : "",
+			authorization: localStorage.getItem("UserToken") ? `Bearer ${localStorage.getItem("UserToken")}` : "",
 		},
 	})
 );

@@ -1,7 +1,8 @@
 import { log_In_user } from "../../../graphQL/mutations/mutations";
 import { useMutation } from "@apollo/client";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Await, useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 export default function LogIn() {
 	const [info, setInfo] = useState({});
@@ -33,45 +34,25 @@ export default function LogIn() {
 					console.log("Mutation success:", result);
 				},
 			});
-			console.log("✅ log  user:", data.loginUser);
-			const token = await data.loginUser.token;
-			if (token) {
-				localStorage.setItem("UserToken", token); // Store token
-				await navigate(`/test`);
-			}
 
-			console.log("Data returned from server:", data);
-			// reset form, show success message, navigate, etc.
+			const token = data?.loginUser?.token;
+			if (token) {
+				localStorage.setItem("UserToken", token);
+
+				// Decode without verifying (for quick redirect only)
+				const decoded = jwtDecode(token);
+				console.log("Decoded token:", decoded);
+
+				// Redirect based on role
+				if (decoded?.role && decoded.role !== "user" && decoded.role !== "noRole") {
+					navigate("/allUsers");
+				} else {
+					navigate("/test");
+				}
+			}
 		} catch (err) {
 			console.error("Mutation error:", err);
-			// show error toast or message
 		}
-	};
-
-	const submit1 = async (e) => {
-		e.preventDefault();
-		// console.log(info);
-
-		await logInUser({
-			variables: {
-				input: {
-					email: info.email,
-					password: info.password,
-				},
-			},
-		})
-			.then(async (res) => {
-				console.log("✅ log  user:", res.data.loginUser);
-				const token = await res.data.loginUser.token;
-				if (token) {
-					localStorage.setItem("UserToken", token); // Store token
-					await navigate(`/test`);
-				}
-			})
-			.catch((err) => {
-				console.error("Error logging in:", err);
-				// setValidation(err?.errors );
-			});
 	};
 
 	return (
@@ -91,10 +72,10 @@ export default function LogIn() {
 
 				<div className="validation"> {/* <p color="red"> {validation} </p>{" "} */}</div>
 				<button type="submit" disabled={loading}>
-					{loading ? "Submitting..." : "Submit"}
+					{loading ? "logging in ..." : "Log in"}
 				</button>
 
-				{error && <p style={{ color: "red" }}>Error: {error.message}</p>}
+				{error && <p style={{ color: "red" }}>{error.message}</p>}
 			</form>
 		</div>
 	);

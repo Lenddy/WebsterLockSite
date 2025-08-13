@@ -49,7 +49,7 @@ const UserSchema = new Schema(
 		// User role with enum validation and default value
 		role: {
 			type: String,
-			enum: ["headAdmin", "admin", "subAdmin", "user", "noRole"],
+			enum: ["headAdmin", "admin", "subAdmin", "user", "noRole", "technician"],
 			default: "user",
 			required: true,
 		},

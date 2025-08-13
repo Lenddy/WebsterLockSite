@@ -97,7 +97,6 @@ export default function RegisterUser() {
 	return (
 		<>
 			<div>registerUser</div>
-			<div className="test">sdfksdl;f</div>
 		</>
 	);
 }

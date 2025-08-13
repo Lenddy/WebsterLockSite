@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useQuery, useSubscription } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
 import { jwtDecode } from "jwt-decode";
-import { get_all_users } from "../../../graphQL/queries/queries";
-import { Link } from "react-router-dom";
+import { get_one_user } from "../../../graphQL/queries/queries";
+import { Link, useParams } from "react-router-dom";
 
-export default function GetAllUsers() {
-	const { error, loading, data, refetch } = useQuery(get_all_users);
-	const [users, setUsers] = useState([]);
+export default function GetOneUsers() {
+	const [user, setUser] = useState({});
 	const [logUser, setLogUser] = useState({});
+	const { userId } = useParams();
+	const { error, loading, data, refetch } = useQuery(get_one_user, { variables: { id: userId } });
 
 	// const decoded = ;
 
@@ -17,8 +18,8 @@ export default function GetAllUsers() {
 			console.log("loading");
 		}
 		if (data) {
-			console.log(data.getAllUsers);
-			setUsers(data.getAllUsers);
+			console.log(data.getOneUser);
+			setUser(data.getOneUser);
 		}
 		if (error) {
 			console.log("there was an error", error);
@@ -52,49 +53,31 @@ export default function GetAllUsers() {
 	return (
 		<div>
 			<h1>Welcome {logUser?.name}</h1>
-			<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
-				Log out
-			</Link>
+			<div>
+				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
+					Log out
+				</Link>
+			</div>
+
+			<div>
+				<Link to={"/"}>all users</Link>
+			</div>
 			{loading ? (
 				<div>
-					{" "}
 					<h1>loading...</h1>{" "}
 				</div>
 			) : (
 				<div>
 					<div>
-						<table>
-							<thead>
-								<tr>
-									<th>ID</th>
-									<th>Name</th>
-									<th>Email</th>
-									<th>Role</th>
-									<th>Job</th>
-								</tr>
-							</thead>
-							{users.map((user) => {
-								return (
-									<tbody key={user.id}>
-										<tr>
-											<td>
-												<Link to={`/user/${user?.id}`}>{user?.id}</Link>
-											</td>
-											<td>
-												<Link to={`/user/${user?.id}`}>{user?.name}</Link>{" "}
-											</td>
-											<td>{user?.email}</td>
-											<td>{user?.role}</td>
-											<td>{user?.job?.title}</td>
-										</tr>
-									</tbody>
-								);
-							})}
-						</table>
+						<p>name: {user.name}</p>
+						<p>email:{user.email}</p>
+						<p>Role: {user.role}</p>
+						<p>job: {user?.job?.title === null || user?.job?.title === undefined ? "no job available" : user?.job?.title}</p>
 					</div>
 				</div>
 			)}
-			{error && <p style={{ color: "red" }}> {error.message}</p>}
+			{/* {error && <p style={{ color: "red" }}> {error.message}</p>} */}
+			{/* <h1>hello: {userId}</h1> */}
 		</div>
 	);
 }

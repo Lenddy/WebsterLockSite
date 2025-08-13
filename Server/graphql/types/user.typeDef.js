@@ -28,6 +28,7 @@ const userTypeDef = gql`
 		admin # Mid-level: can manage subAdmins, users, and noRoles
 		subAdmin # Can manage users and noRoles, but cannot assign roles
 		user # Regular user: limited permissions
+		technician # users that are only allowed to request material
 		noRole # Placeholder for users without a defined role
 	}
 

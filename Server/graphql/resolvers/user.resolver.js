@@ -394,6 +394,7 @@ const userResolver = {
 					permissions: targetUser.permissions, // Permissions
 					role: targetUser.role, // Role
 					token: newToken, // Token
+					job: targetUser.job,
 				};
 			} catch (error) {
 				console.error("Error in adminChangeUserProfile:", error); // Log error

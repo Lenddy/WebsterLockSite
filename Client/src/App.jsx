@@ -14,9 +14,9 @@ function App() {
 			<Routes>
 				<Route index element={<LogIn />} />
 				<Route element={<ProtectedRoute />}>
-					<Route path="/allUsers" element={<GetAllUsers />} />
-					<Route path="/user/:userId" element={<GetOneUsers />} />
-					<Route path="/registerUser" element={<RegisterUser />} />
+					<Route path="/user/all" element={<GetAllUsers />} />
+					<Route path="/user/:userId/update?/admin?" element={<GetOneUsers />} />
+					<Route path="/user/register" element={<RegisterUser />} />
 					<Route path="/test" element={<Test />} />
 				</Route>
 			</Routes>

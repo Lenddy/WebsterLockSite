@@ -1,15 +1,15 @@
-import { register_User } from "../../../graphQL/mutations/mutations";
+import React, { useEffect, useState } from "react";
+import { useQuery, useSubscription } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
+import { update_One_user } from "../../../graphQL/mutations/mutations";
 import { useMutation } from "@apollo/client";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-export default function RegisterUser() {
+export default function UpdateOneUser({ userId, user }) {
 	const [info, setInfo] = useState({});
+	const [show, setShow] = useState(false);
 	const [permission, setPermission] = useState({});
 	const [job, setJob] = useState({});
-	const navigate = useNavigate();
-	const [registerUser, { data, loading, error }] = useMutation(register_User);
-	const [show, setShow] = useState(false);
+	const [updateUserProfile, { data: UpdateData, loading: updateLoading, error: updateError }] = useMutation(update_One_user);
 
 	// Function to handle input changes and update state accordingly
 	const SubmissionInfo = (e) => {
@@ -36,19 +36,21 @@ export default function RegisterUser() {
 		});
 	};
 
-	console.log("Info", info);
-	console.log("permissionsInfo", permission);
-	console.log("jobInfo", job);
+	// console.log("Info", info);
+	// console.log("permissionsInfo", permission);
+	// console.log("jobInfo", job);
 
 	// Function to handle form submission
 	const submit = async (e) => {
 		e.preventDefault();
 
-		await registerUser({
+		await updateUserProfile({
 			variables: {
+				id: userId,
 				input: {
 					name: info.name,
-					email: info.email,
+					previousEmail: info.previousEmail,
+					newEmail: info.newEmail,
 					password: info.password,
 					confirmPassword: info.confirmPassword,
 					role: info.role,
@@ -56,93 +58,48 @@ export default function RegisterUser() {
 						title: job.title,
 						description: job.description,
 					},
-					permissions: {
-						canEditUsers: permission.canEditUsers || false,
-						canDeleteUsers: permission.canDeleteUsers || false,
-						canChangeRole: permission.canChangeRole || false,
-						canViewUsers: permission.canViewUsers || false,
-						canViewAllUsers: permission.canViewAllUsers || false,
-						canEditSelf: permission.canEditSelf || true,
-						canViewSelf: permission.canViewSelf || true,
-						canDeleteSelf: permission.canDeleteSelf || false,
-					},
+					// permissions: {
+					// 	canEditUsers: permission.canEditUsers || false,
+					// 	canDeleteUsers: permission.canDeleteUsers || false,
+					// 	canChangeRole: permission.canChangeRole || false,
+					// 	canViewUsers: permission.canViewUsers || false,
+					// 	canViewAllUsers: permission.canViewAllUsers || false,
+					// 	canEditSelf: permission.canEditSelf || true,
+					// 	canViewSelf: permission.canViewSelf || true,
+					// 	canDeleteSelf: permission.canDeleteSelf || false,
+					// },
 				},
 			},
 		})
 			.then((res) => {
-				console.log("✅ Registered user:", res.data.registerUser);
-				navigate(`/user/${res.data.registerUser.id}`);
+				// console.log("✅ Registered user:", res.data.registerUser);
+				// navigate(`/user/${res.data.registerUser.id}`);
 			})
 			.catch((err) => {
 				console.error("❌ Error registering:", err);
 			});
 	};
 
-	const addSection = () => {
-		setSections([...sections, { number: "" }]);
-	};
-
-	const handleInputChange = (e, index) => {
-		const updatedSections = sections.map((section, secIndex) => {
-			if (index === secIndex) {
-				let value = e.target.value;
-				if (!value) return { ...section, [e.target.name]: value };
-
-				const phoneNumber = value.replace(/[^\d]/g, "");
-				const phoneNumberLength = phoneNumber.length;
-
-				if (phoneNumberLength <= 3) return { ...section, [e.target.name]: phoneNumber };
-				if (phoneNumberLength <= 6) {
-					return {
-						...section,
-						[e.target.name]: `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`,
-					};
-				}
-				return {
-					...section,
-					[e.target.name]: `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`,
-				};
-			}
-			return section;
-		});
-
-		setSections(updatedSections);
-
-		// Assuming you want to update the info object after formatting the phone number
-		const updatedCellPhones = updatedSections.map((section) => section.number);
-		setInfo({ ...info, cellPhones: updatedCellPhones });
-	};
-
-	const deleteSection = (index) => {
-		const filteredSections = sections.filter((_, secIndex) => secIndex !== index);
-		setSections(filteredSections);
-	};
-
 	return (
-		<>
-			{/* {logUser?.name} */}
-			<h1>Register </h1>
-
+		<div>
 			<div>
-				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
-					Log out
-				</Link>
+				<Link to={`/user/${userId}`}> user</Link>
 			</div>
-
-			<div>
-				<Link to={"/user/all"}>all users</Link>
-			</div>
-
 			<div>
 				<form onSubmit={submit}>
 					<div>
 						<label htmlFor="name">Name:</label>
-						<input type="text" name="name" onChange={(e) => SubmissionInfo(e)} />
+						<input type="text" name="name" onChange={(e) => SubmissionInfo(e)} placeholder={user.name} />
 					</div>
 
 					<div>
-						<label htmlFor="email">Email:</label>
-						<input type="text" name="email" onChange={(e) => SubmissionInfo(e)} />
+						<label htmlFor="previousEmail"> Previous Email:</label>
+						<input type="text" name="previousEmail" onChange={(e) => SubmissionInfo(e)} placeholder={user.email} />
+					</div>
+
+					<div>
+						<label htmlFor="newEmail">new Email:</label>
+						<input type="text" name="newEmail" onChange={(e) => SubmissionInfo(e)} />
 					</div>
 
 					<div>
@@ -165,12 +122,12 @@ export default function RegisterUser() {
 						{/* <label htmlFor="job">Name:</label> */}
 
 						<label htmlFor="title">job title:</label>
-						<input type="text" name="title" onChange={(e) => jobInfo(e)} />
+						<input type="text" name="title" onChange={(e) => jobInfo(e)} placeholder={user?.job?.title} />
 					</div>
 
 					<div>
 						<label htmlFor="description">job description:</label>
-						<input type="text" name="description" onChange={(e) => jobInfo(e)} />
+						<input type="text" name="description" onChange={(e) => jobInfo(e)} placeholder={user?.job?.description} />
 					</div>
 
 					<div>
@@ -225,13 +182,13 @@ export default function RegisterUser() {
 					</div>
 
 					<div className="validation"> {/* <p color="red"> {validation} </p>{" "} */}</div>
-					<button type="submit" disabled={loading}>
-						{loading ? "Registering  ..." : "Register"}
+					<button type="submit" disabled={updateLoading}>
+						{updateLoading ? " Updating..." : "Update"}
 					</button>
 
-					{error && <p style={{ color: "red" }}>{error.message}</p>}
+					{updateError && <p style={{ color: "red" }}>{updateError.message}</p>}
 				</form>
 			</div>
-		</>
+		</div>
 	);
 }

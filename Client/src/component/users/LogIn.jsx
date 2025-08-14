@@ -45,7 +45,7 @@ export default function LogIn() {
 
 				// Redirect based on role
 				if (decoded?.role && decoded.role !== "user" && decoded.role !== "noRole") {
-					navigate("/allUsers");
+					navigate("/user/all");
 				} else {
 					navigate("/test");
 				}

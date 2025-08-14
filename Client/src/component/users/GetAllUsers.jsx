@@ -52,9 +52,16 @@ export default function GetAllUsers() {
 	return (
 		<div>
 			<h1>Welcome {logUser?.name}</h1>
-			<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
-				Log out
-			</Link>
+			<div>
+				<Link to={"/user/register"}>register user</Link>
+			</div>
+
+			<div>
+				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
+					Log out
+				</Link>
+			</div>
+
 			{loading ? (
 				<div>
 					{" "}
@@ -71,6 +78,7 @@ export default function GetAllUsers() {
 									<th>Email</th>
 									<th>Role</th>
 									<th>Job</th>
+									<th>Action</th>
 								</tr>
 							</thead>
 							{users.map((user) => {
@@ -81,11 +89,17 @@ export default function GetAllUsers() {
 												<Link to={`/user/${user?.id}`}>{user?.id}</Link>
 											</td>
 											<td>
-												<Link to={`/user/${user?.id}`}>{user?.name}</Link>{" "}
+												<Link to={`/user/${user?.id}`}>{user?.name}</Link>
 											</td>
 											<td>{user?.email}</td>
 											<td>{user?.role}</td>
 											<td>{user?.job?.title}</td>
+											<td>
+												<div>
+													<button>Update</button>
+													<button>Delete</button>
+												</div>
+											</td>
 										</tr>
 									</tbody>
 								);

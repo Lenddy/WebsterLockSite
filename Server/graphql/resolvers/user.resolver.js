@@ -17,7 +17,7 @@ const userResolver = {
 		// Fetch all users
 		getAllUsers: async (_, __, { user }) => {
 			try {
-				console.log("Token user info:", user); // Log user info from token
+				// console.log("Token user info:", user); // Log user info from token
 
 				if (!user) {
 					throw new Error("Unauthorized: No user token was found."); // Check authentication
@@ -28,7 +28,7 @@ const userResolver = {
 				}
 
 				const users = await User.find(); // Fetch all users from DB
-				console.log("Users fetched by caller:", users); // Log fetched users
+				// console.log("Users fetched by caller:", users); // Log fetched users
 				return users; // Return users
 			} catch (error) {
 				console.error("Error fetching all users:", error); // Log error
@@ -42,7 +42,7 @@ const userResolver = {
 				if (!user) {
 					throw new Error("Unauthorized: No user token was found."); // Check authentication
 				}
-				console.dir(user); // Log user info
+				// console.dir(user); // Log user info
 
 				const userToReturn = await User.findById(id); // Find user by ID
 				if (!userToReturn) {
@@ -254,6 +254,7 @@ const userResolver = {
 					throw new Error("Unauthorized: No user context."); // Check authentication
 				}
 
+				console.log("this are the new permissions", newPermissions);
 				const requesterRole = user.role; // Requester's role
 				const perms = user.permissions || {}; // Requester's permissions
 				const targetUser = await User.findById(id); // Find target user

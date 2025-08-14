@@ -8,10 +8,45 @@ export const register_User = gql`
 			email
 			password
 			confirmPassword
-			token
 			role
+			job {
+				title
+				description
+			}
+			permissions {
+				canEditUsers
+				canDeleteUsers
+				canChangeRole
+				canViewUsers
+				canViewAllUsers
+				canEditSelf
+				canViewSelf
+				canDeleteSelf
+			}
 			createdAt
 			updatedAt
+		}
+	}
+`;
+
+export const log_In_user = gql`
+	mutation logInUser($input: LoginInput) {
+		loginUser(input: $input) {
+			id
+			email
+			token
+		}
+	}
+`;
+
+export const update_One_user = gql`
+	mutation updateUserProfile($id: ID!, $input: UpdateUserProfileInput!) {
+		updateUserProfile(id: $id, input: $input) {
+			id
+			name
+			email
+			token
+			role
 			job {
 				title
 				description
@@ -30,36 +65,32 @@ export const register_User = gql`
 	}
 `;
 
-export const log_In_user = gql`
-	mutation logInUser($input: LoginInput) {
-		loginUser(input: $input) {
+export const admin_update_One_user = gql`
+	mutation adminChangeUserProfile($id: ID!, $input: AdminChangeUserProfileInput!) {
+		adminChangeUserProfile(id: $id, input: $input) {
 			id
+			name
 			email
 			token
-		}
-	}
-`;
-
-export const update_One_client = gql`
-	mutation updateOneClient($id: ID!, $clientName: String, $clientLastName: String, $cellPhones: [NumberInput]) {
-		updateOneClient(id: $id, clientName: $clientName, clientLastName: $clientLastName, cellPhones: $cellPhones) {
-			id
-			clientName
-			clientLastName
-			cellPhones {
-				numberId
-				number
+			role
+			job {
+				title
+				description
 			}
-			# createdAt
-			# updateAt
+			permissions {
+				canEditUsers
+				canDeleteUsers
+				canChangeRole
+				canViewUsers
+				canViewAllUsers
+				canEditSelf
+				canViewSelf
+				canDeleteSelf
+			}
 		}
 	}
 `;
 
-// {
-// 	id
-// 	number
-// }
 export const delete_one_client = gql`
 	mutation deleteOneClient($id: ID!) {
 		deleteOneClient(id: $id) {

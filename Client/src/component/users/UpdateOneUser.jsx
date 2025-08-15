@@ -7,34 +7,31 @@ import { Link } from "react-router-dom";
 export default function UpdateOneUser({ userId, user }) {
 	const [info, setInfo] = useState({});
 	const [show, setShow] = useState(false);
-	const [permission, setPermission] = useState({});
-	const [job, setJob] = useState({});
+	// const [job, setJob] = useState({});
 	const [updateUserProfile, { data: UpdateData, loading: updateLoading, error: updateError }] = useMutation(update_One_user);
 
 	// Function to handle input changes and update state accordingly
 	const SubmissionInfo = (e) => {
-		setInfo({
-			...info,
-			[e.target.name]: e.target.value,
-			// permissions: permission,
+		/**
+		 * Extracts the 'name' and 'value' properties from the event target.
+		 * Typically used in form input change handlers to identify which input field
+		 * triggered the event and retrieve its current value.
+		 *
+		 * @param {React.ChangeEvent<HTMLInputElement>} e - The event object from the input change.
+		 * @returns {string} name - The name attribute of the input element.
+		 * @returns {string} value - The current value of the input element.
+		 */
+		const { name, value } = e.target;
+		setInfo((prev) => {
+			if (value === "") {
+				const { [name]: _, ...rest } = prev;
+				return rest;
+			}
+			return { ...prev, [name]: value };
 		});
 	};
 
-	// Function to handle input changes and update state accordingly
-	const permissionsInfo = (e) => {
-		setPermission({
-			...permission,
-			[e.target.name]: e.target.value === "on" ? true : false,
-		});
-	};
-
-	// Function to handle input changes and update state accordingly
-	const jobInfo = (e) => {
-		setJob({
-			...job,
-			[e.target.name]: e.target.value,
-		});
-	};
+	console.log("this is the info ", info);
 
 	// console.log("Info", info);
 	// console.log("permissionsInfo", permission);
@@ -44,40 +41,30 @@ export default function UpdateOneUser({ userId, user }) {
 	const submit = async (e) => {
 		e.preventDefault();
 
-		await updateUserProfile({
-			variables: {
-				id: userId,
-				input: {
-					name: info.name,
-					previousEmail: info.previousEmail,
-					newEmail: info.newEmail,
-					password: info.password,
-					confirmPassword: info.confirmPassword,
-					role: info.role,
-					job: {
-						title: job.title,
-						description: job.description,
+		try {
+			await updateUserProfile({
+				variables: {
+					id: userId,
+					input: {
+						name: info?.name,
+						previousEmail: info?.previousEmail,
+						newEmail: info?.newEmail,
+						password: info?.password,
+						confirmPassword: info?.confirmPassword,
+						job: {
+							title: info?.title,
+							description: info?.description,
+						},
 					},
-					// permissions: {
-					// 	canEditUsers: permission.canEditUsers || false,
-					// 	canDeleteUsers: permission.canDeleteUsers || false,
-					// 	canChangeRole: permission.canChangeRole || false,
-					// 	canViewUsers: permission.canViewUsers || false,
-					// 	canViewAllUsers: permission.canViewAllUsers || false,
-					// 	canEditSelf: permission.canEditSelf || true,
-					// 	canViewSelf: permission.canViewSelf || true,
-					// 	canDeleteSelf: permission.canDeleteSelf || false,
-					// },
 				},
-			},
-		})
-			.then((res) => {
-				// console.log("✅ Registered user:", res.data.registerUser);
-				// navigate(`/user/${res.data.registerUser.id}`);
-			})
-			.catch((err) => {
-				console.error("❌ Error registering:", err);
+				onCompleted: (data) => {
+					// Handle successful update, e.g. show a message or redirect
+					console.log("✅ User updated:", data);
+				},
 			});
+		} catch (err) {
+			console.error("❌ Error updating user:", err);
+		}
 	};
 
 	return (
@@ -122,63 +109,12 @@ export default function UpdateOneUser({ userId, user }) {
 						{/* <label htmlFor="job">Name:</label> */}
 
 						<label htmlFor="title">job title:</label>
-						<input type="text" name="title" onChange={(e) => jobInfo(e)} placeholder={user?.job?.title} />
+						<input type="text" name="title" onChange={(e) => SubmissionInfo(e)} placeholder={user?.job?.title} />
 					</div>
 
 					<div>
 						<label htmlFor="description">job description:</label>
-						<input type="text" name="description" onChange={(e) => jobInfo(e)} placeholder={user?.job?.description} />
-					</div>
-
-					<div>
-						<label htmlFor="role">role:</label>
-						{/* <input type="text" name="role" onChange={(e) => SubmissionInfo(e)} /> */}
-
-						<select name="role" id="" onChange={(e) => SubmissionInfo(e)}>
-							<option value="" selected disabled>
-								Select Role
-							</option>
-							<option value="admin">Admin</option>
-							<option value="subAdmin">Sub Admin</option>
-							<option value="technician">Technician</option>
-							<option value="user">user</option>
-							<option value="noRole">No Role</option>
-						</select>
-					</div>
-
-					<div>
-						<label htmlFor="permissions">Permissions:</label>
-						<ul>
-							<li>
-								<label htmlFor="canViewAllUsers">can view All users</label>
-								<input type="checkbox" name="canViewAllUsers" id="" onChange={(e) => permissionsInfo(e)} />
-							</li>
-
-							<li>
-								<label htmlFor="canEditUsers">Can Edit Users </label>
-								<input type="checkbox" name="canEditUsers" id="" onChange={(e) => permissionsInfo(e)} />
-							</li>
-
-							<li>
-								<label htmlFor="canDeleteUsers">Can Delete Users</label>
-								<input type="checkbox" name="canDeleteUsers" id="" onChange={(e) => permissionsInfo(e)} />
-							</li>
-
-							<li>
-								<label htmlFor="canChangeRole">Can Change users Role</label>
-								<input type="checkbox" name="canChangeRole" id="" onChange={(e) => permissionsInfo(e)} />
-							</li>
-
-							<li>
-								<label htmlFor="canEditSelf">Can Edit Self</label>
-								<input type="checkbox" name="canEditSelf" id="" onChange={(e) => permissionsInfo(e)} />
-							</li>
-
-							<li>
-								<label htmlFor="canViewSelf">Can View Self</label>
-								<input type="checkbox" name="canViewSelf" id="" onChange={(e) => permissionsInfo(e)} />
-							</li>
-						</ul>
+						<input type="text" name="description" onChange={(e) => SubmissionInfo(e)} placeholder={user?.job?.description} />
 					</div>
 
 					<div className="validation"> {/* <p color="red"> {validation} </p>{" "} */}</div>

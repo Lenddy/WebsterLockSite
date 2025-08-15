@@ -70,10 +70,53 @@ const splitLink = split(
 	errorLink.concat(authLink.concat(httpLink)) //  add auth before http
 );
 
+const allowedPermissionKeys = ["canEditUsers", "canDeleteUsers", "canChangeRole", "canViewUsers", "canViewAllUsers", "canEditSelf", "canViewSelf", "canDeleteSelf"];
+
 //  Apollo Client instance
+/**
+ * Apollo Client instance configured with custom cache policies.
+ *
+ * - Uses `splitLink` for network transport.
+ * - Implements a custom `InMemoryCache` with type policies for the `User` type.
+ * - The `permissions` field merge function:
+ *   - Retains existing permissions if no incoming permissions are provided.
+ *   - Filters incoming permissions to only include allowed keys (defined in `allowedPermissionKeys`).
+ *   - Merges filtered incoming permissions with existing ones.
+ *
+ * @constant
+ * @type {ApolloClient}
+ */
 const client = new ApolloClient({
 	link: splitLink,
-	cache: new InMemoryCache(),
+	cache: new InMemoryCache({
+		typePolicies: {
+			User: {
+				fields: {
+					permissions: {
+						merge(existing = {}, incoming) {
+							// If no incoming permissions — keep existing
+							if (!incoming || Object.keys(incoming).length === 0) {
+								return existing;
+							}
+
+							// Only keep allowed keys from incoming
+							const filtered = Object.keys(incoming)
+								.filter((key) => allowedPermissionKeys.includes(key))
+								.reduce((obj, key) => {
+									obj[key] = incoming[key];
+									return obj;
+								}, {});
+
+							return {
+								...existing, // Keep existing
+								...filtered, // Merge only allowed changes
+							};
+						},
+					},
+				},
+			},
+		},
+	}),
 });
 
 //  Render app

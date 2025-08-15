@@ -72,6 +72,7 @@ const UserSchema = new Schema(
 			canDeleteSelf: { type: Boolean, default: false }, // Permission to delete own account
 			canNotBeDeleted: { type: Boolean, default: false }, // Permission to not be able to be delete
 			canNotBeUpdated: { type: Boolean, default: false }, // Permission to not be able to be updated
+			canRegisterUser: { type: Boolean, default: false }, // Permission to be able register user
 		},
 	},
 	{

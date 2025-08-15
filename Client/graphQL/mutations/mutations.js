@@ -51,16 +51,16 @@ export const update_One_user = gql`
 				title
 				description
 			}
-			permissions {
-				canEditUsers
-				canDeleteUsers
-				canChangeRole
-				canViewUsers
-				canViewAllUsers
-				canEditSelf
-				canViewSelf
-				canDeleteSelf
-			}
+			# permissions {
+			# 	canEditUsers
+			# 	canDeleteUsers
+			# 	canChangeRole
+			# 	canViewUsers
+			# 	canViewAllUsers
+			# 	canEditSelf
+			# 	canViewSelf
+			# 	canDeleteSelf
+			# }
 		}
 	}
 `;

@@ -48,6 +48,7 @@ const userTypeDef = gql`
 		canEditSelf: Boolean # Can this user update their own profile info?
 		canViewSelf: Boolean # Can this user view their own profile?
 		canDeleteSelf: Boolean # Can this user delete their own account?
+		canRegisterUser: Boolean
 		canNotBeDeleted: Boolean
 		canNotBeUpdated: Boolean
 	}
@@ -68,6 +69,7 @@ const userTypeDef = gql`
 		canEditSelf: Boolean
 		canViewSelf: Boolean
 		canDeleteSelf: Boolean
+		canRegisterUser: Boolean
 		canNotBeDeleted: Boolean
 		canNotBeUpdated: Boolean
 	}

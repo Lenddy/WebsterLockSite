@@ -64,8 +64,12 @@ const userResolver = {
 
 	Mutation: {
 		// Register a new user
-		registerUser: async (_, { input: { name, email, password, confirmPassword, role = "user", job, permissions } }, { pubsub }) => {
+		registerUser: async (_, { input: { name, email, password, confirmPassword, role = "user", job, permissions } }, { user, pubsub }) => {
 			try {
+				if (user.role !== "headAdmin" || user.role !== "admin" || (user.role !== "subAdmin" && user.permissions.canRegisterUser)) {
+					throw new ApolloError("Unauthorized: You lack required permissions to register users.", "USER_ALREADY_EXIST");
+				}
+
 				const oldUser = await User.findOne({ email }); // Check if user exists
 				if (oldUser) {
 					throw new ApolloError(`User with email: ${email} already exists`, "USER_ALREADY_EXIST"); // Duplicate email
@@ -254,7 +258,7 @@ const userResolver = {
 					throw new Error("Unauthorized: No user context."); // Check authentication
 				}
 
-				console.log("this are the new permissions", newPermissions);
+				// console.log("this are the new permissions", newPermissions);
 				const requesterRole = user.role; // Requester's role
 				const perms = user.permissions || {}; // Requester's permissions
 				const targetUser = await User.findById(id); // Find target user
@@ -353,17 +357,17 @@ const userResolver = {
 				if (name) targetUser.name = name; // Update name
 				if (job) targetUser.job = job; // Update job
 				if (newRole) targetUser.role = newRole; // Update role
-				if (newPermissions) {
+				if (newPermissions && Object.keys(newPermissions).some((key) => allowedPermissionKeys.includes(key))) {
 					const filteredPermissions = Object.keys(newPermissions)
-						.filter((key) => allowedPermissionKeys.includes(key)) // Filter allowed keys
+						.filter((key) => allowedPermissionKeys.includes(key))
 						.reduce((obj, key) => {
-							obj[key] = newPermissions[key]; // Add permission
+							obj[key] = newPermissions[key];
 							return obj;
 						}, {});
 
 					targetUser.permissions = {
-						...targetUser.permissions, // Existing permissions
-						...filteredPermissions, // New permissions
+						...targetUser.permissions,
+						...filteredPermissions,
 					};
 				}
 

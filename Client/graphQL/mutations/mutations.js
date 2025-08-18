@@ -91,10 +91,36 @@ export const admin_update_One_user = gql`
 	}
 `;
 
-export const delete_one_client = gql`
-	mutation deleteOneClient($id: ID!) {
-		deleteOneClient(id: $id) {
+export const delete_one_user = gql`
+	mutation deleteOneUser($id: ID!) {
+		deleteOneUser(id: $id) {
 			id
 		}
 	}
 `;
+
+// export const update_One_Material_Request = gql`
+// 	mutation updateUserProfile($id: ID!, $input: UpdateUserProfileInput!) {
+// 		updateUserProfile(id: $id, input: $input) {
+// 			id
+// 			name
+// 			email
+// 			token
+// 			role
+// 			job {
+// 				title
+// 				description
+// 			}
+// 			# permissions {
+// 			# 	canEditUsers
+// 			# 	canDeleteUsers
+// 			# 	canChangeRole
+// 			# 	canViewUsers
+// 			# 	canViewAllUsers
+// 			# 	canEditSelf
+// 			# 	canViewSelf
+// 			# 	canDeleteSelf
+// 			# }
+// 		}
+// 	}
+// `;

@@ -44,7 +44,7 @@ export default function LogIn() {
 				console.log("Decoded token:", decoded);
 
 				// Redirect based on role
-				if (decoded?.role && decoded.role !== "user" && decoded.role !== "noRole") {
+				if (decoded.role !== "user" && decoded.role !== "noRole" && decoded.role !== "technician") {
 					navigate("/user/all");
 				} else {
 					navigate("/test");

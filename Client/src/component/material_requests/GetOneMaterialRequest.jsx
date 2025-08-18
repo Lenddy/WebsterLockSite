@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useQuery, useSubscription } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
 import { jwtDecode } from "jwt-decode";
-import { get_one_user } from "../../../graphQL/queries/queries";
+import { get_one_material_request } from "../../../graphQL/queries/queries";
 import { Link, useParams, useLocation } from "react-router-dom";
-import UpdateOneUser from "./updateOneUser";
-import AdminUpdateOneUser from "./AdminUpdateOneUser";
+// import UpdateOneUser from "./updateOneUser";
+// import AdminUpdateOneUser from "./AdminUpdateOneUser";
 
-export default function GetOneUsers() {
-	const [user, setUser] = useState({});
+export default function GetOneMaterialRequest() {
+	const [mRequest, setMRequest] = useState({});
 	const [logUser, setLogUser] = useState({});
-	const { userId } = useParams();
+	const { requestId } = useParams();
 
-	const location = useLocation();
-	const currentRoutePath = location.pathname;
-	// console.log(currentRoutePath);
-	const { error, loading, data, refetch } = useQuery(get_one_user, { variables: { id: userId } });
+	// const location = useLocation();
+	// const currentRoutePath = location.pathname;
+	// // console.log(currentRoutePath);
+	const { error, loading, data, refetch } = useQuery(get_one_material_request, { variables: { id: requestId } });
 
 	useEffect(() => {
 		setLogUser(jwtDecode(localStorage.getItem("UserToken")));
@@ -22,8 +22,8 @@ export default function GetOneUsers() {
 			// console.log("loading");
 		}
 		if (data) {
-			// console.log(data.getOneUser);
-			setUser(data.getOneUser);
+			console.log(data.getOneMaterialRequest);
+			setMRequest(data.getOneMaterialRequest);
 		}
 		if (error) {
 			// console.log("there was an error", error);
@@ -66,35 +66,53 @@ export default function GetOneUsers() {
 			<div>
 				<Link to={"/user/all"}>all users</Link>
 			</div>
-			<div>
+			{/* <div>
 				<Link to={`/user/${userId}/update`}>update users</Link>
-			</div>
+			</div> */}
 
-			<div>
+			{/* <div>
 				<Link to={`/user/${userId}/update/admin`}>admin update users</Link>
-			</div>
+			</div> */}
 
-			{currentRoutePath === `/user/${userId}/update/admin` ? (
-				<AdminUpdateOneUser userId={userId} user={user} />
-			) : currentRoutePath === `/user/${userId}/update` ? (
-				<UpdateOneUser userId={userId} user={user} />
-			) : loading ? (
-				<div>
-					<h1>loading...</h1>
-				</div>
-			) : (
-				<div>
+			{
+				// currentRoutePath === `/user/${userId}/update/admin` ? (
+				// 	<AdminUpdateOneUser userId={userId} user={user} />
+				// ) : currentRoutePath === `/user/${userId}/update` ? (
+				// 	<UpdateOneUser userId={userId} user={user} />
+				// ) :
+
+				loading ? (
 					<div>
-						<p>name: {user.name}</p>
-						<p>email:{user.email}</p>
-						<p>Role: {user.role}</p>
-						<p>job: {user?.job?.title === null || user?.job?.title === undefined ? "no job available" : user?.job?.title}</p>
+						<h1>loading...</h1>
 					</div>
-				</div>
-			)}
+				) : (
+					<div>
+						<div>
+							<p>ID: {mRequest?.id}</p>
+							<p>requested Date: {mRequest.addedDate ? new Date(Number(mRequest.addedDate)).toLocaleString() : "N/A"}</p>
+							{/* this might need to change later */}
+							<p>name: {mRequest?.requesterId?.name}</p>
+							<p>
+								Items:{" "}
+								{mRequest?.items?.map((item) => {
+									return (
+										<span>
+											{item.quantity} - {item.itemName}
+											<br />
+										</span>
+									);
+								})}
+							</p>
+							<p>description:{mRequest?.description}</p>
 
-			{/* {error && <p style={{ color: "red" }}> {error.message}</p>} */}
-			{/* <h1>hello: {userId}</h1> */}
+							<p>review by : {mRequest?.reviewerId?.name === null || mRequest?.reviewerId?.name === undefined ? "no review has been done yet" : mRequest?.reviewerId?.name}</p>
+						</div>
+					</div>
+				)
+			}
+
+			{error && <p style={{ color: "red" }}> {error.message}</p>}
+			{/* <h1>hello: {requestId}</h1> */}
 		</div>
 	);
 }

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useQuery, useSubscription } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
 import { jwtDecode } from "jwt-decode";
-import { get_all_users } from "../../../graphQL/queries/queries";
+import { get_all_material_requests } from "../../../graphQL/queries/queries";
 import { Link } from "react-router-dom";
 
-export default function GetAllUsers() {
-	const { error, loading, data, refetch } = useQuery(get_all_users);
-	const [users, setUsers] = useState([]);
+export default function GetAllMaterialRequest() {
+	const { error, loading, data, refetch } = useQuery(get_all_material_requests);
+	const [mRequests, setMRequests] = useState([]);
 	const [logUser, setLogUser] = useState({});
 
 	// const decoded = ;
@@ -17,8 +17,8 @@ export default function GetAllUsers() {
 			console.log("loading");
 		}
 		if (data) {
-			console.log(data.getAllUsers);
-			setUsers(data.getAllUsers);
+			console.log(data.getAllMaterialRequests);
+			setMRequests(data.getAllMaterialRequests);
 		}
 		if (error) {
 			console.log("there was an error", error);
@@ -63,7 +63,7 @@ export default function GetAllUsers() {
 			</div>
 
 			<div>
-				<Link to={`/material/request/all`}>all material requests</Link>
+				<Link to={`/user/all`}>all users</Link>
 			</div>
 
 			{loading ? (
@@ -78,26 +78,34 @@ export default function GetAllUsers() {
 							<thead>
 								<tr>
 									<th>ID</th>
-									<th>Name</th>
-									<th>Email</th>
-									<th>Role</th>
-									<th>Job</th>
-									<th>Action</th>
+									<th>Requestors Name</th>
+									<th>Description</th>
+									<th>Amount of items</th>
+									{/*<th>Job</th>
+									<th>Action</th> */}
 								</tr>
 							</thead>
-							{users.map((user) => {
+							{mRequests.map((request) => {
 								return (
-									<tbody key={user.id}>
+									<tbody key={request.id}>
 										<tr>
 											<td>
-												<Link to={`/user/${user?.id}`}>{user?.id}</Link>
+												<Link to={`/material/request/${request?.id}`}>{request?.id}</Link>
 											</td>
 											<td>
-												<Link to={`/user/${user?.id}`}>{user?.name}</Link>
+												<Link to={`/user/${request?.requesterId?.id}`}>{request?.requesterId?.name}</Link>
 											</td>
-											<td>{user?.email}</td>
-											<td>{user?.role}</td>
-											<td>{user?.job?.title}</td>
+											<td>{request?.description}</td>
+											<td>
+												{request?.items.map((item) => {
+													return (
+														<span>
+															{item.quantity} - {item.itemName}
+															<br />
+														</span>
+													);
+												})}
+											</td>
 											<td>
 												<div>
 													<button>Update</button>

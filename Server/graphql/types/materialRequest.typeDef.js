@@ -12,32 +12,48 @@ const materialRequestTypeDef = gql`
 	${userTypeDef}
 	# Include User type definitions
 
-	# Main type representing a material request
 	type MaterialRequest {
 		id: ID!
-		requesterId: User! # User who made the request
-		reviewerId: User # User who reviewed the request (optional)
-		description: String # Description of the request
-		approvalStatus: ApprovalStatus # Approval status object
-		addedDate: String # Date the request was added
-		items: [MaterialRequestItem!]! # List of requested items
-		createdAt: String # Timestamp of creation
-		updatedAt: String # Timestamp of last update
+		requester: UserSnapshot # frozen requester info
+		reviewers: [UserSnapshot] # frozen reviewer info
+		description: String
+		approvalStatus: ApprovalStatus
+		addedDate: String
+		items: [MaterialRequestItem!]!
+		createdAt: String
+		updatedAt: String
 	}
 
-	# Type representing an item in a material request
+	type PermissionSnapshot {
+		canEditUsers: Boolean
+		canDeleteUsers: Boolean
+		canChangeRole: Boolean
+		canViewUsers: Boolean
+		canViewAllUsers: Boolean
+		canEditSelf: Boolean
+		canViewSelf: Boolean
+		canDeleteSelf: Boolean
+	}
+
+	type UserSnapshot {
+		userId: ID
+		email: String
+		name: String
+		role: String
+		permissions: PermissionSnapshot
+	}
+
 	type MaterialRequestItem {
 		id: ID!
-		itemName: String! # Name of the item
-		quantity: Int! # Quantity requested
+		itemName: String!
+		quantity: Int!
 	}
 
-	# Type representing approval status of a request
 	type ApprovalStatus {
-		approved: Boolean # Whether approved
-		denied: Boolean # Whether denied
-		reviewedAt: String # When reviewed
-		comment: String # Reviewer comment
+		approved: Boolean
+		denied: Boolean
+		reviewedAt: String
+		comment: String
 	}
 
 	input Action {
@@ -46,18 +62,16 @@ const materialRequestTypeDef = gql`
 		toBeDeleted: Boolean
 	}
 
-	# Input type for creating/updating a material request item
 	input MaterialRequestItemInput {
 		quantity: Int!
 		itemName: String!
-		# action: Action           # (Commented out) Possible future action field
 	}
 
 	input ApprovalStatusInput {
-		approved: Boolean # Whether approved
-		denied: Boolean # Whether denied
-		reviewedAt: String # When reviewed
-		comment: String # Reviewer comment
+		approved: Boolean
+		denied: Boolean
+		reviewedAt: String
+		comment: String
 	}
 
 	input UpdateMaterialRequestItemInput {
@@ -67,15 +81,12 @@ const materialRequestTypeDef = gql`
 		action: Action!
 	}
 
-	# Input type for creating a new material request
 	input CreateOneMaterialRequestInput {
-		# requesterId: ID!         # (Commented out) Requester ID, possibly set server-side
 		description: String
 		comment: String
 		items: [MaterialRequestItemInput!]!
 	}
 
-	# Input type for updating an existing material request
 	input UpdateMaterialRequestInput {
 		id: ID!
 		description: String
@@ -83,24 +94,21 @@ const materialRequestTypeDef = gql`
 		approvalStatus: ApprovalStatusInput!
 	}
 
-	# Queries for fetching material requests
 	type Query {
-		hello2: String # Test query to verify schema
-		getAllMaterialRequests: [MaterialRequest]! # Get all requests
-		getOneMaterialRequest(id: ID!): MaterialRequest! # Get a single request by ID
+		hello2: String
+		getAllMaterialRequests: [MaterialRequest]!
+		getOneMaterialRequest(id: ID!): MaterialRequest!
 	}
 
-	# Mutations for creating, updating, and deleting material requests
 	type Mutation {
 		createONeMaterialRequest(input: CreateOneMaterialRequestInput!): MaterialRequest!
 		updateOneMaterialRequest(input: UpdateMaterialRequestInput!): MaterialRequest!
-		deleteOneMaterialRequest(id: ID!): Boolean!
+		deleteOneMaterialRequest(id: ID!): MaterialRequest!
 	}
 
-	# (Commented out) Types for subscriptions and actions, for future use
 	type MaterialRequestChange {
-		eventType: String # Type of change (e.g., "created", "updated", "deleted")
-		Changes: MaterialRequest! # Updated user object after the change
+		eventType: String
+		Changes: MaterialRequest!
 	}
 
 	type Subscription {

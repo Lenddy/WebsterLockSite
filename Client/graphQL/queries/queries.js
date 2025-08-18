@@ -60,7 +60,7 @@ export const get_one_user = gql`
 
 // gets all the Material Requests
 export const get_all_material_requests = gql`
-	query {
+	query getAllMaterialRequests {
 		getAllMaterialRequests {
 			id
 			description
@@ -92,9 +92,9 @@ export const get_all_material_requests = gql`
 `;
 
 // gets one the Material Requests
-export const get_one_material_requests = gql`
-	query {
-		getOneMaterialRequest {
+export const get_one_material_request = gql`
+	query getOneMaterialRequest($id: ID!) {
+		getOneMaterialRequest(id: $id) {
 			id
 			requesterId {
 				id

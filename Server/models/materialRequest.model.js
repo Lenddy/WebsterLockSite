@@ -22,29 +22,44 @@ import { Schema, model } from "mongoose";
  */
 const MaterialRequestSchema = new Schema(
 	{
-		requesterId: {
-			type: Schema.Types.ObjectId,
-			ref: "Users",
-			required: true,
-			immutable: true,
+		requester: {
+			_id: Schema.Types.ObjectId, // mongoose.Schema.Types.ObjectId
+			email: String,
+			role: String,
+			permissions: {
+				canEditUsers: Boolean,
+				canDeleteUsers: Boolean,
+				canChangeRole: Boolean,
+				canViewUsers: Boolean,
+				canViewAllUsers: Boolean,
+				canEditSelf: Boolean,
+				canViewSelf: Boolean,
+				canDeleteSelf: Boolean,
+				canRegisterUser: { type: Boolean, default: false },
+			},
 		},
 
 		description: { type: String },
 
-		reviewerId: {
-			type: Schema.Types.ObjectId,
-			ref: "Users",
-			// immutable: true,
-		},
-		approvalStatus: {
-			approved: { type: Boolean, default: false },
-			denied: { type: Boolean, default: false },
-			reviewedAt: {
-				type: Date,
-				default: null,
+		//  reviewers snapshot (array because multiple reviewers)
+		reviewers: [
+			{
+				_id: Schema.Types.ObjectId, // mongoose.Schema.Types.ObjectId
+				email: String,
+				role: String,
+				permissions: {
+					canEditUsers: Boolean,
+					canDeleteUsers: Boolean,
+					canChangeRole: Boolean,
+					canViewUsers: Boolean,
+					canViewAllUsers: Boolean,
+					canEditSelf: Boolean,
+					canViewSelf: Boolean,
+					canDeleteSelf: Boolean,
+					canRegisterUser: { type: Boolean, default: false },
+				},
 			},
-			comment: { type: String },
-		},
+		],
 
 		addedDate: {
 			type: Date,
@@ -63,6 +78,11 @@ const MaterialRequestSchema = new Schema(
 		timestamps: true,
 	}
 );
+
+// Example: When a user is deleted, update related MaterialRequests
+// Set requesterSnapshot.deleted = true or add a deleted flag/message
+// You need to implement this logic in your user deletion code, e.g.:
+// await MaterialRequest.updateMany({ requesterId: userId }, { "requesterSnapshot.deleted": true });
 
 MaterialRequestSchema.pre("save", function (next) {
 	if (this.isModified("approvalStatus.approved") && this.approvalStatus.approved && !this.approvalStatus.reviewedAt) {

@@ -1,27 +1,33 @@
 import React, { useEffect, useState } from "react";
 import { useQuery, useSubscription } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
 import { jwtDecode } from "jwt-decode";
-import { get_all_users } from "../../../graphQL/queries/queries";
-import { Link } from "react-router-dom";
+import { get_one_user } from "../../../graphQL/queries/queries";
+import { Link, useParams, useLocation } from "react-router-dom";
+import UpdateOneUser from "./updateOneUser";
+import AdminUpdateOneUser from "./AdminUpdateOneUser";
+import DeleteOneUser from "./DeleteOneUser";
 
-export default function GetAllUsers() {
-	const { error, loading, data, refetch } = useQuery(get_all_users);
-	const [users, setUsers] = useState([]);
+export default function GetOneUser() {
+	const [user, setUser] = useState({});
 	const [logUser, setLogUser] = useState({});
+	const { userId } = useParams();
 
-	// const decoded = ;
+	const location = useLocation();
+	const currentRoutePath = location.pathname;
+	// console.log(currentRoutePath);
+	const { error, loading, data, refetch } = useQuery(get_one_user, { variables: { id: userId } });
 
 	useEffect(() => {
 		setLogUser(jwtDecode(localStorage.getItem("UserToken")));
 		if (loading) {
-			console.log("loading");
+			// console.log("loading");
 		}
 		if (data) {
-			console.log(data.getAllUsers);
-			setUsers(data.getAllUsers);
+			// console.log(data.getOneUser);
+			setUser(data.getOneUser);
 		}
 		if (error) {
-			console.log("there was an error", error);
+			// console.log("there was an error", error);
 		}
 		// const fetchData = async () => {
 		// 	await refetch();
@@ -53,66 +59,45 @@ export default function GetAllUsers() {
 		<div>
 			<h1>Welcome {logUser?.name}</h1>
 			<div>
-				<Link to={"/user/register"}>register user</Link>
-			</div>
-
-			<div>
 				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
 					Log out
 				</Link>
 			</div>
 
 			<div>
-				<Link to={`/material/request/all`}>all material requests</Link>
+				<Link to={"/user/all"}>all users</Link>
+			</div>
+			<div>
+				<Link to={`/user/${userId}/update`}>update users</Link>
 			</div>
 
-			{loading ? (
+			<div>
+				<Link to={`/user/${userId}/update/admin`}>admin update users</Link>
+			</div>
+
+			{currentRoutePath === `/user/${userId}/update/admin` ? (
+				<AdminUpdateOneUser userId={userId} user={user} />
+			) : currentRoutePath === `/user/${userId}/update` ? (
+				<UpdateOneUser userId={userId} user={user} />
+			) : loading ? (
 				<div>
-					{" "}
-					<h1>loading...</h1>{" "}
+					<h1>loading...</h1>
 				</div>
 			) : (
 				<div>
 					<div>
-						<table>
-							<thead>
-								<tr>
-									<th>ID</th>
-									<th>Name</th>
-									<th>Email</th>
-									<th>Role</th>
-									<th>Job</th>
-									<th>Action</th>
-								</tr>
-							</thead>
-							{users.map((user) => {
-								return (
-									<tbody key={user.id}>
-										<tr>
-											<td>
-												<Link to={`/user/${user?.id}`}>{user?.id}</Link>
-											</td>
-											<td>
-												<Link to={`/user/${user?.id}`}>{user?.name}</Link>
-											</td>
-											<td>{user?.email}</td>
-											<td>{user?.role}</td>
-											<td>{user?.job?.title}</td>
-											<td>
-												<div>
-													<button>Update</button>
-													<button>Delete</button>
-												</div>
-											</td>
-										</tr>
-									</tbody>
-								);
-							})}
-						</table>
+						<p>name: {user.name}</p>
+						<p>email:{user.email}</p>
+						<p>Role: {user.role}</p>
+						<p>job: {user?.job?.title === null || user?.job?.title === undefined ? "no job available" : user?.job?.title}</p>
 					</div>
+
+					<DeleteOneUser userId={userId} />
 				</div>
 			)}
-			{error && <p style={{ color: "red" }}> {error.message}</p>}
+
+			{/* {error && <p style={{ color: "red" }}> {error.message}</p>} */}
+			{/* <h1>hello: {userId}</h1> */}
 		</div>
 	);
 }

@@ -129,6 +129,9 @@ const materialRequestResolvers = {
 					// _id: new mongoose.Types.ObjectId(), // Optionally generate a new ObjectId for each item
 					itemName: item.itemName, // Set item name
 					quantity: item.quantity, // Set item quantity
+					color: item?.color ? item?.color : null,
+					side: item?.side ? item?.side : null,
+					size: item?.size ? item?.size : null,
 				}));
 
 				// Create a snapshot of the requester (user info at time of request)
@@ -288,7 +291,7 @@ const materialRequestResolvers = {
 					shouldSave = true;
 				}
 
-				if (approvalStatus.isApproved === true) {
+				if (approvalStatus?.isApproved === true) {
 					target.approvalStatus.approvedBy.userId = user.userId;
 					target.approvalStatus.approvedBy.name = user.name;
 					target.approvalStatus.approvedBy.email = user.email;
@@ -332,20 +335,20 @@ const materialRequestResolvers = {
 
 				if (Array.isArray(items)) {
 					for (const item of items) {
-						const { id: itemId, itemName, quantity, action } = item;
+						const { id: itemId, itemName, quantity, color, side, size, action } = item;
 
 						if (action.toBeAdded === true) {
 							bulkOps.push({
 								updateOne: {
 									filter: { _id: id },
-									update: { $push: { items: { quantity, itemName } } },
+									update: { $push: { items: { quantity, itemName, color, side, size } } },
 								},
 							});
 						} else if (action.toBeUpdated && itemId) {
 							bulkOps.push({
 								updateOne: {
 									filter: { _id: id, "items._id": itemId },
-									update: { $set: { "items.$.quantity": quantity, "items.$.itemName": itemName } },
+									update: { $set: { "items.$.quantity": quantity, "items.$.itemName": itemName, "items.$.color": color, "items.$.side": side, "items.$.size": size } },
 								},
 							});
 						} else if (action.toBeDeleted && itemId) {

@@ -67,7 +67,7 @@ const userResolver = {
 		registerUser: async (_, { input: { name, email, password, confirmPassword, role = "user", job, permissions } }, { user, pubsub }) => {
 			try {
 				if (user.role !== "headAdmin" || user.role !== "admin" || (user.role !== "subAdmin" && !user.permissions.canRegisterUser)) {
-					throw new ApolloError("Unauthorized: You lack required permissions to register users.", "USER_ALREADY_EXIST");
+					throw new ApolloError("Unauthorized: You lack required permissions to register users.", "USER_LACK_PERMISSION");
 				}
 
 				const oldUser = await User.findOne({ email }); // Check if user exists

@@ -28,10 +28,12 @@ import { userTypeDef } from "./graphql/types/user.typeDef.js";
 import { userResolver } from "./graphql/resolvers/user.resolver.js";
 import { materialRequestTypeDef } from "./graphql/types/materialRequest.typeDef.js";
 import { materialRequestResolvers } from "./graphql/resolvers/materialRequest.resolver.js";
+import { itemGroupTypeDef } from "./graphql/types/itemsGroup.typeDef.js";
+import { itemGroupResolver } from "./graphql/resolvers/itemGroup.resolver.js";
 
 // Merge GraphQL schema
-const typeDefs = mergeTypeDefs([userTypeDef, materialRequestTypeDef]);
-const resolvers = mergeResolvers([userResolver, materialRequestResolvers]);
+const typeDefs = mergeTypeDefs([userTypeDef, materialRequestTypeDef, itemGroupTypeDef]);
+const resolvers = mergeResolvers([userResolver, materialRequestResolvers, itemGroupResolver]);
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 // Async startup function

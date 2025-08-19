@@ -30,17 +30,26 @@ const materialRequestTypeDef = gql`
 		id: ID!
 		itemName: String!
 		quantity: Int!
+		color: String
+		side: String
+		size: String
 	}
 
 	input MaterialRequestItemInput { # Input for creating an item
 		quantity: Int!
 		itemName: String!
+		color: String
+		side: String
+		size: String
 	}
 
 	input UpdateMaterialRequestItemInput { # Input for updating an item
-		id: ID
-		quantity: Int!
-		itemName: String!
+		id: ID!
+		quantity: Int
+		itemName: String
+		color: String
+		side: String
+		size: String
 		action: Action!
 	}
 
@@ -53,7 +62,7 @@ const materialRequestTypeDef = gql`
 		id: ID!
 		description: String
 		items: [UpdateMaterialRequestItemInput]
-		approvalStatus: ApprovalStatusInput!
+		approvalStatus: ApprovalStatusInput
 		comment: String
 	}
 

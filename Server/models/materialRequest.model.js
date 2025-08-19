@@ -23,8 +23,20 @@ import { Schema, model } from "mongoose";
 const MaterialRequestSchema = new Schema(
 	{
 		requester: {
-			_id: Schema.Types.ObjectId, // mongoose.Schema.Types.ObjectId
-			email: String,
+			userId: Schema.Types.ObjectId, // mongoose.Schema.Types.ObjectId
+			name: String,
+			email: {
+				type: String,
+				lowercase: true, // Automatically convert email to lowercase before saving
+				validate: {
+					// Custom regex validator for proper email format
+					validator: function (v) {
+						return /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/.test(v);
+					},
+					// Error message if email format is invalid
+					message: (props) => `${props.value} is not a valid email address!`,
+				},
+			},
 			role: String,
 			permissions: {
 				canEditUsers: Boolean,
@@ -39,13 +51,23 @@ const MaterialRequestSchema = new Schema(
 			},
 		},
 
-		description: { type: String },
-
 		//  reviewers snapshot (array because multiple reviewers)
 		reviewers: [
 			{
-				_id: Schema.Types.ObjectId, // mongoose.Schema.Types.ObjectId
-				email: String,
+				userId: Schema.Types.ObjectId, // mongoose.Schema.Types.ObjectId
+				name: String,
+				email: {
+					type: String,
+					lowercase: true, // Automatically convert email to lowercase before saving
+					validate: {
+						// Custom regex validator for proper email format
+						validator: function (v) {
+							return /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/.test(v);
+						},
+						// Error message if email format is invalid
+						message: (props) => `${props.value} is not a valid email address!`,
+					},
+				},
 				role: String,
 				permissions: {
 					canEditUsers: Boolean,
@@ -58,8 +80,36 @@ const MaterialRequestSchema = new Schema(
 					canDeleteSelf: Boolean,
 					canRegisterUser: { type: Boolean, default: false },
 				},
+				comment: String,
+				reviewedAt: Date,
 			},
 		],
+
+		approvalStatus: {
+			approvedBy: {
+				userId: Schema.Types.ObjectId,
+				name: String,
+				email: {
+					type: String,
+					lowercase: true, // Automatically convert email to lowercase before saving
+					validate: {
+						// Custom regex validator for proper email format
+						validator: function (v) {
+							return /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/.test(v);
+						},
+						// Error message if email format is invalid
+						message: (props) => `${props.value} is not a valid email address!`,
+					},
+				},
+			},
+			approvedAt: {
+				type: Date,
+				// default: Date.now,
+			},
+			isApproved: { type: Boolean, default: false },
+		},
+
+		description: { type: String },
 
 		addedDate: {
 			type: Date,
@@ -84,12 +134,12 @@ const MaterialRequestSchema = new Schema(
 // You need to implement this logic in your user deletion code, e.g.:
 // await MaterialRequest.updateMany({ requesterId: userId }, { "requesterSnapshot.deleted": true });
 
-MaterialRequestSchema.pre("save", function (next) {
-	if (this.isModified("approvalStatus.approved") && this.approvalStatus.approved && !this.approvalStatus.reviewedAt) {
-		this.approvalStatus.reviewedAt = new Date();
-	}
-	next();
-});
+// MaterialRequestSchema.pre("save", function (next) {
+// 	if (this.isModified("approvalStatus.approved") && this.approvalStatus.approved && !this.approvalStatus.reviewedAt) {
+// 		this.approvalStatus.reviewedAt = new Date();
+// 	}
+// 	next();
+// });
 
 const MaterialRequest = model("MaterialRequest", MaterialRequestSchema);
 export default MaterialRequest;

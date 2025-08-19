@@ -105,7 +105,7 @@ const userResolver = {
 				const res = await newUser.save(); // Save user to DB
 
 				await pubsub.publish("USER_ADDED", {
-					onChange: {
+					onUserChange: {
 						eventType: "created", // Event type
 						Changes: res, // User data
 					},
@@ -231,7 +231,7 @@ const userResolver = {
 				await targetUser.save(); // Save changes
 
 				await pubsub.publish("USER_UPDATED", {
-					onChange: {
+					onUserChange: {
 						eventType: "updated", // Event type
 						Changes: targetUser, // User data
 					},
@@ -386,7 +386,7 @@ const userResolver = {
 				await targetUser.save(); // Save changes
 
 				await pubsub.publish("USER_UPDATED", {
-					onChange: {
+					onUserChange: {
 						eventType: "updated", // Event type
 						Changes: targetUser, // User data
 					},
@@ -427,7 +427,7 @@ const userResolver = {
 			const deletedUser = await User.findByIdAndDelete(id); // Delete user
 
 			await pubsub.publish("USER_DELETED", {
-				onChange: { eventType: "deleted", Changes: deletedUser }, // Publish event
+				onUserChange: { eventType: "deleted", Changes: deletedUser }, // Publish event
 			});
 
 			return deletedUser; // Return deleted user

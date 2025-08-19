@@ -8,23 +8,101 @@ import { userTypeDef } from "./user.typeDef.js";
 
 // Define the GraphQL type definitions for MaterialRequest and related types
 const materialRequestTypeDef = gql`
-	scalar DateTime
+	scalar DateTime # Custom scalar for date-time values
+
 	${userTypeDef}
 	# Include User type definitions
 
-	type MaterialRequest {
+	# --- MaterialRequest and related types ---
+	type MaterialRequest { # Main request type
 		id: ID!
 		requester: UserSnapshot # frozen requester info
-		reviewers: [UserSnapshot] # frozen reviewer info
-		description: String
-		approvalStatus: ApprovalStatus
-		addedDate: String
-		items: [MaterialRequestItem!]!
-		createdAt: String
-		updatedAt: String
+		reviewers: [UserReviewerSnapshot] # frozen reviewer info
+		approvalStatus: ApprovalStatus # approval status object
+		description: String # request description
+		addedDate: String # date added
+		items: [MaterialRequestItem!]! # requested items
+		createdAt: String # creation timestamp
+		updatedAt: String # update timestamp
 	}
 
-	type PermissionSnapshot {
+	type MaterialRequestItem { # Item in a material request
+		id: ID!
+		itemName: String!
+		quantity: Int!
+	}
+
+	input MaterialRequestItemInput { # Input for creating an item
+		quantity: Int!
+		itemName: String!
+	}
+
+	input UpdateMaterialRequestItemInput { # Input for updating an item
+		id: ID
+		quantity: Int!
+		itemName: String!
+		action: Action!
+	}
+
+	input CreateOneMaterialRequestInput { # Input for creating a request
+		items: [MaterialRequestItemInput!]!
+		description: String
+	}
+
+	input UpdateMaterialRequestInput { # Input for updating a request
+		id: ID!
+		description: String
+		items: [UpdateMaterialRequestItemInput]
+		approvalStatus: ApprovalStatusInput!
+		comment: String
+	}
+
+	# --- Approval related types ---
+	type ApprovalStatus { # Approval status object
+		approvedBy: ApprovedBy # who approved
+		approvedAt: String # approval date
+		isApproved: Boolean # approval flag
+	}
+
+	type ApprovedBy { # Who approved
+		userId: ID
+		email: String
+		name: String
+	}
+
+	input ApprovalStatusInput { # Input for approval status
+		approvedBy: ApprovedByInput
+		approvedAt: String
+		isApproved: Boolean
+	}
+
+	input ApprovedByInput { # Input for approved by
+		userId: ID
+		email: String
+		name: String
+	}
+
+	# --- User snapshot types ---
+	type UserSnapshot { # Frozen requester info
+		userId: ID
+		email: String
+		name: String
+		role: String
+		permissions: PermissionSnapshot
+	}
+
+	type UserReviewerSnapshot { # Frozen reviewer info
+		userId: ID
+		email: String
+		name: String
+		role: String
+		permissions: PermissionSnapshot
+		comment: String
+		reviewedAt: String
+	}
+
+	# --- Permissions ---
+	type PermissionSnapshot { # Permissions at time of request
 		canEditUsers: Boolean
 		canDeleteUsers: Boolean
 		canChangeRole: Boolean
@@ -33,88 +111,51 @@ const materialRequestTypeDef = gql`
 		canEditSelf: Boolean
 		canViewSelf: Boolean
 		canDeleteSelf: Boolean
+		canRegisterUser: Boolean
 	}
 
-	type UserSnapshot {
-		userId: ID
-		email: String
-		name: String
-		role: String
-		permissions: PermissionSnapshot
+	input PermissionSnapshotInput { # Permissions at time of request
+		canEditUsers: Boolean
+		canDeleteUsers: Boolean
+		canChangeRole: Boolean
+		canViewUsers: Boolean
+		canViewAllUsers: Boolean
+		canEditSelf: Boolean
+		canViewSelf: Boolean
+		canDeleteSelf: Boolean
+		canRegisterUser: Boolean
 	}
 
-	type MaterialRequestItem {
-		id: ID!
-		itemName: String!
-		quantity: Int!
-	}
-
-	type ApprovalStatus {
-		approved: Boolean
-		denied: Boolean
-		reviewedAt: String
-		comment: String
-	}
-
-	input Action {
+	# --- Action input ---
+	input Action { # Action to perform on item
 		toBeAdded: Boolean
 		toBeUpdated: Boolean
 		toBeDeleted: Boolean
 	}
 
-	input MaterialRequestItemInput {
-		quantity: Int!
-		itemName: String!
-	}
-
-	input ApprovalStatusInput {
-		approved: Boolean
-		denied: Boolean
-		reviewedAt: String
-		comment: String
-	}
-
-	input UpdateMaterialRequestItemInput {
-		id: ID
-		quantity: Int!
-		itemName: String!
-		action: Action!
-	}
-
-	input CreateOneMaterialRequestInput {
-		description: String
-		comment: String
-		items: [MaterialRequestItemInput!]!
-	}
-
-	input UpdateMaterialRequestInput {
-		id: ID!
-		description: String
-		items: [UpdateMaterialRequestItemInput!]!
-		approvalStatus: ApprovalStatusInput!
-	}
-
+	# --- Queries ---
 	type Query {
-		hello2: String
-		getAllMaterialRequests: [MaterialRequest]!
-		getOneMaterialRequest(id: ID!): MaterialRequest!
+		hello2: String # Test query
+		getAllMaterialRequests: [MaterialRequest]! # Get all requests
+		getOneMaterialRequest(id: ID!): MaterialRequest! # Get one request by ID
 	}
 
+	# --- Mutations ---
 	type Mutation {
-		createONeMaterialRequest(input: CreateOneMaterialRequestInput!): MaterialRequest!
-		updateOneMaterialRequest(input: UpdateMaterialRequestInput!): MaterialRequest!
-		deleteOneMaterialRequest(id: ID!): MaterialRequest!
+		createONeMaterialRequest(input: CreateOneMaterialRequestInput!): MaterialRequest! # Create request
+		updateOneMaterialRequest(input: UpdateMaterialRequestInput!): MaterialRequest! # Update request
+		deleteOneMaterialRequest(id: ID!): MaterialRequest! # Delete request
 	}
 
-	type MaterialRequestChange {
+	# --- Subscription ---
+	type MaterialRequestChange { # Change event for subscription
 		eventType: String
 		Changes: MaterialRequest!
 	}
 
 	type Subscription {
-		onMaterialRequestChange: MaterialRequestChange
+		onMaterialRequestChange: MaterialRequestChange # Subscription for changes
 	}
 `;
 
-// Export the type definitions for use in the GraphQL server
 export { materialRequestTypeDef };

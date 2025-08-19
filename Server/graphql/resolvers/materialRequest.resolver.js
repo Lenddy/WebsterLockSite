@@ -4,6 +4,30 @@ import MaterialRequest from "../../models/materialRequest.model.js"; // Mongoose
 import pubsub from "../pubsub.js"; // PubSub instance for subscriptions
 import mongoose from "mongoose";
 
+/**
+ * GraphQL resolvers for MaterialRequest operations.
+ *
+ * Handles queries, mutations, and subscriptions related to material requests.
+ *
+ * @namespace materialRequestResolvers
+ *
+ * @property {Object} Query - Query resolvers for fetching material requests.
+ * @property {Function} Query.hello2 - Test query, returns "hello world". // simple test endpoint
+ * @property {Function} Query.getAllMaterialRequests - Fetches all material requests (admin only). // lists all requests
+ * @property {Function} Query.getOneMaterialRequest - Fetches a single material request by ID (admin only). // gets one request by id
+ *
+ * @property {Object} Mutation - Mutation resolvers for creating, updating, and deleting material requests.
+ * @property {Function} Mutation.createONeMaterialRequest - Creates a new material request. // adds a new request
+ * @property {Function} Mutation.updateOneMaterialRequest - Updates an existing material request. // edits request, items, approval status
+ * @property {Function} Mutation.deleteOneMaterialRequest - Deletes a material request (admin only). // removes request by id
+ *
+ * @property {Object} Subscription - Subscription resolvers for listening to material request changes.
+ * @property {Object} Subscription.onMaterialRequestChange - Subscribes to material request add/update/delete events. // live updates for clients
+ *
+ * @property {Object} MaterialRequest - Field resolvers for MaterialRequest type.
+ * @property {Function} MaterialRequest.createdAt - Formats createdAt as ISO string. // date formatting
+ * @property {Function} MaterialRequest.updatedAt - Formats updatedAt as ISO string. // date formatting
+ */
 const materialRequestResolvers = {
 	// Query resolvers
 	Query: {
@@ -93,43 +117,52 @@ const materialRequestResolvers = {
 		// 	}
 		// },
 
-		//  Create a new material request
+		// Create a new material request
+
 		createONeMaterialRequest: async (_, { input: { description, items } }, { user }) => {
+			// Check if user context is provided (authentication)
 			if (!user) throw new Error("Unauthorized: no user context given.");
 
 			try {
+				// Normalize items array: create new objects for each item with itemName and quantity
 				const normalizedItems = items.map((item) => ({
-					// _id: new mongoose.Types.ObjectId(),
-					itemName: item.itemName,
-					quantity: item.quantity,
+					// _id: new mongoose.Types.ObjectId(), // Optionally generate a new ObjectId for each item
+					itemName: item.itemName, // Set item name
+					quantity: item.quantity, // Set item quantity
 				}));
 
-				// snapshot of requester
+				// Create a snapshot of the requester (user info at time of request)
 				const requester = {
-					userId: user.userId,
-					email: user.email,
-					name: user.name,
-					role: user.role,
-					permissions: { ...user.permissions },
+					userId: user.userId, // User ID of requester
+					email: user.email, // Email of requester
+					name: user.name, // Name of requester
+					role: user.role, // Role of requester
+					permissions: { ...user.permissions }, // Permissions of requester (shallow copy)
 				};
 
+				// Create a new MaterialRequest document
 				const newMaterialRequest = new MaterialRequest({
-					requester, // frozen info
-					reviewers: [], // empty at creation
-					description,
-					items: normalizedItems,
-					addedDate: new Date().toISOString(),
+					requester, // Store frozen requester info
+					reviewers: [], // Initialize reviewers array as empty
+					description, // Set description from input
+					items: normalizedItems, // Set normalized items array
+					addedDate: new Date().toISOString(), // Set creation date as ISO string
 				});
 
+				// Save the new material request to the database
 				await newMaterialRequest.save();
 
+				// Publish a subscription event for material request creation
 				await pubsub.publish("MATERIAL_REQUEST_ADDED", {
-					onChange: { eventType: "created", Changes: newMaterialRequest },
+					onMaterialRequestChange: { eventType: "created", Changes: newMaterialRequest }, // Event payload
 				});
 
+				// Return the newly created material request
 				return newMaterialRequest;
 			} catch (err) {
+				// Log any errors that occur during creation
 				console.log("Error creating material request", err, "\n____________________");
+				// Rethrow the error for GraphQL error handling
 				throw err;
 			}
 		},
@@ -238,7 +271,7 @@ const materialRequestResolvers = {
 		// 	}
 		// },
 
-		updateOneMaterialRequest: async (_, { input: { id, description, items, approvalStatus } }, { user }) => {
+		updateOneMaterialRequest: async (_, { input: { id, description, items, approvalStatus, comment } }, { user }) => {
 			try {
 				if (!user) throw new Error("Unauthorized: No user context.");
 				if ((!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole" || user.role === "technician") {
@@ -255,30 +288,42 @@ const materialRequestResolvers = {
 					shouldSave = true;
 				}
 
-				if (approvalStatus) {
-					target.approvalStatus.reviewedAt = Date.now();
-					if (approvalStatus.approved === true) target.approvalStatus.approved = true;
-					if (approvalStatus.denied === true) target.approvalStatus.denied = true;
-					if (approvalStatus.comment) target.approvalStatus.comment = approvalStatus.comment;
-					shouldSave = true;
+				if (approvalStatus.isApproved === true) {
+					target.approvalStatus.approvedBy.userId = user.userId;
+					target.approvalStatus.approvedBy.name = user.name;
+					target.approvalStatus.approvedBy.email = user.email;
+					target.approvalStatus.approvedAt = Date.now();
+					target.approvalStatus.isApproved = approvalStatus.isApproved;
 				}
 
-				// ensure reviewer is tracked
-				if (!target.reviewers.includes(user.userId)) {
+				// ensure reviewer is tracked or update their comment
+				const existingReviewer = target.reviewers.find((r) => r.userId.toString() === user.userId.toString());
+
+				// If reviewer is new
+				if (!existingReviewer) {
 					target.reviewers.push({
 						userId: user.userId,
 						email: user.email,
 						name: user.name,
 						role: user.role,
 						permissions: { ...user.permissions },
+						comment: comment ? comment : undefined,
+						reviewedAt: new Date(), //  set when first added
 					});
-
 					shouldSave = true;
+				} else {
+					// If reviewer exists and updates comment
+					if (comment) {
+						existingReviewer.comment = comment;
+						existingReviewer.reviewedAt = new Date(); //  update reviewedAt on comment
+						shouldSave = true;
+					}
 				}
 
 				// permissions check
-				const isReviewer = target.reviewers.includes(user.userId);
-				const isAdmin = user.permissions.canEditUsers || user.role === "admin" || user.role === "headAdmin";
+				const isReviewer = target.reviewers.some((r) => r.userId.toString() === user.userId.toString());
+
+				const isAdmin = user.permissions.canEditUsers || user.role === "headAdmin";
 				if (!isReviewer && !isAdmin) {
 					throw new ApolloError("Unauthorized: You lack permission to update this request.");
 				}
@@ -293,14 +338,14 @@ const materialRequestResolvers = {
 							bulkOps.push({
 								updateOne: {
 									filter: { _id: id },
-									update: { $push: { items: { _id: new mongoose.Types.ObjectId(), itemName, quantity } } },
+									update: { $push: { items: { quantity, itemName } } },
 								},
 							});
 						} else if (action.toBeUpdated && itemId) {
 							bulkOps.push({
 								updateOne: {
 									filter: { _id: id, "items._id": itemId },
-									update: { $set: { "items.$.itemName": itemName, "items.$.quantity": quantity } },
+									update: { $set: { "items.$.quantity": quantity, "items.$.itemName": itemName } },
 								},
 							});
 						} else if (action.toBeDeleted && itemId) {
@@ -319,7 +364,7 @@ const materialRequestResolvers = {
 				const updatedTarget = await MaterialRequest.findById(id);
 
 				await pubsub.publish("MATERIAL_REQUEST_UPDATED", {
-					onChange: { eventType: "updated", Changes: updatedTarget },
+					onMaterialRequestChange: { eventType: "updated", Changes: updatedTarget },
 				});
 
 				return updatedTarget;
@@ -339,7 +384,7 @@ const materialRequestResolvers = {
 
 			// Publish deletion event for subscriptions
 			await pubsub.publish("MATERIAL_REQUEST_DELETED", {
-				onChange: { eventType: "deleted", Changes: deletedMaterialRequest },
+				onMaterialRequestChange: { eventType: "deleted", Changes: deletedMaterialRequest },
 			});
 
 			// MaterialRequest;

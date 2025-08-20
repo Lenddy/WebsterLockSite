@@ -14,24 +14,37 @@ const itemGroupTypeDef = gql`
 	}
 
 	type Item {
-		id: ID!
+		id: ID
 		itemName: String
 	}
 
 	input ItemInput {
-		id: ID!
 		itemName: String
 	}
 
-	input CreateOneItemGroupInput {
-		brand: String
-		itemList: [ItemInput]
+	input ItemUpdateInput {
+		id: ID
+		itemName: String
+		action: Action!
 	}
 
-	input UpdateMaterialRequestInput {
+	input CreateOneItemGroupInput {
+		brand: String!
+		itemsList: [ItemInput]
+	}
+
+	input UpdateItemGroupInput {
 		id: ID!
 		brand: String
-		itemList: [ItemInput]
+		itemsList: [ItemUpdateInput]
+		brandNameUpdate: Boolean
+	}
+
+	# --- Action input ---
+	input Action { # Action to perform on item
+		toBeAdded: Boolean
+		toBeUpdated: Boolean
+		toBeDeleted: Boolean
 	}
 
 	# --- Queries ---
@@ -44,7 +57,8 @@ const itemGroupTypeDef = gql`
 	# --- Mutations ---
 	type Mutation {
 		createOneItemGroup(input: CreateOneItemGroupInput!): ItemGroup! # Create ItemGroup
-		updateOneItemGroup(input: UpdateMaterialRequestInput!): ItemGroup! # Update ItemGroup
+		createMultipleItemGroups(input: [CreateOneItemGroupInput!]!): [ItemGroup!]!
+		updateMultipleItemGroups(input: [UpdateItemGroupInput!]!): [ItemGroup!]! # Update ItemGroup
 		deleteOneItemGroup(id: ID!): ItemGroup! # Delete ItemGroup
 	}
 

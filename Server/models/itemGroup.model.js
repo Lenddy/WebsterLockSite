@@ -13,17 +13,20 @@ const ItemGroupSchema = new Schema(
 		brand: {
 			type: String,
 			required: true, // Name is required
+			unique: true, // Must be unique across users
 		},
 		// User's full name
 		itemsList: [
 			{
-				itemId: { type: Schema.Types.ObjectId, auto: true },
-				itemName: String, //  Name is required
+				_id: { type: Schema.Types.ObjectId, auto: true },
+				itemName: { type: String }, //  Name is required
+				// Must be unique across users
 			},
 		],
 	},
 	{
 		timestamps: true, // Automatically include createdAt and updatedAt timestamps
+		toJSON: { getters: true }, // Use getters when converting to JSON (e.g., virtuals)
 		toObject: { getters: true }, // Use getters when converting to plain JS objects
 	}
 );

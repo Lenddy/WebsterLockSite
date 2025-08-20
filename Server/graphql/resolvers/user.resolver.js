@@ -66,7 +66,7 @@ const userResolver = {
 		// Register a new user
 		registerUser: async (_, { input: { name, email, password, confirmPassword, role = "user", job, permissions } }, { user, pubsub }) => {
 			try {
-				if (user.role !== "headAdmin" || user.role !== "admin" || (user.role !== "subAdmin" && !user.permissions.canRegisterUser)) {
+				if (user.role !== "headAdmin" && user.role !== "admin" && (user.role !== "subAdmin" || !user.permissions.canEditUsers)) {
 					throw new ApolloError("Unauthorized: You lack required permissions to register users.", "USER_LACK_PERMISSION");
 				}
 

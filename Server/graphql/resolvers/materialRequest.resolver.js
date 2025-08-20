@@ -119,7 +119,7 @@ const materialRequestResolvers = {
 
 		// Create a new material request
 
-		createONeMaterialRequest: async (_, { input: { description, items } }, { user }) => {
+		createOneMaterialRequest: async (_, { input: { description, items } }, { user }) => {
 			// Check if user context is provided (authentication)
 			if (!user) throw new Error("Unauthorized: no user context given.");
 

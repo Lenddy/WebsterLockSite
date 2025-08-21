@@ -20,7 +20,7 @@ const itemGroupResolver = {
 				// console.log("Token user info:", user); // Log user info from token
 
 				if (!user) {
-					throw new Error("Unauthorized: No user token was found."); // Check authentication
+					throw new ApolloError("Unauthorized: No user token was found."); // Check authentication
 				}
 
 				const itemGroup = await ItemGroup.find(); // Fetch all itemGroup from DB
@@ -36,13 +36,13 @@ const itemGroupResolver = {
 		getOneItemGroup: async (_, { id }, { user }) => {
 			try {
 				if (!user) {
-					throw new Error("Unauthorized: No user token was found."); // Check authentication
+					throw new ApolloError("Unauthorized: No user token was found."); // Check authentication
 				}
 				// console.dir(user); // Log user info
 
 				const itemGroup = await ItemGroup.findById(id); // Find itemGroup by ID
 				if (!itemGroup) {
-					throw new Error("Item group not found."); // Check if user exists
+					throw new ApolloError("Item group not found."); // Check if user exists
 				}
 
 				// Check permissions for viewing user
@@ -120,7 +120,7 @@ const itemGroupResolver = {
 
 				await pubsub.publish("ITEMGROUP_ADDED", {
 					onItemGroupChange: {
-						eventType: "created",
+						eventType: "CREATED",
 						Changes: res,
 					},
 				});
@@ -136,10 +136,10 @@ const itemGroupResolver = {
 		},
 
 		// Create multiple ItemGroups in one mutation
-		createMultipleItemGroups: async (_, { input }, { user }) => {
+		createMultipleItemGroups: async (_, { input }, { user, pubsub }) => {
 			try {
 				//  Role check: only headAdmin allowed
-				if (user.role !== "headAdmin") {
+				if (user.role !== "headAdmin" && user.role !== "Admin") {
 					throw new ApolloError("Unauthorized: Only headAdmin can create multiple item groups.", "USER_LACK_PERMISSION");
 				}
 
@@ -169,9 +169,20 @@ const itemGroupResolver = {
 				const createdItemGroups = await ItemGroup.insertMany(
 					input.map((ig) => ({
 						brand: ig.brand,
-						itemsList: ig.itemsList || [], // 👈 allow no items
+						itemsList: ig.itemsList || [], //  allow no items
 					}))
 				);
+
+				const forSub = createdItemGroups;
+
+				forSub?.forEach((group) => {
+					pubsub.publish("ITEMGROUP_UPDATED", {
+						onItemGroupChange: {
+							eventType: "UPDATED",
+							Changes: group,
+						},
+					});
+				});
 
 				return createdItemGroups;
 			} catch (err) {
@@ -179,116 +190,19 @@ const itemGroupResolver = {
 			}
 		},
 
-		// updateOneItemGroup: async (_, { input: { id, description, items, approvalStatus, comment } }, { user }) => {
-		// 	try {
-		// 		if (!user) throw new Error("Unauthorized: No user context.");
-		// 		if ((!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole" || user.role === "technician") {
-		// 			throw new Error("Unauthorized: You lack permission.");
-		// 		}
-
-		// 		const target = await MaterialRequest.findById(id);
-		// 		if (!target) throw new ApolloError("Material request was not found");
-
-		// 		let shouldSave = false;
-
-		// 		if (description) {
-		// 			target.description = description;
-		// 			shouldSave = true;
-		// 		}
-
-		// 		if (approvalStatus?.isApproved === true) {
-		// 			target.approvalStatus.approvedBy.userId = user.userId;
-		// 			target.approvalStatus.approvedBy.name = user.name;
-		// 			target.approvalStatus.approvedBy.email = user.email;
-		// 			target.approvalStatus.approvedAt = Date.now();
-		// 			target.approvalStatus.isApproved = approvalStatus.isApproved;
-		// 		}
-
-		// 		// ensure reviewer is tracked or update their comment
-		// 		const existingReviewer = target.reviewers.find((r) => r.userId.toString() === user.userId.toString());
-
-		// 		// If reviewer is new
-		// 		if (!existingReviewer) {
-		// 			target.reviewers.push({
-		// 				userId: user.userId,
-		// 				email: user.email,
-		// 				name: user.name,
-		// 				role: user.role,
-		// 				permissions: { ...user.permissions },
-		// 				comment: comment ? comment : undefined,
-		// 				reviewedAt: new Date(), //  set when first added
-		// 			});
-		// 			shouldSave = true;
-		// 		} else {
-		// 			// If reviewer exists and updates comment
-		// 			if (comment) {
-		// 				existingReviewer.comment = comment;
-		// 				existingReviewer.reviewedAt = new Date(); //  update reviewedAt on comment
-		// 				shouldSave = true;
-		// 			}
-		// 		}
-
-		// 		// permissions check
-		// 		const isReviewer = target.reviewers.some((r) => r.userId.toString() === user.userId.toString());
-
-		// 		const isAdmin = user.permissions.canEditUsers || user.role === "headAdmin";
-		// 		if (!isReviewer && !isAdmin) {
-		// 			throw new ApolloError("Unauthorized: You lack permission to update this request.");
-		// 		}
-
-		// 		const bulkOps = [];
-
-		// 		if (Array.isArray(items)) {
-		// 			for (const item of items) {
-		// 				const { id: itemId, itemName, quantity, color, side, size, action } = item;
-
-		// 				if (action.toBeAdded === true) {
-		// 					bulkOps.push({
-		// 						updateOne: {
-		// 							filter: { _id: id },
-		// 							update: { $push: { items: { quantity, itemName, color, side, size } } },
-		// 						},
-		// 					});
-		// 				} else if (action.toBeUpdated && itemId) {
-		// 					bulkOps.push({
-		// 						updateOne: {
-		// 							filter: { _id: id, "items._id": itemId },
-		// 							update: { $set: { "items.$.quantity": quantity, "items.$.itemName": itemName, "items.$.color": color, "items.$.side": side, "items.$.size": size } },
-		// 						},
-		// 					});
-		// 				} else if (action.toBeDeleted && itemId) {
-		// 					bulkOps.push({
-		// 						updateOne: {
-		// 							filter: { _id: id },
-		// 							update: { $pull: { items: { _id: itemId } } },
-		// 						},
-		// 					});
-		// 				}
-		// 			}
-		// 		}
-
-		// 		await Promise.all([shouldSave ? target.save() : null, bulkOps.length > 0 ? MaterialRequest.bulkWrite(bulkOps) : null]);
-
-		// 		const updatedTarget = await MaterialRequest.findById(id);
-
-		// 		await pubsub.publish("MATERIAL_REQUEST_UPDATED", {
-		// 			onMaterialRequestChange: { eventType: "updated", Changes: updatedTarget },
-		// 		});
-
-		// 		return updatedTarget;
-		// 	} catch (error) {
-		// 		console.error("Error updating material request:", error);
-		// 		throw error;
-		// 	}
-		// },
-
-		updateMultipleItemGroups: async (_, { input }, { user }) => {
+		updateMultipleItemGroups: async (_, { input }, { user, pubsub }) => {
 			try {
-				console.log("this is the input ________________");
-				console.dir(input, { depth: null });
-				//  Only headAdmin can perform bulk updates
-				if (!user || user.role !== "headAdmin") {
-					throw new Error("Not authorized. Only headAdmin can perform bulk updates.");
+				// console.log("this is the input ________________");
+				// console.dir(input, { depth: null });
+				if (!user) throw new ApolloError("no user token.");
+				// Only headAdmin can perform bulk updates
+				if (user.role !== "headAdmin" && user.role !== "Admin") {
+					throw new ApolloError("Not authorized. you dont have permission to make this update.");
+				}
+
+				// Must provide input
+				if (!Array.isArray(input) || input.length === 0) {
+					throw new ApolloError("No input provided.");
 				}
 
 				const bulkOps = [];
@@ -296,105 +210,156 @@ const itemGroupResolver = {
 				for (const group of input) {
 					const { id, brand, itemsList, brandNameUpdate } = group;
 
-					//  New brands cannot be created, must have _id
+					// Must have id
 					if (!id) {
-						throw new Error("Brand _id is required. New brands cannot be created.");
+						throw new ApolloError("Brand _id is required. New brands cannot be created.");
 					}
+
+					let hasValidAction = false;
 
 					// --- 1) Update Brand Name ---
 					if (brandNameUpdate && brand) {
+						console.log("brand update");
 						bulkOps.push({
 							updateOne: {
 								filter: { _id: id },
 								update: { $set: { brand } },
 							},
 						});
+						hasValidAction = true;
 					}
 
-					// --- 2) Add Items ---
-					if (itemsList?.action?.itemToBeAdded && itemsList?.length > 0) {
-						itemsList.forEach((item) => {
-							bulkOps.push({
-								updateOne: {
-									filter: { _id: id },
-									update: { $push: { itemsList: item } },
-								},
-							});
-						});
-					}
+					// --- 2) Process Items Individually ---
+					if (Array.isArray(itemsList) && itemsList.length > 0) {
+						for (const item of itemsList) {
+							const { action } = item;
 
-					// --- 3) Update Items ---
-					if (itemsList?.action?.itemToBeUpdated && itemsList?.length > 0) {
-						itemsList.forEach((item) => {
-							if (!item._id) {
-								throw new Error("Item _id is required to update an item.");
+							// --- Add Item ---
+							if (action?.toBeAdded) {
+								console.log("adding item", item.itemName);
+								bulkOps.push({
+									updateOne: {
+										filter: { _id: id },
+										update: { $push: { itemsList: { itemName: item.itemName } } },
+									},
+								});
+								hasValidAction = true;
 							}
-							bulkOps.push({
-								updateOne: {
-									filter: { _id: id, "itemsList._id": item._id },
-									update: { $set: { "itemsList.$.itemName": item.itemName } },
-								},
-							});
-						});
+
+							// --- Update Item ---
+							if (action?.toBeUpdated) {
+								if (!item.id) {
+									throw new ApolloError("Item _id is required to update an item.");
+								}
+								console.log("updating item", item.id);
+								bulkOps.push({
+									updateOne: {
+										filter: { _id: id, "itemsList._id": item.id },
+										update: { $set: { "itemsList.$.itemName": item.itemName } },
+									},
+								});
+								hasValidAction = true;
+							}
+
+							// --- Delete Item ---
+							if (action?.toBeDeleted) {
+								if (!item.id) {
+									throw new ApolloError("Item _id is required to delete an item.");
+								}
+								console.log("deleting item", item.id);
+								bulkOps.push({
+									updateOne: {
+										filter: { _id: id },
+										update: { $pull: { itemsList: { _id: item.id } } },
+									},
+								});
+								hasValidAction = true;
+							}
+						}
 					}
 
-					// --- 4) Delete Items ---
-					if (itemsList?.action?.itemToBeDeleted && itemsList?.length > 0) {
-						const idsToDelete = itemsList.map((i) => i._id);
-						bulkOps.push({
-							updateOne: {
-								filter: { _id: id },
-								update: { $pull: { itemsList: { _id: { $in: idsToDelete } } } },
-							},
-						});
+					// If a group has no valid action
+					if (!hasValidAction) {
+						throw new ApolloError(`No valid updates provided for brand ${brand} with id ${id}.`);
 					}
 				}
 
-				//  No operations found
+				// No operations
 				if (bulkOps.length === 0) {
-					return { success: false, message: "No valid operations found." };
+					throw new ApolloError("No updates happened this time.");
 				}
 
-				//  Execute all DB changes in one go
+				// Run bulk operations
 				const result = await ItemGroup.bulkWrite(bulkOps);
 
-				return {
-					success: true,
-					message: "Bulk update completed successfully",
-					modifiedCount: result.modifiedCount,
-					insertedCount: result.insertedCount,
-					deletedCount: result.deletedCount,
-				};
+				// Return updated groups
+				const updatedGroups = await ItemGroup.find({
+					_id: { $in: input.map((g) => g.id) },
+				});
+
+				const forSub = updatedGroups;
+
+				forSub.forEach((group) => {
+					pubsub.publish("ITEMGROUP_UPDATED", {
+						onItemGroupChange: {
+							eventType: "UPDATED",
+							Changes: group,
+						},
+					});
+				});
+
+				return updatedGroups;
 			} catch (err) {
 				console.error("Error updating/deleting Item group(s):", err);
 				throw err;
 			}
 		},
 
-		// Delete a user
-		deleteOneItemGroup: async (_, { id }, { user, pubsub }) => {
-			if (!user) throw new Error("Unauthorized: No context provided."); // Check authentication
+		// Delete multiple item groups
+		deleteMultipleItemGroups: async (_, { ids }, { user, pubsub }) => {
+			try {
+				console.log("IDs to delete:", ids);
 
-			const isSelf = user.userId.toString() === id; // Check if deleting self
+				// --- 1) Role check ---
+				if (!user) throw new AuthenticationError("no user token provided.");
 
-			if (isSelf) {
-				if (user.permissions.canNotBeDeleted) throw new ApolloError("You cannot delete your own account."); // Cannot delete self
-				if (!user.permissions.canDeleteSelf) throw new ApolloError("You lack permission to delete your account."); // Permission check
-			} else {
-				if (!user.permissions.canDeleteUsers) throw new ApolloError("You lack permission to delete other users."); // Permission check
+				if (user.role !== "headAdmin" && user.role !== "Admin") {
+					throw new AuthenticationError("Not authorized. Only headAdmin can delete item groups.");
+				}
 
-				const targetUser = await User.findById(id); // Find target user
-				if (!targetUser) throw new ApolloError("User not found."); // User not found
-				if (targetUser.permissions?.canNotBeDeleted) throw new ApolloError("This user cannot be deleted."); // Cannot delete
+				// --- 2) Input validation ---
+				if (!Array.isArray(ids) || ids.length === 0) {
+					throw new UserInputError("No IDs provided. At least one ID is required.");
+				}
+
+				// --- 3) Find the groups first (so we can send them in subscription)
+				const groupsToDelete = await ItemGroup.find({ _id: { $in: ids } });
+				const forSub = groupsToDelete;
+
+				// --- 4) Delete groups ---
+				const result = await ItemGroup.deleteMany({ _id: { $in: ids } });
+
+				// --- 5) Handle no matches ---
+				if (result.deletedCount === 0) {
+					throw new UserInputError("No matching ItemGroups found for deletion.");
+				}
+
+				// --- 6) Publish subscription events ---
+				forSub.forEach((group) => {
+					pubsub.publish("ITEMGROUP_DELETED", {
+						onItemGroupChange: {
+							eventType: "DELETED",
+							Changes: group,
+						},
+					});
+				});
+
+				// --- 7) Return deleted IDs ---
+				return groupsToDelete;
+			} catch (err) {
+				console.error("Error deleting ItemGroups:", err);
+				throw err; // Apollo will format this
 			}
-
-			const deletedUser = await User.findByIdAndDelete(id); // Delete user
-
-			await pubsub.publish("USER_DELETED", {
-				onUserChange: { eventType: "deleted", Changes: deletedUser }, // Publish event
-			});
-
-			return deletedUser; // Return deleted user
 		},
 	},
 
@@ -405,10 +370,10 @@ const itemGroupResolver = {
 		},
 	},
 
-	User: {
-		createdAt: (user) => user.createdAt.toISOString(), // Format createdAt
-		updatedAt: (user) => user.updatedAt.toISOString(), // Format updatedAt
-	},
+	// ItemGroup: {
+	// 	createdAt: (itemGroup) => itemGroup.createdAt.toISOString(), // Format createdAt
+	// 	updatedAt: (itemGroup) => itemGroup.updatedAt.toISOString(), // Format updatedAt
+	// },
 };
 
 export { itemGroupResolver }; // Export resolver

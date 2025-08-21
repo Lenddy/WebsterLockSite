@@ -41,7 +41,7 @@ const materialRequestResolvers = {
 		getAllMaterialRequests: async (_, __, { user }) => {
 			try {
 				if (!user) throw new Error("Unauthorized: No user token was found."); // Require authentication
-				if (!user.permissions || !user.permissions.canViewAllUsers) throw new Error("Unauthorized: You do not have permission to view all Material Request."); // Require permission
+				if (!user.permissions.canViewAllUsers) throw new ApolloError("Unauthorized: You do not have permission to view all Material Request."); // Require permission
 
 				// Fetch all requests, populating requester and reviewer
 				const materialRequest = await MaterialRequest.find();
@@ -56,8 +56,8 @@ const materialRequestResolvers = {
 		// Fetch a single material request by ID (admin only)
 		getOneMaterialRequest: async (_, { id }, { user }) => {
 			try {
-				if (!user) throw new Error("Unauthorized: No user token was found."); // Require authentication
-				if (!user.permissions || !user.permissions.canViewAllUsers) throw new Error("Unauthorized: You do not have permission to view Material Requests."); // Require permission
+				if (!user) throw new ApolloError("Unauthorized: No user token was found."); // Require authentication
+				if (!user.permissions.canViewAllUsers) throw new ApolloError("Unauthorized: You do not have permission to view Material Requests."); // Require permission
 
 				// Find by ID and populate fields
 				const materialRequest = await MaterialRequest.findById(id);
@@ -72,56 +72,9 @@ const materialRequestResolvers = {
 
 	// Mutation resolvers
 	Mutation: {
-		// // Create a new material request
-		// createONeMaterialRequest: async (_, { input: { description, items } }, { user }) => {
-		// 	if (!user) throw new Error("Unauthorized: no user context given."); // Require authentication
-
-		// 	try {
-		// 		const normalizedItems = items.map((item) => ({
-		// 			// _id: item._id || new mongoose.Types.ObjectId(),
-		// 			itemName: item.itemName,
-		// 			quantity: item.quantity,
-		// 		}));
-
-		// 		// Create new request document
-		// 		const newMaterialRequest = new MaterialRequest({
-		// 			requesterId: user.userId, // Set requester
-		// 			description, // Set description
-		// 			items: normalizedItems, // Use normalized items array
-		// 			addedDate: new Date().toISOString(), // Creation timestamp
-		// 		});
-
-		// 		await newMaterialRequest.save(); // Save to DB
-
-		// 		//  Populate requester & reviewer info
-		// 		// Use lean: false to get a real mongoose doc,
-		// 		// and keep reviewer details even if reviewer gets deleted later.
-		// 		await newMaterialRequest.populate([
-		// 			{ path: "requesterId" },
-		// 			{ path: "reviewerId", options: { retainNullValues: true } },
-		// 			// retainNullValues ensures reviewerId stays in doc even if user is deleted
-		// 		]);
-
-		// 		// .populate([{ path: "requesterId" }, { path: "reviewerId" }]);  // Populate requester and reviewer fields
-
-		// 		await newMaterialRequest.populate([{ path: "requesterId" }, { path: "reviewerId" }]);
-
-		// 		await pubsub.publish("MATERIAL_REQUEST_ADDED", {
-		// 			onChange: { eventType: "created", Changes: newMaterialRequest }, // Publish event
-		// 		});
-
-		// 		return newMaterialRequest; // Return created request
-		// 	} catch (err) {
-		// 		console.log("Error creating material request", err, "\n____________________"); // Log error
-		// 		throw err; // Rethrow error
-		// 	}
-		// },
-
-		// Create a new material request
-
 		createOneMaterialRequest: async (_, { input: { description, items } }, { user }) => {
 			// Check if user context is provided (authentication)
-			if (!user) throw new Error("Unauthorized: no user context given.");
+			if (!user) throw new ApolloError("Unauthorized: no user context given.");
 
 			try {
 				// Normalize items array: create new objects for each item with itemName and quantity
@@ -276,9 +229,9 @@ const materialRequestResolvers = {
 
 		updateOneMaterialRequest: async (_, { input: { id, description, items, approvalStatus, comment } }, { user }) => {
 			try {
-				if (!user) throw new Error("Unauthorized: No user context.");
+				if (!user) throw new ApolloError("Unauthorized: No user context.");
 				if ((!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole" || user.role === "technician") {
-					throw new Error("Unauthorized: You lack permission.");
+					throw new ApolloError("Unauthorized: You lack permission.");
 				}
 
 				const target = await MaterialRequest.findById(id);
@@ -379,7 +332,7 @@ const materialRequestResolvers = {
 
 		// Delete a material request (admin only)
 		deleteOneMaterialRequest: async (_, { id }, { user }) => {
-			if (!user) throw new Error("Unauthorized: No context provided."); // Require authentication
+			if (!user) throw new ApolloError("Unauthorized: No context provided."); // Require authentication
 			if (!user.permissions.canDeleteUsers) throw new ApolloError("You lack permission to delete Material request."); // Require permission
 
 			const deletedMaterialRequest = await MaterialRequest.findByIdAndDelete(id); // Delete by ID

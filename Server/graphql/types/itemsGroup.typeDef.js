@@ -47,6 +47,12 @@ const itemGroupTypeDef = gql`
 		toBeDeleted: Boolean
 	}
 
+	# type DeleteResponse {
+	# 	success: Boolean!
+	# 	deletedCount: Int!
+	# 	deletedIds: [ID!]!
+	# }
+
 	# --- Queries ---
 	type Query {
 		hello3: String # Test query
@@ -58,8 +64,8 @@ const itemGroupTypeDef = gql`
 	type Mutation {
 		createOneItemGroup(input: CreateOneItemGroupInput!): ItemGroup! # Create ItemGroup
 		createMultipleItemGroups(input: [CreateOneItemGroupInput!]!): [ItemGroup!]!
-		updateMultipleItemGroups(input: [UpdateItemGroupInput!]!): [ItemGroup!]! # Update ItemGroup
-		deleteOneItemGroup(id: ID!): ItemGroup! # Delete ItemGroup
+		updateMultipleItemGroups(input: [UpdateItemGroupInput!]!): [ItemGroup!]! # Update ItemGroups
+		deleteMultipleItemGroups(ids: [ID!]): [ItemGroup!] # Delete ItemGroup
 	}
 
 	# --- Subscription ---

@@ -132,17 +132,5 @@ const MaterialRequestSchema = new Schema(
 	}
 );
 
-// Example: When a user is deleted, update related MaterialRequests
-// Set requesterSnapshot.deleted = true or add a deleted flag/message
-// You need to implement this logic in your user deletion code, e.g.:
-// await MaterialRequest.updateMany({ requesterId: userId }, { "requesterSnapshot.deleted": true });
-
-// MaterialRequestSchema.pre("save", function (next) {
-// 	if (this.isModified("approvalStatus.approved") && this.approvalStatus.approved && !this.approvalStatus.reviewedAt) {
-// 		this.approvalStatus.reviewedAt = new Date();
-// 	}
-// 	next();
-// });
-
 const MaterialRequest = model("MaterialRequest", MaterialRequestSchema);
 export default MaterialRequest;

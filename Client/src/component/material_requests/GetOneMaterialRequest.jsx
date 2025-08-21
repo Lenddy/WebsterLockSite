@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useQuery, useSubscription } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
 import { jwtDecode } from "jwt-decode";
 import { get_one_material_request } from "../../../graphQL/queries/queries";
-import { Link, useParams, useLocation } from "react-router-dom";
+import { Link, useParams, useLocation, Navigate, useNavigate } from "react-router-dom";
 // import UpdateOneUser from "./updateOneUser";
 // import AdminUpdateOneUser from "./AdminUpdateOneUser";
 
@@ -10,10 +10,11 @@ export default function GetOneMaterialRequest() {
 	const [mRequest, setMRequest] = useState({});
 	const [logUser, setLogUser] = useState({});
 	const { requestId } = useParams();
+	// const navigate = useNavigate()
 
 	// const location = useLocation();
 	// const currentRoutePath = location.pathname;
-	// // console.log(currentRoutePath);
+
 	const { error, loading, data, refetch } = useQuery(get_one_material_request, { variables: { id: requestId } });
 
 	useEffect(() => {
@@ -66,6 +67,10 @@ export default function GetOneMaterialRequest() {
 			<div>
 				<Link to={"/user/all"}>all users</Link>
 			</div>
+
+			<div>
+				<Link to={"/material/request/all"}>all Material Requests</Link>
+			</div>
 			{/* <div>
 				<Link to={`/user/${userId}/update`}>update users</Link>
 			</div> */}
@@ -87,25 +92,36 @@ export default function GetOneMaterialRequest() {
 					</div>
 				) : (
 					<div>
+						{/* this might need to change later */}
 						<div>
 							<p>ID: {mRequest?.id}</p>
-							<p>requested Date: {mRequest.addedDate ? new Date(Number(mRequest.addedDate)).toLocaleString() : "N/A"}</p>
-							{/* this might need to change later */}
-							<p>name: {mRequest?.requesterId?.name}</p>
+							<p>requested Date: {mRequest.addedDate ? new Date(Number(mRequest?.addedDate)).toLocaleString() : "N/A"}</p>
+							<p>name: {mRequest?.requester?.name}</p>
 							<p>
 								Items:{" "}
 								{mRequest?.items?.map((item) => {
 									return (
-										<span>
+										<span key={item?.id}>
 											{item.quantity} - {item.itemName}
 											<br />
 										</span>
 									);
 								})}
 							</p>
-							<p>description:{mRequest?.description}</p>
+							<p>description: {mRequest?.description}</p>
 
-							<p>review by : {mRequest?.reviewerId?.name === null || mRequest?.reviewerId?.name === undefined ? "no review has been done yet" : mRequest?.reviewerId?.name}</p>
+							<p>
+								review by:{" "}
+								{mRequest?.reviewers?.length < 0
+									? "no review has been done yet"
+									: mRequest?.reviewers?.map((rv) => {
+											return (
+												<span key={rv?.userId}>
+													{rv?.name} <br />
+												</span>
+											);
+									  })}
+							</p>
 						</div>
 					</div>
 				)

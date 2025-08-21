@@ -9,6 +9,7 @@ import GetAllUsers from "./component/users/GetAllUsers";
 import GetOneUser from "./component/users/GetOneUser";
 import GetAllMaterialRequest from "./component/material_requests/GetAllMaterialRequest";
 import GetOneMaterialRequest from "./component/material_requests/GetOneMaterialRequest";
+import CreateOneMaterialRequest from "./component/material_requests/CreateOneMaterialRequest";
 
 function App() {
 	return (
@@ -21,6 +22,7 @@ function App() {
 					<Route path="/user/register" element={<RegisterUser />} />
 					<Route path="/material/request/all" element={<GetAllMaterialRequest />} />
 					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest />} />
+					<Route path="/material/request/request" element={<CreateOneMaterialRequest />} />
 
 					<Route path="/test" element={<Test />} />
 				</Route>

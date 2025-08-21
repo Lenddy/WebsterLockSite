@@ -99,28 +99,83 @@ export const delete_one_user = gql`
 	}
 `;
 
-// export const update_One_Material_Request = gql`
-// 	mutation updateUserProfile($id: ID!, $input: UpdateUserProfileInput!) {
-// 		updateUserProfile(id: $id, input: $input) {
-// 			id
-// 			name
-// 			email
-// 			token
-// 			role
-// 			job {
-// 				title
-// 				description
-// 			}
-// 			# permissions {
-// 			# 	canEditUsers
-// 			# 	canDeleteUsers
-// 			# 	canChangeRole
-// 			# 	canViewUsers
-// 			# 	canViewAllUsers
-// 			# 	canEditSelf
-// 			# 	canViewSelf
-// 			# 	canDeleteSelf
-// 			# }
-// 		}
-// 	}
-// `;
+export const Create_One_Material_Request = gql`
+	mutation createOneMaterialRequest($id: ID!, $input: CreateOneMaterialRequestInput!) {
+		createOneMaterialRequest(id: $id, input: $input) {
+			id
+			description
+
+			items {
+				id
+				itemName
+				quantity
+			}
+
+			requester {
+				userId
+				name
+				email
+			}
+
+			reviewers {
+				userId
+				email
+				name
+				comment
+				reviewedAt
+			}
+
+			approvalStatus {
+				approvedBy {
+					userId
+					name
+					email
+				}
+				isApproved
+				approvedAt
+			}
+
+			addedDate
+		}
+	}
+`;
+export const update_One_Material_Request = gql`
+	mutation updateOneMaterialRequest($id: ID!, $input: UpdateMaterialRequestInput!) {
+		updateOneMaterialRequest(id: $id, input: $input) {
+			id
+			description
+
+			items {
+				id
+				itemName
+				quantity
+			}
+
+			requester {
+				userId
+				name
+				email
+			}
+
+			reviewers {
+				userId
+				email
+				name
+				comment
+				reviewedAt
+			}
+
+			approvalStatus {
+				approvedBy {
+					userId
+					name
+					email
+				}
+				isApproved
+				approvedAt
+			}
+
+			addedDate
+		}
+	}
+`;

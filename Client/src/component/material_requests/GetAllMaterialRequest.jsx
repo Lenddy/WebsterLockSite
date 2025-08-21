@@ -66,6 +66,10 @@ export default function GetAllMaterialRequest() {
 				<Link to={`/user/all`}>all users</Link>
 			</div>
 
+			<div>
+				<Link to={`/material/request/request`}>Request Material</Link>
+			</div>
+
 			{loading ? (
 				<div>
 					{" "}
@@ -93,7 +97,7 @@ export default function GetAllMaterialRequest() {
 												<Link to={`/material/request/${request?.id}`}>{request?.id}</Link>
 											</td>
 											<td>
-												<Link to={`/user/${request?.requesterId?.id}`}>{request?.requesterId?.name}</Link>
+												<Link to={`/user/${request?.requester?.id}`}>{request?.requester?.name}</Link>
 											</td>
 											<td>{request?.description}</td>
 											<td>

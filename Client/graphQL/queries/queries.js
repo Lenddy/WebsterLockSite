@@ -65,28 +65,37 @@ export const get_all_material_requests = gql`
 			id
 			description
 
-			addedDate
 			items {
 				id
 				itemName
 				quantity
 			}
-			requesterId {
-				id
+
+			requester {
+				userId
 				name
-				role
+				email
 			}
-			reviewerId {
-				id
+
+			reviewers {
+				userId
+				email
 				name
-				role
-			}
-			approvalStatus {
-				approved
-				denied
-				reviewedAt
 				comment
+				reviewedAt
 			}
+
+			approvalStatus {
+				approvedBy {
+					userId
+					name
+					email
+				}
+				isApproved
+				approvedAt
+			}
+
+			addedDate
 		}
 	}
 `;
@@ -96,34 +105,39 @@ export const get_one_material_request = gql`
 	query getOneMaterialRequest($id: ID!) {
 		getOneMaterialRequest(id: $id) {
 			id
-			requesterId {
-				id
-				name
-				job {
-					title
-					description
-				}
-			}
-			reviewerId {
-				id
-				name
-				job {
-					title
-				}
-			}
 			description
-			addedDate
+
 			items {
+				id
 				itemName
 				quantity
-				id
 			}
-			approvalStatus {
-				approved
-				denied
-				reviewedAt
+
+			requester {
+				userId
+				name
+				email
+			}
+
+			reviewers {
+				userId
+				email
+				name
 				comment
+				reviewedAt
 			}
+
+			approvalStatus {
+				approvedBy {
+					userId
+					name
+					email
+				}
+				isApproved
+				approvedAt
+			}
+
+			addedDate
 		}
 	}
 `;

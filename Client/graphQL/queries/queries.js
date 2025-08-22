@@ -141,3 +141,17 @@ export const get_one_material_request = gql`
 		}
 	}
 `;
+
+// gets all the itemGroups  Requests
+export const get_all_Item_Groups = gql`
+	query getAllItemGroup {
+		getAllItemGroups {
+			id
+			brand
+			itemsList {
+				id
+				itemName
+			}
+		}
+	}
+`;

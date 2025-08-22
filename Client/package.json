@@ -11,12 +11,15 @@
 	},
 	"dependencies": {
 		"@apollo/client": "latest",
+		"dayjs": "^1.11.13",
+		"fuse.js": "^7.1.0",
 		"graphql": "latest",
 		"graphql-ws": "latest",
 		"jwt-decode": "^4.0.0",
 		"react": "latest",
 		"react-dom": "latest",
 		"react-router-dom": "latest",
+		"react-select": "^5.10.2",
 		"socket.io-client": "latest"
 	},
 	"devDependencies": {

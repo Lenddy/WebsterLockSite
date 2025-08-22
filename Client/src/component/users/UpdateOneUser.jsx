@@ -59,11 +59,11 @@ export default function UpdateOneUser({ userId, user }) {
 				},
 				onCompleted: (data) => {
 					// Handle successful update, e.g. show a message or redirect
-					console.log("✅ User updated:", data);
+					console.log(" User updated:", data);
 				},
 			});
 		} catch (err) {
-			console.error("❌ Error updating user:", err);
+			console.error(" Error updating user:", err);
 		}
 	};
 

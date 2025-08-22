@@ -99,7 +99,7 @@ export const delete_one_user = gql`
 	}
 `;
 
-export const Create_One_Material_Request = gql`
+export const create_One_Material_Request = gql`
 	mutation createOneMaterialRequest($id: ID!, $input: CreateOneMaterialRequestInput!) {
 		createOneMaterialRequest(id: $id, input: $input) {
 			id

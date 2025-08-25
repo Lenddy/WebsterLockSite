@@ -100,8 +100,8 @@ export const delete_one_user = gql`
 `;
 
 export const create_One_Material_Request = gql`
-	mutation createOneMaterialRequest($id: ID!, $input: CreateOneMaterialRequestInput!) {
-		createOneMaterialRequest(id: $id, input: $input) {
+	mutation createOneMaterialRequest($input: CreateOneMaterialRequestInput!) {
+		createOneMaterialRequest(input: $input) {
 			id
 			description
 

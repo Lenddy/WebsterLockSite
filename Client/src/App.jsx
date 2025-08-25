@@ -4,7 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import Test from "./component/Test";
 import ProtectedRoute from "./component/ProtectedRoutes";
 import LogIn from "./component/users/LogIn";
-import RegisterUser from "./component/users/registerUser";
+import RegisterUser from "./component/users/RegisterUser";
 import GetAllUsers from "./component/users/GetAllUsers";
 import GetOneUser from "./component/users/GetOneUser";
 import GetAllMaterialRequest from "./component/material_requests/GetAllMaterialRequest";

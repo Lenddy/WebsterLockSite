@@ -4,7 +4,7 @@ import { gql } from "graphql-tag";
 import "../scalar/dateTime.js";
 
 // Import user type definitions to embed in this schema
-import { userTypeDef } from "./user.typeDef.js";
+import { userTypeDef } from "../types/user.typeDef.js";
 
 // Define the GraphQL type definitions for MaterialRequest and related types
 const materialRequestTypeDef = gql`

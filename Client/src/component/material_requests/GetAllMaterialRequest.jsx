@@ -89,10 +89,10 @@ export default function GetAllMaterialRequest() {
 									<th>Action</th> */}
 								</tr>
 							</thead>
-							{mRequests.map((request) => {
-								return (
-									<tbody key={request.id}>
-										<tr>
+							<tbody>
+								{mRequests.map((request) => {
+									return (
+										<tr key={request.id}>
 											<td>
 												<Link to={`/material/request/${request?.id}`}>{request?.id}</Link>
 											</td>
@@ -103,7 +103,7 @@ export default function GetAllMaterialRequest() {
 											<td>
 												{request?.items.map((item) => {
 													return (
-														<span>
+														<span key={item.id}>
 															{item.quantity} - {item.itemName}
 															<br />
 														</span>
@@ -117,9 +117,9 @@ export default function GetAllMaterialRequest() {
 												</div>
 											</td>
 										</tr>
-									</tbody>
-								);
-							})}
+									);
+								})}
+							</tbody>
 						</table>
 					</div>
 				</div>

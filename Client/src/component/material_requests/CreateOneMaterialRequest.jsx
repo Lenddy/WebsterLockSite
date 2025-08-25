@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import { get_all_Item_Groups } from "../../../graphQL/queries/queries";
 import { create_One_Material_Request } from "../../../graphQL/mutations/mutations";
-import Select from "react-select"; // assuming react-select for search
+import Select from "react-select";
 import Fuse from "fuse.js";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import dayjs from "dayjs";
+import { jwtDecode } from "jwt-decode";
 
 export default function CreateOneMaterialRequest() {
-	const [info, setInfo] = useState({});
-	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "" }]);
+	// const [info, setInfo] = useState({});
+	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", description: "", color: null, side: null, size: null }]);
 
 	const navigate = useNavigate();
 	const [NewMaterialRequest] = useMutation(create_One_Material_Request);
@@ -16,619 +18,402 @@ export default function CreateOneMaterialRequest() {
 	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_Item_Groups);
 	const [itemGroups, setItemGroups] = useState([]);
 
+	const [logUser, setLogUser] = useState({});
+
+	// const [color, setColor] = useState([
+	// 	{ value: "605/US3 - Bright Brass", label: "605/US3 - Bright Brass" },
+	// 	{ value: "612/US10 - Satin Bronze", label: "612/US10 - Satin Bronze" },
+	// 	{ value: "619/US15 - Satin Nickel", label: "619/US15 - Satin Nickel" },
+	// 	{ value: "625/US26 - Bright Chrome", label: "625/US26 - Bright Chrome" },
+	// 	{ value: "626/US26D - Satin Chrome", label: "626/US26D - Satin Chrome" },
+	// 	{ value: "630/US32D - Satin Stainless Steel", label: "630/US32D - Satin Stainless Steel" },
+	// 	{ value: "622/ - Black", label: "622/ - Black" },
+	// 	{ value: "689/ - Aluminum", label: "689/ - Aluminum" },
+	// ]);
+
+	const colorOptions = [
+		{ value: "605/US3 - Bright Brass", label: "605/US3 - Bright Brass", hex: "#FFD700" }, // brass-ish
+		{ value: "612/US10 - Satin Bronze", label: "612/US10 - Satin Bronze", hex: "#B08D57" },
+		{ value: "619/US15 - Satin Nickel", label: "619/US15 - Satin Nickel", hex: "#AFAFAF" },
+		{ value: "625/US26 - Bright Chrome", label: "625/US26 - Bright Chrome", hex: "#E5E4E2" },
+		{ value: "626/US26D - Satin Chrome", label: "626/US26D - Satin Chrome", hex: "#C0C0C0" },
+		{ value: "630/US32D - Satin Stainless Steel", label: "630/US32D - Satin Stainless Steel", hex: "#D6D6D6" },
+		{ value: "622/ - Black", label: "622/ - Black", hex: "#000000" },
+		{ value: "689/ - Aluminum", label: "689/ - Aluminum", hex: "#A9A9A9" },
+	];
+
+	const sideOptions = [
+		{ value: "Left Hand", label: "Left Hand" },
+		{ value: "Right Hand", label: "Right Hand" },
+	];
+
+	const sizeOptions = [
+		{ value: "Small", label: "Small" },
+		{ value: "Medium", label: "Medium" },
+		{ value: "Large", label: "Large" },
+	];
+
+	// ---------------------------
+	// Effect: fetch itemGroups from GraphQL query
+	// ---------------------------
 	useEffect(() => {
+		setLogUser(jwtDecode(localStorage.getItem("UserToken")));
+		if (iGLoading) console.log("loading");
+
 		if (iGData) {
+			// console.log("this are the itemGroups", iGData?.getAllItemGroups || []);
+			// store the fetched groups so we can build brands and items
 			setItemGroups(iGData?.getAllItemGroups || []);
 		}
-	}, [iGData]);
 
-	// Build brand list
+		if (iGError) {
+			console.log("there was an error", iGError);
+		}
+		// const fetchData = async () => {
+	}, [iGLoading, iGData, iGError]);
+
+	// ---------------------------
+	// Build list of unique brands
+	// ---------------------------
+
+	// const brands = itemGroups.map((ig) => {
+	// 	return ig;
+	// });
+
+	// console.log("this are all the brands", brands);
+
 	const brands = [...new Set(itemGroups?.map((g) => g.brand))]?.map((b) => ({
 		label: b,
 		value: b,
 	}));
 
-	// Build full item list (with brand prefix)d
+	// ---------------------------
+	// Build list of all items, each labeled "Brand - ItemName"
+	// ---------------------------
+
 	const allItems = itemGroups?.flatMap((group) =>
-		group?.items?.map((item) => ({
-			label: `${group.brand} - ${item.itemName}`,
-			value: `${group.brand} - ${item.itemName}`,
-			brand: group.brand,
+		group?.itemsList?.map((item) => ({
+			// return item;
+
+			label: `${group.brand} - ${item.itemName}`, // how it shows in the dropdown
+			value: `${group.brand} - ${item.itemName}`, // what we send back
+			brand: group.brand, // keep track of which brand this item belongs to
 		}))
 	);
 
-	// Fuzzy filter for react-select
+	// console.log("this are all the items", allItems);
+
+	// ---------------------------
+	// Custom fuzzy search filter
+	// ---------------------------
 	const customFilter = (option, inputValue) => {
+		// If search is empty → show all
 		if (!inputValue) return true;
+
+		// Fuse.js fuzzy search across labels
 		const fuse = new Fuse(allItems, { keys: ["label"], threshold: 0.3 });
+
+		// Keep options that fuzzy-match the search term
 		return fuse.search(inputValue).some((r) => r.item.value === option.value);
 	};
 
-	// Handle row changes
+	// ---------------------------
+	// Handle row value change
+	// ---------------------------
 	const handleRowChange = (index, field, value) => {
+		/**
+		 * Steps:
+		 * 1. Clone the current rows (since state should not be mutated directly).
+		 * 2. Update the specific field (brand, item, or quantity) for the selected row.
+		 * 3. Save updated rows back into state.
+		 */
 		const newRows = [...rows];
 		newRows[index][field] = value;
 		setRows(newRows);
 	};
 
+	{
+		// ---------------------- POINTERS ---------------------- //
+		// 🔹 Where to use addRow: attach it to your "Add Row" button onClick
+		//    Example: <button onClick={addRow}>Add Row</button>
+		//
+		// 🔹 Where to use removeRow: attach it to a "Remove Row" button per row
+		//    Example: <button onClick={() => removeRow(index)}>Remove</button>
+		//
+		// 🔹 Where rows are rendered: map over rows state to build UI
+		//    Example: rows.map((row, index) => ( ... your brand + item selects ... ))
+		//
+		// 🔹 Where selects go: inside the map for each row, replace 'brand' & 'item' with your Select components
+		//    You'll handle search, filtering, and values inside those
+		//
+		// 🔹 Where submission uses rows: when building your final info object for GraphQL mutation,
+		//    include rows as part of the payload (you'll handle how).
+		//
+		// 🔹 Important: Don't forget keys when mapping rows for React rendering
+		// ------------------------------------------------------- //
+	}
+
+	/**
+	 
+	 * Adds a new row to the rows state.
+	 * Each row contains a 'brand' and an 'item'.
+	 * Both are initialized to null so the user can choose them later.
+	 */
+
+	// ---------------------------
+	// Add a new row
+	// ---------------------------
 	const addRow = () => {
+		/**
+		 * Steps:
+		 * 1. Copy the current rows.
+		 * 2. Append a new row with default null/empty values.
+		 * 3. Save updated rows into state.
+		 */
 		setRows([...rows, { brand: null, item: null, quantity: "" }]);
 	};
 
-	const handleSubmit = async () => {
+	// --- inside your component CreateOneMaterialRequest --- //
+
+	/**
+	 * Removes a row at the specified index.
+	 * Useful if the user wants to delete an item line before submitting.
+	 *
+	 * @param {number} index - The index of the row to remove.
+	 */
+	const removeRow = (index) => {
+		setRows((prevRows) => prevRows.filter((_, i) => i !== index));
+	};
+
+	// ---------------------------
+	// Submit data to backend
+	// ---------------------------
+	const submit = async (e) => {
+		/**
+		 * Steps:
+		 * 1. Build the "items" array in the shape required by GraphQL:
+		 *    - quantity → integer (or null if empty)
+		 *    - itemName → always "Brand - Item" (comes from dropdown value)
+		 *    - color/side/size → left null for now
+		 * 2. Wrap into final input object with description.
+		 * 3. Send mutation with input data.
+		 * 4. Navigate away (or show success message).
+		 */
+		e.preventDefault();
 		try {
 			const input = {
 				items: rows.map((r) => ({
-					quantity: parseInt(r.quantity, 10) || null,
-					itemName: r.item?.value || null, // already "brand - item"
-					color: null,
-					side: null,
-					size: null,
+					quantity: parseInt(r.quantity),
+					// quantity: r.quantity,
+					itemName: r?.item?.value || null,
+					color: r?.color || null,
+					side: r?.side || null,
+					size: r?.size || null,
+					description: r?.description || null,
 				})),
-				description: info.description || null,
+				// addedDate: dayjs().format("YYYY-MM-DD"), // include today's date if needed
 			};
 
-			await NewMaterialRequest({ variables: { createOneMaterialRequestInput2: input } });
-			console.log("Submitted:", input);
-			navigate("/success");
+			console.log("this is the input that are send  ", input);
+
+			// await NewMaterialRequest({
+			// 	variables: { input },
+			// 	onCompleted: (res) => {
+			// 		console.log("Mutation success:", res?.createOneMaterialRequest);
+			// 		// newMr =
+			// 		navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
+			// 	},
+			// });
 		} catch (err) {
 			console.error("Submit error:", err);
 		}
 	};
 
+	console.log("this are the rows", rows);
+
 	return (
-		<div className="p-4 space-y-4">
-			{rows.map((row, idx) => {
-				const filteredItems = row.brand?.value ? allItems.filter((i) => i.brand === row.brand.value) : allItems;
+		<div>
+			{/* Simple navigation/test links */}
+			<div>
+				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
+					log out
+				</Link>
+			</div>
+			<div>
+				<Link to={"/user/all"}>all users</Link>
+			</div>
+			<div>
+				<Link to={"/material/request/all"}>all Material Requests</Link>
+			</div>
+			<div>
+				<Link to={""}>blank</Link>
+			</div>
+			<form onSubmit={submit}>
+				{/* Dynamic rows */}
+				{rows?.map((row, idx) => {
+					// Items to display:
+					// - If brand is selected → filter down to that brand
+					// - If no brand is selected → show ALL items
+					const filteredItems = row.brand?.value ? allItems?.filter((i) => i?.brand === row.brand.value) : allItems;
 
-				return (
-					<div key={idx} className="flex space-x-2 items-center">
-						{/* Brand select */}
-						<Select options={brands} value={row.brand} onChange={(val) => handleRowChange(idx, "brand", val)} placeholder="Select Brand" isClearable />
+					return (
+						<div key={idx} className="">
+							{/* Brand select */}
+							<Select
+								options={brands}
+								value={row.brand}
+								onChange={(val) => handleRowChange(idx, "brand", val)}
+								placeholder="Select Brand"
+								isClearable
+								isSearchable
+								styles={{
+									control: (base) => ({
+										...base,
+										borderRadius: "12px",
+										borderColor: "blue",
+										width: "200px",
+										height: "50px",
+									}),
+									option: (base, state) => ({
+										...base,
+										backgroundColor: state.isFocused ? "lightblue" : "white",
+										color: "black",
+									}),
+								}}
+							/>
 
-						{/* Item select */}
-						<Select options={filteredItems} value={row.item} onChange={(val) => handleRowChange(idx, "item", val)} placeholder="Select Item" filterOption={customFilter} isClearable />
+							{/* Quantity input */}
+							<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} placeholder="Qty" />
 
-						{/* Quantity input */}
-						<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} placeholder="Qty" className="border p-2 rounded" />
-					</div>
-				);
-			})}
+							{/* Item select */}
+							<Select
+								options={filteredItems}
+								value={row.item}
+								onChange={(val) => handleRowChange(idx, "item", val)}
+								placeholder="Select Item"
+								filterOption={customFilter}
+								isClearable
+								isSearchable
+								styles={{
+									control: (base) => ({
+										...base,
+										borderRadius: "12px",
+										borderColor: "blue",
+										// width: "200px",
+										// height: "50px",
+									}),
+									option: (base, state) => ({
+										...base,
+										backgroundColor: state.isFocused ? "lightblue" : "white",
+										color: "black",
+									}),
+								}}
+							/>
 
-			<button onClick={addRow} className="bg-blue-500 text-white px-4 py-2 rounded">
-				+ Add Item
-			</button>
+							<Select
+								options={colorOptions}
+								value={colorOptions.find((opt) => opt.value === row.color)}
+								onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
+								placeholder="Select Color"
+								isClearable
+								isSearchable
+								styles={{
+									control: (base) => ({
+										...base,
+										borderRadius: "12px",
+										borderColor: "blue",
+									}),
+									option: (base, state) => ({
+										...base,
+										backgroundColor: state.isFocused ? "lightblue" : "white",
+										color: "black",
+									}),
+								}}
+								//  This custom renderer shows the swatch + label
+								formatOptionLabel={(option) => (
+									<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+										<div
+											style={{
+												width: "30px",
+												height: "30px",
+												backgroundColor: option.hex,
+												border: "1px solid #ccc",
+											}}
+										/>
+										<span>{option.label}</span>
+									</div>
+								)}
+							/>
 
-			<button onClick={handleSubmit} className="bg-green-500 text-white px-4 py-2 rounded">
-				Submit
-			</button>
+							{/* Item select */}
+							<Select
+								options={sideOptions}
+								value={sideOptions.find((opt) => opt.value === row.side)}
+								onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
+								placeholder="Select Side/Hand"
+								filterOption={customFilter}
+								isClearable
+								isSearchable
+								styles={{
+									control: (base) => ({
+										...base,
+										borderRadius: "12px",
+										borderColor: "blue",
+										// width: "200px",
+										// height: "50px",
+									}),
+									option: (base, state) => ({
+										...base,
+										backgroundColor: state.isFocused ? "lightblue" : "white",
+										color: "black",
+									}),
+								}}
+							/>
+
+							<Select
+								options={sizeOptions}
+								value={sizeOptions.find((opt) => opt.value === row.size)}
+								onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
+								placeholder="Select Size"
+								filterOption={customFilter}
+								isClearable
+								isSearchable
+								styles={{
+									control: (base) => ({
+										...base,
+										borderRadius: "12px",
+										borderColor: "blue",
+										// width: "200px",
+										// height: "50px",
+									}),
+									option: (base, state) => ({
+										...base,
+										backgroundColor: state.isFocused ? "lightblue" : "white",
+										color: "black",
+									}),
+								}}
+							/>
+
+							{/* Description input */}
+							<textarea type="text" value={row.description} onChange={(e) => handleRowChange(idx, "description", e.target.value)} placeholder="description" />
+
+							{rows.length > 1 ? (
+								<button type="button" onClick={() => removeRow(idx)}>
+									remove
+								</button>
+							) : null}
+						</div>
+					);
+				})}
+
+				{/* Action buttons */}
+				<button type="button" onClick={addRow}>
+					+ Add Item
+				</button>
+				<button type="submit" onClick={submit}>
+					Submit
+				</button>
+			</form>
 		</div>
 	);
 }
-
-// import { create_One_Material_Request } from "../../../graphQL/mutations/mutations";
-// import { useMutation, useQuery } from "@apollo/client";
-// import { useState, useEffect } from "react";
-// import { Link, useNavigate } from "react-router-dom";
-// import Select from "react-select";
-// import Fuse from "fuse.js";
-// import dayjs from "dayjs";
-
-// import { get_all_Item_Groups } from "../../../graphQL/queries/queries";
-
-// export default function CreateOneMaterialRequest() {
-// 	const [info, setInfo] = useState({});
-// 	const [permission, setPermission] = useState({});
-// 	const [itemGroups, setItemGroups] = useState([]);
-// 	const [brands, setBrands] = useState();
-// 	const [items, setItems] = useState();
-
-// 	const navigate = useNavigate();
-// 	const [NewMaterialRequest, { data, loading, error }] = useMutation(create_One_Material_Request);
-// 	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_Item_Groups);
-
-// 	const [rows, setRows] = useState([
-// 		{ brand: null, item: null }, // start with one row
-// 	]);
-
-// 	useEffect(() => {
-// 		if (iGLoading) {
-// 			console.log("loading items");
-// 		}
-// 		if (iGData) {
-// 			console.log("items data ", iGData?.getAllItemGroups);
-// 			console.log("this are the brands");
-// 			// let brands = itemGroups?.map((group) => group.brand);
-// 			console.log(brands);
-// 			setItemGroups(iGData?.getAllItemGroups);
-// 		}
-// 		if (iGError) {
-// 			console.log("there was an error fetching items", iGError);
-// 		}
-// 		// const fetchData = async () => {
-// 		// 	await refetch();
-// 		// };
-// 		// fetchData();
-// 	}, [iGLoading, iGData, iGError]); //refetch
-
-// 	// Fuzzy search filter
-// 	const customFilter = (option, inputValue) => {
-// 		if (!inputValue) return true;
-
-// 		const fuse = new Fuse(items, { keys: ["label"], threshold: 0.4 });
-// 		return fuse.search(inputValue).some((result) => result.item.value === option.value);
-// 	};
-
-// 	// // Function to handle input changes and update state accordingly
-// 	const SubmissionInfo = (e) => {
-// 		/**
-// 		 * Extracts the 'name' and 'value' properties from the event target.
-// 		 * Typically used in form input change handlers to identify which input field
-// 		 * triggered the event and retrieve its current value.
-// 		 *
-// 		 * @param {React.ChangeEvent<HTMLInputElement>} e - The event object from the input change.
-// 		 * @returns {string} name - The name attribute of the input element.
-// 		 * @returns {string} value - The current value of the input element.
-// 		 */
-// 		const { name, value } = e.target;
-// 		setInfo((prev) => {
-// 			if (value === "") {
-// 				const { [name]: _, ...rest } = prev;
-// 				return rest;
-// 			}
-// 			return { ...prev, [name]: value };
-// 		});
-// 		// console.log("info to be submitted:", info);
-// 	};
-
-// 	// Function to handle form submission
-// 	const submit = async (e) => {
-// 		e.preventDefault();
-
-// 		await NewMaterialRequest({
-// 			variables: {
-// 				input: {
-// 					name: info.name,
-// 					items: info.items,
-// 				},
-// 			},
-// 		})
-// 			.then((res) => {
-// 				console.log("✅ Registered user:", res.data.registerUser);
-// 				navigate(`/user/${res.data.registerUser.id}`);
-// 			})
-// 			.catch((err) => {
-// 				console.error("❌ Error registering:", err);
-// 			});
-// 	};
-
-// 	const allItems = itemGroups.flatMap((group) =>
-// 		group.itemsList.map((item) => ({
-// 			value: item.id,
-// 			label: item.itemName,
-// 			brandId: group.id,
-// 		}))
-// 	);
-
-// 	const brandOptions = itemGroups.map((group) => ({
-// 		value: group.id,
-// 		label: group.brand,
-// 	}));
-
-// 	const handleBrandChange = (rowIndex, brand) => {
-// 		const newRows = [...rows];
-// 		newRows[rowIndex].brand = brand;
-// 		newRows[rowIndex].item = null; // reset item
-// 		setRows(newRows);
-// 	};
-
-// 	const handleItemChange = (rowIndex, item) => {
-// 		const newRows = [...rows];
-// 		newRows[rowIndex].item = item;
-// 		setRows(newRows);
-// 	};
-
-// 	const addRow = () => {
-// 		setRows([...rows, { brand: null, item: null }]);
-// 	};
-
-// 	const deleteRow = (rowIndex) => {
-// 		setRows(rows.filter((_, i) => i !== rowIndex));
-// 	};
-
-// 	return (
-// 		<>
-// 			{/* {logUser?.name} */}
-// 			<h1>Material Request </h1>
-
-// 			<div>
-// 				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
-// 					Log out
-// 				</Link>
-// 			</div>
-
-// 			<div>
-// 				<Link to={"/user/all"}>all users</Link>
-// 			</div>
-// 			<div>
-// 				<Link to={""}>blank</Link>
-// 			</div>
-
-// 			<div>
-// 				<form onSubmit={submit}>
-// 					<div>
-// 						<label htmlFor="addedDead">date</label>
-
-// 						<input
-// 							type="date"
-// 							name="addedDead"
-// 							defaultValue={dayjs().format("YYYY-MM-DD")} // today’s date
-// 							onChange={(e) => SubmissionInfo(e)}
-// 						/>
-// 					</div>
-
-// 					<div>
-// 						<div>
-// 							<label htmlFor="quantity">Quantity:</label>
-// 							<input type="number" name="quantity" onChange={(e) => SubmissionInfo(e)} />
-// 						</div>
-// 						<span> - </span>
-// 						<div>
-// 							<label htmlFor="itemName">Item:</label>
-
-// 							<Select name="itemName" options={items} onChange={(selectedOption) => SubmissionInfo({ target: { name: "itemName", value: selectedOption.value } })} filterOption={customFilter} />
-// 						</div>
-// 					</div>
-
-// 					<div>
-// 						<label htmlFor="color">color</label>
-// 						<input type="text" name="color" onChange={(e) => SubmissionInfo(e)} />
-// 					</div>
-
-// 					<div>
-// 						<label htmlFor="side">side/hand</label>
-// 						<input type="text" name="side" onChange={(e) => SubmissionInfo(e)} />
-// 					</div>
-
-// 					<div>
-// 						<label htmlFor="size">size</label>
-// 						<input type="text" name="size" onChange={(e) => SubmissionInfo(e)} />
-// 					</div>
-
-// 					<div className="validation"> </div>
-// 					<button type="submit" disabled={loading}>
-// 						{loading ? "Making request  ..." : "Make Request"}
-// 					</button>
-
-// 					{error && <p style={{ color: "red" }}>{error.message}</p>}
-// 				</form>
-
-// 				<div>
-// 					{rows.map((row, index) => {
-// 						const filteredItems = row.brand ? allItems.filter((item) => item.brandId === row.brand.value) : allItems;
-
-// 						return (
-// 							<div key={index} style={{ marginBottom: "1rem" }}>
-// 								{/* Brand */}
-// 								<Select
-// 									options={brandOptions}
-// 									value={row.brand}
-// 									onChange={(option) => handleBrandChange(index, option)}
-// 									placeholder="Select a brand"
-// 									isClearable
-// 									isSearchable
-// 									styles={{
-// 										control: (base) => ({
-// 											...base,
-// 											borderRadius: "12px",
-// 											borderColor: "blue",
-// 											width: "200px",
-// 											height: "50px",
-// 										}),
-// 										option: (base, state) => ({
-// 											...base,
-// 											backgroundColor: state.isFocused ? "lightblue" : "white",
-// 											color: "black",
-// 										}),
-// 									}}
-// 								/>
-
-// 								{/* Item */}
-// 								<Select
-// 									options={filteredItems}
-// 									value={row.item}
-// 									onChange={(option) => handleItemChange(index, option)}
-// 									placeholder="Select an item"
-// 									isClearable
-// 									isSearchable
-// 									styles={{
-// 										control: (base) => ({
-// 											...base,
-// 											borderRadius: "12px",
-// 											borderColor: "blue",
-// 										}),
-// 										option: (base, state) => ({
-// 											...base,
-// 											backgroundColor: state.isFocused ? "lightblue" : "white",
-// 											color: "black",
-// 										}),
-// 									}}
-// 								/>
-
-// 								{/* Delete button (only if more than 1 row) */}
-// 								{rows.length > 1 && <button onClick={() => deleteRow(index)}>Delete Row</button>}
-
-// 								{/* Add button (only on last row) */}
-// 								{index === rows.length - 1 && <button onClick={addRow}>Add Row</button>}
-// 							</div>
-// 						);
-// 					})}
-// 				</div>
-// 			</div>
-// 		</>
-// 	);
-// }
-
-// import { create_One_Material_Request } from "../../../graphQL/mutations/mutations";
-// import { useMutation, useQuery } from "@apollo/client";
-// import { useState, useEffect } from "react";
-// import { Link, useNavigate } from "react-router-dom";
-// import Select from "react-select";
-// import Fuse from "fuse.js";
-
-// import { get_all_Item_Groups } from "../../../graphQL/queries/queries";
-
-// import dayjs from "dayjs";
-// // { itemGroups }
-// export default function MaterialRequestForm() {
-// 	const [brandFilter, setBrandFilter] = useState("");
-// 	const [items, setItems] = useState([{ quantity: "", itemName: "", color: "", side: "", size: "" }]);
-// 	const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
-
-// 	const [itemGroups, setItemGroups] = useState([]);
-
-// 	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_Item_Groups);
-
-// 	useEffect(() => {
-// 		if (iGLoading) {
-// 			console.log("loading items");
-// 		}
-// 		if (iGData) {
-// 			console.log("items data ", iGData?.getAllItemGroups);
-// 			console.log("this are the brands");
-// 			// let brands = itemGroups?.map((group) => group.brand);
-// 			// console.log(brands);
-// 			setItemGroups(iGData?.getAllItemGroups);
-// 		}
-// 		if (iGError) {
-// 			console.log("there was an error fetching items", iGError);
-// 		}
-// 		// const fetchData = async () => {
-// 		// 	await refetch();
-// 		// };
-// 		// fetchData();
-// 	}, [iGLoading, iGData, iGError]); //refetch
-
-// 	// Filtered items by brand
-// 	const filteredItems = brandFilter ? itemGroups.filter((i) => i.brand === brandFilter) : itemGroups;
-
-// 	// Handle input change for a row
-// 	const handleChange = (index, field, value) => {
-// 		const newItems = [...items];
-// 		newItems[index][field] = value;
-// 		setItems(newItems);
-// 	};
-
-// 	// Add a new row
-// 	const addRow = () => {
-// 		setItems([...items, { quantity: "", itemName: "", color: "", side: "", size: "" }]);
-// 	};
-
-// 	// Delete a row
-// 	const deleteRow = (index) => {
-// 		if (items.length > 1) {
-// 			setItems(items.filter((_, i) => i !== index));
-// 		}
-// 	};
-
-// 	// Submit request
-// 	const handleSubmit = () => {
-// 		const payload = {
-// 			createOneMaterialRequestInput2: {
-// 				items: items.map((it) => ({
-// 					...it,
-// 					// Build itemName as "Brand - Item"
-// 					itemName: it.itemName ? `${filteredItems.find((i) => i.name === it.itemName)?.brand || ""} - ${it.itemName}` : null,
-// 				})),
-// 				description: "Some description",
-// 				date: date,
-// 			},
-// 		};
-
-// 		console.log("Sending to API:", payload);
-// 		// Call your GraphQL mutation here
-// 	};
-
-// 	return (
-// 		<div>
-// 			<div>
-// 				<label>Date: </label>
-// 				<input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-// 			</div>
-
-// 			<div>
-// 				<label>Filter by Brand: </label>
-// 				<select onChange={(e) => setBrandFilter(e.target.value)}>
-// 					<option value="">All Brands</option>
-// 					{[...new Set(itemGroups.map((i) => i.brand))].map((b) => (
-// 						<option key={b} value={b}>
-// 							{b}
-// 						</option>
-// 					))}
-// 				</select>
-// 			</div>
-
-// 			{items.map((row, index) => (
-// 				<div key={index}>
-// 					<input type="number" placeholder="Quantity" value={row.quantity} onChange={(e) => handleChange(index, "quantity", e.target.value)} />
-
-// 					<select value={row.itemName} onChange={(e) => handleChange(index, "itemName", e.target.value)}>
-// 						<option value="">Select Item</option>
-// 						{filteredItems.map((item) => (
-// 							<option key={item.id} value={item.name}>
-// 								{item.name}
-// 							</option>
-// 						))}
-// 					</select>
-
-// 					<input placeholder="Color" value={row.color} onChange={(e) => handleChange(index, "color", e.target.value)} />
-// 					<input placeholder="Side" value={row.side} onChange={(e) => handleChange(index, "side", e.target.value)} />
-// 					<input placeholder="Size" value={row.size} onChange={(e) => handleChange(index, "size", e.target.value)} />
-
-// 					{items.length > 1 && (
-// 						<button type="button" onClick={() => deleteRow(index)}>
-// 							Delete
-// 						</button>
-// 					)}
-
-// 					{index === items.length - 1 && (
-// 						<button type="button" onClick={addRow}>
-// 							Add
-// 						</button>
-// 					)}
-// 				</div>
-// 			))}
-
-// 			<button type="button" onClick={handleSubmit}>
-// 				Submit
-// 			</button>
-// 		</div>
-// 	);
-// }
-
-// !!!!! new code
-
-// import React, { useState } from "react";
-// import dayjs from "dayjs";
-
-// export default function MaterialRequestForm({ itemGroups }) {
-//   const [brandFilter, setBrandFilter] = useState("");
-//   const [items, setItems] = useState([
-//     { quantity: "", itemName: "", color: "", side: "", size: "" }
-//   ]);
-//   const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
-
-//   // Filtered items by brand
-//   const filteredItems = brandFilter
-//     ? itemGroups.filter(i => i.brand === brandFilter)
-//     : itemGroups;
-
-//   // Handle input change for a row
-//   const handleChange = (index, field, value) => {
-//     const newItems = [...items];
-//     newItems[index][field] = value;
-//     setItems(newItems);
-//   };
-
-//   // Add a new row
-//   const addRow = () => {
-//     setItems([...items, { quantity: "", itemName: "", color: "", side: "", size: "" }]);
-//   };
-
-//   // Delete a row
-//   const deleteRow = (index) => {
-//     if (items.length > 1) {
-//       setItems(items.filter((_, i) => i !== index));
-//     }
-//   };
-
-//   // Submit request
-//   const handleSubmit = () => {
-//     const payload = {
-//       createOneMaterialRequestInput2: {
-//         items: items.map(it => ({
-//           ...it,
-//           // Build itemName as "Brand - Item"
-//           itemName: it.itemName ? `${filteredItems.find(i => i.name === it.itemName)?.brand || ""} - ${it.itemName}` : null
-//         })),
-//         description: "Some description",
-//         date: date
-//       }
-//     };
-
-//     console.log("Sending to API:", payload);
-//     // Call your GraphQL mutation here
-//   };
-
-//   return (
-//     <div>
-//       <div>
-//         <label>Date: </label>
-//         <input
-//           type="date"
-//           value={date}
-//           onChange={(e) => setDate(e.target.value)}
-//         />
-//       </div>
-
-//       <div>
-//         <label>Filter by Brand: </label>
-//         <select onChange={(e) => setBrandFilter(e.target.value)}>
-//           <option value="">All Brands</option>
-//           {[...new Set(itemGroups.map(i => i.brand))].map(b => (
-//             <option key={b} value={b}>{b}</option>
-//           ))}
-//         </select>
-//       </div>
-
-//       {items.map((row, index) => (
-//         <div key={index}>
-//           <input
-//             type="number"
-//             placeholder="Quantity"
-//             value={row.quantity}
-//             onChange={(e) => handleChange(index, "quantity", e.target.value)}
-//           />
-
-//           <select
-//             value={row.itemName}
-//             onChange={(e) => handleChange(index, "itemName", e.target.value)}
-//           >
-//             <option value="">Select Item</option>
-//             {filteredItems.map(item => (
-//               <option key={item.id} value={item.name}>
-//                 {item.name}
-//               </option>
-//             ))}
-//           </select>
-
-//           <input
-//             placeholder="Color"
-//             value={row.color}
-//             onChange={(e) => handleChange(index, "color", e.target.value)}
-//           />
-//           <input
-//             placeholder="Side"
-//             value={row.side}
-//             onChange={(e) => handleChange(index, "side", e.target.value)}
-//           />
-//           <input
-//             placeholder="Size"
-//             value={row.size}
-//             onChange={(e) => handleChange(index, "size", e.target.value)}
-//           />
-
-//           {items.length > 1 && (
-//             <button type="button" onClick={() => deleteRow(index)}>Delete</button>
-//           )}
-
-//           {index === items.length - 1 && (
-//             <button type="button" onClick={addRow}>Add</button>
-//           )}
-//         </div>
-//       ))}
-
-//       <button type="button" onClick={handleSubmit}>Submit</button>
-//     </div>
-//   );
-// }

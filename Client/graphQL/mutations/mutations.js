@@ -103,13 +103,15 @@ export const create_One_Material_Request = gql`
 	mutation createOneMaterialRequest($input: CreateOneMaterialRequestInput!) {
 		createOneMaterialRequest(input: $input) {
 			id
-			description
 
 			items {
 				id
 				itemName
 				quantity
+				itemDescription
 			}
+
+			description
 
 			requester {
 				userId
@@ -139,6 +141,7 @@ export const create_One_Material_Request = gql`
 		}
 	}
 `;
+
 export const update_One_Material_Request = gql`
 	mutation updateOneMaterialRequest($id: ID!, $input: UpdateMaterialRequestInput!) {
 		updateOneMaterialRequest(id: $id, input: $input) {

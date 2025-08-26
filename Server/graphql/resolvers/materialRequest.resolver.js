@@ -76,16 +76,21 @@ const materialRequestResolvers = {
 			// Check if user context is provided (authentication)
 			if (!user) throw new ApolloError("Unauthorized: no user context given.");
 
+			console.log("items", items);
+
 			try {
 				// Normalize items array: create new objects for each item with itemName and quantity
 				const normalizedItems = items.map((item) => ({
 					// _id: new mongoose.Types.ObjectId(), // Optionally generate a new ObjectId for each item
 					itemName: item.itemName, // Set item name
 					quantity: item.quantity, // Set item quantity
+
+					itemDescription: item?.itemDescription ? item?.itemDescription : null,
 					color: item?.color ? item?.color : null,
 					side: item?.side ? item?.side : null,
 					size: item?.size ? item?.size : null,
 				}));
+				// console.log("info being send from the front end", normalizedItems);
 
 				// Create a snapshot of the requester (user info at time of request)
 				const requester = {
@@ -326,6 +331,53 @@ const materialRequestResolvers = {
 				return updatedTarget;
 			} catch (error) {
 				console.error("Error updating material request:", error);
+				throw error;
+			}
+		},
+
+		updateOneMaterialRequestItemDescription: async (_, { input: { id, items } }, { user }) => {
+			try {
+				if (!user) throw new ApolloError("Unauthorized: No user context.");
+
+				const target = await MaterialRequest.findById(id);
+				if (!target) throw new ApolloError("Material request was not found");
+
+				// console.log("the targe requester is ", target?.requester?.userId);
+				// console.log("the targe requester is ", user.userId);
+				// console.log("is the target id the same  ", !target?.requester?.userId.equals(user.userId));
+
+				// showing false if the ids are the same  show true if they are not to trigger the error message
+				if (!target?.requester?.userId.equals(user.userId) || !user.role == "headAdmin") throw new ApolloError("You can only update you own items descriptions");
+
+				const bulkOps = [];
+
+				if (Array.isArray(items)) {
+					for (const item of items) {
+						const { id: itemId, itemDescription } = item;
+						console.log("info that is being send ", id, itemId, itemDescription);
+
+						bulkOps.push({
+							updateOne: {
+								filter: { _id: id, "items._id": itemId },
+								update: { $set: { "items.$.itemDescription": itemDescription } },
+							},
+						});
+					}
+				}
+
+				if (bulkOps.length > 0) {
+					MaterialRequest.bulkWrite(bulkOps);
+				}
+
+				const updatedTarget = await MaterialRequest.findById(id);
+
+				await pubsub.publish("MATERIAL_REQUEST_UPDATED", {
+					onMaterialRequestChange: { eventType: "updated", Changes: updatedTarget },
+				});
+
+				return updatedTarget;
+			} catch (error) {
+				console.error("Error updating material request item description:", error);
 				throw error;
 			}
 		},

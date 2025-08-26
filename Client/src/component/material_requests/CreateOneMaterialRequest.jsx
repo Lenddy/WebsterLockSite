@@ -10,7 +10,7 @@ import { jwtDecode } from "jwt-decode";
 
 export default function CreateOneMaterialRequest() {
 	// const [info, setInfo] = useState({});
-	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", description: "", color: null, side: null, size: null }]);
+	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
 
 	const navigate = useNavigate();
 	const [NewMaterialRequest] = useMutation(create_One_Material_Request);
@@ -209,21 +209,21 @@ export default function CreateOneMaterialRequest() {
 					color: r?.color || null,
 					side: r?.side || null,
 					size: r?.size || null,
-					description: r?.description || null,
+					itemDescription: r?.itemDescription || null,
 				})),
 				// addedDate: dayjs().format("YYYY-MM-DD"), // include today's date if needed
 			};
 
 			console.log("this is the input that are send  ", input);
 
-			// await NewMaterialRequest({
-			// 	variables: { input },
-			// 	onCompleted: (res) => {
-			// 		console.log("Mutation success:", res?.createOneMaterialRequest);
-			// 		// newMr =
-			// 		navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
-			// 	},
-			// });
+			await NewMaterialRequest({
+				variables: { input },
+				onCompleted: (res) => {
+					console.log("Mutation success:", res?.createOneMaterialRequest);
+					// newMr =
+					navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
+				},
+			});
 		} catch (err) {
 			console.error("Submit error:", err);
 		}
@@ -395,7 +395,7 @@ export default function CreateOneMaterialRequest() {
 							/>
 
 							{/* Description input */}
-							<textarea type="text" value={row.description} onChange={(e) => handleRowChange(idx, "description", e.target.value)} placeholder="description" />
+							<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
 
 							{rows.length > 1 ? (
 								<button type="button" onClick={() => removeRow(idx)}>

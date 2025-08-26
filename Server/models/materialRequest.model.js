@@ -124,6 +124,7 @@ const MaterialRequestSchema = new Schema(
 				color: String,
 				side: String,
 				size: String,
+				itemDescription: String,
 			},
 		],
 	},

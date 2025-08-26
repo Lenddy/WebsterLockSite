@@ -69,6 +69,7 @@ export const get_all_material_requests = gql`
 				id
 				itemName
 				quantity
+				# itemDescription
 			}
 
 			requester {
@@ -111,6 +112,7 @@ export const get_one_material_request = gql`
 				id
 				itemName
 				quantity
+				itemDescription
 			}
 
 			requester {

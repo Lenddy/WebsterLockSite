@@ -30,6 +30,7 @@ const materialRequestTypeDef = gql`
 		id: ID!
 		itemName: String!
 		quantity: Int!
+		itemDescription: String
 		color: String
 		side: String
 		size: String
@@ -38,6 +39,7 @@ const materialRequestTypeDef = gql`
 	input MaterialRequestItemInput { # Input for creating an item
 		quantity: Int!
 		itemName: String!
+		itemDescription: String
 		color: String
 		side: String
 		size: String
@@ -47,6 +49,7 @@ const materialRequestTypeDef = gql`
 		id: ID!
 		quantity: Int
 		itemName: String
+		itemDescription: String
 		color: String
 		side: String
 		size: String
@@ -64,6 +67,16 @@ const materialRequestTypeDef = gql`
 		items: [UpdateMaterialRequestItemInput]
 		approvalStatus: ApprovalStatusInput
 		comment: String
+	}
+
+	input MaterialRequestItemDescriptionInput { # Item in a material request
+		id: ID!
+		itemDescription: String
+	}
+
+	input UpdateMaterialRequestItemDescriptionInput { # Input for updating a request
+		id: ID!
+		items: [MaterialRequestItemDescriptionInput]
 	}
 
 	# --- Approval related types ---
@@ -153,6 +166,7 @@ const materialRequestTypeDef = gql`
 	type Mutation {
 		createOneMaterialRequest(input: CreateOneMaterialRequestInput!): MaterialRequest! # Create request
 		updateOneMaterialRequest(input: UpdateMaterialRequestInput!): MaterialRequest! # Update request
+		updateOneMaterialRequestItemDescription(input: UpdateMaterialRequestItemDescriptionInput): MaterialRequest! # Update request
 		deleteOneMaterialRequest(id: ID!): MaterialRequest! # Delete request
 	}
 

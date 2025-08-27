@@ -46,7 +46,7 @@ const materialRequestTypeDef = gql`
 	}
 
 	input UpdateMaterialRequestItemInput { # Input for updating an item
-		id: ID!
+		id: ID
 		quantity: Int
 		itemName: String
 		itemDescription: String
@@ -145,6 +145,7 @@ const materialRequestTypeDef = gql`
 		canEditSelf: Boolean
 		canViewSelf: Boolean
 		canDeleteSelf: Boolean
+		canNotBeUpdated: Boolean
 		canRegisterUser: Boolean
 	}
 
@@ -153,6 +154,20 @@ const materialRequestTypeDef = gql`
 		toBeAdded: Boolean
 		toBeUpdated: Boolean
 		toBeDeleted: Boolean
+	}
+
+	input RequesterInput {
+		userId: ID!
+		email: String!
+		name: String!
+		role: String!
+		permissions: PermissionSnapshotInput
+	}
+
+	input createdManyMaterialRequestInput {
+		requester: RequesterInput!
+		description: String
+		items: [MaterialRequestItemInput!]!
 	}
 
 	# --- Queries ---
@@ -165,9 +180,12 @@ const materialRequestTypeDef = gql`
 	# --- Mutations ---
 	type Mutation {
 		createOneMaterialRequest(input: CreateOneMaterialRequestInput!): MaterialRequest! # Create request
+		createManyMaterialRequests(inputs: [createdManyMaterialRequestInput!]!): [MaterialRequest!]! # Create many requests
 		updateOneMaterialRequest(input: UpdateMaterialRequestInput!): MaterialRequest! # Update request
+		updateManyMaterialRequests(inputs: [UpdateMaterialRequestInput!]!): [MaterialRequest!]! # Update request
 		updateOneMaterialRequestItemDescription(input: UpdateMaterialRequestItemDescriptionInput): MaterialRequest! # Update request
 		deleteOneMaterialRequest(id: ID!): MaterialRequest! # Delete request
+		deleteManyMaterialRequests(ids: [ID!]): [MaterialRequest!]! # Delete request
 	}
 
 	# --- Subscription ---

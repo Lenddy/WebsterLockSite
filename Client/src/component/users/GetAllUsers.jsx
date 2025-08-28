@@ -49,17 +49,33 @@ export default function GetAllUsers() {
 	// 		},
 	// 		onComplete: complete => console.log("subscription completed", complete),
 
+	{
+		/* 
+			<div>
+				<a href={"/user/admin/register"}> a tag register </a>
+			</div> */
+	}
+
 	return (
 		<div>
 			<h1>Welcome {logUser?.name}</h1>
-			<div>
-				<Link to={"/user/register"}>register user</Link>
-			</div>
 
 			<div>
 				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
 					Log out
 				</Link>
+			</div>
+
+			<div>
+				<Link to={"/user/admin/register"}>admin register users</Link>
+			</div>
+
+			<div>
+				<Link to={"/user/admin/update"}>admin update users</Link>
+			</div>
+
+			<div>
+				<Link to={"/user/register"}>register user</Link>
 			</div>
 
 			<div>

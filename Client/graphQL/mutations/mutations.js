@@ -29,6 +29,33 @@ export const register_User = gql`
 	}
 `;
 
+export const register_multiple_Users = gql`
+	mutation registerMultipleUsers($inputs: [RegisterInput!]!) {
+		registerMultipleUsers(inputs: $inputs) {
+			id
+			name
+			email
+			role
+			job {
+				title
+				description
+			}
+			permissions {
+				canEditUsers
+				canDeleteUsers
+				canChangeRole
+				canViewUsers
+				canViewAllUsers
+				canEditSelf
+				canViewSelf
+				canDeleteSelf
+			}
+			createdAt
+			updatedAt
+		}
+	}
+`;
+
 export const log_In_user = gql`
 	mutation logInUser($input: LoginInput) {
 		loginUser(input: $input) {
@@ -65,9 +92,9 @@ export const update_One_user = gql`
 	}
 `;
 
-export const admin_update_One_user = gql`
-	mutation adminChangeUserProfile($id: ID!, $input: AdminChangeUserProfileInput!) {
-		adminChangeUserProfile(id: $id, input: $input) {
+export const admin_update_multiple_users = gql`
+	mutation adminChangeMultipleUserProfiles($id: ID!, $input: AdminChangeUserProfileInput!) {
+		adminChangeMultipleUserProfiles(id: $id, input: $input) {
 			id
 			name
 			email

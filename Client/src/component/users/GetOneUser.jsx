@@ -4,7 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import { get_one_user } from "../../../graphQL/queries/queries";
 import { Link, useParams, useLocation } from "react-router-dom";
 import UpdateOneUser from "./updateOneUser";
-import AdminUpdateOneUser from "./AdminUpdateOneUser";
+
 import DeleteOneUser from "./DeleteOneUser";
 
 export default function GetOneUser() {
@@ -75,9 +75,7 @@ export default function GetOneUser() {
 				<Link to={`/user/${userId}/update/admin`}>admin update users</Link>
 			</div>
 
-			{currentRoutePath === `/user/${userId}/update/admin` ? (
-				<AdminUpdateOneUser userId={userId} user={user} />
-			) : currentRoutePath === `/user/${userId}/update` ? (
+			{currentRoutePath === `/user/${userId}/update` ? (
 				<UpdateOneUser userId={userId} user={user} />
 			) : loading ? (
 				<div>

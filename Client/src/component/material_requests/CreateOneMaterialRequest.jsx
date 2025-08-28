@@ -170,7 +170,7 @@ export default function CreateOneMaterialRequest() {
 		 * 2. Append a new row with default null/empty values.
 		 * 3. Save updated rows into state.
 		 */
-		setRows([...rows, { brand: null, item: null, quantity: "" }]);
+		setRows([...rows, { brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
 	};
 
 	// --- inside your component CreateOneMaterialRequest --- //

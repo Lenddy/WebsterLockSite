@@ -85,6 +85,19 @@ const userTypeDef = gql`
 		permissions: PermissionsInput # Optional custom permissions for the user
 	}
 
+	# Input object for registering a user
+	input RegisterManyInput {
+		# register
+
+		name: String! # Full name of the user
+		email: String! # Email address
+		password: String # Password for login
+		confirmPassword: String # For password match validation
+		role: UserRole # Initial role to assign
+		job: JobInput # Optional job data
+		permissions: PermissionsInput # Optional custom permissions for the user
+	}
+
 	# Input object for user login
 	input LoginInput {
 		email: String! # Email used to log in
@@ -102,15 +115,29 @@ const userTypeDef = gql`
 		job: JobInput # Optional update to job details
 	}
 
-	# Input object for updating a user profile
+	# # Input object for updating a user profile
+	# input AdminChangeUserProfileInput {
+	# 	name: String # New name (optional)
+	# 	previousEmail: String # For verification
+	# 	newEmail: String # New email to update to
+	# 	previousPassword: String # For verification
+	# 	newPassword: String # New password to update to
+	# 	confirmNewPassword: String # Confirm the new password
+	# 	job: JobInput # Optional update to job details
+	# 	newRole: UserRole
+	# 	newPermissions: PermissionsInput
+	# }
+
+	# Input for updating multiple users
 	input AdminChangeUserProfileInput {
-		name: String # New name (optional)
-		previousEmail: String # For verification
-		newEmail: String # New email to update to
-		previousPassword: String # For verification
-		newPassword: String # New password to update to
-		confirmNewPassword: String # Confirm the new password
-		job: JobInput # Optional update to job details
+		id: ID! # The ID of the user to update
+		name: String
+		previousEmail: String
+		newEmail: String
+		previousPassword: String
+		newPassword: String
+		confirmNewPassword: String
+		job: JobInput
 		newRole: UserRole
 		newPermissions: PermissionsInput
 	}
@@ -125,10 +152,12 @@ const userTypeDef = gql`
 	# Root mutation operations (write/update)
 	type Mutation {
 		registerUser(input: RegisterInput): User! # Register a new user
+		registerMultipleUsers(inputs: [RegisterInput!]!): [User!]! # Register a new user
 		loginUser(input: LoginInput): User! # Authenticate a user and return token
 		updateUserProfile(id: ID!, input: UpdateUserProfileInput): User! # Update personal user data
-		adminChangeUserProfile(id: ID!, input: AdminChangeUserProfileInput): User! # Update others users data
+		adminChangeMultipleUserProfiles(inputs: [AdminChangeUserProfileInput!]!): [User!]! # Update others users data
 		deleteOneUser(id: ID!): User! # Permanently delete a user
+		deleteMultipleUsers(ids: [ID!]): [User!]! # Permanently delete multiple  users
 	}
 
 	# Used in subscriptions to indicate type of change and changed user

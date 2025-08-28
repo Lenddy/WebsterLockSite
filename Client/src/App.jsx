@@ -11,12 +11,19 @@ import GetAllMaterialRequest from "./component/material_requests/GetAllMaterialR
 import GetOneMaterialRequest from "./component/material_requests/GetOneMaterialRequest";
 import CreateOneMaterialRequest from "./component/material_requests/CreateOneMaterialRequest";
 
+import AdminRegisterMultipleUsers from "./component/users/Admin/AdminRegisterMultipleUsers";
+import AdminUpdateMultipleUsers from "./component/users/Admin/AdminUpdateMultipleUsers";
+
 function App() {
 	return (
 		<>
 			<Routes>
 				<Route index element={<LogIn />} />
+
 				<Route element={<ProtectedRoute />}>
+					<Route path="/user/admin/register" element={<AdminRegisterMultipleUsers />} />
+					<Route path="/user/admin/update" element={<AdminUpdateMultipleUsers />} />
+
 					<Route path="/user/all" element={<GetAllUsers />} />
 					<Route path="/user/:userId/update?/admin?" element={<GetOneUser />} />
 					<Route path="/user/register" element={<RegisterUser />} />

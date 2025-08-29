@@ -14,19 +14,23 @@ import CreateOneMaterialRequest from "./component/material_requests/CreateOneMat
 import AdminRegisterMultipleUsers from "./component/users/Admin/AdminRegisterMultipleUsers";
 import AdminUpdateMultipleUsers from "./component/users/Admin/AdminUpdateMultipleUsers";
 
-function App() {
+function App({ userToke }) {
 	return (
 		<>
 			<Routes>
 				<Route index element={<LogIn />} />
 
 				<Route element={<ProtectedRoute />}>
-					<Route path="/user/admin/register" element={<AdminRegisterMultipleUsers />} />
+					{/* Admin user routes */}
+					<Route path="/user/admin/register" element={<AdminRegisterMultipleUsers userToke={userToke} />} />
 					<Route path="/user/admin/update" element={<AdminUpdateMultipleUsers />} />
 
+					{/* User routes */}
 					<Route path="/user/all" element={<GetAllUsers />} />
 					<Route path="/user/:userId/update?/admin?" element={<GetOneUser />} />
 					<Route path="/user/register" element={<RegisterUser />} />
+
+					{/* Material request routes */}
 					<Route path="/material/request/all" element={<GetAllMaterialRequest />} />
 					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest />} />
 					<Route path="/material/request/request" element={<CreateOneMaterialRequest />} />

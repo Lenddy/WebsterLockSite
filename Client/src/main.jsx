@@ -23,6 +23,8 @@ import { setContext } from "@apollo/client/link/context";
  * @type {import('@apollo/client').ApolloLink}
  */
 
+const userToken = localStorage.getItem("UserToken");
+
 const errorLink = onError(({ graphQLErrors, networkError }) => {
 	if (graphQLErrors) {
 		graphQLErrors.forEach(({ message }) => {
@@ -124,7 +126,7 @@ createRoot(document.getElementById("root")).render(
 	<ApolloProvider client={client}>
 		<BrowserRouter>
 			<StrictMode>
-				<App />
+				<App userToke={userToken} />
 			</StrictMode>
 		</BrowserRouter>
 	</ApolloProvider>

@@ -111,7 +111,7 @@ export default function CreateOneMaterialRequest() {
 		if (!inputValue) return true;
 
 		// Fuse.js fuzzy search across labels
-		const fuse = new Fuse(allItems, { keys: ["label"], threshold: 0.3 });
+		const fuse = new Fuse(allItems, { keys: ["label"], threshold: 0.4 });
 
 		// Keep options that fuzzy-match the search term
 		return fuse.search(inputValue).some((r) => r.item.value === option.value);

@@ -3,7 +3,7 @@ import { useMutation } from "@apollo/client";
 import { Link } from "react-router-dom";
 import { register_multiple_Users } from "../../../../graphQL/mutations/mutations";
 
-export default function AdminRegisterMultipleUsers() {
+export default function AdminRegisterMultipleUsers({ userToke }) {
 	const [show, setShow] = useState(false);
 	const lastRowRef = useRef(null);
 

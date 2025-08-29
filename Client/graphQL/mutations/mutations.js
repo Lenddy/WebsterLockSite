@@ -93,8 +93,8 @@ export const update_One_user = gql`
 `;
 
 export const admin_update_multiple_users = gql`
-	mutation adminChangeMultipleUserProfiles($id: ID!, $input: AdminChangeUserProfileInput!) {
-		adminChangeMultipleUserProfiles(id: $id, input: $input) {
+	mutation adminChangeMultipleUserProfiles($inputs: [AdminChangeUserProfileInput!]!) {
+		adminChangeMultipleUserProfiles(inputs: $inputs) {
 			id
 			name
 			email

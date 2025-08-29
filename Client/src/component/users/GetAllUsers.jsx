@@ -67,11 +67,15 @@ export default function GetAllUsers() {
 			</div>
 
 			<div>
-				<Link to={"/user/admin/register"}>admin register users</Link>
+				<Link to={"/admin/user/register"}>admin register users</Link>
 			</div>
 
 			<div>
-				<Link to={"/user/admin/update"}>admin update users</Link>
+				<Link to={"/admin/user/update"}>admin update users</Link>
+			</div>
+
+			<div>
+				<Link to={"/admin/material/request/"}>admin create material requests</Link>
 			</div>
 
 			<div>

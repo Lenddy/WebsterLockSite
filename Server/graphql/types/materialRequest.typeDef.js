@@ -180,12 +180,12 @@ const materialRequestTypeDef = gql`
 	# --- Mutations ---
 	type Mutation {
 		createOneMaterialRequest(input: CreateOneMaterialRequestInput!): MaterialRequest! # Create request
-		createManyMaterialRequests(inputs: [createdManyMaterialRequestInput!]!): [MaterialRequest!]! # Create many requests
+		createMultipleMaterialRequests(inputs: [createdManyMaterialRequestInput!]!): [MaterialRequest!]! # Create many requests
 		updateOneMaterialRequest(input: UpdateMaterialRequestInput!): MaterialRequest! # Update request
-		updateManyMaterialRequests(inputs: [UpdateMaterialRequestInput!]!): [MaterialRequest!]! # Update request
+		updateMultipleMaterialRequests(inputs: [UpdateMaterialRequestInput!]!): [MaterialRequest!]! # Update request
 		updateOneMaterialRequestItemDescription(input: UpdateMaterialRequestItemDescriptionInput): MaterialRequest! # Update request
 		deleteOneMaterialRequest(id: ID!): MaterialRequest! # Delete request
-		deleteManyMaterialRequests(ids: [ID!]): [MaterialRequest!]! # Delete request
+		deleteMultipleMaterialRequests(ids: [ID!]): [MaterialRequest!]! # Delete request
 	}
 
 	# --- Subscription ---

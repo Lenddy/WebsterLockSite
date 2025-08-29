@@ -128,7 +128,7 @@ const materialRequestResolvers = {
 			}
 		},
 
-		createManyMaterialRequests: async (_, { inputs }, { user }) => {
+		createMultipleMaterialRequests: async (_, { inputs }, { user }) => {
 			// Still check that a valid logged-in user is making the call
 			if (!user) throw new ApolloError("Unauthorized: no user context given.");
 
@@ -669,7 +669,7 @@ const materialRequestResolvers = {
 		// 	}
 		// },
 
-		updateManyMaterialRequests: async (_, { inputs }, { user, pubsub }) => {
+		updateMultipleMaterialRequests: async (_, { inputs }, { user, pubsub }) => {
 			if (!user) throw new ApolloError("Unauthorized: No user context.");
 
 			if (!Array.isArray(inputs) || inputs.length === 0) {
@@ -806,7 +806,7 @@ const materialRequestResolvers = {
 		},
 
 		// Delete multiple material requests (admin only)
-		deleteManyMaterialRequests: async (_, { ids }, { user, pubsub }) => {
+		deleteMultipleMaterialRequests: async (_, { ids }, { user, pubsub }) => {
 			try {
 				// Authentication check
 				if (!user) throw new ApolloError("Unauthorized: No context provided.");

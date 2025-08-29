@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useMutation } from "@apollo/client";
 import { Link } from "react-router-dom";
-import { admin_update_multiple_users } from "../../../../graphQL/mutations/mutations";
+import { admin_update_multiple_users } from "../../../graphQL/mutations/mutations";
 import Select from "react-select";
 import Fuse from "fuse.js";
-import { get_all_users } from "../../../../graphQL/queries/queries";
+import { get_all_users } from "../../../graphQL/queries/queries";
 import { useQuery, useSubscription } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
 import { jwtDecode } from "jwt-decode";
 
@@ -219,7 +219,7 @@ export default function AdminUpdateMultipleUsers({ userId, user }) {
 				</div>
 
 				<div>
-					<Link to={"/user/admin/update"}>admin update users</Link>
+					<Link to={"/admin/user/update"}>admin update users</Link>
 				</div>
 
 				<div>

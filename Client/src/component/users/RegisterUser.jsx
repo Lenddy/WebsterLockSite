@@ -78,46 +78,6 @@ export default function RegisterUser() {
 			});
 	};
 
-	const addSection = () => {
-		setSections([...sections, { number: "" }]);
-	};
-
-	const handleInputChange = (e, index) => {
-		const updatedSections = sections.map((section, secIndex) => {
-			if (index === secIndex) {
-				let value = e.target.value;
-				if (!value) return { ...section, [e.target.name]: value };
-
-				const phoneNumber = value.replace(/[^\d]/g, "");
-				const phoneNumberLength = phoneNumber.length;
-
-				if (phoneNumberLength <= 3) return { ...section, [e.target.name]: phoneNumber };
-				if (phoneNumberLength <= 6) {
-					return {
-						...section,
-						[e.target.name]: `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`,
-					};
-				}
-				return {
-					...section,
-					[e.target.name]: `(${phoneNumber.slice(0, 3)})${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`,
-				};
-			}
-			return section;
-		});
-
-		setSections(updatedSections);
-
-		// Assuming you want to update the info object after formatting the phone number
-		const updatedCellPhones = updatedSections.map((section) => section.number);
-		setInfo({ ...info, cellPhones: updatedCellPhones });
-	};
-
-	const deleteSection = (index) => {
-		const filteredSections = sections.filter((_, secIndex) => secIndex !== index);
-		setSections(filteredSections);
-	};
-
 	return (
 		<>
 			{/* {logUser?.name} */}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useMutation } from "@apollo/client";
 import { Link } from "react-router-dom";
-import { register_multiple_Users } from "../../../../graphQL/mutations/mutations";
+import { register_multiple_Users } from "../../../graphQL/mutations/mutations";
 
 export default function AdminRegisterMultipleUsers({ userToke }) {
 	const [show, setShow] = useState(false);
@@ -135,7 +135,7 @@ export default function AdminRegisterMultipleUsers({ userToke }) {
 				</div>
 
 				<div>
-					<Link to={"/user/admin/update"}>admin update users</Link>
+					<Link to={"/admin/user/update"}>admin update users</Link>
 				</div>
 
 				<div>

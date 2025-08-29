@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import { get_all_Item_Groups } from "../../../graphQL/queries/queries";
-import { create_One_Material_Request } from "../../../graphQL/mutations/mutations";
+import { create_one_material_request } from "../../../graphQL/mutations/mutations";
 import Select from "react-select";
 import Fuse from "fuse.js";
 import { Link, useNavigate } from "react-router-dom";
@@ -9,11 +9,10 @@ import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 
 export default function CreateOneMaterialRequest() {
-	// const [info, setInfo] = useState({});
 	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
 
 	const navigate = useNavigate();
-	const [NewMaterialRequest] = useMutation(create_One_Material_Request);
+	const [NewMaterialRequest] = useMutation(create_one_material_request);
 
 	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_Item_Groups);
 	const [itemGroups, setItemGroups] = useState([]);

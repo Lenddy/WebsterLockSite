@@ -1,4 +1,3 @@
-import React from "react";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import { get_all_Item_Groups } from "../../../graphQL/queries/queries";
@@ -9,8 +8,10 @@ import { Link, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 
-function UpdateOneMaterialRequest({ requestId }) {
-	// const [info, setInfo] = useState({});
+export default function AdminCreateMultipleMaterialRequests() {
+	// 	const [requests, setRequests] = useState([
+	//   { rows: [{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }] }
+	// ]);
 	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
 
 	const navigate = useNavigate();
@@ -112,7 +113,7 @@ function UpdateOneMaterialRequest({ requestId }) {
 		if (!inputValue) return true;
 
 		// Fuse.js fuzzy search across labels
-		const fuse = new Fuse(allItems, { keys: ["label"], threshold: 0.3 });
+		const fuse = new Fuse(allItems, { keys: ["label"], threshold: 0.4 });
 
 		// Keep options that fuzzy-match the search term
 		return fuse.search(inputValue).some((r) => r.item.value === option.value);
@@ -155,11 +156,11 @@ function UpdateOneMaterialRequest({ requestId }) {
 	}
 
 	/**
-     
-     * Adds a new row to the rows state.
-     * Each row contains a 'brand' and an 'item'.
-     * Both are initialized to null so the user can choose them later.
-     */
+	 
+	 * Adds a new row to the rows state.
+	 * Each row contains a 'brand' and an 'item'.
+	 * Both are initialized to null so the user can choose them later.
+	 */
 
 	// ---------------------------
 	// Add a new row
@@ -171,7 +172,7 @@ function UpdateOneMaterialRequest({ requestId }) {
 		 * 2. Append a new row with default null/empty values.
 		 * 3. Save updated rows into state.
 		 */
-		setRows([...rows, { brand: null, item: null, quantity: "" }]);
+		setRows([...rows, { brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
 	};
 
 	// --- inside your component CreateOneMaterialRequest --- //
@@ -234,9 +235,6 @@ function UpdateOneMaterialRequest({ requestId }) {
 
 	return (
 		<div>
-			<h1> this is the update material </h1>
-			<h1> {requestId} </h1>
-
 			{/* Simple navigation/test links */}
 			<div>
 				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
@@ -421,5 +419,3 @@ function UpdateOneMaterialRequest({ requestId }) {
 		</div>
 	);
 }
-
-export default UpdateOneMaterialRequest;

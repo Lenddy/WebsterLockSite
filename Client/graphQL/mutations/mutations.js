@@ -170,8 +170,8 @@ export const create_one_material_request = gql`
 `;
 
 export const create_multiple_material_requests = gql`
-	mutation createMultipleMaterialRequests($inputs: [createdMultipleMaterialRequestInput!]!) {
-		createMultipleMaterialRequest(inputs: $inputs) {
+	mutation createMultipleMaterialRequests($inputs: [createdManyMaterialRequestInput!]!) {
+		createMultipleMaterialRequests(inputs: $inputs) {
 			id
 
 			items {

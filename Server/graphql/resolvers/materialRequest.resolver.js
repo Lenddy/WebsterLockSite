@@ -130,11 +130,13 @@ const materialRequestResolvers = {
 
 		createMultipleMaterialRequests: async (_, { inputs }, { user }) => {
 			// Still check that a valid logged-in user is making the call
+			console.log("inputs from the front end ?");
+			console.dir(inputs, { depth: null });
 			if (!user) throw new ApolloError("Unauthorized: no user context given.");
 
 			try {
 				// Map over inputs (array of requests with their own requester info)
-				const materialRequests = inputs.map(({ requester, description, items }) => {
+				const materialRequests = inputs.map(({ requester, description, items, addedDate }) => {
 					// Normalize items for each request
 					const normalizedItems = items.map((item) => ({
 						itemName: item.itemName,
@@ -157,7 +159,7 @@ const materialRequestResolvers = {
 						reviewers: [],
 						description,
 						items: normalizedItems,
-						addedDate: new Date().toISOString(),
+						addedDate: addedDate,
 					};
 				});
 

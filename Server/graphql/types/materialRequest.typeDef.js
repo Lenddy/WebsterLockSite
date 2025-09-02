@@ -56,7 +56,7 @@ const materialRequestTypeDef = gql`
 		action: Action!
 	}
 
-	input CreateOneMaterialRequestInput { # Input for creating a request
+	input createOneMaterialRequestInput { # Input for creating a request
 		items: [MaterialRequestItemInput!]!
 		description: String
 	}
@@ -168,6 +168,7 @@ const materialRequestTypeDef = gql`
 		requester: RequesterInput!
 		description: String
 		items: [MaterialRequestItemInput!]!
+		addedDate: String
 	}
 
 	# --- Queries ---
@@ -179,7 +180,7 @@ const materialRequestTypeDef = gql`
 
 	# --- Mutations ---
 	type Mutation {
-		createOneMaterialRequest(input: CreateOneMaterialRequestInput!): MaterialRequest! # Create request
+		createOneMaterialRequest(input: createOneMaterialRequestInput!): MaterialRequest! # Create request
 		createMultipleMaterialRequests(inputs: [createdManyMaterialRequestInput!]!): [MaterialRequest!]! # Create many requests
 		updateOneMaterialRequest(input: UpdateMaterialRequestInput!): MaterialRequest! # Update request
 		updateMultipleMaterialRequests(inputs: [UpdateMaterialRequestInput!]!): [MaterialRequest!]! # Update request

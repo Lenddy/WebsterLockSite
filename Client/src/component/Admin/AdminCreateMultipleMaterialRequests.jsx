@@ -1,37 +1,176 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import { get_all_Item_Groups } from "../../../graphQL/queries/queries";
-import { create_one_material_request } from "../../../graphQL/mutations/mutations";
+import { create_multiple_material_requests } from "../../../graphQL/mutations/mutations";
+import { get_all_users } from "../../../graphQL/queries/queries";
 import Select from "react-select";
 import Fuse from "fuse.js";
 import { Link, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 
+// createMultipleMaterialRequests
+// createMultipleMaterialRequest
+
 export default function AdminCreateMultipleMaterialRequests() {
-	// 	const [requests, setRequests] = useState([
-	//   { rows: [{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }] }
-	// ]);
-	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
+	const [users, setUsers] = useState([]);
+	const [itemGroups, setItemGroups] = useState([]);
+	const [requests, setRequests] = useState([
+		{
+			addedDate: "",
+			description: "",
+			items: [
+				{
+					brand: "",
+					quantity: "",
+					item: null,
+					color: null,
+					side: null,
+					size: null,
+					itemDescription: "",
+				},
+			],
+			requester: {
+				userId: "",
+				email: "",
+				name: "",
+				role: "",
+				permissions: {
+					canEditUsers: false,
+					canDeleteUsers: false,
+					canChangeRole: false,
+					canViewUsers: false,
+					canViewAllUsers: false,
+					canEditSelf: false,
+					canViewSelf: false,
+					canDeleteSelf: false,
+					canRegisterUser: false,
+				},
+			},
+		},
+	]);
+
+	const { loading, data, error, refetch } = useQuery(get_all_users);
+	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_Item_Groups);
+	const [createNewMaterialRequests] = useMutation(create_multiple_material_requests);
 
 	const navigate = useNavigate();
-	const [NewMaterialRequest] = useMutation(create_one_material_request);
 
-	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_Item_Groups);
-	const [itemGroups, setItemGroups] = useState([]);
+	useEffect(() => {
+		// setLogUser(jwtDecode(localStorage.getItem("UserToken")));
+		if (iGLoading) console.log("loading");
 
-	const [logUser, setLogUser] = useState({});
+		if (loading) {
+			console.log("loading");
+		}
 
-	// const [color, setColor] = useState([
-	// 	{ value: "605/US3 - Bright Brass", label: "605/US3 - Bright Brass" },
-	// 	{ value: "612/US10 - Satin Bronze", label: "612/US10 - Satin Bronze" },
-	// 	{ value: "619/US15 - Satin Nickel", label: "619/US15 - Satin Nickel" },
-	// 	{ value: "625/US26 - Bright Chrome", label: "625/US26 - Bright Chrome" },
-	// 	{ value: "626/US26D - Satin Chrome", label: "626/US26D - Satin Chrome" },
-	// 	{ value: "630/US32D - Satin Stainless Steel", label: "630/US32D - Satin Stainless Steel" },
-	// 	{ value: "622/ - Black", label: "622/ - Black" },
-	// 	{ value: "689/ - Aluminum", label: "689/ - Aluminum" },
-	// ]);
+		if (data) {
+			// console.log(data.getAllUsers);
+			setUsers(data.getAllUsers);
+		}
+
+		if (iGData) {
+			// console.log("this are the itemGroups", iGData?.getAllItemGroups || []);
+			// store the fetched groups so we can build brands and items
+			setItemGroups(iGData?.getAllItemGroups || []);
+		}
+
+		if (error) {
+			console.log("there was an error", error);
+		}
+
+		if (iGError) {
+			console.log("there was an error", iGError);
+		}
+		// const fetchData = async () => {
+	}, [loading, iGLoading, data, iGData, error, iGError]);
+
+	// Add a new request (with one blank row)
+	const addRequest = () => {
+		setRequests([
+			...requests,
+			{
+				addedDate: "",
+				description: "",
+				items: [
+					{
+						brand: "",
+						quantity: "",
+						item: null,
+						color: null,
+						side: null,
+						size: null,
+						itemDescription: "",
+					},
+				],
+				requester: {
+					userId: "",
+					email: "",
+					name: "",
+					role: "",
+					permissions: {
+						canEditUsers: false,
+						canDeleteUsers: false,
+						canChangeRole: false,
+						canViewUsers: false,
+						canViewAllUsers: false,
+						canEditSelf: false,
+						canViewSelf: false,
+						canDeleteSelf: false,
+						canRegisterUser: false,
+					},
+				},
+			},
+		]);
+	};
+
+	// Remove a whole request
+	const removeRequest = (reqIdx) => {
+		setRequests(requests.filter((_, i) => i !== reqIdx));
+	};
+
+	const addItemRow = (reqIdx) => {
+		const updated = [...requests];
+		updated[reqIdx].items.push({
+			brand: null,
+			quantity: "",
+			item: null,
+			color: null,
+			side: null,
+			size: null,
+			itemDescription: "",
+		});
+		setRequests(updated);
+	};
+
+	const removeItemRow = (reqIdx, rowIdx) => {
+		const updated = [...requests];
+		updated[reqIdx].items = updated[reqIdx].items.filter((_, i) => i !== rowIdx);
+		setRequests(updated);
+	};
+
+	const handleRequestChange = (reqIdx, field, value) => {
+		const updated = [...requests];
+		updated[reqIdx][field] = value;
+		setRequests(updated);
+	};
+
+	const handleItemChange = (reqIdx, rowIdx, field, value) => {
+		const updated = [...requests];
+		updated[reqIdx].items[rowIdx][field] = value;
+		setRequests(updated);
+	};
+
+	const userOptions = users.map((user) => ({
+		label: `${user.name} (${user.email})`,
+		value: {
+			userId: user.id, //  your backend id
+			email: user.email,
+			name: user.name,
+			role: user.role,
+			permissions: { ...user.permissions },
+		},
+	}));
 
 	const colorOptions = [
 		{ value: "605/US3 - Bright Brass", label: "605/US3 - Bright Brass", hex: "#FFD700" }, // brass-ish
@@ -55,43 +194,10 @@ export default function AdminCreateMultipleMaterialRequests() {
 		{ value: "Large", label: "Large" },
 	];
 
-	// ---------------------------
-	// Effect: fetch itemGroups from GraphQL query
-	// ---------------------------
-	useEffect(() => {
-		setLogUser(jwtDecode(localStorage.getItem("UserToken")));
-		if (iGLoading) console.log("loading");
-
-		if (iGData) {
-			// console.log("this are the itemGroups", iGData?.getAllItemGroups || []);
-			// store the fetched groups so we can build brands and items
-			setItemGroups(iGData?.getAllItemGroups || []);
-		}
-
-		if (iGError) {
-			console.log("there was an error", iGError);
-		}
-		// const fetchData = async () => {
-	}, [iGLoading, iGData, iGError]);
-
-	// ---------------------------
-	// Build list of unique brands
-	// ---------------------------
-
-	// const brands = itemGroups.map((ig) => {
-	// 	return ig;
-	// });
-
-	// console.log("this are all the brands", brands);
-
 	const brands = [...new Set(itemGroups?.map((g) => g.brand))]?.map((b) => ({
 		label: b,
 		value: b,
 	}));
-
-	// ---------------------------
-	// Build list of all items, each labeled "Brand - ItemName"
-	// ---------------------------
 
 	const allItems = itemGroups?.flatMap((group) =>
 		group?.itemsList?.map((item) => ({
@@ -103,11 +209,17 @@ export default function AdminCreateMultipleMaterialRequests() {
 		}))
 	);
 
-	// console.log("this are all the items", allItems);
+	const customUserFilter = (option, inputValue) => {
+		// If search is empty → show all
+		if (!inputValue) return true;
 
-	// ---------------------------
-	// Custom fuzzy search filter
-	// ---------------------------
+		// Fuse.js fuzzy search across labels
+		const fuse = new Fuse(userOptions, { keys: ["label"], threshold: 0.4 });
+
+		// Keep options that fuzzy-match the search term
+		return fuse.search(inputValue).some((r) => r.item.value === option.value);
+	};
+
 	const customFilter = (option, inputValue) => {
 		// If search is empty → show all
 		if (!inputValue) return true;
@@ -119,119 +231,47 @@ export default function AdminCreateMultipleMaterialRequests() {
 		return fuse.search(inputValue).some((r) => r.item.value === option.value);
 	};
 
-	// ---------------------------
-	// Handle row value change
-	// ---------------------------
-	const handleRowChange = (index, field, value) => {
-		/**
-		 * Steps:
-		 * 1. Clone the current rows (since state should not be mutated directly).
-		 * 2. Update the specific field (brand, item, or quantity) for the selected row.
-		 * 3. Save updated rows back into state.
-		 */
-		const newRows = [...rows];
-		newRows[index][field] = value;
-		setRows(newRows);
-	};
+	const canAddMore = requests.every((r) => r.requester?.userId && r.addedDate && r.items.every((i) => i.quantity && i.item?.value));
 
-	{
-		// ---------------------- POINTERS ---------------------- //
-		// 🔹 Where to use addRow: attach it to your "Add Row" button onClick
-		//    Example: <button onClick={addRow}>Add Row</button>
-		//
-		// 🔹 Where to use removeRow: attach it to a "Remove Row" button per row
-		//    Example: <button onClick={() => removeRow(index)}>Remove</button>
-		//
-		// 🔹 Where rows are rendered: map over rows state to build UI
-		//    Example: rows.map((row, index) => ( ... your brand + item selects ... ))
-		//
-		// 🔹 Where selects go: inside the map for each row, replace 'brand' & 'item' with your Select components
-		//    You'll handle search, filtering, and values inside those
-		//
-		// 🔹 Where submission uses rows: when building your final info object for GraphQL mutation,
-		//    include rows as part of the payload (you'll handle how).
-		//
-		// 🔹 Important: Don't forget keys when mapping rows for React rendering
-		// ------------------------------------------------------- //
-	}
+	//  Submit validation
+	const canSubmit = canAddMore; // since it's the same rule for "everything filled"
 
-	/**
-	 
-	 * Adds a new row to the rows state.
-	 * Each row contains a 'brand' and an 'item'.
-	 * Both are initialized to null so the user can choose them later.
-	 */
-
-	// ---------------------------
-	// Add a new row
-	// ---------------------------
-	const addRow = () => {
-		/**
-		 * Steps:
-		 * 1. Copy the current rows.
-		 * 2. Append a new row with default null/empty values.
-		 * 3. Save updated rows into state.
-		 */
-		setRows([...rows, { brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
-	};
-
-	// --- inside your component CreateOneMaterialRequest --- //
-
-	/**
-	 * Removes a row at the specified index.
-	 * Useful if the user wants to delete an item line before submitting.
-	 *
-	 * @param {number} index - The index of the row to remove.
-	 */
-	const removeRow = (index) => {
-		setRows((prevRows) => prevRows.filter((_, i) => i !== index));
-	};
-
-	// ---------------------------
-	// Submit data to backend
-	// ---------------------------
 	const submit = async (e) => {
-		/**
-		 * Steps:
-		 * 1. Build the "items" array in the shape required by GraphQL:
-		 *    - quantity → integer (or null if empty)
-		 *    - itemName → always "Brand - Item" (comes from dropdown value)
-		 *    - color/side/size → left null for now
-		 * 2. Wrap into final input object with description.
-		 * 3. Send mutation with input data.
-		 * 4. Navigate away (or show success message).
-		 */
 		e.preventDefault();
 		try {
-			const input = {
-				items: rows.map((r) => ({
-					quantity: parseInt(r.quantity),
-					// quantity: r.quantity,
-					itemName: r?.item?.value || null,
-					color: r?.color || null,
-					side: r?.side || null,
-					size: r?.size || null,
-					itemDescription: r?.itemDescription || null,
+			const inputs = requests.map((r) => ({
+				addedDate: r.addedDate,
+				description: r.description || null,
+				items: r.items.map((i) => ({
+					quantity: parseInt(i.quantity),
+					itemName: i?.item?.value,
+					color: i?.color || null,
+					side: i?.side || null,
+					size: i?.size || null,
+					itemDescription: i?.itemDescription || null,
 				})),
-				// addedDate: dayjs().format("YYYY-MM-DD"), // include today's date if needed
-			};
+				requester: r.requester,
+			}));
 
-			console.log("this is the input that are send  ", input);
+			console.log("this is the input that are send  ", inputs);
 
-			await NewMaterialRequest({
-				variables: { input },
+			await createNewMaterialRequests({
+				variables: { inputs },
 				onCompleted: (res) => {
-					console.log("Mutation success:", res?.createOneMaterialRequest);
+					console.log("Mutation success:", res.createMultipleMaterialRequests);
 					// newMr =
-					navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
+					// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
+				},
+				onError: (err) => {
+					console.warn("Mutation success:", err);
+					// newMr =
+					// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
 				},
 			});
 		} catch (err) {
 			console.error("Submit error:", err);
 		}
 	};
-
-	console.log("this are the rows", rows);
 
 	return (
 		<div>
@@ -241,181 +281,230 @@ export default function AdminCreateMultipleMaterialRequests() {
 					log out
 				</Link>
 			</div>
+
 			<div>
 				<Link to={"/user/all"}>all users</Link>
 			</div>
+
 			<div>
 				<Link to={"/material/request/all"}>all Material Requests</Link>
 			</div>
+
 			<div>
 				<Link to={""}>blank</Link>
 			</div>
+
 			<form onSubmit={submit}>
 				{/* Dynamic rows */}
-				{rows?.map((row, idx) => {
-					// Items to display:
-					// - If brand is selected → filter down to that brand
-					// - If no brand is selected → show ALL items
-					const filteredItems = row.brand?.value ? allItems?.filter((i) => i?.brand === row.brand.value) : allItems;
+				{requests.map((req, reqIdx) => (
+					<div key={reqIdx} className="request-block">
+						<h3>Request {reqIdx + 1}</h3>
+						{/* Inside your Select:*/}
 
-					return (
-						<div key={idx} className="">
-							{/* Brand select */}
-							<Select
-								options={brands}
-								value={row.brand}
-								onChange={(val) => handleRowChange(idx, "brand", val)}
-								placeholder="Select Brand"
-								isClearable
-								isSearchable
-								styles={{
-									control: (base) => ({
-										...base,
-										borderRadius: "12px",
-										borderColor: "blue",
-										width: "200px",
-										height: "50px",
-									}),
-									option: (base, state) => ({
-										...base,
-										backgroundColor: state.isFocused ? "lightblue" : "white",
-										color: "black",
-									}),
-								}}
-							/>
+						<Select
+							options={userOptions}
+							value={requests[reqIdx]?.requester ? userOptions.find((opt) => opt.value.userId === requests[reqIdx].requester.userId) : null}
+							onChange={(selected) =>
+								handleRequestChange(
+									reqIdx,
+									"requester",
+									selected ? selected.value : null //  full object goes into your state
+								)
+							}
+							filterOption={customUserFilter}
+							placeholder="Select Requester"
+							isClearable
+							isSearchable
+							styles={{
+								control: (base) => ({
+									...base,
+									borderRadius: "12px",
+									borderColor: "blue",
+									width: "250px",
+									height: "50px",
+								}),
+								option: (base, state) => ({
+									...base,
+									backgroundColor: state.isFocused ? "lightblue" : "white",
+									color: "black",
+								}),
+							}}
+						/>
 
-							{/* Quantity input */}
-							<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} placeholder="Qty" />
+						{/* Request-level fields */}
+						<input type="date" value={req.date} onChange={(e) => handleRequestChange(reqIdx, "addedDate", e.target.value)} />
+						{/* <textarea value={req.description} onChange={(e) => handleRequestChange(reqIdx, "description", e.target.value)} placeholder="Request Description" /> */}
 
-							{/* Item select */}
-							<Select
-								options={filteredItems}
-								value={row.item}
-								onChange={(val) => handleRowChange(idx, "item", val)}
-								placeholder="Select Item"
-								filterOption={customFilter}
-								isClearable
-								isSearchable
-								styles={{
-									control: (base) => ({
-										...base,
-										borderRadius: "12px",
-										borderColor: "blue",
-										// width: "200px",
-										// height: "50px",
-									}),
-									option: (base, state) => ({
-										...base,
-										backgroundColor: state.isFocused ? "lightblue" : "white",
-										color: "black",
-									}),
-								}}
-							/>
+						{/* Items inside request */}
+						{req.items.map((row, rowIdx) => {
+							const filteredItems = row.brand?.value ? allItems?.filter((i) => i?.brand === row.brand.value) : allItems;
 
-							<Select
-								options={colorOptions}
-								value={colorOptions.find((opt) => opt.value === row.color)}
-								onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
-								placeholder="Select Color"
-								isClearable
-								isSearchable
-								styles={{
-									control: (base) => ({
-										...base,
-										borderRadius: "12px",
-										borderColor: "blue",
-									}),
-									option: (base, state) => ({
-										...base,
-										backgroundColor: state.isFocused ? "lightblue" : "white",
-										color: "black",
-									}),
-								}}
-								//  This custom renderer shows the swatch + label
-								formatOptionLabel={(option) => (
-									<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-										<div
-											style={{
-												width: "30px",
-												height: "30px",
-												backgroundColor: option.hex,
-												border: "1px solid #ccc",
-											}}
-										/>
-										<span>{option.label}</span>
-									</div>
-								)}
-							/>
+							return (
+								<div key={rowIdx} className="">
+									{/* Brand select */}
+									<Select
+										options={brands}
+										value={row.brand}
+										onChange={(val) => handleItemChange(reqIdx, rowIdx, "brand", val)}
+										placeholder="Select Brand"
+										isClearable
+										isSearchable
+										styles={{
+											control: (base) => ({
+												...base,
+												borderRadius: "12px",
+												borderColor: "blue",
+												width: "200px",
+												height: "50px",
+											}),
+											option: (base, state) => ({
+												...base,
+												backgroundColor: state.isFocused ? "lightblue" : "white",
+												color: "black",
+											}),
+										}}
+									/>
 
-							{/* Item select */}
-							<Select
-								options={sideOptions}
-								value={sideOptions.find((opt) => opt.value === row.side)}
-								onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
-								placeholder="Select Side/Hand"
-								filterOption={customFilter}
-								isClearable
-								isSearchable
-								styles={{
-									control: (base) => ({
-										...base,
-										borderRadius: "12px",
-										borderColor: "blue",
-										// width: "200px",
-										// height: "50px",
-									}),
-									option: (base, state) => ({
-										...base,
-										backgroundColor: state.isFocused ? "lightblue" : "white",
-										color: "black",
-									}),
-								}}
-							/>
+									{/* Quantity */}
+									<input type="number" value={row.quantity} onChange={(e) => handleItemChange(reqIdx, rowIdx, "quantity", e.target.value)} placeholder="Qty" />
 
-							<Select
-								options={sizeOptions}
-								value={sizeOptions.find((opt) => opt.value === row.size)}
-								onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
-								placeholder="Select Size"
-								filterOption={customFilter}
-								isClearable
-								isSearchable
-								styles={{
-									control: (base) => ({
-										...base,
-										borderRadius: "12px",
-										borderColor: "blue",
-										// width: "200px",
-										// height: "50px",
-									}),
-									option: (base, state) => ({
-										...base,
-										backgroundColor: state.isFocused ? "lightblue" : "white",
-										color: "black",
-									}),
-								}}
-							/>
+									{/* Item select */}
+									<Select
+										options={filteredItems}
+										value={row.item}
+										onChange={(val) => handleItemChange(reqIdx, rowIdx, "item", val)}
+										placeholder="Select Item"
+										filterOption={customFilter}
+										isClearable
+										isSearchable
+										styles={{
+											control: (base) => ({
+												...base,
+												borderRadius: "12px",
+												borderColor: "blue",
+												// width: "200px",
+												// height: "50px",
+											}),
+											option: (base, state) => ({
+												...base,
+												backgroundColor: state.isFocused ? "lightblue" : "white",
+												color: "black",
+											}),
+										}}
+									/>
 
-							{/* Description input */}
-							<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
+									{/* Color select */}
+									<Select
+										options={colorOptions}
+										value={colorOptions.find((opt) => opt.value === row.color)}
+										onChange={(val) => handleItemChange(reqIdx, rowIdx, "color", val?.value || null)}
+										placeholder="Select Color"
+										styles={{
+											control: (base) => ({
+												...base,
+												borderRadius: "12px",
+												borderColor: "blue",
+												// width: "200px",
+												// height: "50px",
+											}),
+											option: (base, state) => ({
+												...base,
+												backgroundColor: state.isFocused ? "lightblue" : "white",
+												color: "black",
+											}),
+										}}
+										formatOptionLabel={(option) => (
+											<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+												<div style={{ width: "30px", height: "30px", backgroundColor: option.hex, border: "1px solid #ccc" }} />
+												<span>{option.label}</span>
+											</div>
+										)}
+									/>
 
-							{rows.length > 1 ? (
-								<button type="button" onClick={() => removeRow(idx)}>
-									remove
-								</button>
-							) : null}
-						</div>
-					);
-				})}
+									{/* Side select */}
+									<Select
+										options={sideOptions}
+										value={sideOptions.find((opt) => opt.value === row.side)}
+										onChange={(val) => handleItemChange(reqIdx, rowIdx, "side", val?.value || null)}
+										placeholder="Select Side/Hand"
+										filterOption={customFilter}
+										isClearable
+										isSearchable
+										styles={{
+											control: (base) => ({
+												...base,
+												borderRadius: "12px",
+												borderColor: "blue",
+												// width: "200px",
+												// height: "50px",
+											}),
+											option: (base, state) => ({
+												...base,
+												backgroundColor: state.isFocused ? "lightblue" : "white",
+												color: "black",
+											}),
+										}}
+									/>
 
-				{/* Action buttons */}
-				<button type="button" onClick={addRow}>
-					+ Add Item
+									{/* Size select */}
+									<Select
+										options={sizeOptions}
+										value={sizeOptions.find((opt) => opt.value === row.size)}
+										onChange={(val) => handleItemChange(reqIdx, rowIdx, "size", val?.value || null)}
+										placeholder="Select Size"
+										filterOption={customFilter}
+										isClearable
+										isSearchable
+										styles={{
+											control: (base) => ({
+												...base,
+												borderRadius: "12px",
+												borderColor: "blue",
+												// width: "200px",
+												// height: "50px",
+											}),
+											option: (base, state) => ({
+												...base,
+												backgroundColor: state.isFocused ? "lightblue" : "white",
+												color: "black",
+											}),
+										}}
+									/>
+
+									{/* Item description */}
+									<textarea type="text" value={row.itemDescription} onChange={(e) => handleItemChange(reqIdx, rowIdx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
+
+									{/* Remove item button */}
+									{req.items.length > 1 && (
+										<button type="button" onClick={() => removeItemRow(reqIdx, rowIdx)}>
+											Remove Item
+										</button>
+									)}
+								</div>
+							);
+						})}
+						{/* Item-level add button */}
+						<button type="button" onClick={() => addItemRow(reqIdx)} disabled={!canAddMore}>
+							+ Add Item
+						</button>
+						{/* Remove whole request */}
+						{requests.length > 1 && (
+							<button type="button" onClick={() => removeRequest(reqIdx)}>
+								Remove Request
+							</button>
+						)}
+					</div>
+				))}
+
+				{/* Add a whole new request */}
+				<button type="button" onClick={addRequest} disabled={!canAddMore}>
+					+ Add New Request
 				</button>
-				<button type="submit" onClick={submit}>
+				<button type="submit" onClick={submit} disabled={!canSubmit}>
 					Submit
 				</button>
 			</form>
+			{!canAddMore && <p style={{ color: "red" }}> All required fields must be filled.</p>}
 		</div>
 	);
 }

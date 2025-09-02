@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useQuery, useSubscription } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
 import { jwtDecode } from "jwt-decode";
-import { get_all_users } from "../../../graphQL/queries/queries";
+import { get_all_Item_Groups } from "../../../graphQL/queries/queries";
 import { Link } from "react-router-dom";
 
-export default function GetAllUsers() {
-	const { error, loading, data, refetch } = useQuery(get_all_users);
-	const [users, setUsers] = useState([]);
+export default function AdminGetAllItems() {
+	const { error, loading, data, refetch } = useQuery(get_all_Item_Groups);
+	const [items, setItems] = useState([]);
 	const [logUser, setLogUser] = useState({});
 
 	// const decoded = ;
@@ -17,8 +17,8 @@ export default function GetAllUsers() {
 			console.log("loading");
 		}
 		if (data) {
-			console.log(data.getAllUsers);
-			setUsers(data.getAllUsers);
+			console.log(data.getAllItemGroups);
+			setItems(data.getAllItemGroups);
 		}
 		if (error) {
 			console.log("there was an error", error);
@@ -79,20 +79,13 @@ export default function GetAllUsers() {
 			</div>
 
 			<div>
-				<Link to={"/admin/material/request/"}>admin create material requests</Link>
-			</div>
-			<div>
-				<Link to={"/admin/Items/all"}>all items</Link>
-			</div>
-
-			<div>
 				<Link to={"/user/register"}>register user</Link>
 			</div>
 
 			<div>
 				<Link to={`/material/request/all`}>all material requests</Link>
 			</div>
-
+			{/* {/*  */}
 			{loading ? (
 				<div>
 					{" "}
@@ -105,26 +98,32 @@ export default function GetAllUsers() {
 							<thead>
 								<tr>
 									<th>ID</th>
-									<th>Name</th>
-									<th>Email</th>
-									<th>Role</th>
-									<th>Job</th>
-									<th>Action</th>
+									<th>Brand</th>
+									<th>Item amount</th>
+									<th>Some items</th>
 								</tr>
 							</thead>
-							{users.map((user) => {
+							{items.flatMap((ig) => {
 								return (
-									<tbody key={user.id}>
+									<tbody key={ig.id}>
 										<tr>
 											<td>
-												<Link to={`/user/${user?.id}`}>{user?.id}</Link>
+												<Link to={`/item/${ig?.id}`}>{ig?.id}</Link>
 											</td>
 											<td>
-												<Link to={`/user/${user?.id}`}>{user?.name}</Link>
+												<Link to={`/item/${ig?.id}`}>{ig?.brand}</Link>
 											</td>
-											<td>{user?.email}</td>
-											<td>{user?.role}</td>
-											<td>{user?.job?.title}</td>
+											<td>{ig?.itemsList?.length}</td>
+											<td>
+												{ig?.itemsList?.slice(0, 3).map((item, idx, arr) => {
+													return (
+														<span key={item.id}>
+															{item.itemName}
+															{idx < arr.length - 1 ? ", " : ""}
+														</span>
+													);
+												})}
+											</td>
 											<td>
 												<div>
 													<button>Update</button>

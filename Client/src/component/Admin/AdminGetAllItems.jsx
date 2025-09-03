@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useQuery, useSubscription } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
 import { jwtDecode } from "jwt-decode";
-import { get_all_Item_Groups } from "../../../graphQL/queries/queries";
+import { get_all_item_groups } from "../../../graphQL/queries/queries";
 import { Link } from "react-router-dom";
 
 export default function AdminGetAllItems() {
-	const { error, loading, data, refetch } = useQuery(get_all_Item_Groups);
+	const { error, loading, data, refetch } = useQuery(get_all_item_groups);
 	const [items, setItems] = useState([]);
 	const [logUser, setLogUser] = useState({});
 
@@ -108,10 +108,10 @@ export default function AdminGetAllItems() {
 									<tbody key={ig.id}>
 										<tr>
 											<td>
-												<Link to={`/item/${ig?.id}`}>{ig?.id}</Link>
+												<Link to={`/admin/material/item/${ig?.id}`}>{ig?.id}</Link>
 											</td>
 											<td>
-												<Link to={`/item/${ig?.id}`}>{ig?.brand}</Link>
+												<Link to={`/admin/material/item/${ig?.id}`}>{ig?.brand}</Link>
 											</td>
 											<td>{ig?.itemsList?.length}</td>
 											<td>

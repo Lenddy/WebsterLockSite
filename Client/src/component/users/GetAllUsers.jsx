@@ -82,7 +82,15 @@ export default function GetAllUsers() {
 				<Link to={"/admin/material/request/"}>admin create material requests</Link>
 			</div>
 			<div>
-				<Link to={"/admin/Items/all"}>all items</Link>
+				<Link to={"/admin/material/item/all"}>all items</Link>
+			</div>
+
+			<div>
+				<Link to={"/admin/material/item/create"}>admin create items</Link>
+			</div>
+
+			<div>
+				<Link to={"/admin/material/item/update"}>admin update items</Link>
 			</div>
 
 			<div>

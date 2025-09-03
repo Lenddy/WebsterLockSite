@@ -252,3 +252,16 @@ export const update_One_Material_Request = gql`
 		}
 	}
 `;
+
+export const create_multiple_itemGroups = gql`
+	mutation createMultipleItemGroups($input: [CreateOneItemGroupInput!]!) {
+		createMultipleItemGroups(input: $input) {
+			id
+			brand
+			itemsList {
+				id
+				itemName
+			}
+		}
+	}
+`;

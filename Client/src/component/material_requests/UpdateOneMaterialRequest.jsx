@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
-import { get_all_Item_Groups } from "../../../graphQL/queries/queries";
+import { get_all_item_groups } from "../../../graphQL/queries/queries";
 import { create_one_material_request } from "../../../graphQL/mutations/mutations";
 import Select from "react-select";
 import Fuse from "fuse.js";
@@ -16,7 +16,7 @@ function UpdateOneMaterialRequest({ requestId }) {
 	const navigate = useNavigate();
 	const [NewMaterialRequest] = useMutation(create_one_material_request);
 
-	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_Item_Groups);
+	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
 	const [itemGroups, setItemGroups] = useState([]);
 
 	const [logUser, setLogUser] = useState({});

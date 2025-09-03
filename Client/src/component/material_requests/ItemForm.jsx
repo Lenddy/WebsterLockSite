@@ -6,7 +6,7 @@ import Select from "react-select";
 import Fuse from "fuse.js";
 import dayjs from "dayjs";
 
-import { get_all_Item_Groups } from "../../../graphQL/queries/queries";
+import { get_all_item_groups } from "../../../graphQL/queries/queries";
 
 export default function CreateOneMaterialRequest() {
 	const [info, setInfo] = useState({});

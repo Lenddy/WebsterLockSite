@@ -145,9 +145,23 @@ export const get_one_material_request = gql`
 `;
 
 // gets all the itemGroups  Requests
-export const get_all_Item_Groups = gql`
+export const get_all_item_groups = gql`
 	query getAllItemGroup {
 		getAllItemGroups {
+			id
+			brand
+			itemsList {
+				id
+				itemName
+			}
+		}
+	}
+`;
+
+// gets all the itemGroups  Requests
+export const get_one_item_group = gql`
+	query getOneItemGroup($id: ID!) {
+		getOneItemGroup(id: $id) {
 			id
 			brand
 			itemsList {

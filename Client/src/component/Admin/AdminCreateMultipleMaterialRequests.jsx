@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
-import { get_all_Item_Groups } from "../../../graphQL/queries/queries";
+import { get_all_item_groups } from "../../../graphQL/queries/queries";
 import { create_multiple_material_requests } from "../../../graphQL/mutations/mutations";
 import { get_all_users } from "../../../graphQL/queries/queries";
 import Select from "react-select";
@@ -51,7 +51,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 	]);
 
 	const { loading, data, error, refetch } = useQuery(get_all_users);
-	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_Item_Groups);
+	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
 	const [createNewMaterialRequests] = useMutation(create_multiple_material_requests);
 
 	const navigate = useNavigate();

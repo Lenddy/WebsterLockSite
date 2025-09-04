@@ -56,13 +56,16 @@ export default function LogIn() {
 	};
 
 	return (
-		<div>
-			<form onSubmit={submit}>
-				<div>
-					<label htmlFor="email">email:</label>
-					<input type="text" name="email" onChange={(e) => SubmissionInfo(e)} />
+		<div className="log-in-container">
+			{/* <div className="log-in-form-container"> */}
+			<form onSubmit={submit} className="log-in-form">
+				<h1 className="log-in-tite">LogIn</h1>
+				<div className="log-in-email-container">
+					<label htmlFor="email">Email:</label>
+					<input type="text" name="email" onChange={(e) => SubmissionInfo(e)} placeholder="user@mail.com" />
 				</div>
-				<div>
+
+				<div className="log-in-password-container">
 					<label htmlFor="password">password: </label>
 					<input type={show === true ? "text" : "password"} name="password" onChange={(e) => SubmissionInfo(e)} />
 					<button type="button" onClick={() => setShow(!show)}>
@@ -77,6 +80,7 @@ export default function LogIn() {
 
 				{error && <p style={{ color: "red" }}>{error.message}</p>}
 			</form>
+			{/* </div> */}
 		</div>
 	);
 }

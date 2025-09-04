@@ -127,7 +127,7 @@ export const delete_one_user = gql`
 `;
 
 export const create_one_material_request = gql`
-	mutation createOneMaterialRequest($input: CreateOneMaterialRequestInput!) {
+	mutation createOneMaterialRequest($input: createOneMaterialRequestInput!) {
 		createOneMaterialRequest(input: $input) {
 			id
 
@@ -256,6 +256,19 @@ export const update_One_Material_Request = gql`
 export const create_multiple_itemGroups = gql`
 	mutation createMultipleItemGroups($input: [CreateOneItemGroupInput!]!) {
 		createMultipleItemGroups(input: $input) {
+			id
+			brand
+			itemsList {
+				id
+				itemName
+			}
+		}
+	}
+`;
+
+export const update_multiple_itemGroups = gql`
+	mutation updateMultipleItemGroups($input: [UpdateItemGroupInput!]!) {
+		updateMultipleItemGroups(input: $input) {
 			id
 			brand
 			itemsList {

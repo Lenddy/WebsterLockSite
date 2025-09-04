@@ -1,26 +1,98 @@
 #root {
-	max-width: 1280px;
+	max-width: 2540px;
 	margin: 0 auto;
-	padding: 2rem;
+	/* padding: 2rem;*/
 	text-align: center;
 }
 
-/* .testing {
-	background-color: red;
-	width: 800px;
+:root {
+	--red: rgb(223, 31, 38);
+	--blue: rgb(0, 113, 186);
+	--yellow: rgb(249, 198, 15);
+	--white: rgb(230, 230, 230);
+	--black: rgb(14, 14, 14);
+	color: var(--blue);
 }
 
-.testing-container {
-	background-color: orange;
+.app {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-top: 50px;
+	color: var(--black);
+}
+
+/* ! log in */
+.log-in-container {
+	background-color: var(--white);
 	width: 800px;
+	height: 900px;
 	display: flex;
 	align-items: center;
+	justify-content: center;
+	/* border: solid 5px var(--white); */
+	border-radius: 10px;
 }
-.testing2 {
-	background-color: blue;
-	width: 250px;
-}
-.testing3 {
-	background-color: blue;
-	width: 250px;
+
+/* .log-in-form-container {
+	height: 95%;
+	width: 95%;
+	font-size: large;
+	border-radius: 5px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-around;
 } */
+
+.log-in-form {
+	background-color: var(--yellow);
+	height: 95%;
+	width: 95%;
+	font-size: large;
+	border-radius: 5px;
+	/* border: solid 3px var(--black); */
+	border-top: solid 5px var(--black);
+	border-right: none;
+	border-bottom: none;
+	border-left: solid 5px var(--black);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-around;
+	box-shadow: 10px 13px var(--black);
+}
+
+.log-in-tite,
+.log-in-email-container,
+.log-in-password-container {
+	/* background-color: var(--blue); */
+	color: var(--black);
+	width: 90%;
+	border: solid 2px var(--black);
+	border-radius: 5px;
+	box-shadow: 5px 10px var(--red);
+}
+
+.log-in-email-container,
+.log-in-password-container {
+}
+
+.log-in-tite {
+	background-color: var(--blue);
+}
+
+.log-in-email-container {
+	display: flex;
+	/* align-items: center; */
+	justify-content: center;
+}
+
+/*! Nav bar */
+.nav-container {
+	width: 100%;
+	background-color: var(--yellow);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}

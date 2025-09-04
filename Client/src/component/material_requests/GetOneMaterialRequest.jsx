@@ -40,26 +40,7 @@ export default function GetOneMaterialRequest() {
 		// fetchData();
 	}, [loading, data, error]); //refetch
 
-	// // Subscription for client changes
-	// 	useSubscription(CLIENT_CHANGE_SUBSCRIPTION, {
-	// 		onError: err => console.log("this is the error from subscription", err),
-	// 		onData: infoChange => {
-	// 			// console.log("this the subscription :", infoChange);
-	// 			const changeClient = infoChange?.data?.data?.onClientChange;
-	// 			const { eventType, clientChanges } = changeClient;
-	// 			// console.log("New data from subscription:", changeClient);
-	// 			if (eventType === "CLIENT_ADDED") {
-	// 				// Handle new client addition
-	// 				setClients(prevClients => [...prevClients, clientChanges]);
-	// 			} else if (eventType === "CLIENT_UPDATED") {
-	// 				// Handle client update
-	// 				setClients(prevClients => prevClients.map(c => (c.id === clientChanges.id ? clientChanges : c)));
-	// 			} else if (eventType === "CLIENT_DELETED") {
-	// 				// Handle client deletion
-	// 				setClients(prevClients => prevClients.filter(c => c.id !== clientChanges.id));
-	// 			}
-	// 		},
-	// 		onComplete: complete => console.log("subscription completed", complete),
+	// todo : you get a waring that p tags cant have children
 
 	return (
 		<div>

@@ -58,7 +58,7 @@ const itemGroupResolver = {
 	Mutation: {
 		// Creating a new item group
 
-		createOneItemGroup: async (_, { input: { brand, itemsList } }, { user, pubsub }) => {
+		createOneItemGroup: async (_, { input: { brand, itemsList } }, { user }) => {
 			try {
 				// console.log("this is the user ", user);
 
@@ -118,12 +118,14 @@ const itemGroupResolver = {
 
 				const res = await newItemGroup.save();
 
-				await pubsub.publish("ITEMGROUP_ADDED", {
+				let logPub = await pubsub.publish("ITEMGROUP_ADDED", {
 					onItemGroupChange: {
-						eventType: "CREATED",
+						eventType: "created",
 						Changes: res,
 					},
 				});
+				console.log("subs");
+				console.dir(logPub, { depth: null });
 
 				return {
 					id: res.id,
@@ -176,9 +178,9 @@ const itemGroupResolver = {
 				const forSub = createdItemGroups;
 
 				forSub?.forEach((group) => {
-					pubsub.publish("ITEMGROUP_UPDATED", {
+					pubsub.publish("ITEMGROUP_ADDED", {
 						onItemGroupChange: {
-							eventType: "UPDATED",
+							eventType: "created",
 							Changes: group,
 						},
 					});
@@ -302,7 +304,7 @@ const itemGroupResolver = {
 				forSub.forEach((group) => {
 					pubsub.publish("ITEMGROUP_UPDATED", {
 						onItemGroupChange: {
-							eventType: "UPDATED",
+							eventType: "updated",
 							Changes: group,
 						},
 					});
@@ -348,7 +350,7 @@ const itemGroupResolver = {
 				forSub.forEach((group) => {
 					pubsub.publish("ITEMGROUP_DELETED", {
 						onItemGroupChange: {
-							eventType: "DELETED",
+							eventType: "deleted",
 							Changes: group,
 						},
 					});

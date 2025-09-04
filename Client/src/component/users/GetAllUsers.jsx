@@ -4,6 +4,8 @@ import { jwtDecode } from "jwt-decode";
 import { get_all_users } from "../../../graphQL/queries/queries";
 import { Link } from "react-router-dom";
 
+import { USER_CHANGE_SUBSCRIPTION } from "../../../graphQL/subscriptions/subscriptions";
+
 export default function GetAllUsers() {
 	const { error, loading, data, refetch } = useQuery(get_all_users);
 	const [users, setUsers] = useState([]);
@@ -28,26 +30,30 @@ export default function GetAllUsers() {
 		// };
 		// fetchData();
 	}, [loading, data, error]); //refetch
-	// // Subscription for client changes
-	// 	useSubscription(CLIENT_CHANGE_SUBSCRIPTION, {
-	// 		onError: err => console.log("this is the error from subscription", err),
-	// 		onData: infoChange => {
-	// 			// console.log("this the subscription :", infoChange);
-	// 			const changeClient = infoChange?.data?.data?.onClientChange;
-	// 			const { eventType, clientChanges } = changeClient;
-	// 			// console.log("New data from subscription:", changeClient);
-	// 			if (eventType === "CLIENT_ADDED") {
-	// 				// Handle new client addition
-	// 				setClients(prevClients => [...prevClients, clientChanges]);
-	// 			} else if (eventType === "CLIENT_UPDATED") {
-	// 				// Handle client update
-	// 				setClients(prevClients => prevClients.map(c => (c.id === clientChanges.id ? clientChanges : c)));
-	// 			} else if (eventType === "CLIENT_DELETED") {
-	// 				// Handle client deletion
-	// 				setClients(prevClients => prevClients.filter(c => c.id !== clientChanges.id));
-	// 			}
-	// 		},
-	// 		onComplete: complete => console.log("subscription completed", complete),
+
+	// Subscription for live updates
+	useSubscription(USER_CHANGE_SUBSCRIPTION, {
+		onData: ({ data }) => {
+			const change = data?.data?.onUserChange;
+			if (!change) return;
+
+			const { eventType, Changes } = change;
+
+			setUsers((prev) => {
+				if (eventType === "created") {
+					return [...prev, Changes];
+				} else if (eventType === "updated") {
+					return prev.map((u) => (u.id === Changes.id ? Changes : u));
+				} else if (eventType === "deleted") {
+					return prev.filter((u) => u.id !== Changes.id);
+				}
+				return prev;
+			});
+		},
+		onError: (err) => {
+			console.error("Subscription error:", err);
+		},
+	});
 
 	{
 		/* 

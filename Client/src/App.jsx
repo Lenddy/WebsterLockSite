@@ -64,7 +64,7 @@ function App({ userToke }) {
 	}
 
 	return (
-		<>
+		<div className="app">
 			<Routes>
 				<Route index element={<LogIn />} />
 
@@ -91,7 +91,7 @@ function App({ userToke }) {
 					<Route path="/test" element={<Test />} />
 				</Route>
 			</Routes>
-		</>
+		</div>
 	);
 }
 

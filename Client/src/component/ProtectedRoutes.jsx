@@ -1,6 +1,8 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useState, useEffect } from "react";
 
+import NavBar from "./NavBar";
+
 export default function ProtectedRoutes() {
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [checking, setChecking] = useState(true); // track async check
@@ -13,5 +15,11 @@ export default function ProtectedRoutes() {
 
 	if (checking) return null; // or a loader
 
-	return isLoggedIn ? <Outlet /> : <Navigate to="/" replace />;
+	return isLoggedIn ? (
+		<NavBar>
+			<Outlet />
+		</NavBar>
+	) : (
+		<Navigate to="/" replace />
+	);
 }

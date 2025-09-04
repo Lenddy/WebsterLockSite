@@ -96,12 +96,10 @@ const client = new ApolloClient({
 				fields: {
 					permissions: {
 						merge(existing = {}, incoming) {
-							// If no incoming permissions — keep existing
 							if (!incoming || Object.keys(incoming).length === 0) {
 								return existing;
 							}
 
-							// Only keep allowed keys from incoming
 							const filtered = Object.keys(incoming)
 								.filter((key) => allowedPermissionKeys.includes(key))
 								.reduce((obj, key) => {
@@ -110,9 +108,21 @@ const client = new ApolloClient({
 								}, {});
 
 							return {
-								...existing, // Keep existing
-								...filtered, // Merge only allowed changes
+								...existing,
+								...filtered,
 							};
+						},
+					},
+				},
+			},
+			ItemGroup: {
+				fields: {
+					itemsList: {
+						merge(existing = [], incoming, { mergeObjects }) {
+							// Merge by index (default) OR by id if possible
+							return incoming.map((item, index) => {
+								return mergeObjects ? mergeObjects(existing[index], item) : item;
+							});
 						},
 					},
 				},

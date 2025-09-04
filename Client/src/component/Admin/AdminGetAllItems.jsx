@@ -3,7 +3,7 @@ import { useQuery, useSubscription } from "@apollo/client"; // Import useQuery h
 import { jwtDecode } from "jwt-decode";
 import { get_all_item_groups } from "../../../graphQL/queries/queries";
 import { Link } from "react-router-dom";
-
+import { ITEM_GROUP_CHANGE_SUBSCRIPTION } from "../../../graphQL/subscriptions/subscriptions";
 export default function AdminGetAllItems() {
 	const { error, loading, data, refetch } = useQuery(get_all_item_groups);
 	const [items, setItems] = useState([]);
@@ -28,26 +28,25 @@ export default function AdminGetAllItems() {
 		// };
 		// fetchData();
 	}, [loading, data, error]); //refetch
-	// // Subscription for client changes
-	// 	useSubscription(CLIENT_CHANGE_SUBSCRIPTION, {
-	// 		onError: err => console.log("this is the error from subscription", err),
-	// 		onData: infoChange => {
-	// 			// console.log("this the subscription :", infoChange);
-	// 			const changeClient = infoChange?.data?.data?.onClientChange;
-	// 			const { eventType, clientChanges } = changeClient;
-	// 			// console.log("New data from subscription:", changeClient);
-	// 			if (eventType === "CLIENT_ADDED") {
-	// 				// Handle new client addition
-	// 				setClients(prevClients => [...prevClients, clientChanges]);
-	// 			} else if (eventType === "CLIENT_UPDATED") {
-	// 				// Handle client update
-	// 				setClients(prevClients => prevClients.map(c => (c.id === clientChanges.id ? clientChanges : c)));
-	// 			} else if (eventType === "CLIENT_DELETED") {
-	// 				// Handle client deletion
-	// 				setClients(prevClients => prevClients.filter(c => c.id !== clientChanges.id));
-	// 			}
-	// 		},
-	// 		onComplete: complete => console.log("subscription completed", complete),
+
+	// useSubscription hook
+	useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
+		onError: (err) => console.error("Subscription error:", err),
+		onData: ({ data }) => {
+			const change = data?.data?.onItemGroupChange;
+			if (!change) return;
+
+			const { eventType, Changes } = change;
+
+			if (eventType === "created") {
+				setItems((prev) => [...prev, Changes]);
+			} else if (eventType === "updated") {
+				setItems((prev) => prev.map((ig) => (ig.id === Changes.id ? Changes : ig)));
+			} else if (eventType === "deleted") {
+				setItems((prev) => prev.filter((ig) => ig.id !== Changes.id));
+			}
+		},
+	});
 
 	{
 		/* 

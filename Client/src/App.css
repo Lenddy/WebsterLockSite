@@ -1,8 +1,12 @@
 #root {
 	max-width: 2540px;
-	margin: 0 auto;
+	margin: 0px;
 	/* padding: 2rem;*/
 	text-align: center;
+}
+
+* {
+	margin: 0;
 }
 
 :root {
@@ -22,7 +26,8 @@
 	color: var(--black);
 }
 
-/* ! log in */
+/* ! log in form*/
+/* contains everything in the logIn container */
 .log-in-container {
 	background-color: var(--white);
 	width: 800px;
@@ -34,58 +39,129 @@
 	border-radius: 10px;
 }
 
-/* .log-in-form-container {
-	height: 95%;
-	width: 95%;
-	font-size: large;
-	border-radius: 5px;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: space-around;
-} */
-
+/* for the from it self */
 .log-in-form {
 	background-color: var(--yellow);
 	height: 95%;
 	width: 95%;
 	font-size: large;
 	border-radius: 5px;
-	/* border: solid 3px var(--black); */
-	border-top: solid 5px var(--black);
-	border-right: none;
-	border-bottom: none;
-	border-left: solid 5px var(--black);
+	border-top: solid 3px var(--black);
+	border-left: solid 3px var(--black);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	justify-content: space-around;
+	justify-content: space-evenly;
 	box-shadow: 10px 13px var(--black);
 }
 
 .log-in-tite,
 .log-in-email-container,
 .log-in-password-container {
-	/* background-color: var(--blue); */
 	color: var(--black);
 	width: 90%;
 	border: solid 2px var(--black);
 	border-radius: 5px;
-	box-shadow: 5px 10px var(--red);
-}
-
-.log-in-email-container,
-.log-in-password-container {
+	box-shadow: 6px 10px var(--red);
 }
 
 .log-in-tite {
 	background-color: var(--blue);
+	text-shadow: 4px 4px var(--yellow);
+	/* min-height: 90px;
+	max-height: 96px; */
+	font-size: clamp(1.25rem, -0.331rem + 7.91vw, 3.375rem);
 }
 
-.log-in-email-container {
+.log-in-email-container,
+.log-in-password-container {
 	display: flex;
-	/* align-items: center; */
+	align-items: center;
 	justify-content: center;
+	font-size: 35px;
+	font-weight: 600;
+	text-shadow: 4px 4px var(--red);
+	/* -webkit-text-stroke-width: ; */
+	min-height: 80px;
+}
+
+.log-in-password-container-divider {
+	/* background-color: green; */
+	display: flex;
+	align-items: center;
+}
+
+.log-in-password {
+	margin-right: 10px;
+}
+
+.log-in-form-input {
+	background-color: var(--white);
+	height: 40px;
+	border: 1px solid var(--black);
+	color: var(--black);
+	font-size: 30px;
+	max-width: 300px;
+	border-radius: 5px;
+	box-shadow: 5px 8px var(--blue);
+}
+
+.log-in-show-hide {
+	width: 50px;
+	height: 50px;
+	padding: 0px;
+	border-radius: 50px;
+}
+
+.log-in-show-hide:hover {
+	cursor: pointer;
+}
+
+.log-in-show-hide:active {
+	transform: translateY(4px);
+	transition: transform ease-in-out 100ms;
+}
+
+.eye {
+	stroke: var(--black);
+	width: 50px;
+	height: 50px;
+	filter: drop-shadow(4px 6px var(--red));
+	stroke-width: 2px;
+	/* transition: stroke linear 150ms; */
+}
+
+.eye:active {
+	stroke: var(--white);
+
+	filter: drop-shadow(0px 5px var(--blue));
+	stroke-width: 2px;
+	/* transition: stroke linear 150ms; */
+}
+
+.form-submission-btn {
+	border: none;
+	/* padding: 15px 32px; */
+	color: var(--black);
+	background-color: var(--blue);
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 35px;
+	transition-duration: 0.4s;
+	width: 250px;
+	height: 75px;
+	font-weight: 600;
+	text-shadow: 4px 4px var(--yellow);
+	box-shadow: 5px 8px var(--red);
+}
+
+.form-submission-btn:hover {
+	background-color: var(--red);
+	/* color: var(--yellow); */
+	text-shadow: 4px 4px var(--white);
+	box-shadow: 5px 8px var(--white);
+	cursor: pointer;
 }
 
 /*! Nav bar */

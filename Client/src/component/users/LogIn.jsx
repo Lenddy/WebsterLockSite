@@ -3,6 +3,8 @@ import { useMutation } from "@apollo/client";
 import { useState } from "react";
 import { Await, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import Eye from "../../assets/eye.svg?react";
+import CloseEye from "../../assets/closeEye.svg?react";
 
 export default function LogIn() {
 	const [info, setInfo] = useState({});
@@ -61,21 +63,33 @@ export default function LogIn() {
 			<form onSubmit={submit} className="log-in-form">
 				<h1 className="log-in-tite">LogIn</h1>
 				<div className="log-in-email-container">
-					<label htmlFor="email">Email:</label>
-					<input type="text" name="email" onChange={(e) => SubmissionInfo(e)} placeholder="user@mail.com" />
+					{/* <div className="log-in-email-container-divider"> */}
+					{/* <span className="required-field"> </span> */}
+					<label className="required-field form-field" htmlFor="email">
+						Email:
+					</label>
+					<input type="text" name="email" onChange={(e) => SubmissionInfo(e)} placeholder="user@mail.com" className="log-in-form-input" />
+					{/* </div> */}
 				</div>
 
 				<div className="log-in-password-container">
-					<label htmlFor="password">password: </label>
-					<input type={show === true ? "text" : "password"} name="password" onChange={(e) => SubmissionInfo(e)} />
-					<button type="button" onClick={() => setShow(!show)}>
-						{show === false ? "show" : "hide"}
-					</button>
+					<label className="required-field form-field" htmlFor="password">
+						Password:{" "}
+					</label>
+
+					<div className="log-in-password-container-divider">
+						<input type={show === true ? "text" : "password"} name="password" onChange={(e) => SubmissionInfo(e)} className="log-in-form-input log-in-password" />
+
+						<span className="log-in-show-hide" type="button" onClick={() => setShow(!show)}>
+							{show === false ? <CloseEye className="eye" /> : <Eye className="eye" />}
+						</span>
+					</div>
 				</div>
 
-				<div className="validation"> {/* <p color="red"> {validation} </p>{" "} */}</div>
-				<button type="submit" disabled={loading}>
-					{loading ? "logging in ..." : "Log in"}
+				<button className="form-submission-btn" type="submit" disabled={loading}>
+					{loading ? "logging in..." : "Log in"}
+					{/* logging in... */}
+					<span></span>
 				</button>
 
 				{error && <p style={{ color: "red" }}>{error.message}</p>}

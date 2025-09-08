@@ -66,47 +66,6 @@ export default function GetAllUsers() {
 		<div>
 			<h1>Welcome {logUser?.name}</h1>
 
-			<div>
-				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
-					Log out
-				</Link>
-			</div>
-
-			<div>
-				<Link to={"/admin/user/register"}>admin register users</Link>
-			</div>
-
-			<div>
-				<Link to={"/admin/user/update"}>admin update users</Link>
-			</div>
-
-			<div>
-				<Link to={"/admin/material/request/"}>admin create material requests</Link>
-			</div>
-
-			<div>
-				<Link to={"/admin/material/request/"}>admin create material requests</Link>
-			</div>
-			<div>
-				<Link to={"/admin/material/item/all"}>all items</Link>
-			</div>
-
-			<div>
-				<Link to={"/admin/material/item/create"}>admin create items</Link>
-			</div>
-
-			<div>
-				<Link to={"/admin/material/item/update"}>admin update items</Link>
-			</div>
-
-			<div>
-				<Link to={"/user/register"}>register user</Link>
-			</div>
-
-			<div>
-				<Link to={`/material/request/all`}>all material requests</Link>
-			</div>
-
 			{loading ? (
 				<div>
 					{" "}

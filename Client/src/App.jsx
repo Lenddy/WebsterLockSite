@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import Test from "./component/Test";
 import ProtectedRoute from "./component/ProtectedRoutes";
@@ -63,12 +63,21 @@ function App({ userToke }) {
 			</div> */
 	}
 
+	const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+
+	useEffect(() => {
+		const handleResize = () => setScreenWidth(window.innerWidth);
+		window.addEventListener("resize", handleResize);
+
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
+
 	return (
 		<div className="app">
 			<Routes>
-				<Route index element={<LogIn />} />
+				<Route index element={<LogIn screenWidth={screenWidth} />} />
 
-				<Route element={<ProtectedRoute />}>
+				<Route element={<ProtectedRoute screenWidth={screenWidth} />}>
 					{/* Admin user routes */}
 					<Route path="/admin/user/register" element={<AdminRegisterMultipleUsers userToke={userToke} />} />
 					<Route path="/admin/user/update" element={<AdminUpdateMultipleUsers />} />

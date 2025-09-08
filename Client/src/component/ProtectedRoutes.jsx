@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 
 import NavBar from "./NavBar";
 
-export default function ProtectedRoutes() {
+export default function ProtectedRoutes({ screenWidth }) {
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [checking, setChecking] = useState(true); // track async check
 
@@ -16,7 +16,7 @@ export default function ProtectedRoutes() {
 	if (checking) return null; // or a loader
 
 	return isLoggedIn ? (
-		<NavBar>
+		<NavBar screenWidth={screenWidth}>
 			<Outlet />
 		</NavBar>
 	) : (

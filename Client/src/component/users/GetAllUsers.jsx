@@ -6,6 +6,8 @@ import { Link } from "react-router-dom";
 
 import { USER_CHANGE_SUBSCRIPTION } from "../../../graphQL/subscriptions/subscriptions";
 
+import Select from "react-select";
+
 export default function GetAllUsers() {
 	const { error, loading, data, refetch } = useQuery(get_all_users);
 	const [users, setUsers] = useState([]);
@@ -55,16 +57,43 @@ export default function GetAllUsers() {
 		},
 	});
 
-	{
-		/* 
-			<div>
-				<a href={"/user/admin/register"}> a tag register </a>
-			</div> */
-	}
+	const customFilter = (option, inputValue) => {
+		// If search is empty → show all
+		if (!inputValue) return true;
+
+		// Fuse.js fuzzy search across labels
+		const fuse = new Fuse(allItems, { keys: ["label"], threshold: 0.4 });
+
+		// Keep options that fuzzy-match the search term
+		return fuse.search(inputValue).some((r) => r.item.value === option.value);
+	};
 
 	return (
-		<div>
-			<h1>Welcome {logUser?.name}</h1>
+		<div className="users-array-container">
+			<h1 className="welcome">Welcome {logUser?.name}</h1>
+
+			<Select
+				// options={brands}
+				// value={row.brand}
+				// onChange={(val) => handleRowChange(idx, "brand", val)}
+				placeholder="Find User"
+				isClearable
+				isSearchable
+				styles={{
+					control: (base) => ({
+						...base,
+						borderRadius: "12px",
+						borderColor: "blue",
+						width: "500px",
+						height: "50px",
+					}),
+					option: (base, state) => ({
+						...base,
+						backgroundColor: state.isFocused ? "lightblue" : "white",
+						color: "black",
+					}),
+				}}
+			/>
 
 			{loading ? (
 				<div>

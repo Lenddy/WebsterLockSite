@@ -74,7 +74,7 @@ export default function LogIn({ screenWidth }) {
 				</div>
 
 				<button className="form-submission-btn" type="submit" disabled={loading}>
-					{loading ? "logging in..." : "Log in"}
+					{loading ? "Logging In..." : "Log In"}
 				</button>
 
 				{error && <p className="form-error-message">{error.message}</p>}

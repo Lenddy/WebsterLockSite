@@ -121,7 +121,7 @@ export default function NavBar({ children, screenWidth }) {
 				</div>
 			)}
 
-			<div className="content">{children}</div>
+			<div className="site-content">{children}</div>
 		</div>
 	);
 }

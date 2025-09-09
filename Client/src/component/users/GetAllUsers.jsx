@@ -13,8 +13,6 @@ export default function GetAllUsers() {
 	const [users, setUsers] = useState([]);
 	const [logUser, setLogUser] = useState({});
 
-	// const decoded = ;
-
 	useEffect(() => {
 		setLogUser(jwtDecode(localStorage.getItem("UserToken")));
 		if (loading) {
@@ -69,79 +67,74 @@ export default function GetAllUsers() {
 	};
 
 	return (
-		<div className="users-array-container">
-			<h1 className="welcome">Welcome {logUser?.name}</h1>
-
-			<Select
-				// options={brands}
-				// value={row.brand}
-				// onChange={(val) => handleRowChange(idx, "brand", val)}
-				placeholder="Find User"
-				isClearable
-				isSearchable
-				styles={{
-					control: (base) => ({
-						...base,
-						borderRadius: "12px",
-						borderColor: "blue",
-						width: "500px",
-						height: "50px",
-					}),
-					option: (base, state) => ({
-						...base,
-						backgroundColor: state.isFocused ? "lightblue" : "white",
-						color: "black",
-					}),
-				}}
-			/>
-
+		<>
 			{loading ? (
 				<div>
 					{" "}
 					<h1>loading...</h1>{" "}
 				</div>
 			) : (
-				<div>
-					<div>
-						<table>
-							<thead>
-								<tr>
-									<th>ID</th>
-									<th>Name</th>
-									<th>Email</th>
-									<th>Role</th>
-									<th>Job</th>
-									<th>Action</th>
-								</tr>
-							</thead>
-							{users.map((user) => {
-								return (
-									<tbody key={user.id}>
-										<tr>
-											<td>
-												<Link to={`/user/${user?.id}`}>{user?.id}</Link>
-											</td>
-											<td>
-												<Link to={`/user/${user?.id}`}>{user?.name}</Link>
-											</td>
-											<td>{user?.email}</td>
-											<td>{user?.role}</td>
-											<td>{user?.job?.title}</td>
-											<td>
-												<div>
-													<button>Update</button>
-													<button>Delete</button>
-												</div>
-											</td>
-										</tr>
-									</tbody>
-								);
-							})}
-						</table>
-					</div>
+				<div className="list-get-all-content">
+					<Select
+						// options={brands}
+						// value={row.brand}
+						// onChange={(val) => handleRowChange(idx, "brand", val)}
+						placeholder="Find User"
+						isClearable
+						isSearchable
+						styles={{
+							control: (base) => ({
+								...base,
+								borderRadius: "12px",
+								borderColor: "blue",
+								width: "500px",
+								height: "50px",
+							}),
+							option: (base, state) => ({
+								...base,
+								backgroundColor: state.isFocused ? "lightblue" : "white",
+								color: "black",
+							}),
+						}}
+					/>
+					<table className="table-container">
+						<thead>
+							<tr>
+								<th>ID</th>
+								<th>Name</th>
+								<th>Email</th>
+								<th>Role</th>
+								<th>Job</th>
+								<th>Action</th>
+							</tr>
+						</thead>
+						{users.map((user) => {
+							return (
+								<tbody key={user.id}>
+									<tr>
+										<td>
+											<Link to={`/user/${user?.id}`}>{user?.id}</Link>
+										</td>
+										<td>
+											<Link to={`/user/${user?.id}`}>{user?.name}</Link>
+										</td>
+										<td>{user?.email}</td>
+										<td>{user?.role}</td>
+										<td>{user?.job?.title}</td>
+										<td>
+											<div>
+												<button>Update</button>
+												<button>Delete</button>
+											</div>
+										</td>
+									</tr>
+								</tbody>
+							);
+						})}
+					</table>
 				</div>
 			)}
 			{error && <p style={{ color: "red" }}> {error.message}</p>}
-		</div>
+		</>
 	);
 }

@@ -1,16 +1,13 @@
 #root {
 	height: 100vh;
 	max-width: 2540px;
-	/* margin: auto; */
-	/* padding: 2rem;*/
 	text-align: center;
-	/* display: flex;
-	justify-content: center;
-	align-items: center; */
 }
 
 * {
 	margin: 0;
+	/* padding: 0; */
+	/* scale: 0.997; */
 }
 
 .app {
@@ -178,18 +175,18 @@
 /* Main nav bar */
 .nav-container {
 	width: 100%;
-	background-color: var(--yellow);
+	background-color: var(--brass);
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	height: 100px;
+	height: 90px;
 	/* padding: 0 1rem; */
 	position: relative;
 	color: var(--black);
 }
 
 .nav-logo img {
-	height: 90px;
+	height: 80px;
 	margin-left: 10px;
 }
 
@@ -213,14 +210,14 @@
 	list-style: none;
 	flex: 1;
 	padding: 0;
-	font-size: clamp(1.25rem, 0.537rem + 1.49vw, 2.813rem);
+	font-size: clamp(1.25rem, 0.844rem + 0.85vw, 2.188rem);
 }
 
 .nav-link-container-dropdown:hover {
 	color: var(--white);
 	scale: 1.1;
 	transform: translateY(5px);
-	transition: scale ease-in-out 100ms, transform ease-in 100ms;
+	transition: scale ease-in-out 200ms, transform ease-in 200ms;
 	text-decoration: underline;
 	z-index: 999999999;
 }
@@ -250,15 +247,16 @@
 
 .nav-link-container-dropdown-link a {
 	display: block;
-	width: clamp(10.625rem, 5.203rem + 11.3vw, 22.5rem);
+	width: clamp(10.625rem, 8.458rem + 4.51vw, 15.625rem);
 	text-decoration: none;
 	color: var(--black);
+	font-size: clamp(1.25rem, 0.979rem + 0.56vw, 1.875rem);
 }
 
 .nav-link-container-dropdown-link a:hover {
 	background-color: var(--white);
 	scale: 1.1;
-	transition: scale linear 150ms;
+	transition: scale linear 200ms;
 }
 
 .nav-link-container-dropdown:hover .nav-link-container-dropdown-link {
@@ -271,7 +269,7 @@
 	padding: 0px 10px;
 	border-radius: 5px;
 	font-size: 20px;
-	font-size: clamp(1.25rem, 0.537rem + 1.49vw, 2.813rem);
+	font-size: clamp(1.25rem, 0.844rem + 0.85vw, 2.188rem);
 }
 .desktop-logout a {
 	color: var(--white);
@@ -297,7 +295,7 @@
 	right: -270px; /* fully hidden by default */
 	width: 250px;
 	height: 100%;
-	background: var(--yellow);
+	background: var(--brass);
 	box-shadow: -2px 0 6px rgba(0, 0, 0, 0.2);
 	transition: right 0.3s ease-in-out;
 	z-index: 2000;
@@ -388,34 +386,176 @@
 }
 
 /*! get all */
-/* get all users */
-.container-get-all {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-}
 
-.list-get-all-content {
-	background-color: black;
+/* scrollable container */
+/* .list-get-all-content {
+	background-color: var(--slate-dark-gray);
 	border: solid 1px var(--white);
 	border-radius: 10px;
-	width: 98%;
+	width: 99%;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	flex-direction: column;
+	gap: 50px;
+} */
+
+.list-get-all-content {
+	background-color: var(--slate-dark-gray);
+	border: solid 1px var(--white);
+	border-radius: 10px;
+	width: 99%;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	flex-direction: column;
+	gap: 50px;
+
+	/* new */
+	height: calc(100vh - 100px - 90px); /* always stop 50px before bottom */
+	box-sizing: border-box; /* makes padding/border included in height */
+}
+
+/* here  */
+.search-filter-wrapper {
+	margin-top: 50px;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	flex-direction: column;
-	gap: 20px;
+	width: 100%; /* full width container */
 }
 
-.list-get-all-content table {
-	border: solid 1px var(--blue);
+/* Container around input + button */
+.search-filter-container {
+	display: flex;
+	align-items: center;
 	border-radius: 10px;
+	overflow: hidden;
+	background-color: var(--slate-gray);
+	border: 2px solid transparent;
+	transition: border-color 0.2s;
+	width: clamp(14.375rem, 9.821rem + 24.29vw, 25rem); /* responsive width */
+	position: relative; /* for button positioning */
 }
 
-.list-get-all-content td {
-	border: solid 2px var(--red);
+/* Focus outline on the container */
+.search-filter-container:focus-within {
+	border-color: var(--slate-dark-gray-contras);
 }
 
+/* Input styling */
+.search-filter-input {
+	flex: 1;
+	height: 50px;
+	border: none;
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--white);
+	padding: 0 50px 0 10px; /* reserve space for button */
+	/* font-size: clamp(14px, 1.5vw, 16px);  */
+	font-size: clamp(1rem, 0.85rem + 0.8vw, 1.25rem);
+	box-sizing: border-box;
+}
+
+/* Placeholder styling */
+.search-filter-input::placeholder {
+	color: var(--white);
+	opacity: 0.7;
+	font-size: clamp(0.813rem, 0.55rem + 1.4vw, 1.25rem);
+}
+
+/* Clear button styling */
+.search-clear-btn {
+	height: 100%; /* full height of container */
+	width: clamp(30px, 10%, 50px); /* fully responsive width */
+	border: none;
+	background-color: var(--dark-blue);
+	color: var(--white);
+	font-weight: bold;
+	cursor: pointer;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	opacity: 0; /* hidden by default */
+	transition: opacity 0.2s, width 0.2s;
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+/* Show button only if input has value */
+.search-filter-input:not(:placeholder-shown) + .search-clear-btn,
+.search-clear-btn:enabled {
+	opacity: 1;
+}
+
+/* Optional: adjust SVG inside button later */
+/* Example: 
+.search-clear-btn svg {
+  width: 50%;
+  height: 50%;
+}
+*/
+
+/* Table wrapper for scrolling */
+.table-wrapper {
+	width: 99%;
+	height: 90%; /* vertical scroll height */
+	overflow-x: auto; /* horizontal scroll */
+	overflow-y: auto; /* vertical scroll */
+	margin: 0px 0px 50px;
+	border: solid 1px var(--white);
+	border-radius: 10px;
+	background: var(--slate-dark-gray);
+}
+
+.table-wrapper {
+	width: 99%;
+	max-height: calc(100vh - 200px - 90px); /* always stop 50px before bottom */
+	overflow-x: auto;
+	overflow-y: auto;
+	border: solid 1px var(--white);
+	border-radius: 10px;
+	background: var(--slate-dark-gray);
+}
+
+/* Actual table */
+.table-wrapper table {
+	width: max-content; /* allow wide tables */
+	min-width: 100%; /* fill available width */
+	border-collapse: collapse;
+	background-color: var(--slate-dark-gray);
+	color: var(--slate-dark-gray-contras);
+	max-height: calc(100vh - 200px - 90px); /* always stop 50px before bottom */
+}
+
+/* Sticky table header */
+.table-wrapper th {
+	position: sticky;
+	top: 0;
+	background: var(--dark-blue);
+	color: var(--white);
+	font-size: clamp(1.25rem, 1.172rem + 0.42vw, 1.563rem);
+	border-bottom: 4px solid var(--slate-gray);
+	z-index: 5;
+}
+
+.table-wrapper tr:nth-child(even) {
+	background-color: var(--slate-gray);
+}
+
+.table-wrapper tr:nth-child(3n):last-child {
+	background-color: blue;
+}
+
+/* Last row if it's also a multiple of 2 → red */
+.table-wrapper tr:nth-child(2n):last-child {
+	background-color: red;
+}
+
+.table-wrapper td {
+	font-size: clamp(0.875rem, 0.786rem + 0.47vw, 1.231rem);
+}
 /* Responsive behavior */
 @media (max-width: 768.9px) {
 	.nav-burger-menu {
@@ -426,6 +566,51 @@
 		display: none;
 	}
 }
+
+/*!for the react selects later  you have to use clase name prefix*/
+
+/* Search filter stays fixed relative to viewport */
+/* .get-all-search-filter {
+	position: fixed; 
+	top: 20px;
+	z-index: 20;
+} */
+
+/* 
+
+
+__control
+
+__option
+__option--is-focused
+__placeholder
+
+
+*/
+/* The wrapper */
+
+/* .get-all-search-filter .get-all-search-filter__control {
+	border-radius: 50px;
+	border: 2px solid blue;
+	width: 500px;
+	height: 50px;
+} */
+
+/* Options */
+/* .get-all-search-filter .get-all-search-filter__option {
+	color: black;
+	cursor: pointer;
+} */
+
+/* .get-all-search-filter .get-all-search-filter__option--is-focused {
+	background-color: lightblue;
+} */
+
+/* Placeholder */
+/* .get-all-search-filter .get-all-search-filter__placeholder {
+	color: green;
+}
+ */
 
 /* @media (min-width: 700px) and (max-width: 851) { */
 /* contains everything in the logIn container */

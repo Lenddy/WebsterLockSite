@@ -14,8 +14,13 @@
 
 	--red: rgb(223, 31, 38);
 	--blue: rgb(0, 113, 186);
+	--dark-blue: rgb(11, 77, 122);
 	--yellow: rgb(249, 198, 15);
+	--brass: rgb(181, 166, 66);
 	--white: rgb(230, 230, 230);
+	--slate-gray: rgb(109, 129, 150);
+	--slate-dark-gray: rgb(54, 64, 74);
+	--slate-dark-gray-contrast: rgb(201, 191, 181);
 	--black: rgb(14, 14, 14);
 	color: var(--blue);
 }

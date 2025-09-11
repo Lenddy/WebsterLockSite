@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { USER_CHANGE_SUBSCRIPTION } from "../../../graphQL/subscriptions/subscriptions";
 import Select from "react-select";
 import Fuse from "fuse.js";
+import Modal from "../Modal";
 
 export default function GetAllUsers() {
 	const { error, loading, data } = useQuery(get_all_users);
@@ -73,6 +74,16 @@ export default function GetAllUsers() {
 		setFilteredUsers(users);
 	};
 
+	const [isOpen, setIsOpen] = useState(false);
+
+	const arrayData = [
+		{ name: "Alice", role: "Developer" },
+		{ name: "Bob", role: "Designer" },
+		{ name: "Charlie", role: "Manager" },
+	];
+
+	const [selectedUser, setSelectedUser] = useState(null);
+
 	return (
 		<>
 			{loading ? (
@@ -82,7 +93,7 @@ export default function GetAllUsers() {
 					{/* Neutral search input */}
 					<div className="search-filter-wrapper">
 						<div className="search-filter-container">
-							<input type="text" className="search-filter-input" placeholder="Search users by name or email" value={searchValue} onChange={handleSearchChange} />
+							<input type="text" className="search-filter-input" placeholder="Search users by name or email" value={searchValue} onChange={handleSearchChange} autoComplete="false" />
 							<button
 								className="search-clear-btn"
 								onClick={clearSearch}
@@ -114,13 +125,25 @@ export default function GetAllUsers() {
 										<td>
 											<Link to={`/user/${user.id}`}>{user.name}</Link>
 										</td>
-										<td>{user.email}</td>
+										<td>
+											<Link to={`/user/${user.id}`}>{user.email}</Link>
+										</td>
 										<td>{user.role}</td>
 										<td>{user.job?.title}</td>
 										<td>
-											<div>
-												<button>Update</button>
-												<button>Delete</button>
+											<div className="table-action-wrapper">
+												<span className="table-action first">
+													<Link to={`/user/${user.id}/update/admin`}>Update</Link>
+												</span>
+												<span
+													className="table-action last"
+													onClick={() => {
+														console.log(user);
+														setSelectedUser(user);
+														setIsOpen(true);
+													}}>
+													Delete
+												</span>
 											</div>
 										</td>
 									</tr>
@@ -128,6 +151,8 @@ export default function GetAllUsers() {
 							</tbody>
 						</table>
 					</div>
+
+					<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={selectedUser} />
 				</div>
 			)}
 			{error && <p style={{ color: "red" }}>{error.message}</p>}

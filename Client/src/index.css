@@ -13,6 +13,7 @@
 	-moz-osx-font-smoothing: grayscale;
 
 	--red: rgb(223, 31, 38);
+	--dark-red: rgb(63, 23, 23);
 	--blue: rgb(0, 113, 186);
 	--dark-blue: rgb(11, 77, 122);
 	--yellow: rgb(249, 198, 15);

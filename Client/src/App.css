@@ -570,17 +570,19 @@
 }
 .table-wrapper .table-action.first a {
 	color: var(--black);
+	text-decoration: none;
 }
 
 .table-wrapper .table-action:nth-child(2) {
 	background-color: var(--red);
 	border-color: var(--dark-red);
-	color: var(--dark-red);
+	color: var(--black);
+	font-weight: 700;
 }
 
 /*!modal */
 
-.modal-backdrop {
+.modal-container {
 	position: fixed;
 	inset: 0;
 	background: rgba(0, 0, 0, 0.6); /* background still visible */
@@ -590,7 +592,7 @@
 	z-index: 1000;
 }
 
-.modal-box {
+.modal-wrapper {
 	position: relative;
 	width: 90vw;
 	height: 90vh;
@@ -615,9 +617,16 @@
 	margin-top: 20px;
 }
 
-.modal-content li {
-	margin-bottom: 8px;
-	font-size: 14px;
+.modal-top-info {
+	background-color: red;
+	display: flex;
+	height: 200px;
+	font-size: 30px;
+	width: 90%;
+
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
 }
 
 /* Responsive behavior */

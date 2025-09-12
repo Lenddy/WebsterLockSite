@@ -2,6 +2,7 @@
 	font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
 	line-height: 1.5;
 	font-weight: 400;
+	font-size: 16px;
 
 	color-scheme: light dark;
 	color: rgba(255, 255, 255, 0.87);
@@ -18,10 +19,12 @@
 	--dark-blue: rgb(11, 77, 122);
 	--yellow: rgb(249, 198, 15);
 	--brass: rgb(181, 166, 66);
-	--white: rgb(230, 230, 230);
+	--green: rgb(0, 128, 0);
+	--dark-green: rgb(6, 64, 43);
 	--slate-gray: rgb(109, 129, 150);
 	--slate-dark-gray: rgb(54, 64, 74);
 	--slate-dark-gray-contrast: rgb(201, 191, 181);
+	--white: rgb(230, 230, 230);
 	--black: rgb(14, 14, 14);
 	color: var(--blue);
 }

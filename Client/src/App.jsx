@@ -47,7 +47,7 @@ function App({ userToke }) {
 					<Route path="/admin/material/item/usage" element={<AdminItemUsage />} />
 
 					{/* User routes */}
-					<Route path="/user/all" element={<GetAllUsers />} />
+					<Route path="/user/all" element={<GetAllUsers userToke={userToke} />} />
 					<Route path="/user/:userId/update?/admin?" element={<GetOneUser />} />
 					<Route path="/user/register" element={<RegisterUser />} />
 

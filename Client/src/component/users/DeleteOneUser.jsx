@@ -25,8 +25,8 @@ export default function DeleteOneUser({ userId }) {
 	};
 
 	return (
-		<div>
-			<button onClick={submit}>delete user</button>
-		</div>
+		<>
+			<span onClick={submit}>Delete</span>
+		</>
 	);
 }

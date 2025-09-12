@@ -37,80 +37,100 @@ const Modal = ({ isOpen, onClose, data }) => {
 				className="modal-wrapper"
 				onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
 			>
-				<button className="modal-close" onClick={onClose}>
-					✖
-				</button>
+				<div className="modal-header">
+					{content?.type === "User" && (
+						<div className="modal-content-header">
+							{/* <div className="modal-content-top-info-id">
+								<h4>ID:</h4> <p>{content.value.id}</p>
+							</div> */}
+
+							<div className="modal-content-top-info-title-wrapper">
+								{/* Name */}
+
+								<div>
+									<h4>Name:</h4> <p>{content.value.name}</p>
+								</div>
+
+								{/* Email */}
+								<div>
+									<h4>Email:</h4> <p>{content.value.email}</p>
+								</div>
+							</div>
+						</div>
+					)}
+
+					<button className="modal-close" onClick={onClose}>
+						✖
+					</button>
+				</div>
 
 				<div className="modal-content">
 					{/* User object */}
 					{content?.type === "User" && (
-						<div className="">
+						<>
 							<div className="modal-content-info">
 								{/* ID */}
 
-								<div className="modal-top-info">
-									<div>
-										<strong>ID:</strong> {content.value.id}
-									</div>
-
-									<div>
-										{/* Name */}
-										<div>
-											<strong>Name:</strong> {content.value.name}
-										</div>
-
-										{/* Email */}
-										<div>
-											<strong>Email:</strong> {content.value.email}
-										</div>
-									</div>
+								<div className="modal-content-middle-info">
+									{/* Job * */}
+									{content.value.job && (
+										<>
+											<h4>Job:</h4>
+											<div className="modal-content-middle-info-wrapper">
+												<div>
+													<h4>Title:</h4> <p>{content.value.job.title}</p>
+												</div>
+												<div>
+													<h4>Description:</h4> <p>{content.value.job.description}</p>
+												</div>
+											</div>
+										</>
+									)}
 								</div>
 
-								{/* Job * 
-								{content.value.job && (
-									<div>
-										<strong>Job:</strong>
-										<div>
-											<strong>Title:</strong> {content.value.job.title}
-										</div>
-										<div>
-											<strong>Description:</strong> {content.value.job.description}
-										</div>
-									</div>
-								)}
-                                    */}
+								<div className="modal-content-bottom-info">
+									{content.value.permissions && (
+										<>
+											<h4>Permissions:</h4>
 
-								{/* Permissions *
-								{content.value.permissions && (
-									<div>
-										<strong>Permissions:</strong>
-										<div>
-											<strong>User Actions:</strong>
-											<ul>
-												{Object.entries(content.value.permissions)
-													.filter(([k, v]) => v === true && k.includes("Users"))
-													.map(([k]) => (
-														<li key={k}>{formatKey(k)}</li>
-													))}
-											</ul>
-										</div>
-										<div>
-											<strong>Self Actions:</strong>
-											<ul>
-												{Object.entries(content.value.permissions)
-													.filter(([k, v]) => v === true && k.includes("Self"))
-													.map(([k]) => (
-														<li key={k}>{formatKey(k)}</li>
-													))}
-											</ul>
-										</div>
-									</div>
-								)}  */}
+											<div className="modal-content-bottom-info-wrapper">
+												<div>
+													<h4>User Actions:</h4>
+													<ul>
+														{Object.entries(content.value.permissions)
+															.filter(([k, v]) => v === true && k.includes("Users"))
+															.map(([k]) => (
+																<li key={k}>{formatKey(k)}</li>
+															))}
+													</ul>
+												</div>
+												<div>
+													<h4>Self Actions:</h4>
+													<ul>
+														{Object.entries(content.value.permissions)
+															.filter(([k, v]) => v === true && k.includes("Self"))
+															.map(([k]) => (
+																<li key={k}>{formatKey(k)}</li>
+															))}
+													</ul>
+												</div>
+											</div>
+										</>
+									)}
+								</div>
+								{/* Permissions **/}
 							</div>
-
-							<DeleteOneUser userId={content.value.id} />
-						</div>
+						</>
 					)}
+				</div>
+				<div className="modal-bottom">
+					<div className="model-bottom-wrapper">
+						<span> View </span>
+
+						<span> Update </span>
+
+						<DeleteOneUser userId={content?.value?.id} />
+					</div>
 				</div>
 			</div>
 		</div>

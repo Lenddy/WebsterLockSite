@@ -1,25 +1,21 @@
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery, useSubscription } from "@apollo/client";
 import { jwtDecode } from "jwt-decode";
 import { get_all_users } from "../../../graphQL/queries/queries";
 import { Link } from "react-router-dom";
 import { USER_CHANGE_SUBSCRIPTION } from "../../../graphQL/subscriptions/subscriptions";
-import Select from "react-select";
 import Fuse from "fuse.js";
 import Modal from "../Modal";
 
-export default function GetAllUsers() {
+export default function GetAllUsers({ userToke }) {
 	const { error, loading, data } = useQuery(get_all_users);
 	const [users, setUsers] = useState([]);
 	const [filteredUsers, setFilteredUsers] = useState([]);
 	const [searchValue, setSearchValue] = useState(""); // persistent search
-	const [logUser, setLogUser] = useState({});
+	// const [logUser, setLogUser] = useState({});
 
 	// Initialize users and filtered users
 	useEffect(() => {
-		const token = localStorage.getItem("UserToken");
-		if (token) setLogUser(jwtDecode(token));
-
 		if (data) {
 			setUsers(data.getAllUsers);
 			setFilteredUsers(data.getAllUsers);
@@ -129,22 +125,26 @@ export default function GetAllUsers() {
 											<Link to={`/user/${user.id}`}>{user.email}</Link>
 										</td>
 										<td>{user.role}</td>
-										<td>{user.job?.title}</td>
+										<td>{user.job?.title ?? "N/A"}</td>
 										<td>
-											<div className="table-action-wrapper">
-												<span className="table-action first">
-													<Link to={`/user/${user.id}/update/admin`}>Update</Link>
-												</span>
-												<span
-													className="table-action last"
-													onClick={() => {
-														console.log(user);
-														setSelectedUser(user);
-														setIsOpen(true);
-													}}>
-													Delete
-												</span>
-											</div>
+											{user.role !== "headAdmin" ? (
+												<div className="table-action-wrapper">
+													<span className="table-action first">
+														<Link to={`/user/${user.id}/update/admin`}>Update</Link>
+													</span>
+													<span
+														className="table-action last"
+														onClick={() => {
+															console.log("click", user);
+															setSelectedUser(user);
+															setIsOpen(true);
+														}}>
+														Delete
+													</span>
+												</div>
+											) : (
+												"N/A"
+											)}
 										</td>
 									</tr>
 								))}

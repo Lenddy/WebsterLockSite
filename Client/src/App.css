@@ -188,6 +188,9 @@
 .nav-logo img {
 	height: 80px;
 	margin-left: 10px;
+	/* animation-name: rotate;
+	animation-duration: 2s;
+	animation-iteration-count: infinite; */
 }
 
 .nav-burger-menu {
@@ -577,7 +580,7 @@
 	background-color: var(--red);
 	border-color: var(--dark-red);
 	color: var(--black);
-	font-weight: 700;
+	font-weight: 550;
 }
 
 /*!modal */
@@ -592,15 +595,40 @@
 	z-index: 1000;
 }
 
+.modal-container h4 {
+	font-size: clamp(0.938rem, 0.563rem + 2vw, 1.563rem);
+	display: inline;
+}
+
+.modal-container p {
+	font-size: clamp(0.813rem, 0.55rem + 1.4vw, 1.25rem);
+	display: inline;
+}
+
+.modal-container li {
+	font-size: clamp(0.813rem, 0.55rem + 1.4vw, 1.25rem);
+	/* display: inline; */
+}
+
 .modal-wrapper {
 	position: relative;
-	width: 90vw;
-	height: 90vh;
-	background: var(--black);
+	width: clamp(18.75rem, 100vw, 50rem);
+	height: 60vh;
+	background: var(--slate-dark-gray);
 	border-radius: 12px;
-	padding: 20px;
-	overflow-y: auto;
-	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+	/* padding: 20px; */
+	display: flex; /* stack content + footer */
+	flex-direction: column;
+	overflow: hidden; /* prevents outer scroll */
+	box-shadow: 0 0px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+	/* background-color: red; */
+	border-bottom: solid 2px var(--black);
+	display: flex;
+	justify-content: center;
+	width: 100%;
 }
 
 .modal-close {
@@ -614,19 +642,155 @@
 }
 
 .modal-content {
-	margin-top: 20px;
+	flex: 1; /* take all space above footer */
+	overflow-y: auto; /* vertical scroll */
+	overflow-x: auto; /* horizontal scroll */
+	/* margin-top: 20px; */
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+	/* padding-right: 5px; */
+	width: 100%;
+	background-color: var(--slate-gray);
+	color: var(--black);
 }
 
-.modal-top-info {
-	background-color: red;
+.modal-content-info {
+	width: 100%;
 	display: flex;
-	height: 200px;
-	font-size: 30px;
-	width: 90%;
+	justify-content: space-around;
+	align-items: center;
+	flex-direction: column;
+	gap: 30px;
+}
 
+.modal-content-header {
+	display: flex;
+	/* font-size: 30px; */
 	justify-content: center;
 	align-items: center;
 	flex-direction: column;
+	width: 100%;
+	height: 80px;
+	width: clamp(18.75rem, 5.357rem + 71.43vw, 50rem);
+}
+
+.modal-content-top-info-id {
+	width: 100%;
+	text-align: left;
+	scale: 0.7;
+}
+
+.modal-content-top-info-title-wrapper {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-around;
+	align-items: center;
+	width: 100%;
+}
+
+.modal-content-middle-info {
+	/* background-color: blue; */
+	width: 100%;
+	font-size: 30px;
+	display: flex;
+	justify-content: space-around;
+	align-items: start;
+}
+
+.modal-content-middle-info-wrapper {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-around;
+	align-items: center;
+	flex-direction: column;
+}
+
+.modal-content-bottom-info {
+	/* background-color: red; */
+	width: 100%;
+	font-size: 30px;
+	display: flex;
+	justify-content: space-around;
+	align-items: start;
+	flex-wrap: wrap;
+}
+
+.modal-content-bottom-info-wrapper {
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	flex-direction: column;
+	gap: 30px;
+}
+
+.modal-bottom {
+	/* background-color: orange; */
+	height: 80px;
+	width: 100%; /* 90% of modal-wrapper */
+	margin: 0 auto; /* center horizontally */
+	/* padding: 12px; */
+	text-align: center;
+	border-top: 2px solid var(--black);
+	flex-shrink: 0;
+	padding: 0px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.model-bottom-wrapper {
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	width: 100%;
+	/* background-color: blue; */
+	height: 50%;
+	gap: 10px;
+}
+
+.model-bottom-wrapper span {
+	width: 200px;
+	height: 100%;
+	font-size: clamp(0.938rem, 0.75rem + 1vw, 1.25rem);
+	border-radius: 10px;
+	border: 1px solid var(--white);
+	border-radius: 5px;
+	/* margin: 0 5px; */
+	padding: 0 5px;
+	box-shadow: 0px 0px 15px var(--black);
+	color: var(--white);
+	font-weight: 600;
+	background-color: var(--dark-blue);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.model-bottom-wrapper span:hover {
+	cursor: pointer;
+	scale: 0.9;
+}
+
+.model-bottom-wrapper span:nth-child(1) {
+	/* background-color: var(--green); */
+	background-color: var(--dark-green);
+}
+.model-bottom-wrapper span:nth-child(2) {
+	/* background-color: var(--yellow); */
+	background-color: var(--brass);
+}
+.model-bottom-wrapper span:nth-child(3) {
+	/* background-color: var(--red); */
+	background-color: var(--dark-red);
+}
+
+/* Responsive behavior */
+@media ((max-width: 800px) and ( min-width:400px)) {
+	.modal-wrapper {
+		width: 90%;
+	}
 }
 
 /* Responsive behavior */
@@ -639,6 +803,20 @@
 		display: none;
 	}
 }
+
+/* @keyframes rotate {
+	0% {
+		transform: scale(1) rotate(0deg);
+	}
+
+	50% {
+		transform: scale(1.5);
+	}
+
+	100% {
+		transform: scale(1) rotate(360deg);
+	}
+} */
 
 /*!for the react selects later  you have to use clase name prefix*/
 

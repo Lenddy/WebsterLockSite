@@ -36,25 +36,7 @@ export default function GetOneUser() {
 	}, [loading, data, error]); //refetch
 
 	return (
-		<div>
-			<h1>Welcome {logUser?.name}</h1>
-			<div>
-				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
-					Log out
-				</Link>
-			</div>
-
-			<div>
-				<Link to={"/user/all"}>all users</Link>
-			</div>
-			<div>
-				<Link to={`/user/${userId}/update`}>update users</Link>
-			</div>
-
-			<div>
-				<Link to={`/user/${userId}/update/admin`}>admin update users</Link>
-			</div>
-
+		<div className="get-one-container list-get-all-content">
 			{currentRoutePath === `/user/${userId}/update` ? (
 				<UpdateOneUser userId={userId} user={user} />
 			) : loading ? (
@@ -62,15 +44,31 @@ export default function GetOneUser() {
 					<h1>loading...</h1>
 				</div>
 			) : (
-				<div>
-					<div>
-						<p>name: {user.name}</p>
-						<p>email:{user.email}</p>
-						<p>Role: {user.role}</p>
-						<p>job: {user?.job?.title === null || user?.job?.title === undefined ? "no job available" : user?.job?.title}</p>
+				<div className="get-one-content-wrapper ">
+					<div className="get-one-content-wrapper-top">
+						<h1>name: {user.name}</h1>
+						<h1>email:{user.email}</h1>
 					</div>
 
-					<DeleteOneUser userId={userId} />
+					<div className="get-one-content-wrapper-middle">
+						<div className="">
+							<h2>Role: {user.role}</h2>
+							<h2>permission </h2>
+						</div>
+
+						<div>
+							<>job: {user?.job?.title === null || user?.job?.title === undefined ? "no job available" : user?.job?.title}</>
+						</div>
+					</div>
+
+					<div className="get-one-content-wrapper-bottom">
+						<div>
+							<p>action</p>
+						</div>
+						<span>update</span>
+						<span>delete</span>
+						{/* <DeleteOneUser userId={userId} /> */}
+					</div>
 				</div>
 			)}
 

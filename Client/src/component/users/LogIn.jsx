@@ -49,7 +49,7 @@ export default function LogIn({ screenWidth }) {
 				if (decoded.role !== "user" && decoded.role !== "noRole" && decoded.role !== "technician") {
 					navigate("/user/all");
 				} else {
-					navigate("/test");
+					navigate("/material/request/request");
 				}
 			}
 		} catch (err) {

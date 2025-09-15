@@ -127,7 +127,7 @@ export default function GetAllUsers({ userToke }) {
 										<td>{user.role}</td>
 										<td>{user.job?.title ?? "N/A"}</td>
 										<td>
-											{user.role !== "headAdmin" ? (
+											{(jwtDecode(localStorage.getItem("UserToken")).role === "headAdmin" ? jwtDecode(localStorage.getItem("UserToken")).id !== user.id : jwtDecode(localStorage.getItem("UserToken")).role === "admin" ? ["subAdmin", "user", "noRole"].includes(user.role) : jwtDecode(localStorage.getItem("UserToken")).role === "subAdmin" ? ["user", "noRole"].includes(user.role) : false) ? (
 												<div className="table-action-wrapper">
 													<span className="table-action first">
 														<Link to={`/user/${user.id}/update/admin`}>Update</Link>
@@ -135,7 +135,6 @@ export default function GetAllUsers({ userToke }) {
 													<span
 														className="table-action last"
 														onClick={() => {
-															console.log("click", user);
 															setSelectedUser(user);
 															setIsOpen(true);
 														}}>
@@ -152,7 +151,7 @@ export default function GetAllUsers({ userToke }) {
 						</table>
 					</div>
 
-					<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={selectedUser} />
+					<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={selectedUser} userToke={userToke} />
 				</div>
 			)}
 			{error && <p style={{ color: "red" }}>{error.message}</p>}

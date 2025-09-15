@@ -92,6 +92,8 @@ const userResolver = {
 					permissions: finalPermissions, // User permissions
 				});
 
+				console.log("new user", newUser);
+
 				const tokenPayload = {
 					userId: newUser.id, // User ID
 					name,
@@ -120,89 +122,88 @@ const userResolver = {
 			}
 		},
 
-		// Register multiple users at once
 		// registerMultipleUsers: async (_, { inputs }, { user, pubsub }) => {
 		// 	try {
+		// 		console.log("Raw inputs received:", JSON.stringify(inputs, null, 2));
+
 		// 		// 1️ Permission check
 		// 		if (user.role !== "headAdmin" && user.role !== "admin" && (user.role !== "subAdmin" || !user.permissions.canRegisterUser)) {
 		// 			throw new ApolloError("Unauthorized: You lack required permissions to register users.", "USER_LACK_PERMISSION");
 		// 		}
-		// 		console.log("provided inputs for the register many ");
-		// 		console.dir(inputs, { depth: null });
 
-		// 		// 2️ Input validation
 		// 		if (!Array.isArray(inputs) || inputs.length === 0) {
 		// 			throw new ApolloError("No users provided to register.");
 		// 		}
 
 		// 		const validRoles = ["headAdmin", "admin", "subAdmin", "user", "noRole", "technician"];
-		// 		const createdUsers = [];
 
-		// 		// 3️ Loop through each input
-		// 		for (const input of inputs) {
+		// 		// 2️ Check for duplicate emails in the input
+		// 		const emails = inputs.map((i) => i.email.toLowerCase());
+		// 		const duplicates = emails.filter((e, i) => emails.indexOf(e) !== i);
+		// 		if (duplicates.length > 0) {
+		// 			throw new ApolloError(`Duplicate emails found in input: ${[...new Set(duplicates)].join(", ")}`, "DUPLICATE_EMAILS_INPUT");
+		// 		}
+
+		// 		// 3️ Check if any emails already exist in DB
+		// 		const existingUsers = await User.find({ email: { $in: emails } });
+		// 		if (existingUsers.length > 0) {
+		// 			const existingEmails = existingUsers.map((u) => u.email);
+		// 			throw new ApolloError(`Users with these emails already exist: ${existingEmails.join(", ")}`, "USER_ALREADY_EXIST");
+		// 		}
+
+		// 		// 4️ Prepare new User instances
+		// 		const newUserDocs = inputs.map((input, idx) => {
+		// 			console.log(`🔹 Processing input #${idx + 1}:`, input);
+
 		// 			let { name, email, password, confirmPassword, role = "user", job, permissions } = input;
 
-		// 			//  Check if email already exists
-		// 			const existingUser = await User.findOne({ email });
-		// 			if (existingUser) {
-		// 				throw new ApolloError(`User with email: ${email} already exists`, "USER_ALREADY_EXIST");
-		// 			}
-
-		// 			// 3b Validate role
 		// 			if (!validRoles.includes(role)) {
+		// 				console.log(` Invalid role "${role}" for ${email}, defaulting to "noRole"`);
 		// 				role = "noRole";
 		// 			}
 
-		// 			// 3c️⃣ Prepare permissions
-		// 			const finalPermissions = permissions || {};
-
-		// 			// 3d️⃣ Create new user instance
 		// 			const newUser = new User({
 		// 				name,
 		// 				email,
-		// 				password,
-		// 				confirmPassword,
+		// 				password, // raw password; will be hashed via pre-save hook
+		// 				confirmPassword, // needed for schema validation
 		// 				role,
 		// 				job,
-		// 				permissions: finalPermissions,
+		// 				permissions: permissions || {},
 		// 			});
 
-		// 			// 3e️⃣ Generate JWT token
-		// 			const tokenPayload = {
-		// 				userId: newUser.id,
-		// 				name,
-		// 				email,
-		// 				role: newUser.role,
-		// 				permissions: newUser.permissions,
-		// 			};
-		// 			const token = jwt.sign(tokenPayload, process.env.Secret_Key);
-		// 			newUser.token = token;
+		// 			// temporary token (will regenerate after save)
+		// 			newUser.token = jwt.sign({ name, email, role, permissions: newUser.permissions }, process.env.Secret_Key);
 
-		// 			// 3 Save user to DB
-		// 			const savedUser = await newUser.save();
-		// 			createdUsers.push(savedUser);
+		// 			return newUser;
+		// 		});
 
-		// 			//  Publish subscription event
+		// 		console.log("Final User documents ready for bulk save:", newUserDocs);
 
-		// 			await pubsub.publish("USER_ADDED", {
-		// 				onUserChange: {
-		// 					eventType: "created",
-		// 					Changes: savedUser,
-		// 				},
-		// 			});
-		// 		}
+		// 		// 5️ Bulk save all users (runs schema validation and pre-save hooks)
+		// 		const savePromises = newUserDocs.map((userDoc) => userDoc.save());
+		// 		const createdUsers = await Promise.all(savePromises);
 
-		// 		// for (const request of createdRequests) {
-		// 		// 					await pubsub.publish("USER_ADDED", {
-		// 		// 						onMaterialRequestChange: { eventType: "created", Changes: request },
-		// 		// 					});
-		// 		// 				}
+		// 		// console.log("Users successfully saved:", createdUsers);
 
-		// 		// 4️ Return all created users
-		// 		return createdUsers.map((u) => ({
+		// 		// 6️ Publish subscription events
+		// 		await Promise.all(
+		// 			createdUsers.map((savedUser) => {
+		// 				// console.log("Publishing USER_ADDED for:", savedUser.email);
+		// 				return pubsub.publish("USER_ADDED", {
+		// 					onUserChange: { eventType: "created", Changes: savedUser },
+		// 				});
+		// 			})
+		// 		);
+
+		// 		// 7️ Return users
+		// 		const finalResult = createdUsers.map((u) => ({
 		// 			id: u.id,
 		// 			...u._doc,
 		// 		}));
+
+		// 		// console.log("Final response to client:", finalResult);
+		// 		return finalResult;
 		// 	} catch (err) {
 		// 		console.error("Error registering multiple users:", err);
 		// 		throw err;
@@ -211,90 +212,94 @@ const userResolver = {
 
 		registerMultipleUsers: async (_, { inputs }, { user, pubsub }) => {
 			try {
-				// 1️ Permission check
+				console.log("Raw inputs received:", JSON.stringify(inputs, null, 2));
+
+				// Permission check
 				if (user.role !== "headAdmin" && user.role !== "admin" && (user.role !== "subAdmin" || !user.permissions.canRegisterUser)) {
 					throw new ApolloError("Unauthorized: You lack required permissions to register users.", "USER_LACK_PERMISSION");
 				}
 
-				// 2️ Input validation
 				if (!Array.isArray(inputs) || inputs.length === 0) {
 					throw new ApolloError("No users provided to register.");
 				}
 
 				const validRoles = ["headAdmin", "admin", "subAdmin", "user", "noRole", "technician"];
 
-				// 3️ Check for duplicate emails in the incoming list
+				//  Check duplicate emails in input
 				const emails = inputs.map((i) => i.email.toLowerCase());
 				const duplicates = emails.filter((e, i) => emails.indexOf(e) !== i);
 				if (duplicates.length > 0) {
 					throw new ApolloError(`Duplicate emails found in input: ${[...new Set(duplicates)].join(", ")}`, "DUPLICATE_EMAILS_INPUT");
 				}
 
-				// 4️ Check if any emails already exist in DB
+				//  Check DB for existing users
 				const existingUsers = await User.find({ email: { $in: emails } });
 				if (existingUsers.length > 0) {
 					const existingEmails = existingUsers.map((u) => u.email);
 					throw new ApolloError(`Users with these emails already exist: ${existingEmails.join(", ")}`, "USER_ALREADY_EXIST");
 				}
 
-				// 5️ Prepare new users
-				const newUsers = inputs.map((input) => {
+				//  Prepare Mongoose documents
+				const userDocs = inputs.map((input, idx) => {
 					let { name, email, password, confirmPassword, role = "user", job, permissions } = input;
 
 					if (!validRoles.includes(role)) {
 						role = "noRole";
 					}
 
-					const finalPermissions = permissions || {};
+					if (password !== confirmPassword) {
+						throw new ApolloError(`Passwords do not match for ${email}`, "PASSWORD_MISMATCH");
+					}
 
 					const newUser = new User({
 						name,
 						email,
-						password,
-						confirmPassword,
+						password, // raw password; pre-save hook will hash
+						confirmPassword, // for validation
 						role,
 						job,
-						permissions: finalPermissions,
+						permissions: permissions || {},
 					});
 
-					// Generate JWT token
-					const tokenPayload = {
-						userId: newUser.id,
-						name,
-						email,
-						role: newUser.role,
-						permissions: newUser.permissions,
-					};
-					const token = jwt.sign(tokenPayload, process.env.Secret_Key);
-					newUser.token = token;
+					// Temporary token (optional, will be overwritten if needed)
+					newUser.token = jwt.sign({ name, email, role, permissions: newUser.permissions }, process.env.Secret_Key);
 
 					return newUser;
 				});
 
-				// 6️ Bulk insert
-				const createdUsers = await User.insertMany(newUsers, { ordered: false });
+				console.log("Mongoose documents ready for bulkSave:", userDocs);
 
-				// 7️ Publish subscription events in parallel
+				//  Bulk save all documents
+				const bulkSaveResult = await User.bulkSave(userDocs, { ordered: true });
+				console.log("bulkSave result:", bulkSaveResult);
+
+				//  Convert result into an array of actual documents
+				// Since bulkSave returns the docs themselves in Mongoose v7+, you can do:
+				const savedUsersArray = Array.isArray(bulkSaveResult) ? bulkSaveResult : userDocs;
+
+				//  Publish subscription events
 				await Promise.all(
-					createdUsers.map((savedUser) =>
+					savedUsersArray.map((savedUser) =>
 						pubsub.publish("USER_ADDED", {
 							onUserChange: { eventType: "created", Changes: savedUser },
 						})
 					)
 				);
 
-				// 8️ Return users
-				return createdUsers.map((u) => ({
-					id: u.id,
+				//  Prepare final response
+				const finalResult = savedUsersArray.map((u) => ({
+					id: u._id,
 					...u._doc,
 				}));
+
+				console.log("Final response to client:", finalResult);
+				return finalResult;
 			} catch (err) {
 				console.error("Error registering multiple users:", err);
 				throw err;
 			}
 		},
 
-		// Login user
 		loginUser: async (_, { input: { email, password } }) => {
 			try {
 				// console.log("credentials ", email, password); // Log credentials (not recommended in prod)

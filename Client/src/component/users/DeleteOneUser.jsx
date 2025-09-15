@@ -14,11 +14,12 @@ export default function DeleteOneUser({ userId }) {
 				},
 				onCompleted: (result) => {
 					// console.log("admin updateMutation success:", result);
+					console.log;
 				},
 			});
 
 			// console.log("✅ Registered user:", res.data);
-			navigate(`/user/all`);
+			// navigate(`/user/all`);
 		} catch (err) {
 			console.error("❌ Error registering:", err);
 		}
@@ -26,7 +27,7 @@ export default function DeleteOneUser({ userId }) {
 
 	return (
 		<>
-			<span onClick={submit}>Delete</span>
+			<span onClick={submit}> Delete</span>
 		</>
 	);
 }

@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import DeleteOneUser from "./users/DeleteOneUser";
+import { Link } from "react-router-dom";
 
-const Modal = ({ isOpen, onClose, data }) => {
+import { jwtDecode } from "jwt-decode";
+
+const Modal = ({ isOpen, onClose, data, userToke }) => {
 	const [content, setContent] = useState(null);
 
 	useEffect(() => {
@@ -100,7 +103,7 @@ const Modal = ({ isOpen, onClose, data }) => {
 														{Object.entries(content.value.permissions)
 															.filter(([k, v]) => v === true && k.includes("Users"))
 															.map(([k]) => (
-																<li key={k}>{formatKey(k)}</li>
+																<li key={k}>{formatKey(k) || "N/A"}</li>
 															))}
 													</ul>
 												</div>
@@ -125,10 +128,13 @@ const Modal = ({ isOpen, onClose, data }) => {
 				</div>
 				<div className="modal-bottom">
 					<div className="model-bottom-wrapper">
-						<span> View </span>
-
-						<span> Update </span>
-
+						{/* you have to add the links to the update an view  */}
+						<Link to={`/user/${content?.value?.id}`}>
+							<span>View</span>
+						</Link>{" "}
+						<Link to={jwtDecode(localStorage.getItem("UserToken")).role === "headAdmin" || jwtDecode(localStorage.getItem("UserToken")).role.role === "admin" ? `/admin/user/${content?.value?.id}/update` : `/user/${content?.value?.id}/update`}>
+							<span>Update</span>
+						</Link>{" "}
 						<DeleteOneUser userId={content?.value?.id} />
 					</div>
 				</div>

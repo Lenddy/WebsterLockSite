@@ -23,7 +23,7 @@ export default function GetOneUser() {
 			// console.log("loading");
 		}
 		if (data) {
-			// console.log(data.getOneUser);
+			console.log(data.getOneUser);
 			setUser(data.getOneUser);
 		}
 		if (error) {
@@ -34,6 +34,15 @@ export default function GetOneUser() {
 		// };
 		// fetchData();
 	}, [loading, data, error]); //refetch
+
+	// Helper function to format keys
+	const formatKey = (key) => {
+		return key
+			.replace(/([a-z])([A-Z])/g, "$1 $2") // add space before capital letters
+			.replace(/^./, (str) => str.toUpperCase()); // capitalize first letter
+	};
+
+	//  separate the roles too  and capitalized the first letters
 
 	return (
 		<div className="get-one-container list-get-all-content">
@@ -53,7 +62,34 @@ export default function GetOneUser() {
 					<div className="get-one-content-wrapper-middle">
 						<div className="">
 							<h2>Role: {user.role}</h2>
-							<h2>permission </h2>
+
+							<>
+								<h4>Permissions:</h4>
+
+								<div className="modal-content-bottom-info-wrapper">
+									<div>
+										<h4>User Actions:</h4>
+										<ul>
+											{Object.entries(user?.permissions || {})
+												.filter(([k, v]) => k !== "__typename" && v === true && k.includes("Users"))
+												.map(([k]) => (
+													<li key={k}>{formatKey(k) || "N/A"}</li>
+												))}
+										</ul>
+									</div>
+
+									<div>
+										<h4>Self Actions:</h4>
+										<ul>
+											{Object.entries(user?.permissions || {})
+												.filter(([k, v]) => k !== "__typename" && v === true && k.includes("Self"))
+												.map(([k]) => (
+													<li key={k}>{formatKey(k)}</li>
+												))}
+										</ul>
+									</div>
+								</div>
+							</>
 						</div>
 
 						<div>

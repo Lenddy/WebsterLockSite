@@ -72,12 +72,6 @@ export default function GetAllUsers({ userToke }) {
 
 	const [isOpen, setIsOpen] = useState(false);
 
-	const arrayData = [
-		{ name: "Alice", role: "Developer" },
-		{ name: "Bob", role: "Designer" },
-		{ name: "Charlie", role: "Manager" },
-	];
-
 	const [selectedUser, setSelectedUser] = useState(null);
 
 	return (

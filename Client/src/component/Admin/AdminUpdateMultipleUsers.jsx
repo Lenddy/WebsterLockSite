@@ -57,6 +57,42 @@ export default function AdminUpdateMultipleUsers({ userId, user }) {
 		}
 	}, [rows, users, loading, data, error]);
 
+	//! for tomorrow
+
+	// useEffect(() => {
+	// 	setLogUser(jwtDecode(localStorage.getItem("UserToken")));
+	// 	if (lastRowRef.current) {
+	// 		lastRowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+	// 	}
+
+	// 	if (loading) {
+	// 		console.log("loading");
+	// 	}
+	// 	if (data) {
+	// 		setUsers(data.getAllUsers);
+
+	// 		// ✅ If userId is passed, auto-select that user in the first row
+	// 		if (userId) {
+	// 			const selectedUser = data.getAllUsers.find((u) => u.id === userId);
+	// 			if (selectedUser) {
+	// 				setRows((prev) => {
+	// 					const newRows = [...prev];
+	// 					newRows[0] = {
+	// 						...newRows[0],
+	// 						id: selectedUser.id,
+	// 						name: selectedUser.name,
+	// 						previousEmail: selectedUser.email,
+	// 					};
+	// 					return newRows;
+	// 				});
+	// 			}
+	// 		}
+	// 	}
+	// 	if (error) {
+	// 		console.log("there was an error", error);
+	// 	}
+	// }, [loading, data, error, userId]);
+
 	const [adminChangeMultipleUserProfiles, { loading: updateLoading, error: updateError }] = useMutation(admin_update_multiple_users);
 
 	// inside your component
@@ -207,30 +243,6 @@ export default function AdminUpdateMultipleUsers({ userId, user }) {
 
 	return (
 		<div>
-			<div>
-				<div>
-					<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
-						Log out
-					</Link>
-				</div>
-
-				<div>
-					<Link to={"/user/all"}> all users</Link>
-				</div>
-
-				<div>
-					<Link to={"/admin/user/update"}>admin update users</Link>
-				</div>
-
-				<div>
-					<Link to={"/user/register"}>register user</Link>
-				</div>
-
-				<div>
-					<Link to={`/material/request/all`}>all material requests</Link>
-				</div>
-			</div>
-
 			<h1>Admin update (Multiple)</h1>
 			<form onSubmit={submit}>
 				{rows.map((row, index) => (

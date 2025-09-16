@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import DeleteOneUser from "./users/DeleteOneUser";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { jwtDecode } from "jwt-decode";
 
 const Modal = ({ isOpen, onClose, data, userToke }) => {
 	const [content, setContent] = useState(null);
-
+	const location = useLocation(); // current URL path
 	useEffect(() => {
 		if (!data) {
 			setContent(null);
@@ -129,13 +129,23 @@ const Modal = ({ isOpen, onClose, data, userToke }) => {
 				<div className="modal-bottom">
 					<div className="model-bottom-wrapper">
 						{/* you have to add the links to the update an view  */}
-						<Link to={`/user/${content?.value?.id}`}>
-							<span>View</span>
-						</Link>{" "}
-						<Link to={jwtDecode(localStorage.getItem("UserToken")).role === "headAdmin" || jwtDecode(localStorage.getItem("UserToken")).role.role === "admin" ? `/admin/user/${content?.value?.id}/update` : `/user/${content?.value?.id}/update`}>
-							<span>Update</span>
-						</Link>{" "}
-						<DeleteOneUser userId={content?.value?.id} />
+						{location.pathname === "/user/all" ? (
+							<div className="model-btn-view">
+								<Link to={`/user/${content?.value?.id}`}>
+									<span>View</span>
+								</Link>
+							</div>
+						) : null}
+
+						<div className="model-btn-update">
+							<Link to={jwtDecode(localStorage.getItem("UserToken")).role === "headAdmin" || jwtDecode(localStorage.getItem("UserToken")).role.role === "admin" ? `/admin/user/${content?.value?.id}/update` : `/user/${content?.value?.id}/update`}>
+								<span>Update</span>
+							</Link>{" "}
+						</div>
+
+						<div className="model-btn-delete">
+							<DeleteOneUser userId={content?.value?.id} />
+						</div>
 					</div>
 				</div>
 			</div>

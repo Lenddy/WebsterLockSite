@@ -39,7 +39,7 @@ function App({ userToke }) {
 					{/* Admin user routes */}
 					<Route path="/admin/user/register" element={<AdminRegisterMultipleUsers userToke={userToke} />} />
 					<Route path="/admin/user/:id?/update" element={<AdminUpdateMultipleUsers />} />
-					<Route path="/admin/material/request/" element={<AdminCreateMultipleMaterialRequests />} />
+					<Route path="/admin/material/request" element={<AdminCreateMultipleMaterialRequests />} />
 					<Route path="/admin/material/item/all" element={<AdminGetAllItems />} />
 					<Route path="/admin/material/item/:itemId" element={<AdminGetOneItem />} />
 					<Route path="/admin/material/item/create" element={<AdminCreateMultipleItemsGroups />} />
@@ -48,7 +48,7 @@ function App({ userToke }) {
 
 					{/* User routes */}
 					<Route path="/user/all" element={<GetAllUsers userToke={userToke} />} />
-					<Route path="/user/:userId/update?/admin?" element={<GetOneUser />} />
+					<Route path="/user/:userId/update?/admin?" element={<GetOneUser userToke={userToke} />} />
 					<Route path="/user/register" element={<RegisterUser />} />
 
 					{/* Material request routes */}

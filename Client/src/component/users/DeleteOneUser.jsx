@@ -1,10 +1,11 @@
 import React from "react";
 import { delete_one_user } from "../../../graphQL/mutations/mutations";
 import { useMutation } from "@apollo/client";
-import { Await, useNavigate } from "react-router-dom";
+import { Await, useNavigate, useLocation } from "react-router-dom";
 
-export default function DeleteOneUser({ userId }) {
+export default function DeleteOneUser({ userId, btnActive }) {
 	const [deleteOneUser, { data: UpdateData, loading: updateLoading, error: updateError }] = useMutation(delete_one_user);
+
 	const navigate = useNavigate();
 	const submit = async () => {
 		try {
@@ -26,8 +27,9 @@ export default function DeleteOneUser({ userId }) {
 	};
 
 	return (
-		<>
-			<span onClick={submit}> Delete</span>
-		</>
+		<span onClick={submit} className={`${btnActive === true ? "model-bottom" : ""}`}>
+			{" "}
+			Delete
+		</span>
 	);
 }

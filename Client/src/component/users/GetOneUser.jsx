@@ -5,15 +5,18 @@ import { get_one_user } from "../../../graphQL/queries/queries";
 import { Link, useParams, useLocation } from "react-router-dom";
 import UpdateOneUser from "./updateOneUser";
 
+import Modal from "../Modal";
 import DeleteOneUser from "./DeleteOneUser";
 
-export default function GetOneUser() {
+export default function GetOneUser({ userToke }) {
 	const [user, setUser] = useState({});
 	const [logUser, setLogUser] = useState({});
 	const { userId } = useParams();
-
+	const [isOpen, setIsOpen] = useState(false);
+	const [selectedUser, setSelectedUser] = useState(null);
 	const location = useLocation();
 	const currentRoutePath = location.pathname;
+	const [btnActive, setBtnActive] = useState(false);
 	// console.log(currentRoutePath);
 	const { error, loading, data, refetch } = useQuery(get_one_user, { variables: { id: userId } });
 
@@ -54,21 +57,31 @@ export default function GetOneUser() {
 				</div>
 			) : (
 				<div className="get-one-content-wrapper ">
+					{/* top */}
 					<div className="get-one-content-wrapper-top">
-						<h1>name: {user.name}</h1>
-						<h1>email:{user.email}</h1>
+						<h1>Name: {user.name}</h1>
+
+						<h1>Email:{user.email}</h1>
 					</div>
 
+					{/* middle */}
 					<div className="get-one-content-wrapper-middle">
-						<div className="">
-							<h2>Role: {user.role}</h2>
+						{/* middle left */}
+						<div className="get-one-content-wrapper-middle-left">
+							{/* middle left top */}
+							<div className="get-one-content-wrapper-middle-left-top">
+								<div className="get-one-content-wrapper-middle-left-top-wrapper">
+									<h2>Role: {user.role} </h2>
+								</div>
+							</div>
 
-							<>
-								<h4>Permissions:</h4>
+							{/* middle left bottom */}
+							<div className="get-one-content-wrapper-middle-left-bottom">
+								<h2>Permissions:</h2>
 
-								<div className="modal-content-bottom-info-wrapper">
+								<div className="get-one-content-wrapper-middle-left-bottom-wrapper">
 									<div>
-										<h4>User Actions:</h4>
+										<h3>User Actions:</h3>
 										<ul>
 											{Object.entries(user?.permissions || {})
 												.filter(([k, v]) => k !== "__typename" && v === true && k.includes("Users"))
@@ -79,7 +92,7 @@ export default function GetOneUser() {
 									</div>
 
 									<div>
-										<h4>Self Actions:</h4>
+										<h3>Self Actions:</h3>
 										<ul>
 											{Object.entries(user?.permissions || {})
 												.filter(([k, v]) => k !== "__typename" && v === true && k.includes("Self"))
@@ -89,22 +102,38 @@ export default function GetOneUser() {
 										</ul>
 									</div>
 								</div>
-							</>
+							</div>
 						</div>
 
-						<div>
-							<>job: {user?.job?.title === null || user?.job?.title === undefined ? "no job available" : user?.job?.title}</>
+						{/* middle right */}
+						<div className="get-one-content-wrapper-middle-right">
+							<div className="get-one-content-wrapper-middle-right-top">
+								<h2>Job Title:{user?.job?.title}</h2>
+							</div>
+
+							<div className="get-one-content-wrapper-middle-right-bottom">
+								<h2> Job Description: {user?.job?.description}</h2>
+							</div>
 						</div>
 					</div>
 
 					<div className="get-one-content-wrapper-bottom">
-						<div>
-							<p>action</p>
-						</div>
-						<span>update</span>
-						<span>delete</span>
+						<Link to={jwtDecode(localStorage.getItem("UserToken")).role === "headAdmin" || jwtDecode(localStorage.getItem("UserToken")).role.role === "admin" ? `/admin/user/${user.id}/update` : `/user/${user.id}/update`}>
+							<span>Update</span>
+						</Link>{" "}
+						{/* <span>delete</span> */}
+						<span
+							className="table-action last"
+							onClick={() => {
+								setSelectedUser(user);
+								setIsOpen(true);
+								setBtnActive(true);
+							}}>
+							Delete
+						</span>
 						{/* <DeleteOneUser userId={userId} /> */}
 					</div>
+					<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={selectedUser} userToke={userToke} btnActive={btnActive} />
 				</div>
 			)}
 

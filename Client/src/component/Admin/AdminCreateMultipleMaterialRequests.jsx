@@ -366,7 +366,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 									/>
 
 									{/* Quantity */}
-									<input type="number" value={row.quantity} onChange={(e) => handleItemChange(reqIdx, rowIdx, "quantity", e.target.value)} placeholder="Qty" />
+									<input type="number" value={row.quantity} onChange={(e) => handleItemChange(reqIdx, rowIdx, "quantity", e.target.value)} placeholder="Qty" min={0} />
 
 									{/* Item select */}
 									<Select

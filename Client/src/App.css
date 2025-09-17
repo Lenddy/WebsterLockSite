@@ -545,6 +545,11 @@
 	align-items: center;
 }
 
+.table-wrapper .table-action-wrapper a {
+	color: var(--black);
+	text-decoration: none;
+}
+
 .table-wrapper .table-action {
 	border: 1px solid var(--white);
 	border-radius: 5px;
@@ -564,12 +569,8 @@
 	background-color: var(--yellow);
 	color: var(--black);
 }
-.table-wrapper .table-action.first a {
-	color: var(--black);
-	text-decoration: none;
-}
 
-.table-wrapper .table-action:nth-child(2) {
+.table-wrapper .table-action.last {
 	background-color: var(--red);
 	border-color: var(--dark-red);
 	color: var(--black);
@@ -992,12 +993,154 @@
 	color: var(--white);
 }
 
-/* .model-bottom-wrapper span:nth-child(2), */
-/* .model-bottom-wrapper a {
-	color: var(--white);
-	
-} */
+/*! update and update many    */
 
+.update-container {
+	background-color: var(--slate-dark-gray);
+	width: 99%;
+	height: calc(100vh - 100px - 90px);
+	display: flex;
+	justify-content: space-around;
+	overflow: auto;
+	border: solid 1px var(--slate-dark-gray);
+	border-radius: 10px;
+}
+
+.update-form {
+	width: clamp(18.75rem, 10.938rem + 41.67vw, 50rem);
+	/* overflow-y: auto; */
+	background-color: purple;
+}
+
+.update-form-title {
+}
+
+.update-form-wrapper {
+	background-color: var(--slate-gray);
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	flex-direction: column;
+	gap: 30px;
+	border: solid 1px brown;
+	border-radius: 10px;
+}
+
+.update-form-row {
+	background-color: var(--brass);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	/* flex-wrap: wrap; */
+	width: 100%;
+	height: 600px;
+	border: solid 1px brown;
+	border-radius: 10px;
+	gap: 20px;
+	margin: 10px 0px;
+}
+
+/* 
+__control
+__option
+__option--is-focused
+__placeholder
+*/
+
+/* The wrapper */
+
+.update-form-row-select__control {
+	border-radius: 50px;
+	border: 1px solid blue;
+	/* width: clamp(17.5rem, 14.063rem + 18.33vw, 31.25rem); */
+	width: 100%;
+	height: 30px;
+}
+
+/* Options */
+.update-form-row-select__option {
+	color: black;
+	cursor: pointer;
+	border-bottom: solid black 1px;
+}
+
+.update-form-row-select__option--is-focused {
+	background-color: lightblue;
+}
+
+.update-form-row-select__menu {
+}
+
+/* Placeholder */
+.update-form-row-select__placeholder {
+	color: green;
+}
+
+/* .model-bottom-wrapper span:nth-child(2), */
+.model-bottom-wrapper a {
+	color: var(--white);
+}
+
+.form-row-count {
+}
+
+/* update top */
+
+.form-row-top-container {
+	background-color: red;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	/* flex-wrap: wrap; */
+}
+
+.form-row-top-left,
+.form-row-top-right {
+	flex: 1;
+}
+
+.form-row-top-left {
+	background-color: blue;
+}
+
+.form-row-top-right {
+	display: flex;
+	justify-content: center;
+	justify-items: center;
+	flex-direction: column;
+}
+
+.form-row-top-right input {
+	height: 20px;
+	width: 90%;
+}
+
+/* update center  */
+
+.form-row-center-container {
+	display: flex;
+	width: 100%;
+	background-color: red;
+	/* flex-wrap: wrap; */
+	margin: 10px 0px;
+}
+
+.form-row-center-left,
+.form-row-center-right {
+	flex: 1;
+}
+
+.form-row-center-right {
+	background-color: blue;
+}
+
+/* !!!!! */
+/* !!!!! */
+/* !!!!! */
+/* !!!!! */
+/* !!!!! */
+/* !!!!! */
 /* Responsive behavior */
 @media ((max-width: 800px) and ( min-width:400px)) {
 	.modal-wrapper {

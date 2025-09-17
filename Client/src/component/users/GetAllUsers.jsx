@@ -123,9 +123,9 @@ export default function GetAllUsers({ userToke }) {
 										<td>
 											{(jwtDecode(localStorage.getItem("UserToken")).role === "headAdmin" ? jwtDecode(localStorage.getItem("UserToken")).id !== user.id : jwtDecode(localStorage.getItem("UserToken")).role === "admin" ? ["subAdmin", "user", "noRole"].includes(user.role) : jwtDecode(localStorage.getItem("UserToken")).role === "subAdmin" ? ["user", "noRole"].includes(user.role) : false) ? (
 												<div className="table-action-wrapper">
-													<span className="table-action first">
-														<Link to={`/user/${user.id}/update/admin`}>Update</Link>
-													</span>
+													<Link to={`/admin/user/${user.id}/update`}>
+														<span className="table-action first">Update</span>
+													</Link>
 													<span
 														className="table-action last"
 														onClick={() => {

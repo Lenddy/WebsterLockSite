@@ -38,7 +38,7 @@ function App({ userToke }) {
 				<Route element={<ProtectedRoute screenWidth={screenWidth} />}>
 					{/* Admin user routes */}
 					<Route path="/admin/user/register" element={<AdminRegisterMultipleUsers userToke={userToke} />} />
-					<Route path="/admin/user/:id?/update" element={<AdminUpdateMultipleUsers />} />
+					<Route path="/admin/user/:userId?/update" element={<AdminUpdateMultipleUsers />} />
 					<Route path="/admin/material/request" element={<AdminCreateMultipleMaterialRequests />} />
 					<Route path="/admin/material/item/all" element={<AdminGetAllItems />} />
 					<Route path="/admin/material/item/:itemId" element={<AdminGetOneItem />} />

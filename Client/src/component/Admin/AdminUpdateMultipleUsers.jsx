@@ -294,98 +294,7 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 								</div>
 							</div>
 
-							{/*  container for center information */}
-							<div className="form-row-center-container">
-								{/* left side of the center row */}
-								<div className="form-row-center-left">
-									<div className="form-row-center-1">
-										<div>
-											<label>New Name:</label>
-											<input type="text" name="name" value={row?.name} onChange={(e) => handleRowChange(index, e)} />
-										</div>
-
-										<div>
-											<label>New Email:</label>
-											<input type="text" name="newEmail" value={row?.newEmail} onChange={(e) => handleRowChange(index, e)} />
-										</div>
-									</div>
-
-									<div className="form-row-center-2">
-										{logUser.role !== "headAdmin" ? (
-											<div>
-												<label>Previous Password:</label>
-												<input type={show ? "text" : "password"} name="previousPassword" value={row?.previousPassword} onChange={(e) => handleRowChange(index, e)} />
-												<button type="button" onClick={() => setShow(!show)}>
-													{show ? "Hide" : "Show"}
-												</button>
-											</div>
-										) : null}
-
-										<div>
-											<label>New Password:</label>
-											<input type={show ? "text" : "password"} name="newPassword" value={row?.newPassword} onChange={(e) => handleRowChange(index, e)} />
-											<button type="button" onClick={() => setShow(!show)}>
-												{show ? "Hide" : "Show"}
-											</button>
-										</div>
-
-										<div>
-											<label>Confirm New Password:</label>
-											<input type={show ? "text" : "password"} name="confirmNewPassword" value={row?.confirmNewPassword} onChange={(e) => handleRowChange(index, e)} />
-											<button type="button" onClick={() => setShow(!show)}>
-												{show ? "Hide" : "Show"}
-											</button>
-										</div>
-									</div>
-								</div>
-
-								{/* right side of the center row */}
-								<div className="form-row-center-right">
-									<div className="form-row-center-3">
-										<div>
-											<label>New Job Title:</label>
-											<input type="text" name="title" value={row?.title} onChange={(e) => handleRowChange(index, e)} />
-										</div>
-										<div>
-											<label>new Job Description:</label>
-											{/* <input type="text"  /> */}
-
-											<textarea name="description" value={row?.description} onChange={(e) => handleRowChange(index, e)} cols={30} rows={3}></textarea>
-										</div>
-									</div>
-
-									{logUser?.permissions?.canChangeRole ? (
-										<div className="form-row-center-4">
-											<div>
-												<label>New Role:</label>
-
-												<select name="newRole" value={row?.newRole} onChange={(e) => handleRowChange(index, e)}>
-													<option value="" disabled>
-														Select Role
-													</option>
-													<option value="admin">Admin</option>
-													<option value="subAdmin">Sub Admin</option>
-													<option value="technician">Technician</option>
-													<option value="user">User</option>
-													<option value="noRole">No Role</option>
-												</select>
-											</div>
-
-											<div>
-												<label>New Permissions:</label>
-												<ul>
-													{Object.keys(row?.newPermissions).map((permKey) => (
-														<li key={permKey}>
-															<label>{permKey}</label>
-															<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
-														</li>
-													))}
-												</ul>
-											</div>
-										</div>
-									) : null}
-								</div>
-							</div>
+							{/*here goes all the other info */}
 
 							{rows.length > 1 && (
 								<button type="button" onClick={() => removeRow(index)} disabled={row.locked && index === 0}>
@@ -412,3 +321,98 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 		</div>
 	);
 }
+
+//! other info
+
+// {/*  container for center information */}
+// 						<div className="form-row-center-container">
+// 							{/* left side of the center row */}
+// 							<div className="form-row-center-left">
+// 								<div className="form-row-center-1">
+// 									<div>
+// 										<label>New Name:</label>
+// 										<input type="text" name="name" value={row?.name} onChange={(e) => handleRowChange(index, e)} />
+// 									</div>
+
+// 									<div>
+// 										<label>New Email:</label>
+// 										<input type="text" name="newEmail" value={row?.newEmail} onChange={(e) => handleRowChange(index, e)} />
+// 									</div>
+// 								</div>
+
+// 								<div className="form-row-center-2">
+// 									{logUser.role !== "headAdmin" ? (
+// 										<div>
+// 											<label>Previous Password:</label>
+// 											<input type={show ? "text" : "password"} name="previousPassword" value={row?.previousPassword} onChange={(e) => handleRowChange(index, e)} />
+// 											<button type="button" onClick={() => setShow(!show)}>
+// 												{show ? "Hide" : "Show"}
+// 											</button>
+// 										</div>
+// 									) : null}
+
+// 									<div>
+// 										<label>New Password:</label>
+// 										<input type={show ? "text" : "password"} name="newPassword" value={row?.newPassword} onChange={(e) => handleRowChange(index, e)} />
+// 										<button type="button" onClick={() => setShow(!show)}>
+// 											{show ? "Hide" : "Show"}
+// 										</button>
+// 									</div>
+
+// 									<div>
+// 										<label>Confirm New Password:</label>
+// 										<input type={show ? "text" : "password"} name="confirmNewPassword" value={row?.confirmNewPassword} onChange={(e) => handleRowChange(index, e)} />
+// 										<button type="button" onClick={() => setShow(!show)}>
+// 											{show ? "Hide" : "Show"}
+// 										</button>
+// 									</div>
+// 								</div>
+// 							</div>
+
+// 							{/* right side of the center row */}
+// 							<div className="form-row-center-right">
+// 								<div className="form-row-center-3">
+// 									<div>
+// 										<label>New Job Title:</label>
+// 										<input type="text" name="title" value={row?.title} onChange={(e) => handleRowChange(index, e)} />
+// 									</div>
+// 									<div>
+// 										<label>new Job Description:</label>
+// 										{/* <input type="text"  /> */}
+
+// 										<textarea name="description" value={row?.description} onChange={(e) => handleRowChange(index, e)} cols={30} rows={3}></textarea>
+// 									</div>
+// 								</div>
+
+// 								{logUser?.permissions?.canChangeRole ? (
+// 									<div className="form-row-center-4">
+// 										<div>
+// 											<label>New Role:</label>
+
+// 											<select name="newRole" value={row?.newRole} onChange={(e) => handleRowChange(index, e)}>
+// 												<option value="" disabled>
+// 													Select Role
+// 												</option>
+// 												<option value="admin">Admin</option>
+// 												<option value="subAdmin">Sub Admin</option>
+// 												<option value="technician">Technician</option>
+// 												<option value="user">User</option>
+// 												<option value="noRole">No Role</option>
+// 											</select>
+// 										</div>
+
+// 										<div>
+// 											<label>New Permissions:</label>
+// 											<ul>
+// 												{Object.keys(row?.newPermissions).map((permKey) => (
+// 													<li key={permKey}>
+// 														<label>{permKey}</label>
+// 														<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+// 													</li>
+// 												))}
+// 											</ul>
+// 										</div>
+// 									</div>
+// 								) : null}
+// 							</div>
+// 						</div>

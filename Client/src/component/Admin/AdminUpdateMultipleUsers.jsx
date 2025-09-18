@@ -399,9 +399,9 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 
 							{rows.length > 1 && (
 								<div className="form-row-remove-btn-container">
-									<button className="remove-row-btn" type="button" onClick={() => removeRow(index)} disabled={row.locked && index === 0}>
+									<span className="remove-row-btn" type="button" onClick={() => removeRow(index)} disabled={row.locked && index === 0}>
 										Remove Row
-									</button>
+									</span>
 								</div>
 							)}
 						</div>
@@ -409,20 +409,34 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 				</div>
 
 				<div className="form-action-btn">
-					<button className="form-add-row-btn" type="button" onClick={addRow}>
+					<span className="form-add-row-btn" type="button" onClick={addRow}>
 						+ Add Row
-					</button>
+					</span>
 
 					{/* <div> */}
-					<button className="form-submit-btn" type="submit" disabled={updateLoading || isFormInvalid}>
+					<span className="form-submit-btn" type="submit" disabled={updateLoading || isFormInvalid}>
 						{updateLoading ? "Updating..." : "Update Users"}
-					</button>
+					</span>
 					{/* </div> */}
 				</div>
 
-				{hasEmptyRequiredFields && <p style={{ color: "red" }}> All required fields must be filled.</p>}
-				{hasDuplicateEmails && <p style={{ color: "red" }}> Duplicate emails found in rows.</p>}
-				{updateError && <p style={{ color: "red" }}>{updateError.message}</p>}
+				{hasEmptyRequiredFields && (
+					<p className="form-error-message" style={{ color: "red" }}>
+						{" "}
+						All required fields must be filled.
+					</p>
+				)}
+				{hasDuplicateEmails && (
+					<p p className="form-error-message" style={{ color: "red" }}>
+						{" "}
+						Duplicate emails found in rows.
+					</p>
+				)}
+				{updateError && (
+					<p p className="form-error-message" style={{ color: "red" }}>
+						{updateError.message}
+					</p>
+				)}
 			</form>
 		</div>
 	);

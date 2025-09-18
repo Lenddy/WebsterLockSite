@@ -254,7 +254,9 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 							<div className="form-row-top-container">
 								{/* left side of the top container */}
 								<div className="form-row-top-left">
+									<label> Find User</label>
 									<Select
+										className="form-row-top-select"
 										classNamePrefix="update-form-row-select"
 										options={userOptions}
 										value={userOptions.find((opt) => opt.value === row?.id) || null}
@@ -290,28 +292,132 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 								{/* right side of the top container */}
 								<div className="form-row-top-right">
 									<label>Previous Email:</label>
-									<input type="text" name="previousEmail" value={row?.previousEmail} onChange={(e) => handleRowChange(index, e)} disabled />
+									<input type="text" name="previousEmail" value={row?.previousEmail} onChange={(e) => handleRowChange(index, e)} disabled placeholder="Previous Email" />
 								</div>
 							</div>
 
 							{/*here goes all the other info */}
+							{/*  container for center information */}
+							<div className="form-row-center-container">
+								{/* left side of the center row */}
+								<div className="form-row-center-left">
+									{/* center left wrapper */}
+									<div className="form-row-center-left-wrapper">
+										<div>
+											<label>New Name:</label>
+											<input type="text" name="name" value={row?.name} onChange={(e) => handleRowChange(index, e)} placeholder="New Name" />
+										</div>
+
+										<div>
+											<label>New Email:</label>
+											<input type="email" name="newEmail" value={row?.newEmail} onChange={(e) => handleRowChange(index, e)} placeholder="New Email" />
+										</div>
+
+										{/* <div className="form-row-center-left-bottom"> */}
+										{logUser.role !== "headAdmin" ? (
+											<div>
+												<label>Previous Password:</label>
+												<div className="update-form-input">
+													<input type={show ? "text" : "password"} name="previousPassword" value={row?.previousPassword} onChange={(e) => handleRowChange(index, e)} placeholder="Previous password" />
+													<button type="button" onClick={() => setShow(!show)}>
+														{show ? "Hide" : "Show"}
+													</button>
+												</div>
+											</div>
+										) : null}
+
+										<div>
+											<label>New Password:</label>
+											<div className="update-form-input">
+												<input type={show ? "text" : "password"} name="newPassword" value={row?.newPassword} onChange={(e) => handleRowChange(index, e)} placeholder="New Password" />
+												<button type="button" onClick={() => setShow(!show)}>
+													{show ? "Hide" : "Show"}
+												</button>
+											</div>
+										</div>
+
+										<div>
+											<label>Confirm New Password:</label>
+											<div className="update-form-input">
+												<input type={show ? "text" : "password"} name="confirmNewPassword" value={row?.confirmNewPassword} onChange={(e) => handleRowChange(index, e)} placeholder="Confirm New Password" />
+												<button type="button" onClick={() => setShow(!show)}>
+													{show ? "Hide" : "Show"}
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								{/* center right wrapper*/}
+								<div className="form-row-center-right">
+									<div className="form-row-center-right-wrapper">
+										<div>
+											<label>New Job Title:</label>
+											<input type="text" name="title" value={row?.title} onChange={(e) => handleRowChange(index, e)} placeholder="New Job Title" />
+										</div>
+
+										<div>
+											<label>new Job Description:</label>
+											<textarea name="description" value={row?.description} onChange={(e) => handleRowChange(index, e)} placeholder="New Job Description"></textarea>
+										</div>
+
+										{logUser?.permissions?.canChangeRole ? (
+											<>
+												<div>
+													{/* <div> */}
+													<label>New Role:</label>
+
+													<select name="newRole" value={row?.newRole} onChange={(e) => handleRowChange(index, e)}>
+														<option value="" disabled>
+															Select Role
+														</option>
+														<option value="admin">Admin</option>
+														<option value="subAdmin">Sub Admin</option>
+														<option value="technician">Technician</option>
+														<option value="user">User</option>
+														<option value="noRole">No Role</option>
+													</select>
+													{/* </div> */}
+												</div>
+
+												<div>
+													<label>New Permissions:</label>
+													<ul>
+														{Object.keys(row?.newPermissions).map((permKey) => (
+															<li key={permKey}>
+																<label>{permKey}</label>:
+																<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} /> |
+															</li>
+														))}
+													</ul>
+												</div>
+											</>
+										) : null}
+									</div>
+								</div>
+							</div>
 
 							{rows.length > 1 && (
-								<button type="button" onClick={() => removeRow(index)} disabled={row.locked && index === 0}>
-									Remove Row
-								</button>
+								<div className="form-row-remove-btn-container">
+									<button className="remove-row-btn" type="button" onClick={() => removeRow(index)} disabled={row.locked && index === 0}>
+										Remove Row
+									</button>
+								</div>
 							)}
 						</div>
 					))}
 				</div>
-				<button type="button" onClick={addRow}>
-					+ Add Row
-				</button>
 
-				<div>
-					<button type="submit" disabled={updateLoading || isFormInvalid}>
+				<div className="form-action-btn">
+					<button className="form-add-row-btn" type="button" onClick={addRow}>
+						+ Add Row
+					</button>
+
+					{/* <div> */}
+					<button className="form-submit-btn" type="submit" disabled={updateLoading || isFormInvalid}>
 						{updateLoading ? "Updating..." : "Update Users"}
 					</button>
+					{/* </div> */}
 				</div>
 
 				{hasEmptyRequiredFields && <p style={{ color: "red" }}> All required fields must be filled.</p>}
@@ -321,98 +427,3 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 		</div>
 	);
 }
-
-//! other info
-
-// {/*  container for center information */}
-// 						<div className="form-row-center-container">
-// 							{/* left side of the center row */}
-// 							<div className="form-row-center-left">
-// 								<div className="form-row-center-1">
-// 									<div>
-// 										<label>New Name:</label>
-// 										<input type="text" name="name" value={row?.name} onChange={(e) => handleRowChange(index, e)} />
-// 									</div>
-
-// 									<div>
-// 										<label>New Email:</label>
-// 										<input type="text" name="newEmail" value={row?.newEmail} onChange={(e) => handleRowChange(index, e)} />
-// 									</div>
-// 								</div>
-
-// 								<div className="form-row-center-2">
-// 									{logUser.role !== "headAdmin" ? (
-// 										<div>
-// 											<label>Previous Password:</label>
-// 											<input type={show ? "text" : "password"} name="previousPassword" value={row?.previousPassword} onChange={(e) => handleRowChange(index, e)} />
-// 											<button type="button" onClick={() => setShow(!show)}>
-// 												{show ? "Hide" : "Show"}
-// 											</button>
-// 										</div>
-// 									) : null}
-
-// 									<div>
-// 										<label>New Password:</label>
-// 										<input type={show ? "text" : "password"} name="newPassword" value={row?.newPassword} onChange={(e) => handleRowChange(index, e)} />
-// 										<button type="button" onClick={() => setShow(!show)}>
-// 											{show ? "Hide" : "Show"}
-// 										</button>
-// 									</div>
-
-// 									<div>
-// 										<label>Confirm New Password:</label>
-// 										<input type={show ? "text" : "password"} name="confirmNewPassword" value={row?.confirmNewPassword} onChange={(e) => handleRowChange(index, e)} />
-// 										<button type="button" onClick={() => setShow(!show)}>
-// 											{show ? "Hide" : "Show"}
-// 										</button>
-// 									</div>
-// 								</div>
-// 							</div>
-
-// 							{/* right side of the center row */}
-// 							<div className="form-row-center-right">
-// 								<div className="form-row-center-3">
-// 									<div>
-// 										<label>New Job Title:</label>
-// 										<input type="text" name="title" value={row?.title} onChange={(e) => handleRowChange(index, e)} />
-// 									</div>
-// 									<div>
-// 										<label>new Job Description:</label>
-// 										{/* <input type="text"  /> */}
-
-// 										<textarea name="description" value={row?.description} onChange={(e) => handleRowChange(index, e)} cols={30} rows={3}></textarea>
-// 									</div>
-// 								</div>
-
-// 								{logUser?.permissions?.canChangeRole ? (
-// 									<div className="form-row-center-4">
-// 										<div>
-// 											<label>New Role:</label>
-
-// 											<select name="newRole" value={row?.newRole} onChange={(e) => handleRowChange(index, e)}>
-// 												<option value="" disabled>
-// 													Select Role
-// 												</option>
-// 												<option value="admin">Admin</option>
-// 												<option value="subAdmin">Sub Admin</option>
-// 												<option value="technician">Technician</option>
-// 												<option value="user">User</option>
-// 												<option value="noRole">No Role</option>
-// 											</select>
-// 										</div>
-
-// 										<div>
-// 											<label>New Permissions:</label>
-// 											<ul>
-// 												{Object.keys(row?.newPermissions).map((permKey) => (
-// 													<li key={permKey}>
-// 														<label>{permKey}</label>
-// 														<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
-// 													</li>
-// 												))}
-// 											</ul>
-// 										</div>
-// 									</div>
-// 								) : null}
-// 							</div>
-// 						</div>

@@ -46,6 +46,7 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 			// locked: false, //ensure new rows are never locked
 		},
 	]);
+	console.log(rows);
 
 	useEffect(() => {
 		setLogUser(jwtDecode(localStorage.getItem("UserToken")));
@@ -59,7 +60,7 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 		if (data) {
 			setUsers(data.getAllUsers);
 
-			// 🔹 Auto-select user from params if found
+			// Auto-select user from params if found
 			if (userId) {
 				const selectedUser = data.getAllUsers.find((u) => u.id === userId);
 				if (selectedUser) {
@@ -416,9 +417,16 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 																<li key={permKey}>
 																	<label>
 																		{formatKey(permKey)}
-																		<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+																		<input onChange={(e) => handleRowChange(index, e)} type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} />
 																	</label>
 																</li>
+
+																// <li key={permKey} onClick={(e) => e.target.tagName !== "INPUT" && e.currentTarget.querySelector("input").click()}>
+																// 	<label>
+																// 		{formatKey(permKey)}
+																// 		<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+																// 	</label>
+																// </li>
 															))}
 													</ul>
 												</div>
@@ -434,12 +442,20 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 															Object.keys(row?.newPermissions)
 																.filter((permKey) => permKey.includes("Self"))
 																.map((permKey) => (
+																	// find a way to use the whole link  as the btn no just the checkbox
 																	<li key={permKey}>
 																		<label>
 																			{formatKey(permKey)}
 																			<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
 																		</label>
 																	</li>
+
+																	// <li key={permKey} onClick={(e) => e.target.tagName !== "INPUT" && e.currentTarget.querySelector("input").click()}>
+																	// 	<label>
+																	// 		{formatKey(permKey)}
+																	// 		<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+																	// 	</label>
+																	// </li>
 																))
 														}
 													</ul>

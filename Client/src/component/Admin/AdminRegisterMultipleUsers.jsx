@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useMutation } from "@apollo/client";
 import { Link } from "react-router-dom";
 import { register_multiple_Users } from "../../../graphQL/mutations/mutations";
+import { jwtDecode } from "jwt-decode";
 
 export default function AdminRegisterMultipleUsers({ userToke }) {
 	const [show, setShow] = useState(false);
@@ -88,6 +89,12 @@ export default function AdminRegisterMultipleUsers({ userToke }) {
 	const duplicates = emailList.filter((e, i) => emailList.indexOf(e) !== i);
 	const hasDuplicates = duplicates.length > 0;
 
+	const formatKey = (key) => {
+		return key
+			.replace(/([a-z])([A-Z])/g, "$1 $2") // add space before capital letters
+			.replace(/^./, (str) => str.toUpperCase()); // capitalize first letter
+	};
+
 	// Submit all rows in one mutation
 	const submit = async (e) => {
 		e.preventDefault();
@@ -122,109 +129,130 @@ export default function AdminRegisterMultipleUsers({ userToke }) {
 	};
 
 	return (
-		<div>
-			<div>
-				<div>
-					<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
-						Log out
-					</Link>
+		<div className="register-container">
+			<form className="register-form" onSubmit={submit}>
+				<h1 className="register-form-title">Admin register (Multiple)</h1>
+				<div className="register-form-wrapper">
+					{rows.map((row, index) => (
+						<div className="register-form-row" key={index} ref={index === rows.length - 1 ? lastRowRef : null}>
+							<h3 className="form-row-count">User Row {index + 1}</h3>
+
+							<div className="form-row-top-container">
+								<div className="form-row-top-left ">
+									<label>Name:</label>
+									<input type="text" name="name" value={row.name} onChange={(e) => handleRowChange(index, e)} />
+								</div>
+
+								<div className="form-row-top-right">
+									<label>Email:</label>
+									<input type="text" name="email" value={row.email} onChange={(e) => handleRowChange(index, e)} />
+								</div>
+							</div>
+
+							<div className="form-row-center-container">
+								<div className="form-row-center-left">
+									<div className="form-row-center-left-wrapper">
+										<div>
+											<label>Password:</label>
+											<input type={show ? "text" : "password"} name="password" value={row.password} onChange={(e) => handleRowChange(index, e)} />
+											<button type="button" onClick={() => setShow(!show)}>
+												{show ? "Hide" : "Show"}
+											</button>
+										</div>
+
+										<div>
+											<label>Confirm Password:</label>
+											<input type={show ? "text" : "password"} name="confirmPassword" value={row.confirmPassword} onChange={(e) => handleRowChange(index, e)} />
+										</div>
+									</div>
+								</div>
+
+								<div className="form-row-center-right">
+									<div className="form-row-center-right-wrapper">
+										<div>
+											<label>Job Title:</label>
+											<input type="text" name="title" value={row.title} onChange={(e) => handleRowChange(index, e)} />
+										</div>
+										<div>
+											<label>Job Description:</label>
+											<textarea type="text" name="description" value={row.description} onChange={(e) => handleRowChange(index, e)}></textarea>
+										</div>
+										{jwtDecode(userToke)?.permissions?.canChangeRole ? (
+											<>
+												<div>
+													<label>Role:</label>
+													<select name="role" value={row.role} onChange={(e) => handleRowChange(index, e)}>
+														<option value="">Select Role</option>
+														<option value="admin">Admin</option>
+														<option value="subAdmin">Sub Admin</option>
+														<option value="technician">Technician</option>
+														<option value="user">User</option>
+														<option value="noRole">No Role</option>
+													</select>
+												</div>
+
+												<div>
+													<label>Permissions:</label>
+													<div className="permissions-grid">
+														<div>
+															{/* <h4>User Permissions</h4> */}
+															<ul className="permissions-list">
+																{Object.keys(row?.permissions)
+																	.filter((permKey) => permKey.includes("Users") || permKey.includes("Role"))
+																	.map((permKey) => (
+																		<li key={permKey}>
+																			<label>
+																				{formatKey(permKey)}
+																				<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+																			</label>
+																		</li>
+																	))}
+															</ul>
+														</div>
+
+														<div>
+															{/* <h4>Self Permissions</h4> */}
+															<ul className="permissions-list">
+																{Object.keys(row?.permissions)
+																	.filter((permKey) => permKey.includes("Self"))
+																	.map((permKey) => (
+																		<li key={permKey}>
+																			<label>
+																				{formatKey(permKey)}
+																				<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+																			</label>
+																		</li>
+																	))}
+															</ul>
+														</div>
+													</div>{" "}
+												</div>
+											</>
+										) : null}
+									</div>
+								</div>
+							</div>
+							{rows?.length > 1 && (
+								<div className="form-row-remove-btn-container">
+									<span className="remove-row-btn" type="button" onClick={() => removeRow(index)} disabled={row.locked && index === 0}>
+										Remove Row
+									</span>
+								</div>
+							)}
+						</div>
+					))}
 				</div>
 
-				<div>
-					<Link to={"/user/all"}> all users</Link>
-				</div>
+				<div className="form-action-btn">
+					<span className="form-add-row-btn" type="button" onClick={addRow}>
+						+ Add Row
+					</span>
 
-				<div>
-					<Link to={"/admin/user/update"}>admin update users</Link>
-				</div>
-
-				<div>
-					<Link to={"/user/register"}>register user</Link>
-				</div>
-
-				<div>
-					<Link to={`/material/request/all`}>all material requests</Link>
-				</div>
-			</div>
-			<h1>Admin register (Multiple)</h1>
-			<form onSubmit={submit}>
-				{rows.map((row, index) => (
-					<div key={index} ref={index === rows.length - 1 ? lastRowRef : null} style={{ border: "1px solid gray", padding: "1rem", marginBottom: "1rem" }}>
-						<h3>User Row {index + 1}</h3>
-
-						<div>
-							<label>Name:</label>
-							<input type="text" name="name" value={row.name} onChange={(e) => handleRowChange(index, e)} />
-						</div>
-
-						<div>
-							<label>Email:</label>
-							<input type="text" name="email" value={row.email} onChange={(e) => handleRowChange(index, e)} />
-						</div>
-
-						<div>
-							<label>Password:</label>
-							<input type={show ? "text" : "password"} name="password" value={row.password} onChange={(e) => handleRowChange(index, e)} />
-							<button type="button" onClick={() => setShow(!show)}>
-								{show ? "Hide" : "Show"}
-							</button>
-						</div>
-
-						<div>
-							<label>Confirm Password:</label>
-							<input type={show ? "text" : "password"} name="confirmPassword" value={row.confirmPassword} onChange={(e) => handleRowChange(index, e)} />
-						</div>
-
-						<div>
-							<label>Job Title:</label>
-							<input type="text" name="title" value={row.title} onChange={(e) => handleRowChange(index, e)} />
-						</div>
-
-						<div>
-							<label>Job Description:</label>
-							<input type="text" name="description" value={row.description} onChange={(e) => handleRowChange(index, e)} />
-						</div>
-
-						<div>
-							<label>Role:</label>
-							<select name="role" value={row.role} onChange={(e) => handleRowChange(index, e)}>
-								<option value="">Select Role</option>
-								<option value="admin">Admin</option>
-								<option value="subAdmin">Sub Admin</option>
-								<option value="technician">Technician</option>
-								<option value="user">User</option>
-								<option value="noRole">No Role</option>
-							</select>
-						</div>
-
-						<div>
-							<label>Permissions:</label>
-							<ul>
-								{Object.keys(row.permissions).map((permKey) => (
-									<li key={permKey}>
-										<label>{permKey}</label>
-										<input type="checkbox" name={permKey} checked={row.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
-									</li>
-								))}
-							</ul>
-						</div>
-
-						{rows?.length > 1 ? (
-							<button type="button" onClick={() => removeRow(index)}>
-								Remove Row
-							</button>
-						) : null}
+					<div>
+						<button className="form-submit-btn" type="submit" disabled={loading || !requiredFieldsFilled || hasDuplicates}>
+							{loading ? "Registering..." : "Register Users"}
+						</button>
 					</div>
-				))}
-
-				<button type="button" onClick={addRow}>
-					+ Add Row
-				</button>
-
-				<div>
-					<button type="submit" disabled={loading || !requiredFieldsFilled || hasDuplicates}>
-						{loading ? "Registering..." : "Register Users"}
-					</button>
 				</div>
 
 				{!requiredFieldsFilled && <p style={{ color: "red" }}> Please fill in all required fields.</p>}

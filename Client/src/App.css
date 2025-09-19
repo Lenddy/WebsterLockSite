@@ -991,8 +991,9 @@
 	color: var(--white);
 }
 
-/*! update and update many    */
+/*! register, update and register many, update many   */
 
+.register-container,
 .update-container {
 	background-color: var(--slate-dark-gray);
 	width: 99%;
@@ -1004,16 +1005,17 @@
 	border-radius: 10px;
 }
 
+.register-form,
 .update-form {
 	width: clamp(18.75rem, 100vw, 50rem);
-
-	/* background-color: purple; */
 }
 
+.register-form-title,
 .update-form-title {
 	font-size: clamp(1.375rem, 1.219rem + 0.83vw, 2rem);
 }
 
+.register-form-wrapper,
 .update-form-wrapper {
 	background-color: var(--slate-gray);
 	display: flex;
@@ -1025,18 +1027,21 @@
 	border-radius: 10px;
 }
 
+.register-form-wrapper label,
 .update-form-wrapper label {
 	font-size: clamp(1.25rem, 1.172rem + 0.42vw, 1.563rem);
 	/* font-size: clamp(1rem, 0.85rem + 0.8vw, 1.25rem); */
 	/* font-size: clamp(0.875rem, 0.786rem + 0.47vw, 1.231rem); */
 }
 
+.register-form-wrapper ul label,
 .update-form-wrapper ul label {
 	/* font-size: clamp(1.25rem, 1.172rem + 0.42vw, 1.563rem); */
 	font-size: clamp(1rem, 0.85rem + 0.8vw, 1.25rem);
 	/* font-size: clamp(0.875rem, 0.786rem + 0.47vw, 1.231rem); */
 }
 
+.register-form-row,
 .update-form-row {
 	background-color: var(--brass);
 	display: flex;
@@ -1132,6 +1137,7 @@
 	/* margin-bottom: 100px; */
 }
 
+.form-row-top-left input,
 .form-row-top-right input {
 	height: 30px;
 	width: 90%;
@@ -1194,26 +1200,50 @@
 	color: var(--black);
 }
 
-.form-row-center-right-wrapper textarea {
+/* .form-row-center-right-wrapper textarea {
 	min-width: 90%;
-	min-height: 100px;
+	min-height: 165px;
 	border-radius: 10px;
 	background-color: var(--white);
 	border: 1px solid var(--black);
 	color: var(--black);
 	box-sizing: border-box;
-	resize: vertical; /* only allow vertical resizing */
 	text-align: center;
+} */
+
+/* 2.5 rows height */
+/* 3 rows height */
+/* 2.5 rows height */
+.form-row-center-right-wrapper textarea {
+	min-width: 90%;
+	min-height: 168px; /* 2.5 rows */
+	max-height: 168px;
+	border-radius: 10px;
+	background-color: var(--white);
+	border: 1px solid var(--black);
+	color: var(--black);
+	box-sizing: border-box;
+	resize: vertical;
+	text-align: center;
+	padding: 10px;
+	font-size: clamp(1.25rem, 1.172rem + 0.42vw, 1.563rem);
+	line-height: 1.2;
 }
 
 .form-row-center-right-wrapper select {
-	height: 30px;
+	height: 34px;
 	width: 90%;
 	border-radius: 10px;
 	background-color: var(--white);
 	text-align: center;
 	border: 1px solid var(--black);
 	color: var(--black);
+}
+
+/* * for the center bottom  */
+.form-row-center-bottom {
+	/* background-color: blue; */
+	width: 100%;
 }
 
 /* Make checkboxes circular */
@@ -1249,14 +1279,35 @@
 	border-radius: 50%;
 }
 
+/* here */
+
+/* Wrap both groups side by side on wide screens */
+.permissions-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	/* gap: 5px; */
+	justify-items: center;
+}
+
 /* Grid layout for splitting into 2 columns */
 .permissions-list {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-	gap: 12px 20px;
+	gap: 12px 0px;
 	list-style: none;
 	padding: 0;
 	margin: 10px 0;
+	/* background-color: red; */
+	max-width: 90%;
+}
+
+.permissions-list li {
+	background-color: var(--white);
+	color: var(--black);
+	border: 1px solid black;
+	border-radius: 10px;
+	/* max-width: 95%; */
+	/* margin: 0 5px; */
 }
 
 .update-form-input input {

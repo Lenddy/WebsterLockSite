@@ -382,67 +382,71 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 											<label>new Job Description:</label>
 											<textarea name="description" value={row?.description} onChange={(e) => handleRowChange(index, e)} placeholder="New Job Description"></textarea>
 										</div>
+										{logUser?.permissions?.canChangeRole && (
+											<div>
+												<label>New Role:</label>
 
-										{logUser?.permissions?.canChangeRole ? (
-											<>
-												<div>
-													{/* <div> */}
-													<label>New Role:</label>
-
-													<select name="newRole" value={row?.newRole} onChange={(e) => handleRowChange(index, e)}>
-														<option value="" disabled>
-															Select Role
-														</option>
-														<option value="admin">Admin</option>
-														<option value="subAdmin">Sub Admin</option>
-														<option value="technician">Technician</option>
-														<option value="user">User</option>
-														<option value="noRole">No Role</option>
-													</select>
-													{/* </div> */}
-												</div>
-
-												<div>
-													<label>New Permissions:</label>
-													<div className="permissions-grid">
-														{/* User-related permissions */}
-														<div>
-															{/* <h4>User Permissions</h4> */}
-															<ul className="permissions-list">
-																{Object.keys(row?.newPermissions)
-																	.filter((permKey) => permKey.includes("Users") || permKey.includes("Role"))
-																	.map((permKey) => (
-																		<li key={permKey}>
-																			<label>
-																				{formatKey(permKey)}
-																				<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
-																			</label>
-																		</li>
-																	))}
-															</ul>
-														</div>
-
-														{/* Self-related permissions */}
-														<div>
-															{/* <h4>Self Permissions</h4> */}
-															<ul className="permissions-list">
-																{Object.keys(row?.newPermissions)
-																	.filter((permKey) => permKey.includes("Self"))
-																	.map((permKey) => (
-																		<li key={permKey}>
-																			<label>
-																				{formatKey(permKey)}
-																				<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
-																			</label>
-																		</li>
-																	))}
-															</ul>
-														</div>
-													</div>
-												</div>
-											</>
-										) : null}
+												<select name="newRole" value={row?.newRole} onChange={(e) => handleRowChange(index, e)}>
+													<option value="" disabled>
+														Select Role
+													</option>
+													<option value="admin">Admin</option>
+													<option value="subAdmin">Sub Admin</option>
+													<option value="technician">Technician</option>
+													<option value="user">User</option>
+													<option value="noRole">No Role</option>
+												</select>
+											</div>
+										)}
 									</div>
+								</div>
+
+								<div className="form-row-center-bottom">
+									{logUser?.permissions?.canChangeRole && (
+										<>
+											{/* <label>New Permissions:</label> */}
+											<div className="permissions-grid">
+												{/* User-related permissions */}
+												<div>
+													<label>User Permissions</label>
+													<ul className="permissions-list">
+														{Object.keys(row?.newPermissions)
+															.filter((permKey) => permKey.includes("Users") || permKey.includes("Role"))
+															.map((permKey) => (
+																<li key={permKey}>
+																	<label>
+																		{formatKey(permKey)}
+																		<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+																	</label>
+																</li>
+															))}
+													</ul>
+												</div>
+
+												{/* make sure that the permissions works  they are not being updated when they are click */}
+
+												{/* Self-related permissions */}
+												<div>
+													<label>Self Permissions</label>
+													<ul className="permissions-list">
+														{
+															/** make sure that the permissions works  they are not being updated when they are click */
+															Object.keys(row?.newPermissions)
+																.filter((permKey) => permKey.includes("Self"))
+																.map((permKey) => (
+																	<li key={permKey}>
+																		<label>
+																			{formatKey(permKey)}
+																			<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+																		</label>
+																	</li>
+																))
+														}
+													</ul>
+												</div>
+											</div>
+										</>
+									)}
 								</div>
 							</div>
 

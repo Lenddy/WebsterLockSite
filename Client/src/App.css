@@ -1092,7 +1092,6 @@
 .update-form-row-select__control {
 	border-radius: 50px;
 	border: 1px solid blue;
-	/* width: 300px; */
 	height: 30px;
 }
 
@@ -1112,7 +1111,8 @@
 
 /* Placeholder */
 .update-form-row-select__placeholder {
-	/* color: green; */
+	/* color: blue; */
+	/* background-color: blue; */
 }
 
 /* .model-bottom-wrapper span:nth-child(2), */
@@ -1216,16 +1216,51 @@
 	color: var(--black);
 }
 
-.form-row-center-right-wrapper input[type="checkbox"] {
-	/* background-color: blue; */
-	/* height: 0px; */
-	/* width: 15px; */
-	margin-left: 5px;
+/* Make checkboxes circular */
+.permissions-list input[type="checkbox"] {
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	width: 18px;
+	height: 18px;
+	border: 2px solid var(--dark-blue);
+	border-radius: 50%;
+	cursor: pointer;
+	position: relative;
+	margin-left: 10px;
+	transition: background 0.2s, border-color 0.2s;
+}
+
+/* Checked state */
+.permissions-list input[type="checkbox"]:checked {
+	background-color: var(--dark-blue);
+	border-color: var(--dark-blue);
+}
+
+/* Inner dot */
+.permissions-list input[type="checkbox"]:checked::after {
+	content: "";
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	width: 6px;
+	height: 6px;
+	background: white;
+	border-radius: 50%;
+}
+
+/* Grid layout for splitting into 2 columns */
+.permissions-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 12px 20px;
+	list-style: none;
+	padding: 0;
+	margin: 10px 0;
 }
 
 .update-form-input input {
-	width: calc(90% - 50px);
-	/* width: 50px; */
+	width: calc(90% - 35px);
 }
 
 /* Generic container with focus outline */
@@ -1306,21 +1341,6 @@
 	flex-direction: row;
 }
 
-.form-row-center-right-wrapper div ul {
-	display: flex;
-	gap: 8px;
-	justify-content: space-evenly;
-	align-items: center;
-	flex-wrap: wrap;
-	border: solid 2px var(--black);
-	list-style: none;
-	margin: 10px 0px;
-}
-
-/* .update-form-wrapper {
-	scale: 0.9;
-} */
-
 .form-row-remove-btn-container {
 	height: 50px;
 	/* background-color: green; */
@@ -1328,6 +1348,7 @@
 	display: flex;
 	justify-content: center;
 	align-items: start;
+	padding: 10px;
 }
 
 .form-action-btn {
@@ -1336,25 +1357,25 @@
 	align-items: start;
 	margin: 10px 0px;
 	color: var(--white);
-	/* background-color: orange; */
 	min-height: 60px;
 }
 
-.form-row-remove-btn-container span,
-.form-action-btn span {
+.form-submit-btn {
+	all: unset;
+}
+
+.remove-row-btn,
+.form-submit-btn,
+.form-add-row-btn {
 	border-radius: 10px;
 	height: 40px;
 	width: clamp(4.688rem, 0.426rem + 22.73vw, 12.5rem);
-	height: 40px;
 	font-size: clamp(0.938rem, 0.75rem + 1vw, 1.25rem);
-	border-radius: 10px;
 	border: 1px solid var(--white);
-	border-radius: 5px;
 	padding: 0 5px;
 	box-shadow: 0px 0px 15px var(--black);
 	color: var(--white);
 	font-weight: 600;
-	/* background-color: var(--dark-blue); */
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -1373,13 +1394,55 @@
 }
 
 .form-submit-btn {
+	/* all: unset; */
 	background-color: var(--dark-green);
 }
 
-.form-row-remove-btn-container span:hover,
-.form-action-btn span:hover {
+/* Hover effect */
+.remove-row-btn,
+.form-submit-btn,
+.form-add-row-btn {
 	cursor: pointer;
 	scale: 0.9;
+}
+
+/* Ensure disabled state looks right */
+.form-action-btn button:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+	scale: 1; /* no shrinking effect */
+}
+
+.update-form-show-hide {
+	width: clamp(1.875rem, 1.688rem + 1vw, 2.188rem);
+	height: clamp(1.875rem, 1.688rem + 1vw, 2.188rem);
+	padding: 0px;
+	border-radius: 50px;
+	margin-left: 3px;
+}
+
+.update-form-show-hide:hover {
+	cursor: pointer;
+}
+
+.update-form-show-hide:active {
+	transform: translateY(4px);
+	transition: transform ease-in-out 100ms;
+}
+
+.update-eye {
+	stroke: var(--black);
+	width: 100%;
+	height: 100%;
+	/* filter: drop-shadow(4px 6px var(--red)); */
+	stroke-width: 2px;
+}
+
+.update-eye:active {
+	stroke: var(--white);
+
+	/* filter: drop-shadow(0px 5px var(--blue)); */
+	stroke-width: 2px;
 }
 
 /* !!!!! */

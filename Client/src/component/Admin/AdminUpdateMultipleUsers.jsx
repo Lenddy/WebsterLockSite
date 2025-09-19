@@ -8,9 +8,13 @@ import { get_all_users } from "../../../graphQL/queries/queries";
 import { useQuery, useSubscription } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
 import { jwtDecode } from "jwt-decode";
 
+import Eye from "../../assets/eye.svg?react";
+import CloseEye from "../../assets/closeEye.svg?react";
+
 export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 	const [show, setShow] = useState(false);
 	const [users, setUsers] = useState([]);
+	const [success, setSuccess] = useState();
 	const { error, loading, data, refetch } = useQuery(get_all_users);
 	const [logUser, setLogUser] = useState({});
 	const lastRowRef = useRef(null);
@@ -74,6 +78,7 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 								...selectedUser.permissions, // overwrite with actual perms
 							},
 						};
+						// setSuccess({ success: false });
 						return newRows;
 					});
 				}
@@ -83,8 +88,6 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 			console.log("there was an error", error);
 		}
 	}, [loading, data, error, userId, location]);
-
-	//! for tomorrow
 
 	const [adminChangeMultipleUserProfiles, { loading: updateLoading, error: updateError }] = useMutation(admin_update_multiple_users);
 
@@ -123,6 +126,8 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 			}
 			return newRows;
 		});
+		// setSuccess({ success: false });
+		setSuccess(null);
 	};
 
 	//  Add row
@@ -152,11 +157,15 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 				locked: false, // ensure new rows are never locked
 			},
 		]);
+		// setSuccess({ success: false });
+		setSuccess(null);
 	};
 
 	//  Remove row
 	const removeRow = (index) => {
 		setRows((prevRows) => prevRows.filter((_, i) => i !== index));
+		// setSuccess({ success: false });
+		setSuccess(null);
 	};
 
 	// Validation
@@ -182,6 +191,8 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 			console.warn(" Row has an ID but no other fields were changed.");
 			return true;
 		}
+		// setSuccess({ success: false });
+		// setSuccess(null);
 
 		return false; // valid row
 	});
@@ -195,10 +206,17 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 			if (r.previousEmail) seen.add(r.previousEmail);
 			if (r.newEmail) seen.add(r.newEmail);
 		}
+		// setSuccess({ success: false });
 		return false;
 	})();
 
 	const isFormInvalid = hasEmptyRequiredFields || hasDuplicateEmails;
+
+	const formatKey = (key) => {
+		return key
+			.replace(/([a-z])([A-Z])/g, "$1 $2") // add space before capital letters
+			.replace(/^./, (str) => str.toUpperCase()); // capitalize first letter
+	};
 
 	// 🔹 Submit
 	const submit = async (e) => {
@@ -224,6 +242,7 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 				},
 				onCompleted: (res) => {
 					console.log("Mutation success:", res);
+					setSuccess({ success: true, update: "Update has been completed" });
 				},
 				onError: (errRes) => {
 					console.log("Mutation error:", errRes);
@@ -257,6 +276,7 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 									<label> Find User</label>
 									<Select
 										className="form-row-top-select"
+										filterOption={customFilter}
 										classNamePrefix="update-form-row-select"
 										options={userOptions}
 										value={userOptions.find((opt) => opt.value === row?.id) || null}
@@ -319,9 +339,10 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 												<label>Previous Password:</label>
 												<div className="update-form-input">
 													<input type={show ? "text" : "password"} name="previousPassword" value={row?.previousPassword} onChange={(e) => handleRowChange(index, e)} placeholder="Previous password" />
-													<button type="button" onClick={() => setShow(!show)}>
-														{show ? "Hide" : "Show"}
-													</button>
+
+													<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
+														{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
+													</span>
 												</div>
 											</div>
 										) : null}
@@ -330,9 +351,10 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 											<label>New Password:</label>
 											<div className="update-form-input">
 												<input type={show ? "text" : "password"} name="newPassword" value={row?.newPassword} onChange={(e) => handleRowChange(index, e)} placeholder="New Password" />
-												<button type="button" onClick={() => setShow(!show)}>
-													{show ? "Hide" : "Show"}
-												</button>
+
+												<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
+													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
+												</span>
 											</div>
 										</div>
 
@@ -340,9 +362,9 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 											<label>Confirm New Password:</label>
 											<div className="update-form-input">
 												<input type={show ? "text" : "password"} name="confirmNewPassword" value={row?.confirmNewPassword} onChange={(e) => handleRowChange(index, e)} placeholder="Confirm New Password" />
-												<button type="button" onClick={() => setShow(!show)}>
-													{show ? "Hide" : "Show"}
-												</button>
+												<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
+													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
+												</span>
 											</div>
 										</div>
 									</div>
@@ -382,14 +404,41 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 
 												<div>
 													<label>New Permissions:</label>
-													<ul>
-														{Object.keys(row?.newPermissions).map((permKey) => (
-															<li key={permKey}>
-																<label>{permKey}</label>:
-																<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} /> |
-															</li>
-														))}
-													</ul>
+													<div className="permissions-grid">
+														{/* User-related permissions */}
+														<div>
+															{/* <h4>User Permissions</h4> */}
+															<ul className="permissions-list">
+																{Object.keys(row?.newPermissions)
+																	.filter((permKey) => permKey.includes("Users") || permKey.includes("Role"))
+																	.map((permKey) => (
+																		<li key={permKey}>
+																			<label>
+																				{formatKey(permKey)}
+																				<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+																			</label>
+																		</li>
+																	))}
+															</ul>
+														</div>
+
+														{/* Self-related permissions */}
+														<div>
+															{/* <h4>Self Permissions</h4> */}
+															<ul className="permissions-list">
+																{Object.keys(row?.newPermissions)
+																	.filter((permKey) => permKey.includes("Self"))
+																	.map((permKey) => (
+																		<li key={permKey}>
+																			<label>
+																				{formatKey(permKey)}
+																				<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+																			</label>
+																		</li>
+																	))}
+															</ul>
+														</div>
+													</div>
 												</div>
 											</>
 										) : null}
@@ -413,13 +462,16 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 						+ Add Row
 					</span>
 
-					{/* <div> */}
-					<span className="form-submit-btn" type="submit" disabled={updateLoading || isFormInvalid}>
+					<button className="form-submit-btn" type="submit" disabled={updateLoading || isFormInvalid}>
 						{updateLoading ? "Updating..." : "Update Users"}
-					</span>
-					{/* </div> */}
+					</button>
 				</div>
 
+				{success?.success === true && (
+					<p className="form-error-message" style={{ color: "green" }}>
+						{success?.update}
+					</p>
+				)}
 				{hasEmptyRequiredFields && (
 					<p className="form-error-message" style={{ color: "red" }}>
 						{" "}

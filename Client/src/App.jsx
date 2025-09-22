@@ -55,7 +55,6 @@ function App({ userToke }) {
 					<Route path="/material/request/all" element={<GetAllMaterialRequest />} />
 					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest />} />
 					<Route path="/material/request/request" element={<CreateOneMaterialRequest />} />
-
 					<Route path="/test" element={<Test />} />
 				</Route>
 			</Routes>

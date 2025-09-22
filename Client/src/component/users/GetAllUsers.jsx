@@ -13,6 +13,7 @@ export default function GetAllUsers({ userToke }) {
 	const [filteredUsers, setFilteredUsers] = useState([]);
 	const [searchValue, setSearchValue] = useState(""); // persistent search
 	// const [logUser, setLogUser] = useState({});
+	console.log("this is the filter users", filteredUsers);
 
 	// Initialize users and filtered users
 	useEffect(() => {

@@ -43,7 +43,7 @@ export default function GetOneMaterialRequest() {
 	// todo : you get a waring that p tags cant have children
 
 	return (
-		<div>
+		<>
 			{/* <div>
 				<Link to={`/user/${userId}/update/admin`}>admin update users</Link>
 			</div> */}
@@ -90,10 +90,10 @@ export default function GetOneMaterialRequest() {
 								{mRequest?.items?.map((item) => {
 									return (
 										<span key={item?.id}>
-											{item.quantity} - {item.itemName}{" "}
-											<p>
+											{item.quantity} - {item.itemName} <br />
+											<span>
 												/ Item description <span>{item.itemDescription}</span>{" "}
-											</p>
+											</span>
 											<br />
 										</span>
 									);
@@ -119,7 +119,6 @@ export default function GetOneMaterialRequest() {
 			}
 
 			{error && <p style={{ color: "red" }}> {error.message}</p>}
-			{/* <h1>hello: {requestId}</h1> */}
-		</div>
+		</>
 	);
 }

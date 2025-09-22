@@ -404,7 +404,7 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 
 								<div className="form-row-center-bottom">
 									{logUser?.permissions?.canChangeRole && (
-										<>
+										<div>
 											{/* <label>New Permissions:</label> */}
 											<div className="permissions-grid">
 												{/* User-related permissions */}
@@ -420,13 +420,6 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 																		<input onChange={(e) => handleRowChange(index, e)} type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} />
 																	</label>
 																</li>
-
-																// <li key={permKey} onClick={(e) => e.target.tagName !== "INPUT" && e.currentTarget.querySelector("input").click()}>
-																// 	<label>
-																// 		{formatKey(permKey)}
-																// 		<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
-																// 	</label>
-																// </li>
 															))}
 													</ul>
 												</div>
@@ -449,19 +442,12 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 																			<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
 																		</label>
 																	</li>
-
-																	// <li key={permKey} onClick={(e) => e.target.tagName !== "INPUT" && e.currentTarget.querySelector("input").click()}>
-																	// 	<label>
-																	// 		{formatKey(permKey)}
-																	// 		<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
-																	// 	</label>
-																	// </li>
 																))
 														}
 													</ul>
 												</div>
 											</div>
-										</>
+										</div>
 									)}
 								</div>
 							</div>

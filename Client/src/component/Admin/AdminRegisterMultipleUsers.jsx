@@ -3,6 +3,8 @@ import { useMutation } from "@apollo/client";
 import { Link } from "react-router-dom";
 import { register_multiple_Users } from "../../../graphQL/mutations/mutations";
 import { jwtDecode } from "jwt-decode";
+import Eye from "../../assets/eye.svg?react";
+import CloseEye from "../../assets/closeEye.svg?react";
 
 export default function AdminRegisterMultipleUsers({ userToke }) {
 	const [show, setShow] = useState(false);
@@ -140,12 +142,12 @@ export default function AdminRegisterMultipleUsers({ userToke }) {
 							<div className="form-row-top-container">
 								<div className="form-row-top-left ">
 									<label>Name:</label>
-									<input type="text" name="name" value={row.name} onChange={(e) => handleRowChange(index, e)} />
+									<input type="text" name="name" value={row.name} onChange={(e) => handleRowChange(index, e)} placeholder="Name" />
 								</div>
 
 								<div className="form-row-top-right">
 									<label>Email:</label>
-									<input type="text" name="email" value={row.email} onChange={(e) => handleRowChange(index, e)} />
+									<input type="text" name="email" value={row.email} onChange={(e) => handleRowChange(index, e)} placeholder="Email" />
 								</div>
 							</div>
 
@@ -154,15 +156,22 @@ export default function AdminRegisterMultipleUsers({ userToke }) {
 									<div className="form-row-center-left-wrapper">
 										<div>
 											<label>Password:</label>
-											<input type={show ? "text" : "password"} name="password" value={row.password} onChange={(e) => handleRowChange(index, e)} />
-											<button type="button" onClick={() => setShow(!show)}>
-												{show ? "Hide" : "Show"}
-											</button>
+											<div className="update-form-input">
+												<input type={show ? "text" : "password"} name="password" value={row.password} onChange={(e) => handleRowChange(index, e)} placeholder="Password" />
+												<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
+													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
+												</span>
+											</div>
 										</div>
 
 										<div>
 											<label>Confirm Password:</label>
-											<input type={show ? "text" : "password"} name="confirmPassword" value={row.confirmPassword} onChange={(e) => handleRowChange(index, e)} />
+											<div className="update-form-input">
+												<input type={show ? "text" : "password"} name="confirmPassword" value={row.confirmPassword} onChange={(e) => handleRowChange(index, e)} placeholder="Confirm Password" />
+												<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
+													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
+												</span>
+											</div>
 										</div>
 									</div>
 								</div>
@@ -171,65 +180,67 @@ export default function AdminRegisterMultipleUsers({ userToke }) {
 									<div className="form-row-center-right-wrapper">
 										<div>
 											<label>Job Title:</label>
-											<input type="text" name="title" value={row.title} onChange={(e) => handleRowChange(index, e)} />
+											<input type="text" name="title" value={row.title} onChange={(e) => handleRowChange(index, e)} placeholder="Job Title" />
 										</div>
 										<div>
 											<label>Job Description:</label>
-											<textarea type="text" name="description" value={row.description} onChange={(e) => handleRowChange(index, e)}></textarea>
+											<textarea type="text" name="description" value={row.description} onChange={(e) => handleRowChange(index, e)} placeholder="Description"></textarea>
 										</div>
-										{jwtDecode(userToke)?.permissions?.canChangeRole ? (
-											<>
-												<div>
-													<label>Role:</label>
-													<select name="role" value={row.role} onChange={(e) => handleRowChange(index, e)}>
-														<option value="">Select Role</option>
-														<option value="admin">Admin</option>
-														<option value="subAdmin">Sub Admin</option>
-														<option value="technician">Technician</option>
-														<option value="user">User</option>
-														<option value="noRole">No Role</option>
-													</select>
-												</div>
-
-												<div>
-													<label>Permissions:</label>
-													<div className="permissions-grid">
-														<div>
-															{/* <h4>User Permissions</h4> */}
-															<ul className="permissions-list">
-																{Object.keys(row?.permissions)
-																	.filter((permKey) => permKey.includes("Users") || permKey.includes("Role"))
-																	.map((permKey) => (
-																		<li key={permKey}>
-																			<label>
-																				{formatKey(permKey)}
-																				<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
-																			</label>
-																		</li>
-																	))}
-															</ul>
-														</div>
-
-														<div>
-															{/* <h4>Self Permissions</h4> */}
-															<ul className="permissions-list">
-																{Object.keys(row?.permissions)
-																	.filter((permKey) => permKey.includes("Self"))
-																	.map((permKey) => (
-																		<li key={permKey}>
-																			<label>
-																				{formatKey(permKey)}
-																				<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
-																			</label>
-																		</li>
-																	))}
-															</ul>
-														</div>
-													</div>{" "}
-												</div>
-											</>
-										) : null}
+										{jwtDecode(userToke)?.permissions?.canChangeRole && (
+											<div>
+												<label>Role:</label>
+												<select name="role" value={row.role} onChange={(e) => handleRowChange(index, e)}>
+													<option value="">Select Role</option>
+													<option value="admin">Admin</option>
+													<option value="subAdmin">Sub Admin</option>
+													<option value="technician">Technician</option>
+													<option value="user">User</option>
+													<option value="noRole">No Role</option>
+												</select>
+											</div>
+										)}
 									</div>
+								</div>
+
+								<div className="form-row-center-bottom">
+									{jwtDecode(userToke)?.permissions?.canChangeRole && (
+										<div>
+											<label>Permissions:</label>
+											<div className="permissions-grid">
+												<div>
+													{/* <h4>User Permissions</h4> */}
+													<ul className="permissions-list">
+														{Object.keys(row?.permissions)
+															.filter((permKey) => permKey.includes("Users") || permKey.includes("Role"))
+															.map((permKey) => (
+																<li key={permKey}>
+																	<label>
+																		{formatKey(permKey)}
+																		<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+																	</label>
+																</li>
+															))}
+													</ul>
+												</div>
+
+												<div>
+													{/* <h4>Self Permissions</h4> */}
+													<ul className="permissions-list">
+														{Object.keys(row?.permissions)
+															.filter((permKey) => permKey.includes("Self"))
+															.map((permKey) => (
+																<li key={permKey}>
+																	<label>
+																		{formatKey(permKey)}
+																		<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+																	</label>
+																</li>
+															))}
+													</ul>
+												</div>
+											</div>{" "}
+										</div>
+									)}
 								</div>
 							</div>
 							{rows?.length > 1 && (

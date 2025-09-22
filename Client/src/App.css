@@ -108,6 +108,7 @@
 .log-in-show-hide {
 	width: clamp(0.938rem, 5vw, 2.813rem);
 	height: clamp(0.938rem, 5vw, 2.813rem);
+
 	padding: 0px;
 	border-radius: 50px;
 }
@@ -1032,6 +1033,7 @@
 	font-size: clamp(1.25rem, 1.172rem + 0.42vw, 1.563rem);
 	/* font-size: clamp(1rem, 0.85rem + 0.8vw, 1.25rem); */
 	/* font-size: clamp(0.875rem, 0.786rem + 0.47vw, 1.231rem); */
+	font-weight: 400;
 }
 
 .register-form-wrapper ul label,
@@ -1514,8 +1516,6 @@
 	}
 	.update-form {
 		width: 98%;
-
-		/* background-color: purple; */
 	}
 }
 

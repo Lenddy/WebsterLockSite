@@ -241,144 +241,177 @@ function UpdateOneMaterialRequest({ requestId }) {
 							<div className="update-form-row" key={idx}>
 								{/* Brand select */}
 								<h3 className="form-row-count">User Row {idx + 1}</h3>
-								<Select
-									options={brands}
-									value={row.brand}
-									onChange={(val) => handleRowChange(idx, "brand", val)}
-									placeholder="Select Brand"
-									isClearable
-									isSearchable
-									styles={{
-										control: (base) => ({
-											...base,
-											borderRadius: "12px",
-											borderColor: "blue",
-											width: "200px",
-											height: "50px",
-										}),
-										option: (base, state) => ({
-											...base,
-											backgroundColor: state.isFocused ? "lightblue" : "white",
-											color: "black",
-										}),
-									}}
-								/>
+								<div className="form-row-material-request-item-filter">
+									<label htmlFor=""> Filter By Brand</label>
+									<Select
+										// className="form-row-top-select"
 
-								{/* Quantity input */}
-								<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} placeholder="Qty" />
+										classNamePrefix={""}
+										options={brands}
+										value={row.brand}
+										onChange={(val) => handleRowChange(idx, "brand", val)}
+										placeholder="Filter By Brand"
+										isClearable
+										isSearchable
+										styles={{
+											control: (base) => ({
+												...base,
+												borderRadius: "12px",
+												borderColor: "blue",
+												width: "200px",
+												height: "50px",
+											}),
+											option: (base, state) => ({
+												...base,
+												backgroundColor: state.isFocused ? "lightblue" : "white",
+												color: "black",
+											}),
+										}}
+									/>
+								</div>
+								{/* this top */}
+								{/* <label htmlFor=""> quantity and item</label> */}
+								<div className="form-row-top-container material-request">
+									<div className="form-row-top-left  material-request">
+										{/* Quantity input */}
+										<label htmlFor=""> Quantity</label>
+										<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} placeholder="Qty" style={{ maxWidth: "100px" }} />
+									</div>
 
-								{/* Item select */}
-								<Select
-									options={filteredItems}
-									value={row.item}
-									onChange={(val) => handleRowChange(idx, "item", val)}
-									placeholder="Select Item"
-									filterOption={customFilter}
-									isClearable
-									isSearchable
-									styles={{
-										control: (base) => ({
-											...base,
-											borderRadius: "12px",
-											borderColor: "blue",
-											// width: "200px",
-											// height: "50px",
-										}),
-										option: (base, state) => ({
-											...base,
-											backgroundColor: state.isFocused ? "lightblue" : "white",
-											color: "black",
-										}),
-									}}
-								/>
+									<div className="form-row-top-right  material-request">
+										<label htmlFor=""> Item</label>
+										{/* Item select */}
+										<Select
+											className="form-row-top-select"
+											options={filteredItems}
+											value={row.item}
+											onChange={(val) => handleRowChange(idx, "item", val)}
+											placeholder="Select Item"
+											filterOption={customFilter}
+											isClearable
+											isSearchable
+											styles={{
+												control: (base) => ({
+													...base,
+													borderRadius: "12px",
+													borderColor: "blue",
+													// width: "200px",
+													// height: "50px",
+												}),
+												option: (base, state) => ({
+													...base,
+													backgroundColor: state.isFocused ? "lightblue" : "white",
+													color: "black",
+												}),
+											}}
+										/>{" "}
+									</div>
+								</div>
 
-								<Select
-									options={colorOptions}
-									value={colorOptions.find((opt) => opt.value === row.color)}
-									onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
-									placeholder="Select Color"
-									isClearable
-									isSearchable
-									styles={{
-										control: (base) => ({
-											...base,
-											borderRadius: "12px",
-											borderColor: "blue",
-										}),
-										option: (base, state) => ({
-											...base,
-											backgroundColor: state.isFocused ? "lightblue" : "white",
-											color: "black",
-										}),
-									}}
-									//  This custom renderer shows the swatch + label
-									formatOptionLabel={(option) => (
-										<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-											<div
-												style={{
-													width: "30px",
-													height: "30px",
-													backgroundColor: option.hex,
-													border: "1px solid #ccc",
-												}}
-											/>
-											<span>{option.label}</span>
-										</div>
-									)}
-								/>
+								<div className="form-row-center-container material-request">
+									<div>
+										<label htmlFor="color"> color </label>
+										<Select
+											classNamePrefix=""
+											options={colorOptions}
+											value={colorOptions.find((opt) => opt.value === row.color)}
+											onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
+											placeholder="Color"
+											isClearable
+											isSearchable
+											styles={{
+												control: (base) => ({
+													...base,
+													borderRadius: "12px",
+													borderColor: "blue",
+												}),
+												option: (base, state) => ({
+													...base,
+													backgroundColor: state.isFocused ? "lightblue" : "white",
+													color: "black",
+												}),
+											}}
+											//  This custom renderer shows the swatch + label
+											formatOptionLabel={(option) => (
+												<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+													<div
+														style={{
+															width: "30px",
+															height: "30px",
+															backgroundColor: option.hex,
+															border: "1px solid #ccc",
+														}}
+													/>
+													<span>{option.label}</span>
+												</div>
+											)}
+										/>
+									</div>
 
-								{/* Item select */}
-								<Select
-									options={sideOptions}
-									value={sideOptions.find((opt) => opt.value === row.side)}
-									onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
-									placeholder="Select Side/Hand"
-									filterOption={customFilter}
-									isClearable
-									isSearchable
-									styles={{
-										control: (base) => ({
-											...base,
-											borderRadius: "12px",
-											borderColor: "blue",
-											// width: "200px",
-											// height: "50px",
-										}),
-										option: (base, state) => ({
-											...base,
-											backgroundColor: state.isFocused ? "lightblue" : "white",
-											color: "black",
-										}),
-									}}
-								/>
+									<div>
+										<label htmlFor="">side/hand</label>
 
-								<Select
-									options={sizeOptions}
-									value={sizeOptions.find((opt) => opt.value === row.size)}
-									onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
-									placeholder="Select Size"
-									filterOption={customFilter}
-									isClearable
-									isSearchable
-									styles={{
-										control: (base) => ({
-											...base,
-											borderRadius: "12px",
-											borderColor: "blue",
-											// width: "200px",
-											// height: "50px",
-										}),
-										option: (base, state) => ({
-											...base,
-											backgroundColor: state.isFocused ? "lightblue" : "white",
-											color: "black",
-										}),
-									}}
-								/>
+										<Select
+											className="form-row-top-select"
+											options={sideOptions}
+											value={sideOptions.find((opt) => opt.value === row.side)}
+											onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
+											placeholder="Side/Hand"
+											filterOption={customFilter}
+											isClearable
+											isSearchable
+											styles={{
+												control: (base) => ({
+													...base,
+													borderRadius: "12px",
+													borderColor: "blue",
+													// width: "200px",
+													// height: "50px",
+												}),
+												option: (base, state) => ({
+													...base,
+													backgroundColor: state.isFocused ? "lightblue" : "white",
+													color: "black",
+												}),
+											}}
+										/>
+									</div>
 
-								{/* Description input */}
-								<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
+									<div>
+										<label htmlFor=""> Size</label>
 
+										<Select
+											className="form-row-top-select"
+											options={sizeOptions}
+											value={sizeOptions.find((opt) => opt.value === row.size)}
+											onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
+											placeholder="Size"
+											filterOption={customFilter}
+											isClearable
+											isSearchable
+											styles={{
+												control: (base) => ({
+													...base,
+													borderRadius: "12px",
+													borderColor: "blue",
+													// width: "200px",
+													// height: "50px",
+												}),
+												option: (base, state) => ({
+													...base,
+													backgroundColor: state.isFocused ? "lightblue" : "white",
+													color: "black",
+												}),
+											}}
+										/>
+									</div>
+								</div>
+								{/* <div>
+									<label htmlFor=""> description</label>
+
+									
+									<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
+								</div> */}
 								{rows.length > 1 && (
 									<div className="form-row-remove-btn-container">
 										<span className="remove-row-btn" type="button" onClick={() => removeRow(idx)}>

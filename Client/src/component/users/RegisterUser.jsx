@@ -2,6 +2,8 @@ import { register_User } from "../../../graphQL/mutations/mutations";
 import { useMutation } from "@apollo/client";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Eye from "../../assets/eye.svg?react";
+import CloseEye from "../../assets/closeEye.svg?react";
 
 export default function RegisterUser() {
 	const [info, setInfo] = useState({});
@@ -79,119 +81,148 @@ export default function RegisterUser() {
 	};
 
 	return (
-		<>
-			{/* {logUser?.name} */}
-			<h1>Register </h1>
+		<div className="register-container">
+			<form className="register-form" onSubmit={submit}>
+				<div className="register-form-title">
+					<h1>Register </h1>
+				</div>
 
-			<div>
-				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
-					Log out
-				</Link>
-			</div>
+				<div className="register-form-wrapper">
+					<div className="register-form-row">
+						<div className="form-row-top-container">
+							<div className="form-row-top-left">
+								<label htmlFor="name">Name:</label>
+								<input type="text" name="name" onChange={(e) => SubmissionInfo(e)} placeholder="Name" />
+							</div>
 
-			<div>
-				<Link to={"/user/all"}>all users</Link>
-			</div>
+							<div className="form-row-top-right">
+								<label htmlFor="email">Email:</label>
+								<input type="text" name="email" onChange={(e) => SubmissionInfo(e)} placeholder="Email" />
+							</div>
+						</div>
 
-			<div>
-				<form onSubmit={submit}>
-					<div>
-						<label htmlFor="name">Name:</label>
-						<input type="text" name="name" onChange={(e) => SubmissionInfo(e)} />
+						<div className="form-row-center-container">
+							<div className="form-row-center-left">
+								<div className="form-row-center-left-wrapper">
+									<div>
+										<label htmlFor="password">Password:</label>
+										<div className="update-form-input">
+											<input type={show === true ? "text" : "password"} name="password" onChange={(e) => SubmissionInfo(e)} placeholder="Password" />
+											<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
+												{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
+											</span>
+										</div>
+									</div>
+
+									<div>
+										<label htmlFor="confirmPassword">Confirm Password:</label>
+										<div className="update-form-input">
+											<input type={show === true ? "text" : "password"} name="confirmPassword" onChange={(e) => SubmissionInfo(e)} placeholder="Confirm Password" />
+
+											<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
+												{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
+											</span>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div className="form-row-center-right">
+								<div className="form-row-center-right-wrapper">
+									<div>
+										{/* <label htmlFor="job">Name:</label> */}
+
+										<label htmlFor="title">job title:</label>
+										<input type="text" name="title" onChange={(e) => jobInfo(e)} placeholder="Job Title" />
+									</div>
+
+									<div>
+										<label htmlFor="description">job description:</label>
+										<textarea type="text" name="description" onChange={(e) => jobInfo(e)} placeholder="Job Description" />
+									</div>
+
+									<div>
+										<label htmlFor="role">role:</label>
+										{/* <input type="text" name="role" onChange={(e) => SubmissionInfo(e)} /> */}
+
+										<select name="role" id="" onChange={(e) => SubmissionInfo(e)}>
+											<option value="" selected disabled>
+												Select Role
+											</option>
+											<option value="admin">Admin</option>
+											<option value="subAdmin">Sub Admin</option>
+											<option value="technician">Technician</option>
+											<option value="user">user</option>
+											<option value="noRole">No Role</option>
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div className="form-row-center-bottom">
+							<div>
+								<label htmlFor="permissions">Permissions:</label>
+
+								<div className="permissions-grid">
+									<div>
+										<ul className="permissions-list">
+											<li>
+												<label htmlFor="canViewAllUsers">Can View All Users</label>
+												<input type="checkbox" name="canViewAllUsers" id="" onChange={(e) => permissionsInfo(e)} />
+											</li>
+
+											<li>
+												<label htmlFor="canEditUsers">Can Edit Users </label>
+												<input type="checkbox" name="canEditUsers" id="" onChange={(e) => permissionsInfo(e)} />
+											</li>
+
+											<li>
+												<label htmlFor="canDeleteUsers">Can Delete Users</label>
+												<input type="checkbox" name="canDeleteUsers" id="" onChange={(e) => permissionsInfo(e)} />
+											</li>
+
+											<li>
+												<label htmlFor="canChangeRole">Can Change Role</label>
+												<input type="checkbox" name="canChangeRole" id="" onChange={(e) => permissionsInfo(e)} />
+											</li>
+										</ul>
+									</div>
+
+									<div>
+										<ul className="permissions-list">
+											<li>
+												<label htmlFor="canEditSelf">Can Edit Self</label>
+												<input type="checkbox" name="canEditSelf" id="" onChange={(e) => permissionsInfo(e)} />
+											</li>
+
+											<li>
+												<label htmlFor="canViewSelf">Can View Self</label>
+												<input type="checkbox" name="canViewSelf" id="" onChange={(e) => permissionsInfo(e)} />
+											</li>
+
+											<li>
+												<label htmlFor="canEditSelf">Can Delete Self</label>
+												<input type="checkbox" name="canEditSelf" id="" onChange={(e) => permissionsInfo(e)} />
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
+				</div>
 
-					<div>
-						<label htmlFor="email">Email:</label>
-						<input type="text" name="email" onChange={(e) => SubmissionInfo(e)} />
-					</div>
+				<div className="validation"> {/* <p color="red"> {validation} </p>{" "} */}</div>
 
-					<div>
-						<label htmlFor="password">Password:</label>
-						<input type={show === true ? "text" : "password"} name="password" onChange={(e) => SubmissionInfo(e)} />
-						<button type="button" onClick={() => setShow(!show)}>
-							{show === false ? "show" : "hide"}
-						</button>
-					</div>
-
-					<div>
-						<label htmlFor="confirmPassword">Confirm Password:</label>
-						<input type={show === true ? "text" : "password"} name="confirmPassword" onChange={(e) => SubmissionInfo(e)} />
-						<button type="button" onClick={() => setShow(!show)}>
-							{show === false ? "show" : "hide"}
-						</button>
-					</div>
-
-					<div>
-						{/* <label htmlFor="job">Name:</label> */}
-
-						<label htmlFor="title">job title:</label>
-						<input type="text" name="title" onChange={(e) => jobInfo(e)} />
-					</div>
-
-					<div>
-						<label htmlFor="description">job description:</label>
-						<input type="text" name="description" onChange={(e) => jobInfo(e)} />
-					</div>
-
-					<div>
-						<label htmlFor="role">role:</label>
-						{/* <input type="text" name="role" onChange={(e) => SubmissionInfo(e)} /> */}
-
-						<select name="role" id="" onChange={(e) => SubmissionInfo(e)}>
-							<option value="" selected disabled>
-								Select Role
-							</option>
-							<option value="admin">Admin</option>
-							<option value="subAdmin">Sub Admin</option>
-							<option value="technician">Technician</option>
-							<option value="user">user</option>
-							<option value="noRole">No Role</option>
-						</select>
-					</div>
-
-					<div>
-						<label htmlFor="permissions">Permissions:</label>
-						<ul>
-							<li>
-								<label htmlFor="canViewAllUsers">can view All users</label>
-								<input type="checkbox" name="canViewAllUsers" id="" onChange={(e) => permissionsInfo(e)} />
-							</li>
-
-							<li>
-								<label htmlFor="canEditUsers">Can Edit Users </label>
-								<input type="checkbox" name="canEditUsers" id="" onChange={(e) => permissionsInfo(e)} />
-							</li>
-
-							<li>
-								<label htmlFor="canDeleteUsers">Can Delete Users</label>
-								<input type="checkbox" name="canDeleteUsers" id="" onChange={(e) => permissionsInfo(e)} />
-							</li>
-
-							<li>
-								<label htmlFor="canChangeRole">Can Change users Role</label>
-								<input type="checkbox" name="canChangeRole" id="" onChange={(e) => permissionsInfo(e)} />
-							</li>
-
-							<li>
-								<label htmlFor="canEditSelf">Can Edit Self</label>
-								<input type="checkbox" name="canEditSelf" id="" onChange={(e) => permissionsInfo(e)} />
-							</li>
-
-							<li>
-								<label htmlFor="canViewSelf">Can View Self</label>
-								<input type="checkbox" name="canViewSelf" id="" onChange={(e) => permissionsInfo(e)} />
-							</li>
-						</ul>
-					</div>
-
-					<div className="validation"> {/* <p color="red"> {validation} </p>{" "} */}</div>
-					<button type="submit" disabled={loading}>
-						{loading ? "Registering  ..." : "Register"}
+				<div className="form-action-btn">
+					<button className="form-submit-btn" type="submit" disabled={loading}>
+						{loading ? "Registering  ..." : "Register User"}
 					</button>
+				</div>
 
-					{error && <p style={{ color: "red" }}>{error.message}</p>}
-				</form>
-			</div>
-		</>
+				{error && <p style={{ color: "red" }}>{error.message}</p>}
+			</form>
+		</div>
 	);
 }

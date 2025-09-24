@@ -140,7 +140,7 @@ export default function AdminRegisterMultipleUsers({ userToke }) {
 							<h3 className="form-row-count">User Row {index + 1}</h3>
 
 							<div className="form-row-top-container">
-								<div className="form-row-top-left ">
+								<div className="form-row-top-left">
 									<label>Name:</label>
 									<input type="text" name="name" value={row.name} onChange={(e) => handleRowChange(index, e)} placeholder="Name" />
 								</div>
@@ -238,7 +238,7 @@ export default function AdminRegisterMultipleUsers({ userToke }) {
 															))}
 													</ul>
 												</div>
-											</div>{" "}
+											</div>
 										</div>
 									)}
 								</div>

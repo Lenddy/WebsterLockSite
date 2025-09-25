@@ -1168,19 +1168,6 @@
 	border: solid var(--black) 2px;
 }
 
-/* update center  */
-.form-row-center-container.material-request {
-	width: 100%;
-	min-height: 300px;
-	display: flex;
-	justify-content: center;
-	/* background-color: red; */
-	/* flex-wrap: wrap; */
-	margin: 10px 0px;
-	border: solid var(--black) 2px;
-	gap: 10px;
-}
-
 .form-row-center-left,
 .form-row-center-right {
 	flex: 1;
@@ -1469,7 +1456,6 @@
 }
 
 .form-submit-btn {
-	/* all: unset; */
 	background-color: var(--dark-green);
 }
 
@@ -1509,18 +1495,15 @@
 	stroke: var(--black);
 	width: 100%;
 	height: 100%;
-	/* filter: drop-shadow(4px 6px var(--red)); */
 	stroke-width: 2px;
 }
 
 .update-eye:active {
 	stroke: var(--white);
-
-	/* filter: drop-shadow(0px 5px var(--blue)); */
 	stroke-width: 2px;
 }
 
-/* Material Request */
+/*! Material Request */
 
 .form-row-top-left.material-request,
 .form-row-top-right.material-request {
@@ -1534,13 +1517,115 @@
 	width: 100%;
 	display: flex;
 	flex-direction: column;
-	/* display: flex; */
 	justify-content: center;
 	align-items: center;
 }
 
-.form-row-material-request-item-filter > div {
-	/* width: 100%; */
+/* update center  */
+.form-row-center-container-material-request {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	margin: 10px 0px;
+	border: solid var(--black) 2px;
+	gap: 10px;
+}
+
+.form-row-center-container-material-request-wrapper {
+	display: flex;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+.form-row-center-container-material-request-wrapper-top {
+	/* background-color: red; */
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+.form-row-center-material-request-select {
+	/* background-color: blue; */
+	display: flex;
+	justify-content: center;
+	max-width: 500px;
+	width: 90%;
+}
+
+/* form-row-center-container-material-request-wrapper-center */
+.form-row-center-container-material-request-wrapper-center {
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	gap: 2px;
+}
+
+.form-row-center-container-material-request-wrapper-center > div {
+	width: 50%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+}
+
+.form-row-center-container-material-request-wrapper-bottom {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	justify-content: center;
+	align-items: center;
+}
+
+.form-row-center-container-material-request textarea {
+	width: 90%;
+	min-height: 168px; /* 2.5 rows */
+	max-height: 168px;
+	border-radius: 10px;
+	background-color: var(--white);
+	border: 1px solid var(--black);
+	color: var(--black);
+	box-sizing: border-box;
+	resize: vertical;
+	text-align: center;
+	padding: 10px;
+	font-size: clamp(1.063rem, 0.938rem + 0.67vw, 1.563rem);
+	line-height: 1.2;
+	font-weight: 300;
+}
+
+/* controls the heigh and width of the  select */
+.material-request__control {
+	/* color: black !important; */
+	/* */
+	/* width: 300px;
+	height: 100px; */
+	/* border-radius: 100px; */
+}
+
+/* Options */
+.material-request__option {
+	/* color: black !important; */
+	/* cursor: pointer;
+	border-bottom: solid black 1px;
+	background-color: red; */
+}
+
+.material-request__option--is-focused {
+	/* background-color: lightblue; */
+}
+
+.material-request__menu {
+	background-color: red;
+	color: black;
+}
+
+/* Placeholder */
+.material-request__placeholder {
+	/* color: blue; */
+	/* background-color: blue; */
 }
 
 /* !!!!! */
@@ -1638,18 +1723,37 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
+		height: 80px;
+		background-color: red !;
 	}
 
 	.form-row-center-container.material-request > div {
 		width: 90%;
 		display: flex;
 		flex-direction: column;
+		height: 60px;
+	}
+}
+
+/* Responsive behavior */
+@media (max-width: 336px) {
+	/* form-row-center-container-material-request-wrapper-center */
+	.form-row-center-container-material-request-wrapper-center {
+		/* background-color: green; */
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		flex-direction: column;
+		gap: 10px;
 	}
 
-	.form-row-center-container.material-request > div {
-		width: 90%;
+	.form-row-center-container-material-request-wrapper-center > div {
+		/* background-color: blue; */
+		width: 100%;
 		display: flex;
-		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		/* flex-direction: column; */
 	}
 }
 

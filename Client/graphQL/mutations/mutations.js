@@ -222,6 +222,10 @@ export const update_One_Material_Request = gql`
 				id
 				itemName
 				quantity
+				itemDescription
+				color
+				side
+				size
 			}
 
 			requester {

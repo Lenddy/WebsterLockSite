@@ -2,13 +2,13 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import { get_all_item_groups } from "../../../graphQL/queries/queries";
-import { create_one_material_request } from "../../../graphQL/mutations/mutations";
 import Select from "react-select";
 import Fuse from "fuse.js";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 import { get_one_material_request } from "../../../graphQL/queries/queries";
+import { update_One_Material_Request } from "../../../graphQL/mutations/mutations";
 
 function UpdateOneMaterialRequest() {
 	//   to pass in ass a prop for later { requestId }
@@ -17,7 +17,7 @@ function UpdateOneMaterialRequest() {
 	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
 
 	const navigate = useNavigate();
-	const [NewMaterialRequest, { loading, error }] = useMutation(create_one_material_request);
+	const [updatedMaterialRequest, { loading, error }] = useMutation(update_One_Material_Request);
 
 	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
 	const [itemGroups, setItemGroups] = useState([]);
@@ -247,24 +247,23 @@ function UpdateOneMaterialRequest() {
 			const input = {
 				items: rows.map((r) => ({
 					quantity: parseInt(r.quantity),
-					// quantity: r.quantity,
 					itemName: r?.item?.value || null,
 					color: r?.color || null,
 					side: r?.side || null,
 					size: r?.size || null,
 					itemDescription: r?.itemDescription || null,
 				})),
-				// addedDate: dayjs().format("YYYY-MM-DD"), // include today's date if needed
 			};
 
 			console.log("this is the input that are send  ", input);
 
-			await NewMaterialRequest({
+			console.log("updatedInputs", input);
+
+			await updatedMaterialRequest({
 				variables: { input },
 				onCompleted: (res) => {
-					console.log("Mutation success:", res?.createOneMaterialRequest);
-					// newMr =
-					navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
+					console.log("Mutation success:", res?.updateOneMaterialRequest);
+					navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
 				},
 			});
 		} catch (err) {

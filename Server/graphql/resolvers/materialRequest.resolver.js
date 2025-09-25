@@ -345,20 +345,20 @@ const materialRequestResolvers = {
 
 				if (Array.isArray(items)) {
 					for (const item of items) {
-						const { id: itemId, itemName, quantity, color, side, size, action } = item;
+						const { id: itemId, itemName, quantity, itemDescription, color, side, size, action } = item;
 
 						if (action.toBeAdded === true) {
 							bulkOps.push({
 								updateOne: {
 									filter: { _id: id },
-									update: { $push: { items: { quantity, itemName, color, side, size } } },
+									update: { $push: { items: { quantity, itemName, itemDescription, color, side, size } } },
 								},
 							});
 						} else if (action.toBeUpdated && itemId) {
 							bulkOps.push({
 								updateOne: {
 									filter: { _id: id, "items._id": itemId },
-									update: { $set: { "items.$.quantity": quantity, "items.$.itemName": itemName, "items.$.color": color, "items.$.side": side, "items.$.size": size } },
+									update: { $set: { "items.$.quantity": quantity, "items.$.itemName": itemName, "items.$.itemDescription": itemDescription, "items.$.color": color, "items.$.side": side, "items.$.size": size } },
 								},
 							});
 						} else if (action.toBeDeleted && itemId) {

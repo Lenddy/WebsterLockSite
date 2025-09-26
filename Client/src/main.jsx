@@ -136,7 +136,7 @@ createRoot(document.getElementById("root")).render(
 	<ApolloProvider client={client}>
 		<BrowserRouter>
 			<StrictMode>
-				<App userToke={userToken} />
+				<App userToken={userToken} />
 			</StrictMode>
 		</BrowserRouter>
 	</ApolloProvider>

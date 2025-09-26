@@ -37,6 +37,7 @@ const MaterialRequestSchema = new Schema(
 					message: (props) => `${props.value} is not a valid email address!`,
 				},
 			},
+
 			role: String,
 			permissions: {
 				canEditUsers: Boolean,

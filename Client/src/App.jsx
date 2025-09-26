@@ -20,7 +20,7 @@ import AdminCreateMultipleItemsGroups from "./component/Admin/AdminCreateMultipl
 import AdminUpdateMultipleItemsGroups from "./component/Admin/AdminUpdateMultipleItemGroups";
 import AdminItemUsage from "./component/Admin/AdminItemUsage";
 
-function App({ userToke }) {
+function App({ userToken }) {
 	const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
 	useEffect(() => {
@@ -37,7 +37,7 @@ function App({ userToke }) {
 
 				<Route element={<ProtectedRoute screenWidth={screenWidth} />}>
 					{/* Admin user routes */}
-					<Route path="/admin/user/register" element={<AdminRegisterMultipleUsers userToke={userToke} />} />
+					<Route path="/admin/user/register" element={<AdminRegisterMultipleUsers userToken={userToken} />} />
 					<Route path="/admin/user/:userId?/update" element={<AdminUpdateMultipleUsers />} />
 					<Route path="/admin/material/request" element={<AdminCreateMultipleMaterialRequests />} />
 					<Route path="/admin/material/item/all" element={<AdminGetAllItems />} />
@@ -47,13 +47,13 @@ function App({ userToke }) {
 					<Route path="/admin/material/item/usage" element={<AdminItemUsage />} />
 
 					{/* User routes */}
-					<Route path="/user/all" element={<GetAllUsers userToke={userToke} />} />
-					<Route path="/user/:userId/update?/admin?" element={<GetOneUser userToke={userToke} />} />
+					<Route path="/user/all" element={<GetAllUsers userToken={userToken} />} />
+					<Route path="/user/:userId/update?/admin?" element={<GetOneUser userToken={userToken} />} />
 					<Route path="/user/register" element={<RegisterUser />} />
 
 					{/* Material request routes */}
 					<Route path="/material/request/all" element={<GetAllMaterialRequest />} />
-					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest />} />
+					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest userToken={userToken} />} />
 					<Route path="/material/request/request" element={<CreateOneMaterialRequest />} />
 					<Route path="/test" element={<Test />} />
 				</Route>

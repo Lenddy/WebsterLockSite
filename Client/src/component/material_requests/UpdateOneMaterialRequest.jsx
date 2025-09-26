@@ -10,9 +10,10 @@ import { jwtDecode } from "jwt-decode";
 import { get_one_material_request } from "../../../graphQL/queries/queries";
 import { update_One_Material_Request } from "../../../graphQL/mutations/mutations";
 
-function UpdateOneMaterialRequest() {
+function UpdateOneMaterialRequest({ userToken }) {
 	//   to pass in ass a prop for later { requestId }
 	// const [info, setInfo] = useState({});
+
 	const { requestId } = useParams();
 	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
 
@@ -49,6 +50,20 @@ function UpdateOneMaterialRequest() {
 	];
 
 	// ---------------------------
+	// Build list of all items, each labeled "Brand - ItemName"
+	// ---------------------------
+
+	const allItems = itemGroups?.flatMap((group) =>
+		group?.itemsList?.map((item) => ({
+			// return item;
+
+			label: `${group.brand} - ${item.itemName}`, // how it shows in the dropdown
+			value: `${group.brand} - ${item.itemName}`, // what we send back
+			brand: group.brand, // keep track of which brand this item belongs to
+		}))
+	);
+
+	// ---------------------------
 	// Effect: fetch itemGroups from GraphQL query
 	// ---------------------------
 	useEffect(() => {
@@ -65,9 +80,10 @@ function UpdateOneMaterialRequest() {
 					const matchedItem = allItems.find((i) => i.value === item.itemName);
 
 					return {
-						item: matchedItem || { label: item.itemName, value: item.itemName }, // fallback if not found
+						id: item.id,
 						quantity: item.quantity,
-						itemDescription: item.itemDescription,
+						item: matchedItem || { label: item.itemName, value: item.itemName }, // fallback if not found
+						itemDescription: item.itemDescription ? item.itemDescription : "",
 						color: item.color,
 						side: item.side,
 						size: item.size,
@@ -90,7 +106,7 @@ function UpdateOneMaterialRequest() {
 			console.log("there was an error", iGError);
 		}
 		// const fetchData = async () => {
-	}, [iGLoading, iGData, iGError]);
+	}, [iGLoading, iGData, iGError, mRData, mRLoading, itemGroups]);
 
 	// ---------------------------
 	// Build list of unique brands
@@ -106,20 +122,6 @@ function UpdateOneMaterialRequest() {
 		label: b,
 		value: b,
 	}));
-
-	// ---------------------------
-	// Build list of all items, each labeled "Brand - ItemName"
-	// ---------------------------
-
-	const allItems = itemGroups?.flatMap((group) =>
-		group?.itemsList?.map((item) => ({
-			// return item;
-
-			label: `${group.brand} - ${item.itemName}`, // how it shows in the dropdown
-			value: `${group.brand} - ${item.itemName}`, // what we send back
-			brand: group.brand, // keep track of which brand this item belongs to
-		}))
-	);
 
 	// console.log("this are all the items", allItems);
 
@@ -140,38 +142,58 @@ function UpdateOneMaterialRequest() {
 	// ---------------------------
 	// Handle row value change
 	// ---------------------------
-	const handleRowChange = (index, field, value) => {
-		/**
-		 * Steps:
-		 * 1. Clone the current rows (since state should not be mutated directly).
-		 * 2. Update the specific field (brand, item, or quantity) for the selected row.
-		 * 3. Save updated rows back into state.
-		 */
-		const newRows = [...rows];
+	// const handleRowChange = (index, field, value) => {
+	// 	/**
+	// 	 * Steps:
+	// 	 * 1. Clone the current rows (since state should not be mutated directly).
+	// 	 * 2. Update the specific field (brand, item, or quantity) for the selected row.
+	// 	 * 3. Save updated rows back into state.
+	// 	 */
+	// 	const newRows = [...rows];
 
-		// Special case: quantity should never be <= 0
+	// 	// Special case: quantity should never be <= 0
+
+	// 	if (field === "quantity") {
+	// 		if (value === "") {
+	// 			// allow empty while typing
+	// 			newRows[index][field] = "";
+	// 		} else {
+	// 			let parsed = parseInt(value, 10);
+
+	// 			if (isNaN(parsed)) {
+	// 				newRows[index][field] = "";
+	// 			} else if (parsed === 0) {
+	// 				// no zeros → force to 1
+	// 				newRows[index][field] = 1;
+	// 			} else {
+	// 				// remove minus sign
+	// 				newRows[index][field] = Math.abs(parsed);
+	// 			}
+	// 		}
+	// 	} else {
+	// 		newRows[index][field] = value;
+	// 	}
+
+	// 	setRows(newRows);
+	// };
+
+	const handleRowChange = (index, field, value) => {
+		const newRows = [...rows];
+		const row = { ...newRows[index] };
 
 		if (field === "quantity") {
-			if (value === "") {
-				// allow empty while typing
-				newRows[index][field] = "";
-			} else {
-				let parsed = parseInt(value, 10);
-
-				if (isNaN(parsed)) {
-					newRows[index][field] = "";
-				} else if (parsed === 0) {
-					// no zeros → force to 1
-					newRows[index][field] = 1;
-				} else {
-					// remove minus sign
-					newRows[index][field] = Math.abs(parsed);
-				}
-			}
+			let parsed = parseInt(value, 10);
+			row.quantity = isNaN(parsed) || parsed <= 0 ? "" : Math.abs(parsed);
 		} else {
-			newRows[index][field] = value;
+			row[field] = value;
 		}
 
+		// Mark as updated if it already exists in DB
+		if (row.id && !row?.action?.toBeDeleted) {
+			row.action = { ...row?.action, toBeUpdated: true };
+		}
+
+		newRows[index] = row;
 		setRows(newRows);
 	};
 
@@ -213,7 +235,7 @@ function UpdateOneMaterialRequest() {
 		 * 2. Append a new row with default null/empty values.
 		 * 3. Save updated rows into state.
 		 */
-		setRows([...rows, { brand: null, item: null, quantity: "" }]);
+		setRows([...rows, { brand: null, item: null, quantity: "", action: { toBeAdded: true } }]);
 	};
 
 	// --- inside your component CreateOneMaterialRequest --- //
@@ -225,7 +247,28 @@ function UpdateOneMaterialRequest() {
 	 * @param {number} index - The index of the row to remove.
 	 */
 	const removeRow = (index) => {
-		setRows((prevRows) => prevRows.filter((_, i) => i !== index));
+		// setRows((prevRows) => prevRows.filter((_, i) => i !== index));
+
+		setRows((prevRows) => {
+			const newRows = [...prevRows];
+			const row = newRows[index];
+
+			if (row?.id) {
+				// Existing DB item → toggle delete/undo
+				newRows[index] = {
+					...row,
+					action: {
+						...row?.action,
+						toBeDeleted: !row?.action?.toBeDeleted, // toggle
+					},
+				};
+			} else {
+				// New row not saved yet → just drop it
+				newRows.splice(index, 1);
+			}
+
+			return newRows;
+		});
 	};
 
 	// ---------------------------
@@ -246,13 +289,24 @@ function UpdateOneMaterialRequest() {
 		try {
 			const input = {
 				items: rows.map((r) => ({
+					id: r.id,
 					quantity: parseInt(r.quantity),
-					itemName: r?.item?.value || null,
+					itemName: r?.item?.value,
 					color: r?.color || null,
 					side: r?.side || null,
 					size: r?.size || null,
 					itemDescription: r?.itemDescription || null,
+					action: r.action,
 				})),
+				approvalStatus: {
+					approvedBy: {
+						userId: jwtDecode(userToken).userId,
+						name: jwtDecode(userToken).name,
+						email: jwtDecode(userToken).email,
+					},
+					approvedAt: new Date(),
+					isApproved: true,
+				},
 			};
 
 			console.log("this is the input that are send  ", input);
@@ -260,10 +314,10 @@ function UpdateOneMaterialRequest() {
 			console.log("updatedInputs", input);
 
 			await updatedMaterialRequest({
-				variables: { input },
+				variables: { id: requestId, input },
 				onCompleted: (res) => {
 					console.log("Mutation success:", res?.updateOneMaterialRequest);
-					navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
+					// navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
 				},
 			});
 		} catch (err) {
@@ -292,14 +346,13 @@ function UpdateOneMaterialRequest() {
 						const filteredItems = row.brand?.value ? allItems?.filter((i) => i?.brand === row.brand.value) : allItems;
 
 						return (
-							<div className="update-form-row" key={idx}>
+							<div className={`update-form-row `} key={idx}>
 								{/* Brand select */}
 								<h3 className="form-row-count">Material Request Row {idx + 1}</h3>
-								<div className="form-row-material-request-item-filter">
+								<div className={`form-row-material-request-item-filter ${row?.action?.toBeDeleted ? "disabled" : ""}`}>
 									<label htmlFor=""> Filter By Brand</label>
 									<Select
 										// className="form-row-top-select"
-
 										classNamePrefix={"update-form-row-select"}
 										options={brands}
 										value={row.brand}
@@ -307,6 +360,7 @@ function UpdateOneMaterialRequest() {
 										placeholder="Filter By Brand"
 										isClearable
 										isSearchable
+										isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
 										styles={{
 											control: (base) => ({
 												...base,
@@ -325,11 +379,11 @@ function UpdateOneMaterialRequest() {
 								</div>
 								{/* this top */}
 								{/* <label htmlFor=""> quantity and item</label> */}
-								<div className="form-row-top-container material-request">
+								<div className={` form-row-top-container material-request ${row?.action?.toBeDeleted ? "disabled" : ""}`}>
 									<div className="form-row-top-left  material-request">
 										{/* Quantity input */}
 										<label htmlFor=""> Quantity</label>
-										<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} min={1} placeholder={mRLoading ? "loading" : "Qty"} disabled={mRLoading ? true : false} />
+										<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} min={1} placeholder={mRLoading ? "loading" : "Qty"} disabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
 									</div>
 
 									<div className="form-row-top-right  material-request">
@@ -341,7 +395,7 @@ function UpdateOneMaterialRequest() {
 											value={row.item}
 											onChange={(val) => handleRowChange(idx, "item", val)}
 											placeholder={mRLoading ? "loading" : "Select Item"}
-											isDisabled={mRLoading ? true : false}
+											isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
 											filterOption={customFilter}
 											isClearable
 											isSearchable
@@ -363,7 +417,7 @@ function UpdateOneMaterialRequest() {
 									</div>
 								</div>
 
-								<div className="form-row-center-container-material-request">
+								<div className={`form-row-center-container-material-request   ${row?.action?.toBeDeleted ? "disabled" : ""}`}>
 									<div className="form-row-center-container-material-request-wrapper">
 										<div className="form-row-center-container-material-request-wrapper-top">
 											{/* <div></div> */}
@@ -375,7 +429,7 @@ function UpdateOneMaterialRequest() {
 												value={colorOptions.find((opt) => opt.value === row.color)}
 												onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
 												placeholder={mRLoading ? "loading" : "Color"}
-												isDisabled={mRLoading ? true : false}
+												isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
 												isClearable
 												isSearchable
 												styles={{
@@ -419,7 +473,7 @@ function UpdateOneMaterialRequest() {
 													value={sideOptions.find((opt) => opt.value === row.side)}
 													onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
 													placeholder={mRLoading ? "loading" : "Side/Hand"}
-													isDisabled={mRLoading ? true : false}
+													isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
 													filterOption={customFilter}
 													isClearable
 													isSearchable
@@ -449,7 +503,7 @@ function UpdateOneMaterialRequest() {
 													value={sizeOptions.find((opt) => opt.value === row.size)}
 													onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
 													placeholder={mRLoading ? "loading" : "Size"}
-													isDisabled={mRLoading ? true : false}
+													isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
 													filterOption={customFilter}
 													isClearable
 													isSearchable
@@ -475,13 +529,14 @@ function UpdateOneMaterialRequest() {
 									<div className="form-row-center-container-material-request-wrapper-bottom">
 										<label htmlFor=""> description</label>
 
-										<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder={mRLoading ? "loading" : "description for the item"} disabled={mRLoading ? true : false} />
+										<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder={mRLoading ? "loading" : "description for the item"} disabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
 									</div>
 								</div>
+								{row?.action?.toBeDeleted && <p style={{ color: "red" }}> This item is flagged for deletion</p>}
 								{rows.length > 1 && (
 									<div className="form-row-remove-btn-container">
 										<span className="remove-row-btn" type="button" onClick={() => removeRow(idx)}>
-											remove
+											{row?.action?.toBeDeleted ? "Undo Remove" : "Remove"}
 										</span>
 									</div>
 								)}
@@ -495,15 +550,19 @@ function UpdateOneMaterialRequest() {
 					<span className="form-add-row-btn" onClick={addRow}>
 						+ Add Item
 					</span>
+					{/* 
+					<div >
+						<button className="form-comment-btn">Leave Comment</button>
+					</div> */}
 
-					{/* Todo: disable the submit btn if the some info is not filled out */}
-					<button className="form-submit-btn" type="submit" disabled={loading || mRLoading || !isFormValid}>
-						Submit
-					</button>
+					<div>
+						<button className="form-submit-btn" type="submit" disabled={loading || mRLoading || !isFormValid}>
+							Submit
+						</button>
+					</div>
 				</div>
 				{!isFormValid && (
 					<p className="form-error" style={{ color: "red" }}>
-						{" "}
 						Please fill out all required fields (Item & Quantity).
 					</p>
 				)}

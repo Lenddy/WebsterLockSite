@@ -7,7 +7,7 @@ import UpdateOneMaterialRequest from "./UpdateOneMaterialRequest";
 // import UpdateOneUser from "./updateOneUser";
 // import AdminUpdateOneUser from "./AdminUpdateOneUser";
 
-export default function GetOneMaterialRequest() {
+export default function GetOneMaterialRequest({ userToken }) {
 	const [mRequest, setMRequest] = useState({});
 	const [logUser, setLogUser] = useState({});
 	const { requestId } = useParams();
@@ -56,7 +56,7 @@ export default function GetOneMaterialRequest() {
 				// ) :
 
 				currentRoutePath === `/material/request/${requestId}/update` ? (
-					<UpdateOneMaterialRequest requestId={requestId} />
+					<UpdateOneMaterialRequest requestId={requestId} userToken={userToken} />
 				) : loading ? (
 					<div>
 						<h1>loading...</h1>

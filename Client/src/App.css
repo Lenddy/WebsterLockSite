@@ -1428,7 +1428,8 @@
 
 .remove-row-btn,
 .form-submit-btn,
-.form-add-row-btn {
+.form-add-row-btn,
+.form-comment-btn {
 	border-radius: 10px;
 	height: 40px;
 	width: clamp(4.688rem, 0.426rem + 22.73vw, 12.5rem);
@@ -1459,10 +1460,15 @@
 	background-color: var(--dark-green);
 }
 
+.form-comment-btn {
+	background-color: var(--slate-gray);
+}
+
 /* Hover effect */
 .remove-row-btn,
 .form-submit-btn,
-.form-add-row-btn {
+.form-add-row-btn,
+.form-comment-btn {
 	cursor: pointer;
 	scale: 0.9;
 }
@@ -1472,6 +1478,23 @@
 	opacity: 0.6;
 	cursor: not-allowed;
 	scale: 1; /* no shrinking effect */
+}
+
+/* input:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+	scale: 1;
+} */
+
+textarea:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+	scale: 1;
+}
+
+.disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
 }
 
 .update-form-show-hide {

@@ -354,14 +354,14 @@ const materialRequestResolvers = {
 									update: { $push: { items: { quantity, itemName, itemDescription, color, side, size } } },
 								},
 							});
-						} else if (action.toBeUpdated && itemId) {
+						} else if (action.toBeUpdated === true && itemId) {
 							bulkOps.push({
 								updateOne: {
 									filter: { _id: id, "items._id": itemId },
 									update: { $set: { "items.$.quantity": quantity, "items.$.itemName": itemName, "items.$.itemDescription": itemDescription, "items.$.color": color, "items.$.side": side, "items.$.size": size } },
 								},
 							});
-						} else if (action.toBeDeleted && itemId) {
+						} else if (action.toBeDeleted === true && itemId) {
 							bulkOps.push({
 								updateOne: {
 									filter: { _id: id },

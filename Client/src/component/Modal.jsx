@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 
 import { jwtDecode } from "jwt-decode";
 
-const Modal = ({ isOpen, onClose, data, userToke }) => {
+const Modal = ({ isOpen, onClose, data, userToken }) => {
 	const [content, setContent] = useState(null);
 	const location = useLocation(); // current URL path
 	useEffect(() => {

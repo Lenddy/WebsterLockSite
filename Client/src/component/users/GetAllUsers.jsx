@@ -7,7 +7,7 @@ import { USER_CHANGE_SUBSCRIPTION } from "../../../graphQL/subscriptions/subscri
 import Fuse from "fuse.js";
 import Modal from "../Modal";
 
-export default function GetAllUsers({ userToke }) {
+export default function GetAllUsers({ userToken }) {
 	const { error, loading, data } = useQuery(get_all_users);
 	const [users, setUsers] = useState([]);
 	const [filteredUsers, setFilteredUsers] = useState([]);
@@ -146,7 +146,7 @@ export default function GetAllUsers({ userToke }) {
 						</table>
 					</div>
 
-					<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={selectedUser} userToke={userToke} />
+					<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={selectedUser} userToken={userToken} />
 				</div>
 			)}
 			{error && <p style={{ color: "red" }}>{error.message}</p>}

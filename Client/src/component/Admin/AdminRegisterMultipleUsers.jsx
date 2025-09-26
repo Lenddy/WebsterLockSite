@@ -6,7 +6,8 @@ import { jwtDecode } from "jwt-decode";
 import Eye from "../../assets/eye.svg?react";
 import CloseEye from "../../assets/closeEye.svg?react";
 
-export default function AdminRegisterMultipleUsers({ userToke }) {
+export default function AdminRegisterMultipleUsers({ userToken }) {
+	// console.log("user-token", userToke);
 	const [show, setShow] = useState(false);
 	const lastRowRef = useRef(null);
 
@@ -35,7 +36,17 @@ export default function AdminRegisterMultipleUsers({ userToke }) {
 		if (lastRowRef.current) {
 			lastRowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
 		}
-	}, [rows]);
+
+		if (userToken) {
+			try {
+				console.log("Decoded token:", jwtDecode(userToken));
+			} catch (err) {
+				console.error("Failed to decode:", err.message);
+			}
+		} else {
+			console.log("userToken is still undefined");
+		}
+	}, [rows, userToken]);
 
 	const [adminRegisterMultipleUserProfiles, { loading, error: updateError }] = useMutation(register_multiple_Users);
 
@@ -186,7 +197,7 @@ export default function AdminRegisterMultipleUsers({ userToke }) {
 											<label>Job Description:</label>
 											<textarea type="text" name="description" value={row.description} onChange={(e) => handleRowChange(index, e)} placeholder="Description"></textarea>
 										</div>
-										{jwtDecode(userToke)?.permissions?.canChangeRole && (
+										{jwtDecode(userToken)?.permissions?.canChangeRole && (
 											<div>
 												<label>Role:</label>
 												<select name="role" value={row.role} onChange={(e) => handleRowChange(index, e)}>
@@ -203,7 +214,7 @@ export default function AdminRegisterMultipleUsers({ userToke }) {
 								</div>
 
 								<div className="form-row-center-bottom">
-									{jwtDecode(userToke)?.permissions?.canChangeRole && (
+									{jwtDecode(userToken)?.permissions?.canChangeRole && (
 										<div>
 											<label>Permissions:</label>
 											<div className="permissions-grid">

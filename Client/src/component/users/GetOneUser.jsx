@@ -8,7 +8,7 @@ import UpdateOneUser from "./updateOneUser";
 import Modal from "../Modal";
 import DeleteOneUser from "./DeleteOneUser";
 
-export default function GetOneUser({ userToke }) {
+export default function GetOneUser({ userToken }) {
 	const [user, setUser] = useState({});
 	const [logUser, setLogUser] = useState({});
 	const { userId } = useParams();
@@ -133,7 +133,7 @@ export default function GetOneUser({ userToke }) {
 						</span>
 						{/* <DeleteOneUser userId={userId} /> */}
 					</div>
-					<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={selectedUser} userToke={userToke} btnActive={btnActive} />
+					<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={selectedUser} userToken={userToken} btnActive={btnActive} />
 				</div>
 			)}
 

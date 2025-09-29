@@ -92,20 +92,40 @@ const Modal = ({ isOpen, onClose, data, userToken }) => {
 						<div className="modal-content-info">
 							{data.rows.map((row, idx) => {
 								return (
-									<div>
+									<div className="modal-content-info-wrapper">
 										<p>Material Request Row {idx + 1} </p>
-										<div>
-											<div>
-												<p>quantity: {row?.quantity}</p> --
-												<p>Item: {row?.item?.value}</p>
+										<div className="modal-content-item-info">
+											<div className="modal-content-item-info-top">
+												<div>
+													<label htmlFor=""> quantity </label>
+													<p> {row?.quantity}</p>
+												</div>{" "}
+												<div>
+													<label htmlFor=""> Item </label>
+													<p>{row?.item?.value}</p>
+												</div>
 											</div>
 
-											<div>
-												<p>color: {row?.color ? row?.color : "N/A"} | </p> <p>side/hand: {row?.side ? row?.side : "N/A"}</p> | <p>size: {row?.size ? row?.size : "N/A"}</p>
+											<div className="modal-content-item-info-center">
+												<div>
+													<label htmlFor=""> color</label>
+													<p> {row?.color ? row?.color : "N/A"} </p>
+												</div>
+												<div>
+													<label htmlFor="">side/hand</label>
+													<p>{row?.side ? row?.side : "N/A"}</p>
+												</div>
+												<div>
+													<label htmlFor="">size</label>
+													<p> {row?.size ? row?.size : "N/A"}</p>
+												</div>
 											</div>
 
-											<div>
-												<p>Description: {row?.itemDescription}</p>
+											<div className="modal-content-item-info-bottom">
+												<div>
+													<label htmlFor="">Description</label>
+													<p> {row?.itemDescription}</p>
+												</div>
 											</div>
 										</div>
 									</div>

@@ -775,6 +775,37 @@
 	color: var(--white);
 }
 
+/* modal for update one material request */
+
+.modal-content-info-wrapper {
+	/* background-color: red; */
+	width: 90%;
+}
+
+.modal-content-item-info {
+	/* background-color: blue; */
+	margin-top: 5px;
+	border-bottom: solid 1px black;
+}
+
+.modal-content-item-info-top,
+.modal-content-item-info-center {
+	/* background-color: white; */
+	display: flex;
+	justify-content: center;
+	gap: 20px;
+}
+
+.modal-content-item-info-top div,
+.modal-content-item-info-center div,
+.modal-content-item-info-bottom div {
+	/* background-color: red; */
+	display: flex;
+	justify-content: center;
+	flex-direction: column;
+	border-bottom: solid 1px black;
+}
+
 /*! get one */
 
 .get-one-container {

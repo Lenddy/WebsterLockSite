@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 import { get_one_material_request } from "../../../graphQL/queries/queries";
 import { update_One_Material_Request } from "../../../graphQL/mutations/mutations";
+import Modal from "../Modal";
 
 function UpdateOneMaterialRequest({ userToken }) {
 	//   to pass in ass a prop for later { requestId }
@@ -17,13 +18,16 @@ function UpdateOneMaterialRequest({ userToken }) {
 	const { requestId } = useParams();
 	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
 
+	const [isOpen, setIsOpen] = useState(false);
+	const [mRequest, setMRequest] = useState();
+
 	const navigate = useNavigate();
-	const [updatedMaterialRequest, { loading, error }] = useMutation(update_One_Material_Request);
 
 	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
 	const [itemGroups, setItemGroups] = useState([]);
 
 	const { error: mRError, loading: mRLoading, data: mRData, refetch } = useQuery(get_one_material_request, { variables: { id: requestId } });
+	const [updatedMaterialRequest, { loading, error }] = useMutation(update_One_Material_Request);
 
 	const [logUser, setLogUser] = useState({});
 
@@ -73,6 +77,7 @@ function UpdateOneMaterialRequest({ userToken }) {
 
 		if (mRData) {
 			const req = mRData.getOneMaterialRequest;
+			setMRequest({ mrId: req.id, requester: req.requester });
 			console.log("material request", req);
 			// Prefill rows with the request’s items
 			setRows(
@@ -152,30 +157,6 @@ function UpdateOneMaterialRequest({ userToken }) {
 	// 	const newRows = [...rows];
 
 	// 	// Special case: quantity should never be <= 0
-
-	// 	if (field === "quantity") {
-	// 		if (value === "") {
-	// 			// allow empty while typing
-	// 			newRows[index][field] = "";
-	// 		} else {
-	// 			let parsed = parseInt(value, 10);
-
-	// 			if (isNaN(parsed)) {
-	// 				newRows[index][field] = "";
-	// 			} else if (parsed === 0) {
-	// 				// no zeros → force to 1
-	// 				newRows[index][field] = 1;
-	// 			} else {
-	// 				// remove minus sign
-	// 				newRows[index][field] = Math.abs(parsed);
-	// 			}
-	// 		}
-	// 	} else {
-	// 		newRows[index][field] = value;
-	// 	}
-
-	// 	setRows(newRows);
-	// };
 
 	const handleRowChange = (index, field, value) => {
 		const newRows = [...rows];
@@ -288,6 +269,7 @@ function UpdateOneMaterialRequest({ userToken }) {
 		e.preventDefault();
 		try {
 			const input = {
+				id: requestId,
 				items: rows.map((r) => ({
 					id: r.id,
 					quantity: parseInt(r.quantity),
@@ -296,7 +278,7 @@ function UpdateOneMaterialRequest({ userToken }) {
 					side: r?.side || null,
 					size: r?.size || null,
 					itemDescription: r?.itemDescription || null,
-					action: r.action,
+					action: r?.action ? r?.action : {},
 				})),
 				approvalStatus: {
 					approvedBy: {
@@ -304,17 +286,15 @@ function UpdateOneMaterialRequest({ userToken }) {
 						name: jwtDecode(userToken).name,
 						email: jwtDecode(userToken).email,
 					},
-					approvedAt: new Date(),
 					isApproved: true,
+					approvedAt: new Date(),
 				},
 			};
 
-			console.log("this is the input that are send  ", input);
-
-			console.log("updatedInputs", input);
+			console.log("update info", { input });
 
 			await updatedMaterialRequest({
-				variables: { id: requestId, input },
+				variables: { input },
 				onCompleted: (res) => {
 					console.log("Mutation success:", res?.updateOneMaterialRequest);
 					// navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
@@ -556,8 +536,14 @@ function UpdateOneMaterialRequest({ userToken }) {
 					</div> */}
 
 					<div>
-						<button className="form-submit-btn" type="submit" disabled={loading || mRLoading || !isFormValid}>
-							Submit
+						<button
+							className="form-submit-btn"
+							type="button"
+							disabled={loading || mRLoading || !isFormValid}
+							onClick={() => {
+								setIsOpen(true);
+							}}>
+							Approve
 						</button>
 					</div>
 				</div>
@@ -567,6 +553,7 @@ function UpdateOneMaterialRequest({ userToken }) {
 					</p>
 				)}
 			</form>
+			<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={{ mRequest, rows }} userToken={userToken} />
 		</div>
 	);
 }

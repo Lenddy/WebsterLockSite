@@ -12,6 +12,7 @@ const Modal = ({ isOpen, onClose, data, userToken }) => {
 			setContent(null);
 			return;
 		}
+		console.log("modal info", data?.rows);
 
 		// Handle a single user object
 		if (data?.__typename === "User" || data?.__typename === "user") {
@@ -41,6 +42,24 @@ const Modal = ({ isOpen, onClose, data, userToken }) => {
 				onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
 			>
 				<div className="modal-header">
+					{/*when updating a material Request */}
+					{location.pathname === `/material/request/${data?.mRequest?.mrId}/update` && (
+						<div className="modal-content-header">
+							{/* <div className="modal-content-top-info-id">
+								<h4>ID:</h4> <p>{content.value.id}</p>
+							</div> */}
+
+							<div className="modal-content-top-info-title-wrapper">
+								{/* Name */}
+
+								<div>
+									<h4>requested by:</h4> <p>{data?.mRequest?.requester?.name}</p>
+								</div>
+							</div>
+						</div>
+					)}
+
+					{/* for users */}
 					{content?.type === "User" && (
 						<div className="modal-content-header">
 							{/* <div className="modal-content-top-info-id">
@@ -62,12 +81,39 @@ const Modal = ({ isOpen, onClose, data, userToken }) => {
 						</div>
 					)}
 
+					{/* to close the modal */}
 					<button className="modal-close" onClick={onClose}>
 						✖
 					</button>
 				</div>
 
 				<div className="modal-content">
+					{location.pathname === `/material/request/${data?.mRequest?.mrId}/update` && (
+						<div className="modal-content-info">
+							{data.rows.map((row, idx) => {
+								return (
+									<div>
+										<p>Material Request Row {idx + 1} </p>
+										<div>
+											<div>
+												<p>quantity: {row?.quantity}</p> --
+												<p>Item: {row?.item?.value}</p>
+											</div>
+
+											<div>
+												<p>color: {row?.color ? row?.color : "N/A"} | </p> <p>side/hand: {row?.side ? row?.side : "N/A"}</p> | <p>size: {row?.size ? row?.size : "N/A"}</p>
+											</div>
+
+											<div>
+												<p>Description: {row?.itemDescription}</p>
+											</div>
+										</div>
+									</div>
+								);
+							})}
+						</div>
+					)}
+
 					{/* User object */}
 					{content?.type === "User" && (
 						<>

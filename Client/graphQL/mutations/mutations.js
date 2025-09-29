@@ -213,8 +213,8 @@ export const create_multiple_material_requests = gql`
 `;
 
 export const update_One_Material_Request = gql`
-	mutation updateOneMaterialRequest($id: ID!, $input: UpdateMaterialRequestInput!) {
-		updateOneMaterialRequest(id: $id, input: $input) {
+	mutation updateOneMaterialRequest($input: UpdateMaterialRequestInput!) {
+		updateOneMaterialRequest(input: $input) {
 			id
 			description
 

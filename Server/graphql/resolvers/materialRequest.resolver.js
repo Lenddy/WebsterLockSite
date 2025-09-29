@@ -286,6 +286,12 @@ const materialRequestResolvers = {
 
 		updateOneMaterialRequest: async (_, { input: { id, description, items, approvalStatus, comment } }, { user, pubsub }) => {
 			try {
+				// console.log("items dir");
+				// console.dir(items, { depth: null });
+
+				// console.log("approvalStatus dir");
+				// console.dir(approvalStatus, { depth: null });
+
 				if (!user) throw new ApolloError("Unauthorized: No user context.");
 				if ((!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole" || user.role === "technician") {
 					throw new ApolloError("Unauthorized: You lack permission.");
@@ -302,11 +308,13 @@ const materialRequestResolvers = {
 				}
 
 				if (approvalStatus?.isApproved === true) {
+					console.log("request was approved?", approvalStatus?.isApproved);
 					target.approvalStatus.approvedBy.userId = user.userId;
 					target.approvalStatus.approvedBy.name = user.name;
 					target.approvalStatus.approvedBy.email = user.email;
-					target.approvalStatus.approvedAt = Date.now();
+					target.approvalStatus.approvedAt = target.approvalStatus.approvedAt ? target.approvalStatus.approvedAt : Date.now();
 					target.approvalStatus.isApproved = approvalStatus.isApproved;
+					shouldSave = true;
 				}
 
 				// ensure reviewer is tracked or update their comment
@@ -371,6 +379,11 @@ const materialRequestResolvers = {
 						}
 					}
 				}
+
+				console.log("______________________");
+				console.log("final submission");
+
+				console.dir(target, { depth: null });
 
 				await Promise.all([shouldSave ? target.save() : null, bulkOps.length > 0 ? MaterialRequest.bulkWrite(bulkOps) : null]);
 

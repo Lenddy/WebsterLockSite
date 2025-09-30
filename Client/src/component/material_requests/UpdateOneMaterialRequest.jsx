@@ -72,26 +72,30 @@ function UpdateOneMaterialRequest({ userToken }) {
 	// ---------------------------
 	useEffect(() => {
 		setLogUser(jwtDecode(localStorage.getItem("UserToken")));
-		if (mRLoading) console.log("loading");
-		if (iGLoading) console.log("loading");
+		// if (mRLoading) console.log("loading");
+		// if (iGLoading) console.log("loading");
 
 		if (mRData) {
 			const req = mRData.getOneMaterialRequest;
+
 			setMRequest({ mrId: req.id, requester: req.requester });
-			console.log("material request", req);
+
 			// Prefill rows with the request’s items
 			setRows(
 				req.items.map((item) => {
 					const matchedItem = allItems.find((i) => i.value === item.itemName);
+					const matchedColor = colorOptions.find((i) => i.value === item.color);
+					const matchedSide = sideOptions.find((i) => i.value === item.side);
+					const matchedSize = sizeOptions.find((i) => i.value === item.size);
 
 					return {
 						id: item.id,
 						quantity: item.quantity,
 						item: matchedItem || { label: item.itemName, value: item.itemName }, // fallback if not found
 						itemDescription: item.itemDescription ? item.itemDescription : "",
-						color: item.color,
-						side: item.side,
-						size: item.size,
+						color: matchedColor || { label: item?.color, value: item?.color },
+						side: matchedSide || { label: item?.side, value: item?.side },
+						size: matchedSize || { label: item?.size, value: item?.size },
 					};
 				})
 			);
@@ -104,11 +108,11 @@ function UpdateOneMaterialRequest({ userToken }) {
 		}
 
 		if (iGError) {
-			console.log("there was an error", iGError);
+			// console.log("there was an error", iGError);
 		}
 
 		if (iGError) {
-			console.log("there was an error", iGError);
+			// console.log("there was an error", iGError);
 		}
 		// const fetchData = async () => {
 	}, [iGLoading, iGData, iGError, mRData, mRLoading, itemGroups]);
@@ -291,13 +295,13 @@ function UpdateOneMaterialRequest({ userToken }) {
 				},
 			};
 
-			console.log("update info", { input });
+			// console.log("update info", { input });
 
 			await updatedMaterialRequest({
 				variables: { input },
 				onCompleted: (res) => {
 					console.log("Mutation success:", res?.updateOneMaterialRequest);
-					// navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
+					navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
 				},
 			});
 		} catch (err) {
@@ -305,7 +309,7 @@ function UpdateOneMaterialRequest({ userToken }) {
 		}
 	};
 
-	console.log("this are the rows", rows);
+	// console.log("this are the rows", rows);
 
 	const isFormValid = rows.every((r) => r.item && r.quantity !== "" && Number(r.quantity) > 0);
 
@@ -384,8 +388,6 @@ function UpdateOneMaterialRequest({ userToken }) {
 													...base,
 													borderRadius: "12px",
 													borderColor: "blue",
-													// width: "200px",
-													// height: "50px",
 												}),
 												option: (base, state) => ({
 													...base,
@@ -406,7 +408,8 @@ function UpdateOneMaterialRequest({ userToken }) {
 												className="form-row-center-material-request-select"
 												classNamePrefix="material-request-color-select"
 												options={colorOptions}
-												value={colorOptions.find((opt) => opt.value === row.color)}
+												// colorOptions.find((opt) => row.color opt.value === )
+												value={row.color}
 												onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
 												placeholder={mRLoading ? "loading" : "Color"}
 												isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
@@ -450,7 +453,8 @@ function UpdateOneMaterialRequest({ userToken }) {
 												<Select
 													className="form-row-top-select"
 													options={sideOptions}
-													value={sideOptions.find((opt) => opt.value === row.side)}
+													// sideOptions.find((opt) => opt.value === row.side)
+													value={row.side}
 													onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
 													placeholder={mRLoading ? "loading" : "Side/Hand"}
 													isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
@@ -480,7 +484,8 @@ function UpdateOneMaterialRequest({ userToken }) {
 												<Select
 													className="form-row-top-select"
 													options={sizeOptions}
-													value={sizeOptions.find((opt) => opt.value === row.size)}
+													// sizeOptions.find((opt) => opt.value === row.size)
+													value={row.size}
 													onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
 													placeholder={mRLoading ? "loading" : "Size"}
 													isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
@@ -552,8 +557,8 @@ function UpdateOneMaterialRequest({ userToken }) {
 						Please fill out all required fields (Item & Quantity).
 					</p>
 				)}
+				<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} onConFirm={submit} data={{ mRequest, rows }} userToken={userToken} />
 			</form>
-			<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={{ mRequest, rows }} userToken={userToken} />
 		</div>
 	);
 }

@@ -11,15 +11,13 @@ export default function GetAllMaterialRequest({ userToken }) {
 	const [mRequests, setMRequests] = useState([]);
 	const [logUser, setLogUser] = useState({});
 
-	// const decoded = ;
-
 	useEffect(() => {
 		setLogUser(jwtDecode(localStorage.getItem("UserToken")));
 		if (loading) {
 			console.log("loading");
 		}
 		if (data) {
-			// console.log(data.getAllMaterialRequests);
+			console.log(data.getAllMaterialRequests);
 			setMRequests(data.getAllMaterialRequests);
 			setFilteredMRequests(data.getAllMaterialRequests);
 		}
@@ -128,7 +126,10 @@ export default function GetAllMaterialRequest({ userToken }) {
 											</td>
 											<td>{request?.description}</td>
 
-											<td> {request.isApprove === true ? "approved" : "waiting for approval"} </td>
+											<td>
+												{" "}
+												<p className={`${request?.approvalStatus?.isApproved ? "approved" : "waiting-approval"}`}>{request?.approvalStatus?.isApproved === true ? "approved" : "waiting for approval"}</p>
+											</td>
 
 											<td>
 												{request?.items.map((item) => {

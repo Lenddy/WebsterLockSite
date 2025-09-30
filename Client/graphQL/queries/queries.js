@@ -113,6 +113,9 @@ export const get_one_material_request = gql`
 				itemName
 				quantity
 				itemDescription
+				color
+				side
+				size
 			}
 
 			requester {

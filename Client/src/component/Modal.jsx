@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 
 import { jwtDecode } from "jwt-decode";
 
-const Modal = ({ isOpen, onClose, data, userToken }) => {
+const Modal = ({ isOpen, onClose, onConFirm, data, userToken }) => {
 	const [content, setContent] = useState(null);
 	const location = useLocation(); // current URL path
 	useEffect(() => {
@@ -12,7 +12,7 @@ const Modal = ({ isOpen, onClose, data, userToken }) => {
 			setContent(null);
 			return;
 		}
-		console.log("modal info", data?.rows);
+		// console.log("modal info", data?.rows);
 
 		// Handle a single user object
 		if (data?.__typename === "User" || data?.__typename === "user") {
@@ -92,7 +92,7 @@ const Modal = ({ isOpen, onClose, data, userToken }) => {
 						<div className="modal-content-info">
 							{data.rows.map((row, idx) => {
 								return (
-									<div className="modal-content-info-wrapper">
+									<div className="modal-content-info-wrapper" key={idx}>
 										<p>Material Request Row {idx + 1} </p>
 										<div className="modal-content-item-info">
 											<div className="modal-content-item-info-top">
@@ -194,24 +194,37 @@ const Modal = ({ isOpen, onClose, data, userToken }) => {
 				</div>
 				<div className="modal-bottom">
 					<div className="model-bottom-wrapper">
-						{/* you have to add the links to the update an view  */}
-						{location.pathname === "/user/all" ? (
-							<div className="model-btn-view">
-								<Link to={`/user/${content?.value?.id}`}>
-									<span>View</span>
-								</Link>
-							</div>
-						) : null}
+						{location.pathname === `/material/request/${data?.mRequest?.mrId}/update` ? (
+							<>
+								<div className="model-btn-view" onClick={onConFirm}>
+									<span>Confirm</span>
+								</div>
 
-						<div className="model-btn-update">
-							<Link to={jwtDecode(localStorage.getItem("UserToken")).role === "headAdmin" || jwtDecode(localStorage.getItem("UserToken")).role.role === "admin" ? `/admin/user/${content?.value?.id}/update` : `/user/${content?.value?.id}/update`}>
-								<span>Update</span>
-							</Link>{" "}
-						</div>
-
-						<div className="model-btn-delete">
-							<DeleteOneUser userId={content?.value?.id} />
-						</div>
+								<div className="model-btn-delete" onClick={onClose}>
+									<span>Cancel</span>
+								</div>
+							</>
+						) : (
+							<>
+								{" "}
+								{/* you have to add the links to the update an view  */}
+								{location.pathname === "/user/all" && (
+									<div className="model-btn-view">
+										<Link to={`/user/${content?.value?.id}`}>
+											<span>View</span>
+										</Link>
+									</div>
+								)}
+								<div className="model-btn-update">
+									<Link to={jwtDecode(localStorage.getItem("UserToken")).role === "headAdmin" || jwtDecode(localStorage.getItem("UserToken")).role.role === "admin" ? `/admin/user/${content?.value?.id}/update` : `/user/${content?.value?.id}/update`}>
+										<span>Update</span>
+									</Link>{" "}
+								</div>
+								<div className="model-btn-delete">
+									<DeleteOneUser userId={content?.value?.id} />
+								</div>
+							</>
+						)}
 					</div>
 				</div>
 			</div>

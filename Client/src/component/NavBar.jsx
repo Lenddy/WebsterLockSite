@@ -22,7 +22,7 @@ export default function NavBar({ children, screenWidth }) {
 			title: "Material Requests",
 			links: [
 				{ name: "View All", path: "/material/request/all" },
-				{ name: "Requests Material", path: "/admin/material/request/" },
+				{ name: "Request Material", path: "/admin/material/request/" },
 			],
 		},
 		{

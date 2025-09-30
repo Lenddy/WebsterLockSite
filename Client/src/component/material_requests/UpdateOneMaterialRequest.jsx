@@ -314,7 +314,7 @@ function UpdateOneMaterialRequest({ userToken }) {
 	const isFormValid = rows.every((r) => r.item && r.quantity !== "" && Number(r.quantity) > 0);
 
 	return (
-		<div className="update-container ">
+		<div className="update-container">
 			{/* <h1> this is the update material </h1>
 			<h1> {requestId} </h1> */}
 
@@ -330,7 +330,7 @@ function UpdateOneMaterialRequest({ userToken }) {
 						const filteredItems = row.brand?.value ? allItems?.filter((i) => i?.brand === row.brand.value) : allItems;
 
 						return (
-							<div className={`update-form-row `} key={idx}>
+							<div className={`update-form-row`} key={idx}>
 								{/* Brand select */}
 								<h3 className="form-row-count">Material Request Row {idx + 1}</h3>
 								<div className={`form-row-material-request-item-filter ${row?.action?.toBeDeleted ? "disabled" : ""}`}>
@@ -401,7 +401,7 @@ function UpdateOneMaterialRequest({ userToken }) {
 
 								<div className={`form-row-center-container-material-request   ${row?.action?.toBeDeleted ? "disabled" : ""}`}>
 									<div className="form-row-center-container-material-request-wrapper">
-										<div className="form-row-center-container-material-request-wrapper-top">
+										<div orm-row-center-container-material-request-wrapper>
 											{/* <div></div> */}
 											<label htmlFor="color"> color </label>
 											<Select
@@ -517,6 +517,7 @@ function UpdateOneMaterialRequest({ userToken }) {
 										<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder={mRLoading ? "loading" : "description for the item"} disabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
 									</div>
 								</div>
+
 								{row?.action?.toBeDeleted && <p style={{ color: "red" }}> This item is flagged for deletion</p>}
 								{rows.length > 1 && (
 									<div className="form-row-remove-btn-container">

@@ -253,6 +253,18 @@ export default function GetOneMaterialRequest({ userToken }) {
 								);
 							})}
 						</div>
+
+						{jwtDecode(userToken).permissions.canEditUsers && (
+							<div className="form-action-btn">
+								<div>
+									<Link to={`/material/request/${requestId}/update`}>
+										<button className="form-submit-btn" type="button" disabled={loading}>
+											Review
+										</button>
+									</Link>
+								</div>
+							</div>
+						)}
 					</div>
 				</div>
 			)}

@@ -128,19 +128,10 @@ export default function GetAllMaterialRequest({ userToken }) {
 
 											<td>
 												{" "}
-												<p className={`${request?.approvalStatus?.isApproved ? "approved" : "waiting-approval"}`}>{request?.approvalStatus?.isApproved === true ? "approved" : "waiting for approval"}</p>
+												<p className={`${request?.approvalStatus?.isApproved ? "approved" : "waiting-approval"}`}>{request?.approvalStatus?.isApproved === true ? "Approved" : "Waiting for approval"}</p>
 											</td>
 
-											<td>
-												{request?.items.map((item) => {
-													return (
-														<span key={item.id}>
-															{item.quantity} - {item.itemName}
-															<br />
-														</span>
-													);
-												})}
-											</td>
+											<td>{request?.items.length}</td>
 
 											<td>
 												<div className="table-action-wrapper">
@@ -149,14 +140,13 @@ export default function GetAllMaterialRequest({ userToken }) {
 														<span className="table-action first">Review</span>
 													</Link>
 
-													<span
+													{/* <span
 														className="table-action last"
 														onClick={() => {
-															// setSelectedUser(user);
-															// setIsOpen(true);
+															
 														}}>
 														Delete
-													</span>
+													</span> */}
 												</div>
 											</td>
 										</tr>

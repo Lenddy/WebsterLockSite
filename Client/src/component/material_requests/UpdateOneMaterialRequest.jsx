@@ -1,4 +1,3 @@
-import React from "react";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import { get_all_item_groups } from "../../../graphQL/queries/queries";
@@ -278,9 +277,15 @@ function UpdateOneMaterialRequest({ userToken }) {
 					id: r.id,
 					quantity: parseInt(r.quantity),
 					itemName: r?.item?.value,
-					color: r?.color || null,
-					side: r?.side || null,
-					size: r?.size || null,
+					// color: r?.color || null,
+					// side: r?.side || null,
+					// size: r?.size || null,
+
+					color: r?.color?.value || null, // ✅ now extracting value
+					side: r?.side?.value || null,
+					size: r?.size?.value || null,
+					// itemDescription: r?.itemDescription || null,
+
 					itemDescription: r?.itemDescription || null,
 					action: r?.action ? r?.action : {},
 				})),
@@ -363,15 +368,15 @@ function UpdateOneMaterialRequest({ userToken }) {
 								</div>
 								{/* this top */}
 								{/* <label htmlFor=""> quantity and item</label> */}
-								<div className={` form-row-top-container material-request ${row?.action?.toBeDeleted ? "disabled" : ""}`}>
-									<div className="form-row-top-left  material-request">
+								<div className={`form-row-top-container material-request ${row?.action?.toBeDeleted ? "disabled" : ""}`}>
+									<div className="form-row-top-left material-request">
 										{/* Quantity input */}
-										<label htmlFor=""> Quantity</label>
+										<label htmlFor="">Quantity</label>
 										<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} min={1} placeholder={mRLoading ? "loading" : "Qty"} disabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
 									</div>
 
 									<div className="form-row-top-right  material-request">
-										<label htmlFor=""> Item</label>
+										<label htmlFor="">Item</label>
 										{/* Item select */}
 										<Select
 											className="form-row-top-select"
@@ -401,49 +406,53 @@ function UpdateOneMaterialRequest({ userToken }) {
 
 								<div className={`form-row-center-container-material-request   ${row?.action?.toBeDeleted ? "disabled" : ""}`}>
 									<div className="form-row-center-container-material-request-wrapper">
-										<div orm-row-center-container-material-request-wrapper>
+										<div className="form-row-center-container-material-request-wrapper-center">
 											{/* <div></div> */}
-											<label htmlFor="color"> color </label>
-											<Select
-												className="form-row-center-material-request-select"
-												classNamePrefix="material-request-color-select"
-												options={colorOptions}
-												// colorOptions.find((opt) => row.color opt.value === )
-												value={row.color}
-												onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
-												placeholder={mRLoading ? "loading" : "Color"}
-												isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
-												isClearable
-												isSearchable
-												styles={{
-													control: (base) => ({
-														...base,
-														borderRadius: "12px",
-														borderColor: "blue",
-														width: "100%",
-														// maxWidth: "600px",
-													}),
-													option: (base, state) => ({
-														...base,
-														backgroundColor: state.isFocused ? "lightblue" : "white",
-														color: "black",
-													}),
-												}}
-												//  This custom renderer shows the swatch + label
-												formatOptionLabel={(option) => (
-													<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-														<div
-															style={{
-																width: "30px",
-																height: "30px",
-																backgroundColor: option.hex,
-																border: "1px solid #ccc",
-															}}
-														/>
-														<span>{option.label}</span>
-													</div>
-												)}
-											/>
+
+											<div>
+												<label htmlFor="color"> color </label>
+												<Select
+													className="form-row-center-material-request-select"
+													classNamePrefix="material-request-color-select"
+													options={colorOptions}
+													// colorOptions.find((opt) => row.color opt.value === )
+													value={row.color}
+													// onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
+													onChange={(val) => handleRowChange(idx, "color", val)}
+													placeholder={mRLoading ? "loading" : "Color"}
+													isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
+													isClearable
+													isSearchable
+													styles={{
+														control: (base) => ({
+															...base,
+															borderRadius: "12px",
+															borderColor: "blue",
+															width: "100%",
+															// maxWidth: "600px",
+														}),
+														option: (base, state) => ({
+															...base,
+															backgroundColor: state.isFocused ? "lightblue" : "white",
+															color: "black",
+														}),
+													}}
+													//  This custom renderer shows the swatch + label
+													formatOptionLabel={(option) => (
+														<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+															<div
+																style={{
+																	width: "30px",
+																	height: "30px",
+																	backgroundColor: option.hex,
+																	border: "1px solid #ccc",
+																}}
+															/>
+															<span>{option.label}</span>
+														</div>
+													)}
+												/>
+											</div>
 										</div>
 
 										<div className="form-row-center-container-material-request-wrapper-center">
@@ -455,7 +464,8 @@ function UpdateOneMaterialRequest({ userToken }) {
 													options={sideOptions}
 													// sideOptions.find((opt) => opt.value === row.side)
 													value={row.side}
-													onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
+													// onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
+													onChange={(val) => handleRowChange(idx, "side", val)}
 													placeholder={mRLoading ? "loading" : "Side/Hand"}
 													isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
 													filterOption={customFilter}
@@ -486,7 +496,8 @@ function UpdateOneMaterialRequest({ userToken }) {
 													options={sizeOptions}
 													// sizeOptions.find((opt) => opt.value === row.size)
 													value={row.size}
-													onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
+													// onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
+													onChange={(val) => handleRowChange(idx, "size", val)}
 													placeholder={mRLoading ? "loading" : "Size"}
 													isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
 													filterOption={customFilter}
@@ -545,6 +556,7 @@ function UpdateOneMaterialRequest({ userToken }) {
 						<button
 							className="form-submit-btn"
 							type="button"
+							// type="submit"
 							disabled={loading || mRLoading || !isFormValid}
 							onClick={() => {
 								setIsOpen(true);
@@ -558,7 +570,7 @@ function UpdateOneMaterialRequest({ userToken }) {
 						Please fill out all required fields (Item & Quantity).
 					</p>
 				)}
-				<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} onConFirm={submit} data={{ mRequest, rows }} userToken={userToken} />
+				<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} onConFirm={submit} data={{ mRequest, rows }} userToken={userToken} loading={loading} />
 			</form>
 		</div>
 	);

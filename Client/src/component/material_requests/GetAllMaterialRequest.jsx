@@ -30,6 +30,36 @@ export default function GetAllMaterialRequest({ userToken }) {
 		// fetchData();
 	}, [loading, data, error]); //refetch
 
+	// // Subscription for live updates
+	// useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
+	// 	onData: ({ data: subscriptionData }) => {
+	// 		console.log("subscription triggered");
+	// 		console.log("subscription triggered");
+	// 		console.log("subscription triggered");
+	// 		const change = subscriptionData?.data?.onMaterialRequestChange;
+	// 		console.log("change that happen", change);
+
+	// 		if (!change) return;
+
+	// 		const { eventType, Changes } = change;
+
+	// 		setMRequests((prevRequests) => {
+	// 			switch (eventType) {
+	// 				case "created":
+	// 					console.log("created", [...prevRequests, Changes]);
+	// 					return [...prevRequests, Changes];
+	// 				case "updated":
+	// 					return prevRequests.map((req) => (req.id === Changes.id ? Changes : req));
+	// 				case "deleted":
+	// 					return prevRequests.filter((req) => req.id !== Changes.id);
+	// 				default:
+	// 					return prevRequests;
+	// 			}
+	// 		});
+	// 	},
+	// 	onError: (err) => console.log("Subscription error:", err),
+	// });
+
 	// Subscription for live updates
 	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
 		onData: ({ data: subscriptionData }) => {
@@ -39,16 +69,26 @@ export default function GetAllMaterialRequest({ userToken }) {
 			const { eventType, Changes } = change;
 
 			setMRequests((prevRequests) => {
-				switch (eventType) {
-					case "created":
-						return [...prevRequests, Changes];
-					case "updated":
-						return prevRequests.map((req) => (req.id === Changes.id ? Changes : req));
-					case "deleted":
-						return prevRequests.filter((req) => req.id !== Changes.id);
-					default:
-						return prevRequests;
+				let updated;
+
+				if (eventType === "created") {
+					updated = [...prevRequests, Changes];
+				} else if (eventType === "updated") {
+					updated = prevRequests.map((req) => (req.id === Changes.id ? Changes : req));
+				} else if (eventType === "deleted") {
+					updated = prevRequests.filter((req) => req.id !== Changes.id);
+				} else {
+					updated = prevRequests;
 				}
+
+				// Reapply current filter (just like in users)
+				if (searchValue) {
+					setFilteredMRequests(applyFuse(updated, searchValue));
+				} else {
+					setFilteredMRequests(updated);
+				}
+
+				return updated;
 			});
 		},
 		onError: (err) => console.log("Subscription error:", err),

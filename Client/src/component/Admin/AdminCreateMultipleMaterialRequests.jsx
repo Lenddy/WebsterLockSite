@@ -274,215 +274,200 @@ export default function AdminCreateMultipleMaterialRequests() {
 	};
 
 	return (
-		<div>
+		<div className="update-container">
 			{/* Simple navigation/test links */}
-			<div>
-				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
-					log out
-				</Link>
-			</div>
-
-			<div>
-				<Link to={"/user/all"}>all users</Link>
-			</div>
-
-			<div>
-				<Link to={"/material/request/all"}>all Material Requests</Link>
-			</div>
-
-			<div>
-				<Link to={""}>blank</Link>
-			</div>
-
-			<form onSubmit={submit}>
+			<form onSubmit={submit} className="update-form">
 				{/* Dynamic rows */}
 				{requests.map((req, reqIdx) => (
 					<div key={reqIdx} className="request-block">
 						<h3>Request {reqIdx + 1}</h3>
 						{/* Inside your Select:*/}
 
-						<Select
-							options={userOptions}
-							value={requests[reqIdx]?.requester ? userOptions.find((opt) => opt.value.userId === requests[reqIdx].requester.userId) : null}
-							onChange={(selected) =>
-								handleRequestChange(
-									reqIdx,
-									"requester",
-									selected ? selected.value : null //  full object goes into your state
-								)
-							}
-							filterOption={customUserFilter}
-							placeholder="Select Requester"
-							isClearable
-							isSearchable
-							styles={{
-								control: (base) => ({
-									...base,
-									borderRadius: "12px",
-									borderColor: "blue",
-									width: "250px",
-									height: "50px",
-								}),
-								option: (base, state) => ({
-									...base,
-									backgroundColor: state.isFocused ? "lightblue" : "white",
-									color: "black",
-								}),
-							}}
-						/>
+						<div className="update-form-wrapper">
+							<Select
+								options={userOptions}
+								value={requests[reqIdx]?.requester ? userOptions.find((opt) => opt.value.userId === requests[reqIdx].requester.userId) : null}
+								onChange={(selected) =>
+									handleRequestChange(
+										reqIdx,
+										"requester",
+										selected ? selected.value : null //  full object goes into your state
+									)
+								}
+								filterOption={customUserFilter}
+								placeholder="Select Requester"
+								isClearable
+								isSearchable
+								styles={{
+									control: (base) => ({
+										...base,
+										borderRadius: "12px",
+										borderColor: "blue",
+										width: "250px",
+										height: "50px",
+									}),
+									option: (base, state) => ({
+										...base,
+										backgroundColor: state.isFocused ? "lightblue" : "white",
+										color: "black",
+									}),
+								}}
+							/>
 
-						{/* Request-level fields */}
-						<input type="date" value={req.date} onChange={(e) => handleRequestChange(reqIdx, "addedDate", e.target.value)} />
-						{/* <textarea value={req.description} onChange={(e) => handleRequestChange(reqIdx, "description", e.target.value)} placeholder="Request Description" /> */}
+							{/* Request-level fields */}
+							<input type="date" value={req.date} onChange={(e) => handleRequestChange(reqIdx, "addedDate", e.target.value)} />
+							{/* <textarea value={req.description} onChange={(e) => handleRequestChange(reqIdx, "description", e.target.value)} placeholder="Request Description" /> */}
 
-						{/* Items inside request */}
-						{req.items.map((row, rowIdx) => {
-							const filteredItems = row.brand?.value ? allItems?.filter((i) => i?.brand === row.brand.value) : allItems;
+							{/* Items inside request */}
+							{req.items.map((row, rowIdx) => {
+								const filteredItems = row?.brand?.value ? allItems?.filter((i) => i?.brand === row?.brand?.value) : allItems;
 
-							return (
-								<div key={rowIdx} className="">
-									{/* Brand select */}
-									<Select
-										options={brands}
-										value={row.brand}
-										onChange={(val) => handleItemChange(reqIdx, rowIdx, "brand", val)}
-										placeholder="Select Brand"
-										isClearable
-										isSearchable
-										styles={{
-											control: (base) => ({
-												...base,
-												borderRadius: "12px",
-												borderColor: "blue",
-												width: "200px",
-												height: "50px",
-											}),
-											option: (base, state) => ({
-												...base,
-												backgroundColor: state.isFocused ? "lightblue" : "white",
-												color: "black",
-											}),
-										}}
-									/>
+								return (
+									<div key={rowIdx} className="update-form-row">
+										{/* Brand select */}
+										<Select
+											options={brands}
+											value={row.brand}
+											onChange={(val) => handleItemChange(reqIdx, rowIdx, "brand", val)}
+											placeholder="Select Brand"
+											isClearable
+											isSearchable
+											styles={{
+												control: (base) => ({
+													...base,
+													borderRadius: "12px",
+													borderColor: "blue",
+													width: "200px",
+													height: "50px",
+												}),
+												option: (base, state) => ({
+													...base,
+													backgroundColor: state.isFocused ? "lightblue" : "white",
+													color: "black",
+												}),
+											}}
+										/>
 
-									{/* Quantity */}
-									<input type="number" value={row.quantity} onChange={(e) => handleItemChange(reqIdx, rowIdx, "quantity", e.target.value)} placeholder="Qty" min={0} />
+										{/* Quantity */}
+										<input type="number" value={row.quantity} onChange={(e) => handleItemChange(reqIdx, rowIdx, "quantity", e.target.value)} placeholder="Qty" min={0} />
 
-									{/* Item select */}
-									<Select
-										options={filteredItems}
-										value={row.item}
-										onChange={(val) => handleItemChange(reqIdx, rowIdx, "item", val)}
-										placeholder="Select Item"
-										filterOption={customFilter}
-										isClearable
-										isSearchable
-										styles={{
-											control: (base) => ({
-												...base,
-												borderRadius: "12px",
-												borderColor: "blue",
-												// width: "200px",
-												// height: "50px",
-											}),
-											option: (base, state) => ({
-												...base,
-												backgroundColor: state.isFocused ? "lightblue" : "white",
-												color: "black",
-											}),
-										}}
-									/>
+										{/* Item select */}
+										<Select
+											options={filteredItems}
+											value={row.item}
+											onChange={(val) => handleItemChange(reqIdx, rowIdx, "item", val)}
+											placeholder="Select Item"
+											filterOption={customFilter}
+											isClearable
+											isSearchable
+											styles={{
+												control: (base) => ({
+													...base,
+													borderRadius: "12px",
+													borderColor: "blue",
+													// width: "200px",
+													// height: "50px",
+												}),
+												option: (base, state) => ({
+													...base,
+													backgroundColor: state.isFocused ? "lightblue" : "white",
+													color: "black",
+												}),
+											}}
+										/>
 
-									{/* Color select */}
-									<Select
-										options={colorOptions}
-										value={colorOptions.find((opt) => opt.value === row.color)}
-										onChange={(val) => handleItemChange(reqIdx, rowIdx, "color", val?.value || null)}
-										placeholder="Select Color"
-										styles={{
-											control: (base) => ({
-												...base,
-												borderRadius: "12px",
-												borderColor: "blue",
-												// width: "200px",
-												// height: "50px",
-											}),
-											option: (base, state) => ({
-												...base,
-												backgroundColor: state.isFocused ? "lightblue" : "white",
-												color: "black",
-											}),
-										}}
-										formatOptionLabel={(option) => (
-											<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-												<div style={{ width: "30px", height: "30px", backgroundColor: option.hex, border: "1px solid #ccc" }} />
-												<span>{option.label}</span>
-											</div>
+										{/* Color select */}
+										<Select
+											options={colorOptions}
+											value={colorOptions.find((opt) => opt.value === row.color)}
+											onChange={(val) => handleItemChange(reqIdx, rowIdx, "color", val?.value || null)}
+											placeholder="Select Color"
+											styles={{
+												control: (base) => ({
+													...base,
+													borderRadius: "12px",
+													borderColor: "blue",
+													// width: "200px",
+													// height: "50px",
+												}),
+												option: (base, state) => ({
+													...base,
+													backgroundColor: state.isFocused ? "lightblue" : "white",
+													color: "black",
+												}),
+											}}
+											formatOptionLabel={(option) => (
+												<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+													<div style={{ width: "30px", height: "30px", backgroundColor: option.hex, border: "1px solid #ccc" }} />
+													<span>{option.label}</span>
+												</div>
+											)}
+										/>
+
+										{/* Side select */}
+										<Select
+											options={sideOptions}
+											value={sideOptions.find((opt) => opt.value === row.side)}
+											onChange={(val) => handleItemChange(reqIdx, rowIdx, "side", val?.value || null)}
+											placeholder="Select Side/Hand"
+											filterOption={customFilter}
+											isClearable
+											isSearchable
+											styles={{
+												control: (base) => ({
+													...base,
+													borderRadius: "12px",
+													borderColor: "blue",
+													// width: "200px",
+													// height: "50px",
+												}),
+												option: (base, state) => ({
+													...base,
+													backgroundColor: state.isFocused ? "lightblue" : "white",
+													color: "black",
+												}),
+											}}
+										/>
+
+										{/* Size select */}
+										<Select
+											options={sizeOptions}
+											value={sizeOptions.find((opt) => opt.value === row.size)}
+											onChange={(val) => handleItemChange(reqIdx, rowIdx, "size", val?.value || null)}
+											placeholder="Select Size"
+											filterOption={customFilter}
+											isClearable
+											isSearchable
+											styles={{
+												control: (base) => ({
+													...base,
+													borderRadius: "12px",
+													borderColor: "blue",
+													// width: "200px",
+													// height: "50px",
+												}),
+												option: (base, state) => ({
+													...base,
+													backgroundColor: state.isFocused ? "lightblue" : "white",
+													color: "black",
+												}),
+											}}
+										/>
+
+										{/* Item description */}
+										<textarea type="text" value={row.itemDescription} onChange={(e) => handleItemChange(reqIdx, rowIdx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
+
+										{/* Remove item button */}
+										{req.items.length > 1 && (
+											<button type="button" onClick={() => removeItemRow(reqIdx, rowIdx)}>
+												Remove Item
+											</button>
 										)}
-									/>
+									</div>
+								);
+							})}
+						</div>
 
-									{/* Side select */}
-									<Select
-										options={sideOptions}
-										value={sideOptions.find((opt) => opt.value === row.side)}
-										onChange={(val) => handleItemChange(reqIdx, rowIdx, "side", val?.value || null)}
-										placeholder="Select Side/Hand"
-										filterOption={customFilter}
-										isClearable
-										isSearchable
-										styles={{
-											control: (base) => ({
-												...base,
-												borderRadius: "12px",
-												borderColor: "blue",
-												// width: "200px",
-												// height: "50px",
-											}),
-											option: (base, state) => ({
-												...base,
-												backgroundColor: state.isFocused ? "lightblue" : "white",
-												color: "black",
-											}),
-										}}
-									/>
-
-									{/* Size select */}
-									<Select
-										options={sizeOptions}
-										value={sizeOptions.find((opt) => opt.value === row.size)}
-										onChange={(val) => handleItemChange(reqIdx, rowIdx, "size", val?.value || null)}
-										placeholder="Select Size"
-										filterOption={customFilter}
-										isClearable
-										isSearchable
-										styles={{
-											control: (base) => ({
-												...base,
-												borderRadius: "12px",
-												borderColor: "blue",
-												// width: "200px",
-												// height: "50px",
-											}),
-											option: (base, state) => ({
-												...base,
-												backgroundColor: state.isFocused ? "lightblue" : "white",
-												color: "black",
-											}),
-										}}
-									/>
-
-									{/* Item description */}
-									<textarea type="text" value={row.itemDescription} onChange={(e) => handleItemChange(reqIdx, rowIdx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
-
-									{/* Remove item button */}
-									{req.items.length > 1 && (
-										<button type="button" onClick={() => removeItemRow(reqIdx, rowIdx)}>
-											Remove Item
-										</button>
-									)}
-								</div>
-							);
-						})}
 						{/* Item-level add button */}
 						<button type="button" onClick={() => addItemRow(reqIdx)} disabled={!canAddMore}>
 							+ Add Item
@@ -503,8 +488,9 @@ export default function AdminCreateMultipleMaterialRequests() {
 				<button type="submit" onClick={submit} disabled={!canSubmit}>
 					Submit
 				</button>
+
+				{!canAddMore && <p style={{ color: "red" }}> All required fields must be filled.</p>}
 			</form>
-			{!canAddMore && <p style={{ color: "red" }}> All required fields must be filled.</p>}
 		</div>
 	);
 }

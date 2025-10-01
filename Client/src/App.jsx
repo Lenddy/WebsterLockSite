@@ -34,7 +34,7 @@ function App({ userToken }) {
 			<Routes>
 				<Route index element={<LogIn screenWidth={screenWidth} />} />
 
-				<Route element={<ProtectedRoute screenWidth={screenWidth} />}>
+				<Route element={<ProtectedRoute screenWidth={screenWidth} userToken={userToken} />}>
 					{/* Admin user routes */}
 					<Route path="/admin/user/register" element={<AdminRegisterMultipleUsers userToken={userToken} />} />
 					<Route path="/admin/user/:userId?/update" element={<AdminUpdateMultipleUsers />} />
@@ -53,7 +53,7 @@ function App({ userToken }) {
 					{/* Material request routes */}
 					<Route path="/material/request/all" element={<GetAllMaterialRequest />} />
 					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest userToken={userToken} />} />
-					<Route path="/material/request/request" element={<CreateOneMaterialRequest />} />
+					<Route path="/material/request/request/" element={<CreateOneMaterialRequest userToken={userToken} />} />
 					<Route path="/test" element={<Test />} />
 				</Route>
 			</Routes>

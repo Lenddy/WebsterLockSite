@@ -7,8 +7,9 @@ import Fuse from "fuse.js";
 import { Link, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
+import Modal from "../Modal";
 
-export default function CreateOneMaterialRequest() {
+export default function CreateOneMaterialRequest({ userToken }) {
 	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
 
 	const navigate = useNavigate();
@@ -16,6 +17,8 @@ export default function CreateOneMaterialRequest() {
 
 	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
 	const [itemGroups, setItemGroups] = useState([]);
+
+	const [isOpen, setIsOpen] = useState(false);
 
 	const [logUser, setLogUser] = useState({});
 
@@ -208,7 +211,6 @@ export default function CreateOneMaterialRequest() {
 				variables: { input },
 				onCompleted: (res) => {
 					console.log("Mutation success:", res?.createOneMaterialRequest);
-					// newMr =
 					navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
 				},
 			});
@@ -217,7 +219,7 @@ export default function CreateOneMaterialRequest() {
 		}
 	};
 
-	console.log("this are the rows", rows);
+	const isFormValid = rows.every((r) => r.item && r.quantity !== "" && Number(r.quantity) > 0);
 
 	return (
 		<div className="update-container">
@@ -233,7 +235,7 @@ export default function CreateOneMaterialRequest() {
 						const filteredItems = row.brand?.value ? allItems?.filter((i) => i?.brand === row.brand.value) : allItems;
 
 						return (
-							<div key={idx} className="update-form-row ">
+							<div key={idx} className="update-form-row">
 								{/* Brand select */}
 								<h3 className="form-row-count">Material Request Row {idx + 1}</h3>
 								<div className="form-row-material-request-item-filter ">
@@ -263,17 +265,18 @@ export default function CreateOneMaterialRequest() {
 								</div>
 
 								<div className="form-row-top-container material-request">
-									<div className="form-row-top-left  material-request">
+									<div className="form-row-top-left material-request">
 										{/* Quantity input */}
 										<label htmlFor=""> Quantity</label>
 										<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} placeholder="Qty" />
 									</div>
 
-									<div className="form-row-top-right  material-request">
+									<div className="form-row-top-right material-request">
 										{/* Item select */}
 
 										<label htmlFor="">Item</label>
 										<Select
+											className="form-row-top-select"
 											options={filteredItems}
 											value={row.item}
 											onChange={(val) => handleRowChange(idx, "item", val)}
@@ -286,8 +289,6 @@ export default function CreateOneMaterialRequest() {
 													...base,
 													borderRadius: "12px",
 													borderColor: "blue",
-													// width: "200px",
-													// height: "50px",
 												}),
 												option: (base, state) => ({
 													...base,
@@ -298,9 +299,11 @@ export default function CreateOneMaterialRequest() {
 										/>
 									</div>
 								</div>
+
 								<div className="form-row-center-container-material-request">
 									<div className="form-row-center-container-material-request-wrapper">
-										<div className="form-row-center-container-material-request-wrapper">
+										<div className="form-row-center-container-material-request-wrapper-center">
+											{/* <div> */}
 											<label htmlFor="color"> color </label>
 											<Select
 												options={colorOptions}
@@ -335,7 +338,8 @@ export default function CreateOneMaterialRequest() {
 														<span>{option.label}</span>
 													</div>
 												)}
-											/>
+											/>{" "}
+											{/* </div> */}
 										</div>
 
 										<div className="form-row-center-container-material-request-wrapper-center">
@@ -366,55 +370,76 @@ export default function CreateOneMaterialRequest() {
 													}}
 												/>
 											</div>
-										</div>
 
-										<div>
-											<label htmlFor=""> Size</label>
-											<Select
-												options={sizeOptions}
-												value={sizeOptions.find((opt) => opt.value === row.size)}
-												onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
-												placeholder="Select Size"
-												filterOption={customFilter}
-												isClearable
-												isSearchable
-												styles={{
-													control: (base) => ({
-														...base,
-														borderRadius: "12px",
-														borderColor: "blue",
-														// width: "200px",
-														// height: "50px",
-													}),
-													option: (base, state) => ({
-														...base,
-														backgroundColor: state.isFocused ? "lightblue" : "white",
-														color: "black",
-													}),
-												}}
-											/>
+											<div>
+												<label htmlFor=""> Size</label>
+												<Select
+													options={sizeOptions}
+													value={sizeOptions.find((opt) => opt.value === row.size)}
+													onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
+													placeholder="Select Size"
+													filterOption={customFilter}
+													isClearable
+													isSearchable
+													styles={{
+														control: (base) => ({
+															...base,
+															borderRadius: "12px",
+															borderColor: "blue",
+															// width: "200px",
+															// height: "50px",
+														}),
+														option: (base, state) => ({
+															...base,
+															backgroundColor: state.isFocused ? "lightblue" : "white",
+															color: "black",
+														}),
+													}}
+												/>
+											</div>
 										</div>
 									</div>
+
+									<div className="form-row-center-container-material-request-wrapper-bottom">
+										{/* Description input */}
+										<label htmlFor=""> description</label>
+
+										<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
+									</div>
 								</div>
-								{/* Description input */}
-								<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
 
 								{rows.length > 1 ? (
-									<button type="button" onClick={() => removeRow(idx)}>
-										remove
-									</button>
+									<div className="form-row-remove-btn-container">
+										<span className="remove-row-btn" onClick={() => removeRow(idx)}>
+											remove
+										</span>
+									</div>
 								) : null}
 							</div>
 						);
 					})}
 				</div>
+
 				{/* Action buttons */}
-				<button type="button" onClick={addRow}>
-					+ Add Item
-				</button>
-				<button type="submit" onClick={submit}>
-					Submit
-				</button>
+				<div className="form-action-btn">
+					<span className="form-add-row-btn" onClick={addRow}>
+						+ Add Item
+					</span>
+
+					<div>
+						<button
+							className="form-submit-btn"
+							type="button"
+							disabled={!isFormValid}
+							onClick={() => {
+								setIsOpen(true);
+							}}>
+							Request Material
+						</button>
+					</div>
+				</div>
+
+				<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} onConFirm={submit} data={{ rows }} userToken={userToken} />
 			</form>
 		</div>
 	);

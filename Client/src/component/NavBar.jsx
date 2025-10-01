@@ -3,11 +3,16 @@ import { Link, useLocation } from "react-router-dom";
 import Logo from "../assets/WebsterSiteLogo.png";
 import Burger from "../assets/burgerMenu.svg?react";
 import X from "../assets/x.svg?react";
+import { jwtDecode } from "jwt-decode";
 
-export default function NavBar({ children, screenWidth }) {
+export default function NavBar({ children, screenWidth, userToken }) {
 	const [mobileOpen, setMobileOpen] = useState(false);
 	const closeMenu = () => setMobileOpen(false);
 	const location = useLocation(); // current URL path
+
+	// decode user
+	const decoded = jwtDecode(userToken);
+	const role = decoded?.role;
 
 	const menuItems = [
 		{
@@ -22,7 +27,7 @@ export default function NavBar({ children, screenWidth }) {
 			title: "Material Requests",
 			links: [
 				{ name: "View All", path: "/material/request/all" },
-				{ name: "Request Material", path: "/admin/material/request/" },
+				{ name: "Request Material", path: role === "headAdmin" ? "/admin/material/request/" : "/material/request/request/" },
 			],
 		},
 		{

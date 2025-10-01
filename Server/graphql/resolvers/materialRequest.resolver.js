@@ -286,12 +286,6 @@ const materialRequestResolvers = {
 
 		updateOneMaterialRequest: async (_, { input: { id, description, items, approvalStatus, comment } }, { user, pubsub }) => {
 			try {
-				// console.log("items dir");
-				// console.dir(items, { depth: null });
-
-				// console.log("approvalStatus dir");
-				// console.dir(approvalStatus, { depth: null });
-
 				if (!user) throw new ApolloError("Unauthorized: No user context.");
 				if ((!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole" || user.role === "technician") {
 					throw new ApolloError("Unauthorized: You lack permission.");
@@ -379,9 +373,6 @@ const materialRequestResolvers = {
 						}
 					}
 				}
-
-				console.log("______________________");
-				console.log("final submission");
 
 				console.dir(target, { depth: null });
 

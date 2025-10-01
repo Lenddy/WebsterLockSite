@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 
 import { jwtDecode } from "jwt-decode";
 
-const Modal = ({ isOpen, onClose, onConFirm, data, userToken }) => {
+const Modal = ({ isOpen, onClose, onConFirm, data, userToken, loading }) => {
 	const [content, setContent] = useState(null);
 	const location = useLocation(); // current URL path
 	useEffect(() => {
@@ -12,7 +12,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, userToken }) => {
 			setContent(null);
 			return;
 		}
-		// console.log("modal info", data?.rows);
+		console.log("modal info", data);
 
 		// Handle a single user object
 		if (data?.__typename === "User" || data?.__typename === "user") {
@@ -59,6 +59,22 @@ const Modal = ({ isOpen, onClose, onConFirm, data, userToken }) => {
 						</div>
 					)}
 
+					{location.pathname === `/material/request/request/` && (
+						<div className="modal-content-header">
+							{/* <div className="modal-content-top-info-id">
+								<h4>ID:</h4> <p>{content.value.id}</p>
+							</div> */}
+
+							<div className="modal-content-top-info-title-wrapper">
+								{/* Name */}
+
+								<div>
+									<h4>requested by:</h4> <p> {jwtDecode(userToken).name} </p>
+								</div>
+							</div>
+						</div>
+					)}
+
 					{/* for users */}
 					{content?.type === "User" && (
 						<div className="modal-content-header">
@@ -90,7 +106,53 @@ const Modal = ({ isOpen, onClose, onConFirm, data, userToken }) => {
 				<div className="modal-content">
 					{location.pathname === `/material/request/${data?.mRequest?.mrId}/update` && (
 						<div className="modal-content-info">
-							{data.rows.map((row, idx) => {
+							{data?.rows?.map((row, idx) => {
+								return (
+									<div className="modal-content-info-wrapper" key={idx}>
+										<p>Material Request Row {idx + 1} </p>
+										<div className="modal-content-item-info">
+											<div className="modal-content-item-info-top">
+												<div>
+													<label htmlFor=""> quantity </label>
+													<p> {row?.quantity}</p>
+												</div>{" "}
+												<div>
+													<label htmlFor=""> Item </label>
+													<p>{row?.item?.value}</p>
+												</div>
+											</div>
+
+											<div className="modal-content-item-info-center">
+												<div>
+													<label htmlFor=""> color</label>
+													<p> {row?.color?.value ? row?.color?.value : "N/A"} </p>
+												</div>
+												<div>
+													<label htmlFor="">side/hand</label>
+													<p>{row?.side?.value ? row?.side?.value : "N/A"}</p>
+												</div>
+												<div>
+													<label htmlFor="">size</label>
+													<p> {row?.size?.value ? row?.size?.value : "N/A"}</p>
+												</div>
+											</div>
+
+											<div className="modal-content-item-info-bottom">
+												<div>
+													<label htmlFor="">Description</label>
+													<p> {row?.itemDescription}</p>
+												</div>
+											</div>
+										</div>
+									</div>
+								);
+							})}
+						</div>
+					)}
+
+					{location.pathname === `/material/request/request/` && (
+						<div className="modal-content-info">
+							{data?.rows?.map((row, idx) => {
 								return (
 									<div className="modal-content-info-wrapper" key={idx}>
 										<p>Material Request Row {idx + 1} </p>
@@ -194,13 +256,13 @@ const Modal = ({ isOpen, onClose, onConFirm, data, userToken }) => {
 				</div>
 				<div className="modal-bottom">
 					<div className="model-bottom-wrapper">
-						{location.pathname === `/material/request/${data?.mRequest?.mrId}/update` ? (
+						{location.pathname === `/material/request/${data?.mRequest?.mrId}/update` || location.pathname === `/material/request/request/` ? (
 							<>
-								<div className="model-btn-view" onClick={onConFirm}>
+								<div className={`model-btn-view ${loading ? "disabled" : ""}`} onClick={onConFirm}>
 									<span>Confirm</span>
 								</div>
 
-								<div className="model-btn-delete" onClick={onClose}>
+								<div className={`model-btn-delete ${loading ? "disabled" : ""}`} onClick={onClose}>
 									<span>Cancel</span>
 								</div>
 							</>

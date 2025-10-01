@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useQuery, useSubscription } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
+import { useEffect, useState } from "react";
+import { useQuery } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
 import { jwtDecode } from "jwt-decode";
 import { get_one_material_request } from "../../../graphQL/queries/queries";
 import { Link, useParams, useLocation, Navigate, useNavigate } from "react-router-dom";
@@ -7,7 +7,6 @@ import UpdateOneMaterialRequest from "./UpdateOneMaterialRequest";
 import { get_all_item_groups } from "../../../graphQL/queries/queries";
 import Select from "react-select";
 import Fuse from "fuse.js";
-import Modal from "../Modal";
 
 export default function GetOneMaterialRequest({ userToken }) {
 	const { requestId } = useParams();
@@ -107,7 +106,7 @@ export default function GetOneMaterialRequest({ userToken }) {
 			) : (
 				<div className="update-container">
 					<div className="update-form">
-						<h1 className="update-form-title"> Update </h1>
+						{/* <h className="update-form-title">  </h/1> */}
 						{/* Dynamic rows */}
 						<div className="update-form-wrapper">
 							{rows?.map((row, idx) => {

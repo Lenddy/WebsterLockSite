@@ -4,12 +4,21 @@ import { jwtDecode } from "jwt-decode";
 import { get_all_item_groups } from "../../../graphQL/queries/queries";
 import { Link } from "react-router-dom";
 import { ITEM_GROUP_CHANGE_SUBSCRIPTION } from "../../../graphQL/subscriptions/subscriptions";
-export default function AdminGetAllItems() {
+
+import Fuse from "fuse.js";
+import Modal from "../Modal";
+
+export default function AdminGetAllItems({ userToken }) {
 	const { error, loading, data, refetch } = useQuery(get_all_item_groups);
 	const [items, setItems] = useState([]);
 	const [logUser, setLogUser] = useState({});
+	const [isOpen, setIsOpen] = useState(false);
+	const [selectedItem, setSelectedItem] = useState(null);
 
 	// const decoded = ;
+
+	const [searchValue, setSearchValue] = useState(""); // persistent search
+	const [filteredItems, setFilteredItems] = useState([]);
 
 	useEffect(() => {
 		setLogUser(jwtDecode(localStorage.getItem("UserToken")));
@@ -19,6 +28,7 @@ export default function AdminGetAllItems() {
 		if (data) {
 			console.log(data.getAllItemGroups);
 			setItems(data.getAllItemGroups);
+			setFilteredItems(data.getAllItemGroups);
 		}
 		if (error) {
 			console.log("there was an error", error);
@@ -55,35 +65,33 @@ export default function AdminGetAllItems() {
 			</div> */
 	}
 
+	// Fuse.js search function
+	const applyFuse = (list, search) => {
+		if (!search) return list;
+
+		const fuse = new Fuse(list, {
+			keys: ["brand"],
+			threshold: 0.4,
+		});
+
+		return fuse.search(search).map((r) => r.item);
+	};
+
+	// Handle input change
+	const handleSearchChange = (e) => {
+		const val = e.target.value;
+		setSearchValue(val);
+		setFilteredItems(applyFuse(items, val));
+	};
+
+	// Clear search manually
+	const clearSearch = () => {
+		setSearchValue("");
+		setFilteredItems(items);
+	};
+
 	return (
-		<div>
-			<h1>Welcome {logUser?.name}</h1>
-
-			<div>
-				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
-					Log out
-				</Link>
-			</div>
-
-			<div>
-				<Link to={"/admin/user/register"}>admin register users</Link>
-			</div>
-
-			<div>
-				<Link to={"/admin/user/update"}>admin update users</Link>
-			</div>
-
-			<div>
-				<Link to={"/admin/material/request/"}>admin create material requests</Link>
-			</div>
-
-			<div>
-				<Link to={"/user/register"}>register user</Link>
-			</div>
-
-			<div>
-				<Link to={`/material/request/all`}>all material requests</Link>
-			</div>
+		<>
 			{/* {/*  */}
 			{loading ? (
 				<div>
@@ -91,8 +99,21 @@ export default function AdminGetAllItems() {
 					<h1>loading...</h1>{" "}
 				</div>
 			) : (
-				<div>
-					<div>
+				<div className="list-get-all-content">
+					<div className="search-filter-wrapper">
+						<div className="search-filter-container">
+							<input type="text" className="search-filter-input" placeholder="Search Brand by Brand Name" value={searchValue} onChange={handleSearchChange} autoComplete="false" />
+							<button
+								className="search-clear-btn"
+								onClick={clearSearch}
+								disabled={!searchValue} // disabled when input is empty
+							>
+								✕
+							</button>
+						</div>
+					</div>
+
+					<div className="table-wrapper">
 						<table>
 							<thead>
 								<tr>
@@ -100,44 +121,55 @@ export default function AdminGetAllItems() {
 									<th>Brand</th>
 									<th>Item amount</th>
 									<th>Some items</th>
+									<th>Action</th>
 								</tr>
 							</thead>
-							{items.flatMap((ig) => {
-								return (
-									<tbody key={ig.id}>
-										<tr>
-											<td>
-												<Link to={`/admin/material/item/${ig?.id}`}>{ig?.id}</Link>
-											</td>
-											<td>
-												<Link to={`/admin/material/item/${ig?.id}`}>{ig?.brand}</Link>
-											</td>
-											<td>{ig?.itemsList?.length}</td>
-											<td>
-												{ig?.itemsList?.slice(0, 3).map((item, idx, arr) => {
-													return (
-														<span key={item.id}>
-															{item.itemName}
-															{idx < arr.length - 1 ? ", " : ""}
-														</span>
-													);
-												})}
-											</td>
-											<td>
-												<div>
-													<button>Update</button>
-													<button>Delete</button>
-												</div>
-											</td>
-										</tr>
-									</tbody>
-								);
-							})}
+							{/* {items.flatMap((ig) => { */}
+							<tbody>
+								{filteredItems.map((ig) => (
+									<tr key={ig.id}>
+										<td>
+											<Link to={`/admin/material/item/${ig?.id}`}>{ig?.id}</Link>
+										</td>
+										<td>
+											<Link to={`/admin/material/item/${ig?.id}`}>{ig?.brand}</Link>
+										</td>
+										<td>{ig?.itemsList?.length}</td>
+										<td>
+											{ig?.itemsList?.slice(0, 3).map((item, idx, arr) => {
+												return (
+													<span key={item.id}>
+														{item.itemName}
+														{idx < arr.length - 1 ? ", " : ""}
+													</span>
+												);
+											})}
+										</td>
+										<td>
+											<div>
+												<Link to={`/admin/material/item/${ig?.id}/update`}>
+													<span className="table-action first">Update</span>
+												</Link>
+
+												{/* <span
+													className="table-action last"
+													onClick={() => {
+														setSelectedItem(ig);
+														setIsOpen(true);
+													}}>
+													Delete
+												</span> */}
+											</div>
+										</td>
+									</tr>
+								))}
+							</tbody>
 						</table>
 					</div>
+					{/* <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={selectedItem} userToken={userToken} /> */}
 				</div>
 			)}
 			{error && <p style={{ color: "red" }}> {error.message}</p>}
-		</div>
+		</>
 	);
 }

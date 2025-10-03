@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useSubscription } from "@apollo/client";
 import { jwtDecode } from "jwt-decode";
 import { get_all_users } from "../../../graphQL/queries/queries";
@@ -52,7 +52,7 @@ export default function GetAllUsers({ userToken }) {
 
 		const fuse = new Fuse(list, {
 			keys: ["name", "email"],
-			threshold: 0.3,
+			threshold: 0.4,
 		});
 
 		return fuse.search(search).map((r) => r.item);

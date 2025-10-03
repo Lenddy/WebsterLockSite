@@ -304,7 +304,7 @@ export default function CreateOneMaterialRequest({ userToken }) {
 									<div className="form-row-center-container-material-request-wrapper">
 										<div className="form-row-center-container-material-request-wrapper-center">
 											{/* <div> */}
-											<label htmlFor="color"> color </label>
+											<label htmlFor="color"> Color </label>
 											<Select
 												options={colorOptions}
 												value={colorOptions.find((opt) => opt.value === row.color)}
@@ -402,7 +402,7 @@ export default function CreateOneMaterialRequest({ userToken }) {
 
 									<div className="form-row-center-container-material-request-wrapper-bottom">
 										{/* Description input */}
-										<label htmlFor=""> description</label>
+										<label htmlFor="">Description</label>
 
 										<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
 									</div>

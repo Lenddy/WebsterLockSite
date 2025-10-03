@@ -260,7 +260,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 				onCompleted: (res) => {
 					console.log("Mutation success:", res.createMultipleMaterialRequests);
 					// newMr =
-					// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
+					navigate(`/material/request/all`);
 				},
 				onError: (err) => {
 					console.warn("Mutation success:", err);
@@ -284,39 +284,47 @@ export default function AdminCreateMultipleMaterialRequests() {
 						{/* Inside your Select:*/}
 
 						<div className="update-form-wrapper">
-							<Select
-								options={userOptions}
-								value={requests[reqIdx]?.requester ? userOptions.find((opt) => opt.value.userId === requests[reqIdx].requester.userId) : null}
-								onChange={(selected) =>
-									handleRequestChange(
-										reqIdx,
-										"requester",
-										selected ? selected.value : null //  full object goes into your state
-									)
-								}
-								filterOption={customUserFilter}
-								placeholder="Select Requester"
-								isClearable
-								isSearchable
-								styles={{
-									control: (base) => ({
-										...base,
-										borderRadius: "12px",
-										borderColor: "blue",
-										width: "250px",
-										height: "50px",
-									}),
-									option: (base, state) => ({
-										...base,
-										backgroundColor: state.isFocused ? "lightblue" : "white",
-										color: "black",
-									}),
-								}}
-							/>
+							<div className="form-row-top-container material-request ">
+								<div className="form-row-top-right material-request">
+									<label htmlFor="">User</label>
+									<Select
+										className="form-row-top-select"
+										options={userOptions}
+										value={requests[reqIdx]?.requester ? userOptions.find((opt) => opt.value.userId === requests[reqIdx].requester.userId) : null}
+										onChange={(selected) =>
+											handleRequestChange(
+												reqIdx,
+												"requester",
+												selected ? selected.value : null //  full object goes into your state
+											)
+										}
+										filterOption={customUserFilter}
+										placeholder="Select Requester"
+										isClearable
+										isSearchable
+										styles={{
+											control: (base) => ({
+												...base,
+												borderRadius: "12px",
+												borderColor: "blue",
+												minWidth: "200px",
+												height: "50px",
+											}),
+											option: (base, state) => ({
+												...base,
+												backgroundColor: state.isFocused ? "lightblue" : "white",
+												color: "black",
+											}),
+										}}
+									/>{" "}
+								</div>
 
-							{/* Request-level fields */}
-							<input type="date" value={req.date} onChange={(e) => handleRequestChange(reqIdx, "addedDate", e.target.value)} />
-							{/* <textarea value={req.description} onChange={(e) => handleRequestChange(reqIdx, "description", e.target.value)} placeholder="Request Description" /> */}
+								<div className="form-row-top-left material-request">
+									<label htmlFor="">Date</label>
+									{/* Request-level fields */}
+									<input className="date-input" type="date" value={req.date} onChange={(e) => handleRequestChange(reqIdx, "addedDate", e.target.value)} />
+								</div>
+							</div>
 
 							{/* Items inside request */}
 							{req.items.map((row, rowIdx) => {
@@ -325,171 +333,228 @@ export default function AdminCreateMultipleMaterialRequests() {
 								return (
 									<div key={rowIdx} className="update-form-row">
 										{/* Brand select */}
-										<Select
-											options={brands}
-											value={row.brand}
-											onChange={(val) => handleItemChange(reqIdx, rowIdx, "brand", val)}
-											placeholder="Select Brand"
-											isClearable
-											isSearchable
-											styles={{
-												control: (base) => ({
-													...base,
-													borderRadius: "12px",
-													borderColor: "blue",
-													width: "200px",
-													height: "50px",
-												}),
-												option: (base, state) => ({
-													...base,
-													backgroundColor: state.isFocused ? "lightblue" : "white",
-													color: "black",
-												}),
-											}}
-										/>
+										<h3 className="form-row-count">Material Request Row {rowIdx + 1}</h3>
 
-										{/* Quantity */}
-										<input type="number" value={row.quantity} onChange={(e) => handleItemChange(reqIdx, rowIdx, "quantity", e.target.value)} placeholder="Qty" min={0} />
+										<div className="form-row-material-request-item-filter">
+											<Select
+												options={brands}
+												value={row.brand}
+												onChange={(val) => handleItemChange(reqIdx, rowIdx, "brand", val)}
+												placeholder="Select Brand"
+												isClearable
+												isSearchable
+												styles={{
+													control: (base) => ({
+														...base,
+														borderRadius: "12px",
+														borderColor: "blue",
+														width: "200px",
+														height: "50px",
+													}),
+													option: (base, state) => ({
+														...base,
+														backgroundColor: state.isFocused ? "lightblue" : "white",
+														color: "black",
+													}),
+												}}
+											/>
+										</div>
 
-										{/* Item select */}
-										<Select
-											options={filteredItems}
-											value={row.item}
-											onChange={(val) => handleItemChange(reqIdx, rowIdx, "item", val)}
-											placeholder="Select Item"
-											filterOption={customFilter}
-											isClearable
-											isSearchable
-											styles={{
-												control: (base) => ({
-													...base,
-													borderRadius: "12px",
-													borderColor: "blue",
-													// width: "200px",
-													// height: "50px",
-												}),
-												option: (base, state) => ({
-													...base,
-													backgroundColor: state.isFocused ? "lightblue" : "white",
-													color: "black",
-												}),
-											}}
-										/>
+										<div className="form-row-top-container material-request">
+											<div className="form-row-top-left material-request">
+												<label htmlFor=""> Quantity</label>
+												{/* Quantity */}
+												<input type="number" value={row.quantity} onChange={(e) => handleItemChange(reqIdx, rowIdx, "quantity", e.target.value)} placeholder="Qty" min={0} />
+											</div>
 
-										{/* Color select */}
-										<Select
-											options={colorOptions}
-											value={colorOptions.find((opt) => opt.value === row.color)}
-											onChange={(val) => handleItemChange(reqIdx, rowIdx, "color", val?.value || null)}
-											placeholder="Select Color"
-											styles={{
-												control: (base) => ({
-													...base,
-													borderRadius: "12px",
-													borderColor: "blue",
-													// width: "200px",
-													// height: "50px",
-												}),
-												option: (base, state) => ({
-													...base,
-													backgroundColor: state.isFocused ? "lightblue" : "white",
-													color: "black",
-												}),
-											}}
-											formatOptionLabel={(option) => (
-												<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-													<div style={{ width: "30px", height: "30px", backgroundColor: option.hex, border: "1px solid #ccc" }} />
-													<span>{option.label}</span>
+											<div className="form-row-top-right material-request">
+												<label htmlFor="">Item</label>
+												{/* Item select */}
+												<Select
+													className="form-row-top-select"
+													options={filteredItems}
+													value={row.item}
+													onChange={(val) => handleItemChange(reqIdx, rowIdx, "item", val)}
+													placeholder="Select Item"
+													filterOption={customFilter}
+													isClearable
+													isSearchable
+													styles={{
+														control: (base) => ({
+															...base,
+															borderRadius: "12px",
+															borderColor: "blue",
+															// width: "200px",
+															// height: "50px",
+														}),
+														option: (base, state) => ({
+															...base,
+															backgroundColor: state.isFocused ? "lightblue" : "white",
+															color: "black",
+														}),
+													}}
+												/>
+											</div>
+										</div>
+
+										<div className="form-row-center-container-material-request">
+											<div className="form-row-center-container-material-request-wrapper">
+												<div className="form-row-center-container-material-request-wrapper-center">
+													<div>
+														<label htmlFor="">Color</label>
+
+														{/* Color select */}
+														<Select
+															className="form-row-top-select"
+															options={colorOptions}
+															value={colorOptions.find((opt) => opt.value === row.color)}
+															onChange={(val) => handleItemChange(reqIdx, rowIdx, "color", val?.value || null)}
+															placeholder="Select Color"
+															styles={{
+																control: (base) => ({
+																	...base,
+																	borderRadius: "12px",
+																	borderColor: "blue",
+																	// width: "200px",
+																	// height: "50px",
+																}),
+																option: (base, state) => ({
+																	...base,
+																	backgroundColor: state.isFocused ? "lightblue" : "white",
+																	color: "black",
+																}),
+															}}
+															formatOptionLabel={(option) => (
+																<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+																	<div style={{ width: "30px", height: "30px", backgroundColor: option.hex, border: "1px solid #ccc" }} />
+																	<span>{option.label}</span>
+																</div>
+															)}
+														/>
+													</div>
 												</div>
-											)}
-										/>
 
-										{/* Side select */}
-										<Select
-											options={sideOptions}
-											value={sideOptions.find((opt) => opt.value === row.side)}
-											onChange={(val) => handleItemChange(reqIdx, rowIdx, "side", val?.value || null)}
-											placeholder="Select Side/Hand"
-											filterOption={customFilter}
-											isClearable
-											isSearchable
-											styles={{
-												control: (base) => ({
-													...base,
-													borderRadius: "12px",
-													borderColor: "blue",
-													// width: "200px",
-													// height: "50px",
-												}),
-												option: (base, state) => ({
-													...base,
-													backgroundColor: state.isFocused ? "lightblue" : "white",
-													color: "black",
-												}),
-											}}
-										/>
+												<div className="form-row-center-container-material-request-wrapper-center">
+													<div>
+														<label htmlFor="">side/hand</label>
+														{/* Side select */}
+														<Select
+															className="form-row-top-select"
+															options={sideOptions}
+															value={sideOptions.find((opt) => opt.value === row.side)}
+															onChange={(val) => handleItemChange(reqIdx, rowIdx, "side", val?.value || null)}
+															placeholder="Select Side/Hand"
+															filterOption={customFilter}
+															isClearable
+															isSearchable
+															styles={{
+																control: (base) => ({
+																	...base,
+																	borderRadius: "12px",
+																	borderColor: "blue",
+																	// width: "200px",
+																	// height: "50px",
+																}),
+																option: (base, state) => ({
+																	...base,
+																	backgroundColor: state.isFocused ? "lightblue" : "white",
+																	color: "black",
+																}),
+															}}
+														/>
+													</div>
 
-										{/* Size select */}
-										<Select
-											options={sizeOptions}
-											value={sizeOptions.find((opt) => opt.value === row.size)}
-											onChange={(val) => handleItemChange(reqIdx, rowIdx, "size", val?.value || null)}
-											placeholder="Select Size"
-											filterOption={customFilter}
-											isClearable
-											isSearchable
-											styles={{
-												control: (base) => ({
-													...base,
-													borderRadius: "12px",
-													borderColor: "blue",
-													// width: "200px",
-													// height: "50px",
-												}),
-												option: (base, state) => ({
-													...base,
-													backgroundColor: state.isFocused ? "lightblue" : "white",
-													color: "black",
-												}),
-											}}
-										/>
+													<div>
+														<label htmlFor=""> Size</label>
+														{/* Size select */}
+														<Select
+															className="form-row-top-select"
+															options={sizeOptions}
+															value={sizeOptions.find((opt) => opt.value === row.size)}
+															onChange={(val) => handleItemChange(reqIdx, rowIdx, "size", val?.value || null)}
+															placeholder="Select Size"
+															filterOption={customFilter}
+															isClearable
+															isSearchable
+															styles={{
+																control: (base) => ({
+																	...base,
+																	borderRadius: "12px",
+																	borderColor: "blue",
+																	// width: "200px",
+																	// height: "50px",
+																}),
+																option: (base, state) => ({
+																	...base,
+																	backgroundColor: state.isFocused ? "lightblue" : "white",
+																	color: "black",
+																}),
+															}}
+														/>
+													</div>
+												</div>
+											</div>
 
-										{/* Item description */}
-										<textarea type="text" value={row.itemDescription} onChange={(e) => handleItemChange(reqIdx, rowIdx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
+											<div className="form-row-center-container-material-request-wrapper-bottom">
+												<label htmlFor=""> description</label>
+
+												{/* Item description */}
+												<textarea type="text" value={row.itemDescription} onChange={(e) => handleItemChange(reqIdx, rowIdx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
+											</div>
+										</div>
 
 										{/* Remove item button */}
 										{req.items.length > 1 && (
-											<button type="button" onClick={() => removeItemRow(reqIdx, rowIdx)}>
-												Remove Item
-											</button>
+											<div className="form-row-remove-btn-container">
+												<span className="remove-row-btn" onClick={() => removeItemRow(reqIdx, rowIdx)}>
+													Remove
+												</span>
+											</div>
 										)}
 									</div>
 								);
 							})}
 						</div>
 
-						{/* Item-level add button */}
-						<button type="button" onClick={() => addItemRow(reqIdx)} disabled={!canAddMore}>
-							+ Add Item
-						</button>
-						{/* Remove whole request */}
-						{requests.length > 1 && (
-							<button type="button" onClick={() => removeRequest(reqIdx)}>
-								Remove Request
-							</button>
-						)}
+						<div className="form-action-btn ">
+							<div className="form-row-remove-btn-container">
+								{/* Item-level add button */}
+								<span className="form-add-row-btn" onClick={() => addItemRow(reqIdx)} disabled={!canAddMore}>
+									+ Add Item
+								</span>
+							</div>
+
+							{/* Remove whole request */}
+							{requests.length > 1 && (
+								<div className="form-row-remove-btn-container">
+									<span className="remove-row-btn" type="button" onClick={() => removeRequest(reqIdx)}>
+										Remove Request
+									</span>
+								</div>
+							)}
+						</div>
 					</div>
 				))}
 
-				{/* Add a whole new request */}
-				<button type="button" onClick={addRequest} disabled={!canAddMore}>
-					+ Add New Request
-				</button>
-				<button type="submit" onClick={submit} disabled={!canSubmit}>
-					Submit
-				</button>
+				<div className="form-action-btn">
+					{/* Add a whole new request */}
+					<span className="form-add-row-btn" onClick={addRequest} disabled={!canAddMore}>
+						+ Add Request
+					</span>
 
-				{!canAddMore && <p style={{ color: "red" }}> All required fields must be filled.</p>}
+					<div>
+						<button className="form-submit-btn" type="submit" onClick={submit} disabled={!canSubmit}>
+							Request Material
+						</button>
+					</div>
+				</div>
+
+				{!canAddMore && (
+					<p className="form-error" style={{ color: "red" }}>
+						{" "}
+						All required fields must be filled.
+					</p>
+				)}
 			</form>
 		</div>
 	);

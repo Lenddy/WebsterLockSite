@@ -39,10 +39,10 @@ function App({ userToken }) {
 					<Route path="/admin/user/register" element={<AdminRegisterMultipleUsers userToken={userToken} />} />
 					<Route path="/admin/user/:userId?/update" element={<AdminUpdateMultipleUsers />} />
 					<Route path="/admin/material/request" element={<AdminCreateMultipleMaterialRequests />} />
-					<Route path="/admin/material/item/all" element={<AdminGetAllItems />} />
+					<Route path="/admin/material/item/all" element={<AdminGetAllItems userToken={userToken} />} />
 					<Route path="/admin/material/item/:itemId" element={<AdminGetOneItem />} />
 					<Route path="/admin/material/item/create" element={<AdminCreateMultipleItemsGroups />} />
-					<Route path="/admin/material/item/update" element={<AdminUpdateMultipleItemsGroups />} />
+					<Route path="/admin/material/item/:itemId?/update" element={<AdminUpdateMultipleItemsGroups />} />
 					<Route path="/admin/material/item/usage" element={<AdminItemUsage />} />
 
 					{/* User routes */}

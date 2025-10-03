@@ -1589,6 +1589,14 @@ textarea:disabled {
 	flex-direction: column;
 }
 
+.form-row-top-left.material-request,
+.form-row-top-right.material-request {
+	display: flex;
+	justify-content: end;
+	align-items: center;
+	flex-direction: column;
+}
+
 .form-row-material-request-item-filter {
 	width: 100%;
 	display: flex;
@@ -1716,6 +1724,7 @@ textarea:disabled {
 		width: 97%;
 	}
 }
+
 @media ((max-width: 800px) and ( min-width:400px)) {
 	.modal-wrapper {
 		width: 90%;
@@ -1740,8 +1749,6 @@ textarea:disabled {
 @media (max-width: 630px) {
 	.form-row-top-left,
 	.form-row-top-right {
-		/* width: clamp(18.75rem, 50vw, 25rem); */
-		/* width: clamp(18.75rem, 50vw, 25rem); */
 		width: 100%;
 		display: flex;
 		justify-content: end;

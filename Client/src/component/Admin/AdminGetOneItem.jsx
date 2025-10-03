@@ -3,13 +3,16 @@ import { useQuery, useSubscription } from "@apollo/client"; // Import useQuery h
 import { jwtDecode } from "jwt-decode";
 import { get_one_item_group } from "../../../graphQL/queries/queries";
 import { Link, useParams, useLocation } from "react-router-dom";
+import Modal from "../Modal";
+import Fuse from "fuse.js";
 
-export default function AdminGetOneItem() {
+export default function AdminGetOneItem({ userToken }) {
 	const [item, setItem] = useState([]);
 	const [logUser, setLogUser] = useState({});
 	const { itemId } = useParams();
 	const { error, loading, data, refetch } = useQuery(get_one_item_group, { variables: { id: itemId } });
 	// const decoded = ;
+	const [isOpen, setIsOpen] = useState(false);
 
 	useEffect(() => {
 		setLogUser(jwtDecode(localStorage.getItem("UserToken")));
@@ -23,12 +26,9 @@ export default function AdminGetOneItem() {
 		if (error) {
 			console.log("there was an error", error);
 		}
-		// const fetchData = async () => {
-		// 	await refetch();
-		// };
-		// fetchData();
 	}, [loading, data, error]); //refetch
 	// // Subscription for client changes
+
 	// 	useSubscription(CLIENT_CHANGE_SUBSCRIPTION, {
 	// 		onError: err => console.log("this is the error from subscription", err),
 	// 		onData: infoChange => {
@@ -49,63 +49,96 @@ export default function AdminGetOneItem() {
 	// 		},
 	// 		onComplete: complete => console.log("subscription completed", complete),
 
-	{
-		/* 
-			<div>
-				<a href={"/user/admin/register"}> a tag register </a>
-			</div> */
-	}
+	const [searchValue, setSearchValue] = useState(""); // persistent search
+	const [filteredItems, setFilteredItems] = useState([]);
+	const [items, setItems] = useState([]);
+
+	// Fuse.js search function
+	const applyFuse = (list, search) => {
+		if (!search) return list;
+
+		const fuse = new Fuse(list, {
+			keys: ["brand"],
+			threshold: 0.4,
+		});
+
+		return fuse.search(search).map((r) => r.item);
+	};
+
+	// Handle input change
+	const handleSearchChange = (e) => {
+		const val = e.target.value;
+		setSearchValue(val);
+		setFilteredItems(applyFuse(items, val));
+	};
+
+	// Clear search manually
+	const clearSearch = () => {
+		setSearchValue("");
+		setFilteredItems(items);
+	};
 
 	return (
-		<div>
-			{/* <h1>Welcome {logUser?.name}</h1> */}
-
-			<div>
-				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
-					Log out
-				</Link>
-			</div>
-
-			<div>
-				<Link to={"/admin/user/register"}>admin register users</Link>
-			</div>
-
-			<div>
-				<Link to={"/admin/user/update"}>admin update users</Link>
-			</div>
-
-			<div>
-				<Link to={"/admin/material/request/"}>admin create material requests</Link>
-			</div>
-
-			<div>
-				<Link to={"/user/register"}>register user</Link>
-			</div>
-
-			<div>
-				<Link to={`/material/request/all`}>all material requests</Link>
-			</div>
+		<>
 			{/* {/*  */}
 			{loading ? (
 				<div>
-					{" "}
-					<h1>loading...</h1>{" "}
+					<h1>loading...</h1>
 				</div>
 			) : (
-				<div>
-					<div>
-						{item?.itemsList?.map((item) => {
-							return (
-								<>
-									<p key={item.id}>{item.itemName}</p>
-									<button> delete</button>
-								</>
-							);
-						})}
+				<div className="list-get-all-content">
+					<div className="search-filter-wrapper">
+						<div className="search-filter-container">
+							<input type="text" className="search-filter-input" placeholder="Search Brand by Brand Name" value={searchValue} onChange={handleSearchChange} autoComplete="false" />
+							<button
+								className="search-clear-btn"
+								onClick={clearSearch}
+								disabled={!searchValue} // disabled when input is empty
+							>
+								✕
+							</button>
+						</div>
 					</div>
+
+					<div className="table-wrapper">
+						<table>
+							<thead>
+								<tr>
+									<th>ID</th>
+
+									<th>Item Name</th>
+
+									<th>Action</th>
+								</tr>
+							</thead>
+
+							<tbody>
+								{item?.itemsList?.map((item) => {
+									return (
+										<tr key={item.id}>
+											<td>{item.id}</td>
+											<td>{item.itemName}</td>
+											<td>
+												<span
+													className="table-action last"
+													onClick={() => {
+														// setSelectedUser(user);
+														setIsOpen(true);
+													}}>
+													{" "}
+													delete
+												</span>
+											</td>
+										</tr>
+									);
+								})}
+							</tbody>
+						</table>
+					</div>
+					<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={true} userToken={userToken} />
 				</div>
 			)}
 			{error && <p style={{ color: "red" }}> {error.message}</p>}
-		</div>
+		</>
 	);
 }

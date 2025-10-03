@@ -516,7 +516,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 							})}
 						</div>
 
-						<div className="form-action-btn ">
+						<div className="form-action-btn">
 							<div className="form-row-remove-btn-container">
 								{/* Item-level add button */}
 								<span className="form-add-row-btn" onClick={() => addItemRow(reqIdx)} disabled={!canAddMore}>

@@ -15,8 +15,6 @@ export default function AdminGetAllItems({ userToken }) {
 	const [isOpen, setIsOpen] = useState(false);
 	const [selectedItem, setSelectedItem] = useState(null);
 
-	// const decoded = ;
-
 	const [searchValue, setSearchValue] = useState(""); // persistent search
 	const [filteredItems, setFilteredItems] = useState([]);
 
@@ -33,13 +31,9 @@ export default function AdminGetAllItems({ userToken }) {
 		if (error) {
 			console.log("there was an error", error);
 		}
-		// const fetchData = async () => {
-		// 	await refetch();
-		// };
-		// fetchData();
 	}, [loading, data, error]); //refetch
 
-	// useSubscription hook
+	// Live subscription for item group updates
 	useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
 		onError: (err) => console.error("Subscription error:", err),
 		onData: ({ data }) => {
@@ -48,22 +42,21 @@ export default function AdminGetAllItems({ userToken }) {
 
 			const { eventType, Changes } = change;
 
-			if (eventType === "created") {
-				setItems((prev) => [...prev, Changes]);
-			} else if (eventType === "updated") {
-				setItems((prev) => prev.map((ig) => (ig.id === Changes.id ? Changes : ig)));
-			} else if (eventType === "deleted") {
-				setItems((prev) => prev.filter((ig) => ig.id !== Changes.id));
-			}
+			setItems((prev) => {
+				let updated;
+				if (eventType === "created") updated = [...prev, Changes];
+				else if (eventType === "updated") updated = prev.map((ig) => (ig.id === Changes.id ? Changes : ig));
+				else if (eventType === "deleted") updated = prev.filter((ig) => ig.id !== Changes.id);
+				else updated = prev;
+
+				// Reapply current filter
+				if (searchValue) setFilteredItems(applyFuse(updated, searchValue));
+				else setFilteredItems(updated);
+
+				return updated;
+			});
 		},
 	});
-
-	{
-		/* 
-			<div>
-				<a href={"/user/admin/register"}> a tag register </a>
-			</div> */
-	}
 
 	// Fuse.js search function
 	const applyFuse = (list, search) => {
@@ -95,8 +88,7 @@ export default function AdminGetAllItems({ userToken }) {
 			{/* {/*  */}
 			{loading ? (
 				<div>
-					{" "}
-					<h1>loading...</h1>{" "}
+					<h1>loading...</h1>
 				</div>
 			) : (
 				<div className="list-get-all-content">

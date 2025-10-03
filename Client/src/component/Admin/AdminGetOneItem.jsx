@@ -14,14 +14,21 @@ export default function AdminGetOneItem({ userToken }) {
 	// const decoded = ;
 	const [isOpen, setIsOpen] = useState(false);
 
+	const [selectedItem, setSelectedItem] = useState(null);
+
+	const [searchValue, setSearchValue] = useState(""); // persistent search
+	const [filteredItems, setFilteredItems] = useState([]);
+	const [items, setItems] = useState([]);
+
 	useEffect(() => {
 		setLogUser(jwtDecode(localStorage.getItem("UserToken")));
 		if (loading) {
 			console.log("loading");
 		}
 		if (data) {
-			console.log(data.getOneItemGroup);
-			setItem(data.getOneItemGroup);
+			console.log(data?.getOneItemGroup);
+			setItem(data?.getOneItemGroup);
+			setFilteredItems(data?.getOneItemGroup);
 		}
 		if (error) {
 			console.log("there was an error", error);
@@ -49,18 +56,17 @@ export default function AdminGetOneItem({ userToken }) {
 	// 		},
 	// 		onComplete: complete => console.log("subscription completed", complete),
 
-	const [searchValue, setSearchValue] = useState(""); // persistent search
-	const [filteredItems, setFilteredItems] = useState([]);
-	const [items, setItems] = useState([]);
-
 	// Fuse.js search function
 	const applyFuse = (list, search) => {
 		if (!search) return list;
+		console.log("this is the list ", list);
 
 		const fuse = new Fuse(list, {
-			keys: ["brand"],
+			keys: ["item"],
 			threshold: 0.4,
 		});
+
+		console.log("this is fuse ", fuse);
 
 		return fuse.search(search).map((r) => r.item);
 	};
@@ -69,13 +75,13 @@ export default function AdminGetOneItem({ userToken }) {
 	const handleSearchChange = (e) => {
 		const val = e.target.value;
 		setSearchValue(val);
-		setFilteredItems(applyFuse(items, val));
+		setFilteredItems(applyFuse(item, val));
 	};
 
 	// Clear search manually
 	const clearSearch = () => {
 		setSearchValue("");
-		setFilteredItems(items);
+		setFilteredItems(item);
 	};
 
 	return (
@@ -105,15 +111,13 @@ export default function AdminGetOneItem({ userToken }) {
 							<thead>
 								<tr>
 									<th>ID</th>
-
 									<th>Item Name</th>
-
 									<th>Action</th>
 								</tr>
 							</thead>
 
 							<tbody>
-								{item?.itemsList?.map((item) => {
+								{filteredItems?.itemsList?.map((item) => {
 									return (
 										<tr key={item.id}>
 											<td>{item.id}</td>

@@ -75,6 +75,18 @@ const Modal = ({ isOpen, onClose, onConFirm, data, userToken, loading }) => {
 						</div>
 					)}
 
+					{location.pathname.includes(`/admin/material/item/`) && (
+						<div className="modal-content-header">
+							<div className="modal-content-top-info-title-wrapper">
+								{/* Name */}
+
+								<div>
+									<h4>{data.item.itemName} (will be deleted) </h4>
+								</div>
+							</div>
+						</div>
+					)}
+
 					{/* for users */}
 					{content?.type === "User" && (
 						<div className="modal-content-header">
@@ -196,6 +208,17 @@ const Modal = ({ isOpen, onClose, onConFirm, data, userToken, loading }) => {
 						</div>
 					)}
 
+					{/* here */}
+					{location.pathname.includes(`/admin/material/item/`) && (
+						<div className="modal-content-info">
+							<div className="modal-content-info-wrapper">
+								<div className="modal-content-item-info">
+									<h4> {data.item.itemName} (will be deleted and you will have to add it again to be able to use it )</h4>
+								</div>
+							</div>
+						</div>
+					)}
+
 					{/* User object */}
 					{content?.type === "User" && (
 						<>
@@ -254,6 +277,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, userToken, loading }) => {
 						</>
 					)}
 				</div>
+
 				<div className="modal-bottom">
 					<div className="model-bottom-wrapper">
 						{location.pathname === `/material/request/${data?.mRequest?.mrId}/update` || location.pathname === `/material/request/request/` ? (
@@ -266,9 +290,25 @@ const Modal = ({ isOpen, onClose, onConFirm, data, userToken, loading }) => {
 									<span>Cancel</span>
 								</div>
 							</>
-						) : (
+						) : location.pathname.includes(`/admin/material/item/`) ? (
 							<>
-								{" "}
+								<div className={`model-btn-view ${loading ? "disabled" : ""}`} onClick={onConFirm}>
+									<span>Confirm</span>
+								</div>
+
+								<div className={`model-btn-update ${loading ? "disabled" : ""}`} onClick={onConFirm}>
+									<Link to={`/admin/material/item/${data.brandId}/update`}>
+										<span>Update</span>
+									</Link>
+								</div>
+
+								<div className={`model-btn-delete ${loading ? "disabled" : ""}`} onClick={onClose}>
+									<span>Cancel</span>
+								</div>
+							</>
+						) : (
+							//! this should be for users only
+							<>
 								{/* you have to add the links to the update an view  */}
 								{location.pathname === "/user/all" && (
 									<div className="model-btn-view">

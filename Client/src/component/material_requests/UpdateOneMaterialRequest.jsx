@@ -281,7 +281,7 @@ function UpdateOneMaterialRequest({ userToken }) {
 					// side: r?.side || null,
 					// size: r?.size || null,
 
-					color: r?.color?.value || null, // ✅ now extracting value
+					color: r?.color?.value || null, //  now extracting value
 					side: r?.side?.value || null,
 					size: r?.size?.value || null,
 					// itemDescription: r?.itemDescription || null,

@@ -41,7 +41,7 @@ export default function AdminItemUsage() {
 		},
 	});
 
-	// 🔹 Filter requests by time range
+	//  Filter requests by time range
 	const filteredRequests = useMemo(() => {
 		if (filter === "all") return mRequests;
 
@@ -105,22 +105,16 @@ export default function AdminItemUsage() {
 	};
 
 	return (
-		<div>
-			<h1>Welcome {logUser?.name}</h1>
-
+		<div className="list-get-all-content">
 			{/* Filter controls */}
-			<div style={{ marginBottom: "1rem" }}>
-				{["all", "day", "week", "month", "year"].map((f) => (
-					<button
-						key={f}
-						onClick={() => setFilter(f)}
-						style={{
-							fontWeight: filter === f ? "bold" : "normal",
-							marginRight: "8px",
-						}}>
-						{f}
-					</button>
-				))}
+			<div>
+				<div className="form-action-btn">
+					{["all", "day", "week", "month", "year"].map((f) => (
+						<button className="form-submit-btn " key={f} onClick={() => setFilter(f)}>
+							{f}
+						</button>
+					))}
+				</div>
 
 				{/* Custom date filter */}
 				<div style={{ marginTop: "1rem" }}>
@@ -163,7 +157,7 @@ export default function AdminItemUsage() {
 			{loading ? (
 				<h2>Loading...</h2>
 			) : (
-				<table border="1" cellPadding="8" style={{ borderCollapse: "collapse" }}>
+				<table className="table-wrapper">
 					<thead>
 						<tr>
 							<th>Item</th>

@@ -175,11 +175,11 @@ export default function AdminCreateMultipleItemsGroups() {
 
 				<div className="form-action-btn">
 					<span className="form-add-row-btn" type="button" onClick={addItemGroup} disabled={!canAddMore}>
-						+ Add Item Group
+						+ Add Group
 					</span>
 
 					<div>
-						<button type="submit" className="form-submit-btn" onClick={submit} disabled={!canSubmit}>
+						<button type="submit" className="form-submit-btn" disabled={!canSubmit}>
 							Submit
 						</button>
 					</div>

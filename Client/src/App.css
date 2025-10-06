@@ -1736,20 +1736,21 @@ textarea:disabled {
 
 /* ! ITEM USAGE */
 
-.form-action-btn {
+.filter-btn-container {
 	display: flex;
 	justify-content: space-around;
 	align-items: start;
-	margin: 10px 0px;
+	/* margin: 10px 0px; */
 	color: var(--white);
 	min-height: 60px;
+	width: clamp(18.75rem, 100vw, 50rem);
 }
 
-.form-submit-btn {
+.filter-btn {
 	all: unset;
 	border-radius: 10px;
 	height: 40px;
-	width: clamp(4.688rem, 0.426rem + 22.73vw, 12.5rem);
+	width: clamp(5.625rem, 1.875rem + 20vw, 11.875rem);
 	font-size: clamp(0.938rem, 0.75rem + 1vw, 1.25rem);
 	border: 1px solid var(--white);
 	padding: 0 5px;
@@ -1761,6 +1762,11 @@ textarea:disabled {
 	align-items: center;
 	cursor: pointer;
 	scale: 0.9;
+}
+
+.selected-filter {
+	/* scale: 1.1; */
+	background-color: red;
 }
 
 /* !!!!! */

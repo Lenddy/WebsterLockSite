@@ -104,13 +104,20 @@ export default function AdminItemUsage() {
 		setFilter("all"); // reset to all
 	};
 
+	const [selected, setSelected] = useState(false);
+
 	return (
 		<div className="list-get-all-content">
 			{/* Filter controls */}
 			<div>
-				<div className="form-action-btn">
+				<div className="filter-btn-container">
 					{["all", "day", "week", "month", "year"].map((f) => (
-						<button className="form-submit-btn " key={f} onClick={() => setFilter(f)}>
+						<button
+							className={`filter-btn  ${selected == true ? "selected-filter" : ""}`}
+							key={f}
+							onClick={() => {
+								setFilter(f), setSelected(true);
+							}}>
 							{f}
 						</button>
 					))}
@@ -119,7 +126,7 @@ export default function AdminItemUsage() {
 				{/* Custom date filter */}
 				<div style={{ marginTop: "1rem" }}>
 					<label>
-						Start:{" "}
+						Start:
 						<input
 							type="date"
 							value={customStart}
@@ -130,7 +137,7 @@ export default function AdminItemUsage() {
 						/>
 					</label>
 					<label style={{ marginLeft: "1rem" }}>
-						End:{" "}
+						End:
 						<input
 							type="date"
 							value={customEnd}

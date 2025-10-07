@@ -104,87 +104,119 @@ export default function AdminItemUsage() {
 		setFilter("all"); // reset to all
 	};
 
-	const [selected, setSelected] = useState(false);
+	const [selectedItem, setSelectedItem] = useState(null);
+
+	const [searchValue, setSearchValue] = useState(""); // persistent search
+	const [filteredItems, setFilteredItems] = useState([]);
+
+	const applyFuse = (list, search) => {
+		if (!search) return list;
+
+		const fuse = new Fuse(list, {
+			keys: ["brand"],
+			threshold: 0.4,
+		});
+
+		return fuse.search(search).map((r) => r.item);
+	};
+
+	// Handle input change
+	const handleSearchChange = (e) => {
+		const val = e.target.value;
+		setSearchValue(val);
+		setFilteredItems(applyFuse(items, val));
+	};
+
+	// Clear search manually
+	const clearSearch = () => {
+		setSearchValue("");
+		setFilteredItems(items);
+	};
 
 	return (
-		<div className="list-get-all-content">
+		<>
 			{/* Filter controls */}
-			<div>
-				<div className="filter-btn-container">
-					{["all", "day", "week", "month", "year"].map((f) => (
-						<button
-							className={`filter-btn  ${selected == true ? "selected-filter" : ""}`}
-							key={f}
-							onClick={() => {
-								setFilter(f), setSelected(true);
-							}}>
-							{f}
-						</button>
-					))}
-				</div>
-
-				{/* Custom date filter */}
-				<div style={{ marginTop: "1rem" }}>
-					<label>
-						Start:
-						<input
-							type="date"
-							value={customStart}
-							onChange={(e) => {
-								setCustomStart(e.target.value);
-								setFilter("custom");
-							}}
-						/>
-					</label>
-					<label style={{ marginLeft: "1rem" }}>
-						End:
-						<input
-							type="date"
-							value={customEnd}
-							onChange={(e) => {
-								setCustomEnd(e.target.value);
-								setFilter("custom");
-							}}
-						/>
-					</label>
-					<button
-						onClick={clearFilters}
-						style={{
-							marginLeft: "1rem",
-							background: "#eee",
-							border: "1px solid #ccc",
-							cursor: "pointer",
-						}}>
-						Clear Filter
-					</button>
-				</div>
-			</div>
 
 			{/* Aggregated results */}
 			{loading ? (
-				<h2>Loading...</h2>
+				<div>
+					<h2>Loading...</h2>
+				</div>
 			) : (
-				<table className="table-wrapper">
-					<thead>
-						<tr>
-							<th>Item</th>
-							<th>Total Used</th>
-						</tr>
-					</thead>
-					<tbody>
-						{Object.entries(itemUsage).map(([name, total]) => (
-							<tr key={name}>
-								<td>
-									<Link to={`/material/item/${name}`}>{name}</Link>
-								</td>
-								<td>{total}</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
+				<div className="list-get-all-content item-usage-container">
+					<div>
+						<div className="filter-btn-container">
+							{["all", "day", "week", "month", "year"].map((f) => (
+								<button key={f} className={`filter-btn ${filter === f ? "selected-filter" : ""}`} disabled={filter === f} onClick={() => setFilter(f)}>
+									{f}
+								</button>
+							))}
+						</div>
+
+						<div className="date-custom-filter-container">
+							<div className="date-custom-filter-wrapper-top">
+								<div>
+									<label>Start:</label>
+
+									<input
+										type="date"
+										value={customStart}
+										onChange={(e) => {
+											setCustomStart(e.target.value);
+											setFilter("custom");
+										}}
+									/>
+								</div>
+
+								<div>
+									<label style={{ marginLeft: "1rem" }}>End:</label>
+									<input
+										type="date"
+										value={customEnd}
+										onChange={(e) => {
+											setCustomEnd(e.target.value);
+											setFilter("custom");
+										}}
+									/>
+								</div>
+							</div>
+
+							<button onClick={clearFilters}>Clear Filter</button>
+						</div>
+					</div>
+
+					<div className="search-filter-wrapper item-usage-filter">
+						<div className="search-filter-container">
+							<input type="text" className="search-filter-input" placeholder="Search Brand by Brand Name" value={searchValue} onChange={handleSearchChange} autoComplete="false" />
+							<button className="search-clear-btn" onClick={clearSearch} disabled={!searchValue}>
+								✕
+							</button>
+						</div>
+					</div>
+					<div className="table-wrapper">
+						<table>
+							<thead>
+								<tr>
+									<th>Item</th>
+									<th>Total Used</th>
+								</tr>
+							</thead>
+							<tbody>
+								{Object.entries(itemUsage).map(([name, total]) => (
+									<tr key={name}>
+										<td>
+											<Link to={`/material/item/${name}`}>{name}</Link>
+										</td>
+										<td>{total}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				</div>
 			)}
 
 			{error && <p style={{ color: "red" }}>{error.message}</p>}
-		</div>
+		</>
 	);
 }

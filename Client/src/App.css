@@ -1740,7 +1740,7 @@ textarea:disabled {
 	display: flex;
 	justify-content: space-around;
 	align-items: start;
-	/* margin: 10px 0px; */
+	margin-top: 10px;
 	color: var(--white);
 	min-height: 60px;
 	width: clamp(18.75rem, 100vw, 50rem);
@@ -1762,11 +1762,46 @@ textarea:disabled {
 	align-items: center;
 	cursor: pointer;
 	scale: 0.9;
+	background-color: var(--dark-blue);
 }
 
 .selected-filter {
-	/* scale: 1.1; */
-	background-color: red;
+	scale: 0.8;
+	background-color: var(--brass);
+	/* color: black; */
+}
+
+.date-custom-filter-container {
+	width: 100%;
+	/* background-color: green; */
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.date-custom-filter-wrapper-top {
+	display: flex;
+	/* width: 100%; */
+	justify-content: center;
+	gap: 20px;
+}
+
+.date-custom-filter-wrapper-top div {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 10px;
+}
+
+.date-custom-filter-wrapper-top div input[type="date"] {
+	width: clamp(7.813rem, 6.875rem + 5vw, 9.375rem);
+}
+
+.item-usage-container {
+	gap: 10px;
+}
+
+.item-usage-filter {
+	margin: 0px;
 }
 
 /* !!!!! */

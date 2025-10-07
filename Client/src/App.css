@@ -1739,17 +1739,18 @@ textarea:disabled {
 .filter-btn-container {
 	display: flex;
 	justify-content: space-around;
-	align-items: start;
-	margin-top: 10px;
+	align-items: center;
+	/* margin-top: 10px; */
 	color: var(--white);
-	min-height: 60px;
+	min-height: 30px;
 	width: clamp(18.75rem, 100vw, 50rem);
 }
 
-.filter-btn {
+.filter-btn,
+.filter-data-clear-btn {
 	all: unset;
 	border-radius: 10px;
-	height: 40px;
+	height: 100%;
 	width: clamp(5.625rem, 1.875rem + 20vw, 11.875rem);
 	font-size: clamp(0.938rem, 0.75rem + 1vw, 1.25rem);
 	border: 1px solid var(--white);
@@ -1761,19 +1762,18 @@ textarea:disabled {
 	justify-content: center;
 	align-items: center;
 	cursor: pointer;
-	scale: 0.9;
+	scale: 0.8;
 	background-color: var(--dark-blue);
 }
 
 .selected-filter {
-	scale: 0.8;
+	scale: 0.9;
 	background-color: var(--brass);
-	/* color: black; */
+	cursor: not-allowed;
 }
 
 .date-custom-filter-container {
 	width: 100%;
-	/* background-color: green; */
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -1789,11 +1789,15 @@ textarea:disabled {
 .date-custom-filter-wrapper-top div {
 	display: flex;
 	flex-direction: column;
-	margin-bottom: 10px;
+	margin-bottom: 5px;
 }
 
 .date-custom-filter-wrapper-top div input[type="date"] {
 	width: clamp(7.813rem, 6.875rem + 5vw, 9.375rem);
+	height: 20;
+}
+
+.filter-data-clear-btn {
 }
 
 .item-usage-container {

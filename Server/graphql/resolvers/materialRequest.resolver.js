@@ -2,7 +2,7 @@
 import { ApolloError } from "apollo-server-errors"; // For GraphQL error handling
 import MaterialRequest from "../../models/materialRequest.model.js"; // Mongoose model for MaterialRequest
 import pubsub from "../pubsub.js"; // PubSub instance for subscriptions
-import mongoose from "mongoose";
+// import dayjs from "dayjs";
 
 /**
  * GraphQL resolvers for MaterialRequest operations.
@@ -75,8 +75,6 @@ const materialRequestResolvers = {
 		createOneMaterialRequest: async (_, { input: { description, items } }, { user }) => {
 			// Check if user context is provided (authentication)
 			if (!user) throw new ApolloError("Unauthorized: no user context given.");
-
-			console.log("items", items);
 
 			try {
 				// Normalize items array: create new objects for each item with itemName and quantity

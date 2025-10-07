@@ -1,9 +1,16 @@
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery, useSubscription } from "@apollo/client";
 import { get_all_material_requests } from "../../../graphQL/queries/queries";
 import { Link } from "react-router-dom";
 import { MATERIAL_REQUEST_CHANGE_SUBSCRIPTION } from "../../../graphQL/subscriptions/subscriptions";
 import Fuse from "fuse.js";
+import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
+dayjs.extend(isBetween);
+
+// console.log("Filter:", filter);
+// console.log("Start:", start?.format("YYYY-MM-DD HH:mm:ss"));
+// console.log("End:", end?.format("YYYY-MM-DD HH:mm:ss"));
 
 export default function AdminItemUsage() {
 	const { error, loading, data } = useQuery(get_all_material_requests);
@@ -42,56 +49,63 @@ export default function AdminItemUsage() {
 	});
 
 	const filteredRequests = useMemo(() => {
-		if (filter === "All") return mRequests;
+		if (!mRequests?.length) return [];
 
-		const now = new Date();
-		const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-		const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+		const now = dayjs();
+		let start, end;
+
+		switch (filter) {
+			case "Day":
+				start = now.startOf("day");
+				end = now.endOf("day");
+				break;
+
+			case "Week":
+				// Show current week (Monday–Sunday)
+				start = now.startOf("week");
+				end = now.endOf("week");
+				break;
+
+			case "Month":
+				start = now.startOf("month");
+				end = now.endOf("month");
+				break;
+
+			case "Year":
+				start = now.startOf("year");
+				end = now.endOf("year");
+				break;
+
+			case "custom":
+				start = customStart ? dayjs(customStart).startOf("day") : null;
+				end = customEnd ? dayjs(customEnd).endOf("day") : null;
+				break;
+
+			default:
+				return mRequests; // "All" case
+		}
+
+		console.log("Filter:", filter);
+		console.log("Start:", start?.format("YYYY-MM-DD HH:mm:ss"));
+		console.log("End:", end?.format("YYYY-MM-DD HH:mm:ss"));
 
 		return mRequests.filter((req) => {
 			if (!req.addedDate) return false;
-			const addedDate = new Date(Number(req.addedDate));
 
-			switch (filter) {
-				case "Day": {
-					// Match today's full 24 hours
-					return addedDate >= startOfDay && addedDate < endOfDay;
-				}
-				case "Week": {
-					const startOfWeek = new Date(now);
-					startOfWeek.setDate(now.getDate() - 7);
-					return addedDate >= startOfWeek && addedDate <= now;
-				}
-				case "Month": {
-					const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-					const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-					return addedDate >= startOfMonth && addedDate <= endOfMonth;
-				}
-				case "Year": {
-					const startOfYear = new Date(now.getFullYear(), 0, 1);
-					const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
-					return addedDate >= startOfYear && addedDate <= endOfYear;
-				}
-				case "custom": {
-					if (!customStart && !customEnd) return true;
-					let start = customStart ? new Date(customStart) : null;
-					let end = customEnd ? new Date(customEnd) : null;
+			const addedDate = dayjs(Number(req.addedDate)); // DB timestamp
 
-					if (start) start.setHours(0, 0, 0, 0);
-					if (end) end.setHours(23, 59, 59, 999);
-
-					if (start && end) return addedDate >= start && addedDate <= end;
-					if (start) return addedDate >= start;
-					if (end) return addedDate <= end;
-					return true;
-				}
-				default:
-					return true;
+			if (filter === "custom") {
+				if (start && end) return addedDate.isBetween(start, end, null, "[]");
+				if (start) return addedDate.isAfter(start) || addedDate.isSame(start, "day");
+				if (end) return addedDate.isBefore(end) || addedDate.isSame(end, "day");
+				return true;
 			}
+
+			return addedDate.isBetween(start, end, null, "[]"); // inclusive
 		});
 	}, [mRequests, filter, customStart, customEnd]);
 
-	//  Fuse.js search
+	//  Fuse.js searchs
 	const applyFuse = (list, search) => {
 		if (!search) return list;
 

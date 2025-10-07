@@ -18,6 +18,7 @@
 		"apollo-server-errors": "latest",
 		"bcrypt": "latest",
 		"cors": "latest",
+		"dayjs": "latest",
 		"dotenv": "latest",
 		"express": "latest",
 		"graphql": "latest",

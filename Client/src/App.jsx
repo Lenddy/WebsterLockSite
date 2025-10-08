@@ -51,7 +51,7 @@ function App({ userToken }) {
 					<Route path="/user/register" element={<RegisterUser />} />
 
 					{/* Material request routes */}
-					<Route path="/material/request/all" element={<GetAllMaterialRequest />} />
+					<Route path="/material/request/all" element={<GetAllMaterialRequest userToken={userToken} />} />
 					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest userToken={userToken} />} />
 					<Route path="/material/request/request/" element={<CreateOneMaterialRequest userToken={userToken} />} />
 					<Route path="/test" element={<Test />} />

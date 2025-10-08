@@ -569,11 +569,15 @@
 	color: var(--black);
 }
 
+.table-wrapper .table-action.second {
+	background-color: var(--dark-green);
+	color: var(--black);
+}
+
 .table-wrapper .table-action.last {
 	background-color: var(--red);
 	border-color: var(--dark-red);
 	color: var(--black);
-	font-weight: 550;
 }
 
 .approved {

@@ -7,8 +7,9 @@ import Eye from "../../assets/eye.svg?react";
 import CloseEye from "../../assets/closeEye.svg?react";
 
 export default function AdminRegisterMultipleUsers({ userToken }) {
-	// console.log("user-token", userToke);
 	const [show, setShow] = useState(false);
+	const [success, setSuccess] = useState(false);
+
 	const lastRowRef = useRef(null);
 
 	const [rows, setRows] = useState([
@@ -129,6 +130,7 @@ export default function AdminRegisterMultipleUsers({ userToken }) {
 				},
 				onCompleted: (res) => {
 					console.log("Mutation success:", res?.registerMultipleUsers);
+					setSuccess(true);
 				},
 				onError: (errRes) => {
 					console.log("Mutation error:", errRes);
@@ -281,6 +283,7 @@ export default function AdminRegisterMultipleUsers({ userToken }) {
 				{hasDuplicates && <p style={{ color: "red" }}> Duplicate emails found: {Array.from(new Set(duplicates)).join(", ")}</p>}
 
 				{updateError && <p style={{ color: "red" }}>{updateError.message}</p>}
+				{success && <p style={{ color: "green" }}>Users registered</p>}
 			</form>
 		</div>
 	);

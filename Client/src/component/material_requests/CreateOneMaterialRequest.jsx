@@ -210,7 +210,7 @@ export default function CreateOneMaterialRequest({ userToken }) {
 			await NewMaterialRequest({
 				variables: { input },
 				onCompleted: (res) => {
-					console.log("Mutation success:", res?.createOneMaterialRequest);
+					console.log("Mutation success on get one:", res?.createOneMaterialRequest);
 					navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
 				},
 			});

@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-
+import dayjs from "dayjs";
 /**
  * Mongoose schema for a Material Request.
  *
@@ -105,7 +105,7 @@ const MaterialRequestSchema = new Schema(
 			},
 			approvedAt: {
 				type: Date,
-				// default: Date.now,
+				default: dayjs().toISOString(),
 			},
 			isApproved: { type: Boolean, default: false },
 		},
@@ -114,7 +114,7 @@ const MaterialRequestSchema = new Schema(
 
 		addedDate: {
 			type: Date,
-			default: Date.now,
+			default: dayjs().toISOString(),
 		},
 
 		items: [

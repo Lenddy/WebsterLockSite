@@ -68,6 +68,7 @@ export default function GetOneMaterialRequest({ userToken }) {
 					const matchedColor = colorOptions.find((i) => i.value === item.color);
 					const matchedSide = sideOptions.find((i) => i.value === item.side);
 					const matchedSize = sizeOptions.find((i) => i.value === item.size);
+					console.log("color", matchedColor, "\n", "side", matchedSide, "\n", "size", matchedSize);
 
 					return {
 						id: item.id,

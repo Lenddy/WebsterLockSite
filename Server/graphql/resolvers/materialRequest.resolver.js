@@ -2,7 +2,7 @@
 import { ApolloError } from "apollo-server-errors"; // For GraphQL error handling
 import MaterialRequest from "../../models/materialRequest.model.js"; // Mongoose model for MaterialRequest
 import pubsub from "../pubsub.js"; // PubSub instance for subscriptions
-// import dayjs from "dayjs";
+import dayjs from "dayjs";
 
 /**
  * GraphQL resolvers for MaterialRequest operations.
@@ -37,35 +37,59 @@ const materialRequestResolvers = {
 			return "hello world"; // Return test string
 		},
 
-		// Fetch all material requests (admin only)
 		getAllMaterialRequests: async (_, __, { user }) => {
 			try {
-				if (!user) throw new Error("Unauthorized: No user token was found."); // Require authentication
-				if (!user.permissions.canViewAllUsers) throw new ApolloError("Unauthorized: You do not have permission to view all Material Request."); // Require permission
+				if (!user) throw new Error("Unauthorized: No user token was found.");
 
-				// Fetch all requests, populating requester and reviewer
-				const materialRequest = await MaterialRequest.find();
+				// Admins can view all
+				const isAdmin = ["headAdmin", "admin", "subAdmin"].includes(user.role);
 
-				return materialRequest; // Return result
+				const query = isAdmin ? {} : { "requester.userId": user.userId };
+
+				const materialRequests = await MaterialRequest.find(query);
+
+				return materialRequests;
 			} catch (error) {
-				console.log("there was an error fetching all the Material Request", error); // Log error
-				throw error; // Rethrow error
+				console.log("Error fetching user's material requests:", error);
+				throw error;
 			}
 		},
 
-		// Fetch a single material request by ID (admin only)
+		// // Fetch a single material request by ID (admin only)
+		// getOneMaterialRequest: async (_, { id }, { user }) => {
+		// 	try {
+		// 		if (!user) throw new ApolloError("Unauthorized: No user token was found."); // Require authentication
+		// 		if (!user.permissions.canViewAllUsers) throw new ApolloError("Unauthorized: You do not have permission to view Material Requests."); // Require permission
+
+		// 		// Find by ID and populate fields
+		// 		const materialRequest = await MaterialRequest.findById(id);
+
+		// 		return materialRequest; // Return result
+		// 	} catch (err) {
+		// 		console.log("there was an error fetching one Material request", err, "\n____________________"); // Log error
+		// 		throw err; // Rethrow error
+		// 	}
+		// },
+
 		getOneMaterialRequest: async (_, { id }, { user }) => {
 			try {
-				if (!user) throw new ApolloError("Unauthorized: No user token was found."); // Require authentication
-				if (!user.permissions.canViewAllUsers) throw new ApolloError("Unauthorized: You do not have permission to view Material Requests."); // Require permission
+				if (!user) throw new Error("Unauthorized: No user token was found.");
 
-				// Find by ID and populate fields
 				const materialRequest = await MaterialRequest.findById(id);
+				if (!materialRequest) throw new Error("Material Request not found.");
 
-				return materialRequest; // Return result
-			} catch (err) {
-				console.log("there was an error fetching one Material request", err, "\n____________________"); // Log error
-				throw err; // Rethrow error
+				const isAdmin = ["headAdmin", "admin", "subAdmin"].includes(user.role);
+
+				// Convert both sides to string for a reliable match
+				if (!isAdmin && String(materialRequest.requester.userId) !== String(user.userId)) {
+					throw new Error("Unauthorized: You do not have permission to view this request.");
+				}
+
+				// console.log("Authorized user, returning request:", materialRequest);
+				return materialRequest;
+			} catch (error) {
+				console.error("Error fetching one Material Request:", error);
+				throw error;
 			}
 		},
 	},
@@ -105,7 +129,7 @@ const materialRequestResolvers = {
 					reviewers: [], // Initialize reviewers array as empty
 					description, // Set description from input
 					items: normalizedItems, // Set normalized items array
-					addedDate: new Date().toISOString(), // Set creation date as ISO string
+					addedDate: dayjs().toISOString(), // Set creation date as ISO string
 				});
 
 				// Save the new material request to the database

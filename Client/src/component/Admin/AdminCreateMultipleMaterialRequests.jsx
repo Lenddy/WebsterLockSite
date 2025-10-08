@@ -240,10 +240,11 @@ export default function AdminCreateMultipleMaterialRequests() {
 		e.preventDefault();
 		try {
 			const inputs = requests.map((r) => ({
-				addedDate: r.addedDate,
-				description: r.description || null,
-				items: r.items.map((i) => ({
-					quantity: parseInt(i.quantity),
+				// addedDate: r.addedDate,
+				addedDate: dayjs(r?.addedDate).toISOString(),
+				description: r?.description || null,
+				items: r?.items.map((i) => ({
+					quantity: parseInt(i?.quantity),
 					itemName: i?.item?.value,
 					color: i?.color || null,
 					side: i?.side || null,
@@ -257,13 +258,14 @@ export default function AdminCreateMultipleMaterialRequests() {
 
 			await createNewMaterialRequests({
 				variables: { inputs },
+
 				onCompleted: (res) => {
-					console.log("Mutation success:", res.createMultipleMaterialRequests);
+					console.log("Mutation success on the create multiple:", res.createMultipleMaterialRequests);
 					// newMr =
 					navigate(`/material/request/all`);
 				},
 				onError: (err) => {
-					console.warn("Mutation success:", err);
+					console.warn("Mutation error:", err);
 					// newMr =
 					// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
 				},
@@ -272,6 +274,31 @@ export default function AdminCreateMultipleMaterialRequests() {
 			console.error("Submit error:", err);
 		}
 	};
+
+	// await createNewMaterialRequests({
+	//   variables: { inputs },
+	//   update: (cache, { data: { createMultipleMaterialRequests } }) => {
+	//     // Read existing data
+	//     const existing = cache.readQuery({ query: get_all_material_requests });
+
+	//     if (existing) {
+	//       cache.writeQuery({
+	//         query: get_all_material_requests,
+	//         data: {
+	//           getAllMaterialRequests: [
+	//             ...existing.getAllMaterialRequests,
+	//             ...createMultipleMaterialRequests, // append the new requests
+	//           ],
+	//         },
+	//       });
+	//     }
+	//   },
+	//   onCompleted: (res) => {
+	//     console.log("Mutation success:", res.createMultipleMaterialRequests);
+	//     navigate(`/material/request/all`);
+	//   },
+	//   onError: (err) => console.warn("Mutation error:", err),
+	// });
 
 	return (
 		<div className="update-container">
@@ -322,7 +349,14 @@ export default function AdminCreateMultipleMaterialRequests() {
 								<div className="form-row-top-left material-request">
 									<label htmlFor="">Date</label>
 									{/* Request-level fields */}
-									<input className="date-input" type="date" value={req.date} onChange={(e) => handleRequestChange(reqIdx, "addedDate", e.target.value)} />
+									<input
+										className="date-input"
+										type="date"
+										value={req.date}
+										onChange={(e) => {
+											handleRequestChange(reqIdx, "addedDate", e.target.value), console.log("initial date", e.target.value, "formatted Date", dayjs(e.target.value).toISOString());
+										}}
+									/>
 								</div>
 							</div>
 

@@ -88,6 +88,63 @@ const allowedPermissionKeys = ["canEditUsers", "canDeleteUsers", "canChangeRole"
  * @constant
  * @type {ApolloClient}
  */
+
+// const client = new ApolloClient({
+// 	link: splitLink,
+// 	cache: new InMemoryCache({
+// 		typePolicies: {
+// 			User: {
+// 				fields: {
+// 					permissions: {
+// 						merge(existing = {}, incoming) {
+// 							if (!incoming || Object.keys(incoming).length === 0) {
+// 								return existing;
+// 							}
+
+// 							const filtered = Object.keys(incoming)
+// 								.filter((key) => allowedPermissionKeys.includes(key))
+// 								.reduce((obj, key) => {
+// 									obj[key] = incoming[key];
+// 									return obj;
+// 								}, {});
+
+// 							return {
+// 								...existing,
+// 								...filtered,
+// 							};
+// 						},
+// 					},
+// 				},
+// 			},
+
+// 			UserSnapshot: {
+// 				keyFields: ["userId"], // this tells Apollo that userId uniquely identifies this object
+// 			},
+// 			MaterialRequest: {
+// 				fields: {
+// 					requester: {
+// 						merge: true, // merge instead of replace
+// 					},
+// 				},
+// 			},
+
+// 			ItemGroup: {
+// 				fields: {
+// 					itemsList: {
+// 						merge(existing = [], incoming, { mergeObjects }) {
+// 							// Merge by index (default) OR by id if possible
+// 							return incoming.map((item, index) => {
+// 								return mergeObjects ? mergeObjects(existing[index], item) : item;
+// 							});
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}),
+// });
+
+//Apollo Client setup
 const client = new ApolloClient({
 	link: splitLink,
 	cache: new InMemoryCache({
@@ -115,11 +172,58 @@ const client = new ApolloClient({
 					},
 				},
 			},
+
+			UserSnapshot: {
+				keyFields: ["userId"],
+			},
+
+			//  UPDATED MaterialRequest type policy (important)
+			MaterialRequest: {
+				keyFields: ["id"], //  ensures all requests share the same cache entry
+				fields: {
+					requester: {
+						merge: true, //  merge requester info instead of replacing
+					},
+
+					//  new: handle approvalStatus merge safely
+					approvalStatus: {
+						merge(existing = {}, incoming) {
+							return {
+								...existing,
+								...incoming,
+								approvedBy: {
+									...existing?.approvedBy,
+									...incoming?.approvedBy,
+								},
+							};
+						},
+					},
+
+					//  new: reviewers array — replace completely to avoid ghosts
+					reviewers: {
+						merge(existing = [], incoming) {
+							return incoming ?? existing;
+						},
+					},
+
+					//  new: merge items by ID for consistency
+					items: {
+						merge(existing = [], incoming) {
+							const existingMap = new Map(existing.map((i) => [i.id, i]));
+							incoming.forEach((item) => {
+								existingMap.set(item.id, { ...existingMap.get(item.id), ...item });
+							});
+							return Array.from(existingMap.values());
+						},
+					},
+				},
+			},
+
+			//  Keep your existing ItemGroup type policy
 			ItemGroup: {
 				fields: {
 					itemsList: {
 						merge(existing = [], incoming, { mergeObjects }) {
-							// Merge by index (default) OR by id if possible
 							return incoming.map((item, index) => {
 								return mergeObjects ? mergeObjects(existing[index], item) : item;
 							});

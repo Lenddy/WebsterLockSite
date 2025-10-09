@@ -5,14 +5,14 @@ import { Await, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Eye from "../../assets/eye.svg?react";
 import CloseEye from "../../assets/closeEye.svg?react";
+import { useAuth } from "../../context/AuthContext"; // import your context
 
 export default function LogIn({ screenWidth }) {
+	const { setUserToken } = useAuth(); //  get setter from context
 	const [info, setInfo] = useState({});
 	const navigate = useNavigate();
 	const [logInUser, { data, loading, error }] = useMutation(log_In_user);
 	const [show, setShow] = useState(false);
-	const [validation, setValidation] = useState();
-	// console.log(show);
 
 	const SubmissionInfo = (e) => {
 		setInfo({
@@ -32,21 +32,31 @@ export default function LogIn({ screenWidth }) {
 						password: info.password,
 					},
 				},
-				onCompleted: (result) => {
-					console.log("Mutation success:", result);
-				},
 			});
 
 			const token = data?.loginUser?.token;
 			if (token) {
-				localStorage.setItem("UserToken", token);
+				// Check if a token already exists
+				const existingToken = localStorage.getItem("UserToken");
+				if (existingToken) {
+					// Automatically log out the previous user
+					localStorage.removeItem("UserToken");
+					setUserToken(null); // reset context
 
-				// Decode without verifying (for quick redirect only)
+					// Notify user
+					alert("Previous session was logged out to allow this login.");
+				}
+
+				// Save new token
+				localStorage.setItem("UserToken", token);
+				setUserToken(token);
+
+				// Decode quickly to check role
 				const decoded = jwtDecode(token);
 				console.log("Decoded token:", decoded);
 
 				// Redirect based on role
-				if (decoded.role !== "user" && decoded.role !== "noRole" && decoded.role !== "technician") {
+				if (["headAdmin", "admin", "subAdmin"].includes(decoded.role)) {
 					navigate("/user/all");
 				} else {
 					navigate("/material/request/request");
@@ -55,6 +65,25 @@ export default function LogIn({ screenWidth }) {
 		} catch (err) {
 			console.error("Mutation error:", err);
 		}
+
+		// 	const token = data?.loginUser?.token;
+		// 	if (token) {
+		// 		localStorage.setItem("UserToken", token);
+
+		// 		// Decode without verifying (for quick redirect only)
+		// 		const decoded = jwtDecode(token);
+		// 		console.log("Decoded token:", decoded);
+
+		// 		// Redirect based on role
+		// 		if (decoded.role !== "user" && decoded.role !== "noRole" && decoded.role !== "technician") {
+		// 			navigate("/user/all");
+		// 		} else {
+		// 			navigate("/material/request/request");
+		// 		}
+		// 	}
+		// } catch (err) {
+		// 	console.error("Mutation error:", err);
+		// }
 	};
 
 	return (

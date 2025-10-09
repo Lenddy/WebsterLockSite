@@ -11,6 +11,8 @@ import { getMainDefinition } from "@apollo/client/utilities";
 import { onError } from "@apollo/client/link/error";
 import { setContext } from "@apollo/client/link/context";
 
+import { AuthProvider } from "./context/AuthContext";
+
 // 1 Error handling link
 /**
  * Apollo Link error handler for logging GraphQL and network errors.
@@ -240,7 +242,9 @@ createRoot(document.getElementById("root")).render(
 	<ApolloProvider client={client}>
 		<BrowserRouter>
 			<StrictMode>
-				<App userToken={userToken} />
+				<AuthProvider AuthProvider>
+					<App />
+				</AuthProvider>
 			</StrictMode>
 		</BrowserRouter>
 	</ApolloProvider>

@@ -12,6 +12,7 @@ import { useAuth } from "../../context/AuthContext"; // use context
 export default function AdminGetAllItems() {
 	const { userToken } = useAuth(); // get token from context
 	const { error, loading, data, refetch } = useQuery(get_all_item_groups);
+	// { fetchPolicy: "cache-and-network" }
 
 	const [items, setItems] = useState([]);
 	const [logUser, setLogUser] = useState(null);

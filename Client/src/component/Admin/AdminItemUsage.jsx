@@ -22,7 +22,10 @@ export default function AdminItemUsage() {
 	const [searchValue, setSearchValue] = useState("");
 
 	useEffect(() => {
-		if (data) setMRequests(data.getAllMaterialRequests);
+		if (data) {
+			console.log(data.getAllMaterialRequests);
+			setMRequests(data.getAllMaterialRequests);
+		}
 	}, [data]);
 
 	//  Live subscription updates

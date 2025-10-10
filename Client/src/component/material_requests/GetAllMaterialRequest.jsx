@@ -9,7 +9,8 @@ import { useAuth } from "../../context/AuthContext"; // <-- use context
 
 export default function GetAllMaterialRequest() {
 	const { logUser } = useAuth(); // <-- get user info from context
-	const { error, loading, data } = useQuery(get_all_material_requests, { fetchPolicy: "cache-and-network" });
+	const { error, loading, data } = useQuery(get_all_material_requests);
+	// { fetchPolicy: "cache-and-network" }
 
 	const [mRequests, setMRequests] = useState([]);
 	const [filteredMRequests, setFilteredMRequests] = useState([]);
@@ -20,7 +21,10 @@ export default function GetAllMaterialRequest() {
 	useEffect(() => {
 		if (data) {
 			setMRequests(data.getAllMaterialRequests);
-			setFilteredMRequests(sortByApproval(sortByDate(data.getAllMaterialRequests, sortDateAsc), sortApprovalAsc));
+
+			// default sorted: newest first
+			const sorted = sortByDate(data.getAllMaterialRequests, false);
+			setFilteredMRequests(sortByApproval(sorted, sortApprovalAsc));
 		}
 	}, [data]);
 
@@ -78,8 +82,10 @@ export default function GetAllMaterialRequest() {
 
 	const sortByDate = (list, ascending = false) => {
 		return [...list].sort((a, b) => {
-			const dateA = dayjs(a.addedDate);
-			const dateB = dayjs(b.addedDate);
+			const dateA = dayjs(Number(a.addedDate));
+			const dateB = dayjs(Number(b.addedDate));
+
+			// descending by default → newest first
 			return ascending ? dateA.valueOf() - dateB.valueOf() : dateB.valueOf() - dateA.valueOf();
 		});
 	};
@@ -92,9 +98,9 @@ export default function GetAllMaterialRequest() {
 			if (aStatus !== bStatus) {
 				return ascending ? aStatus - bStatus : bStatus - aStatus;
 			} else {
-				const dateA = dayjs(a.addedDate);
-				const dateB = dayjs(b.addedDate);
-				return dateB.valueOf() - dateA.valueOf();
+				const dateA = dayjs(Number(a.addedDate));
+				const dateB = dayjs(Number(b.addedDate));
+				return dateB.valueOf() - dateA.valueOf(); // newest first by default
 			}
 		});
 	};
@@ -113,6 +119,7 @@ export default function GetAllMaterialRequest() {
 	// Determine if the current user can review material requests
 	const canReview = () => {
 		const role = typeof logUser?.role === "string" ? logUser.role : logUser?.role?.role;
+		console.log("this is the role", role);
 		return ["headAdmin", "admin", "subAdmin"].includes(role);
 	};
 
@@ -165,7 +172,8 @@ export default function GetAllMaterialRequest() {
 										<td>
 											<p className={`${request?.approvalStatus?.isApproved ? "approved" : "waiting-approval"}`}>{request?.approvalStatus?.isApproved ? "Approved" : "Waiting for approval"}</p>
 										</td>
-										<td>{dayjs(request?.addedDate).format("YYYY-MM-DD")}</td>
+										<td>{dayjs(Number(request?.addedDate)).format("YYYY-MM-DD")}</td>
+										{/* <td>{dayjs(request?.addedDate).format("YYYY-MM-DD")}</td> */}
 										<td>{request?.items.length}</td>
 										<td>
 											<div className="table-action-wrapper">

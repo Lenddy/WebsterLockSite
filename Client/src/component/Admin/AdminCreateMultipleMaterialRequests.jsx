@@ -9,9 +9,6 @@ import { Link, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 
-// createMultipleMaterialRequests
-// createMultipleMaterialRequest
-
 export default function AdminCreateMultipleMaterialRequests() {
 	const [users, setUsers] = useState([]);
 	const [itemGroups, setItemGroups] = useState([]);

@@ -1,3 +1,165 @@
+// import { useState, useEffect } from "react";
+// import { useParams, useNavigate } from "react-router-dom";
+// import { useQuery, useMutation } from "@apollo/client";
+// import { get_all_item_groups, get_one_item_group } from "../../../graphQL/queries/queries";
+// import { update_multiple_item_groups } from "../../../graphQL/mutations/mutations";
+// import Modal from "../Modal";
+// import { useAuth } from "../../context/AuthContext"; // make sure this path is correct
+
+// export default function AdminUpdateMultipleItemsGroups() {
+// 	const { itemGroupId } = useParams(); // if present → single edit
+// 	const navigate = useNavigate();
+// 	const { userToken, setUserToken, loading: authLoading } = useAuth();
+
+// 	// ---- States ----
+// 	const [itemGroups, setItemGroups] = useState([]);
+// 	const [selectedGroups, setSelectedGroups] = useState([]);
+// 	const [loadingState, setLoadingState] = useState(true);
+// 	const [isOpen, setIsOpen] = useState(false);
+
+// 	const [UpdateMultipleItemGroups] = useMutation(update_multiple_item_groups);
+
+// 	// ---- Queries ----
+// 	const {
+// 		data: allGroupsData,
+// 		loading: allGroupsLoading,
+// 		error: allGroupsError,
+// 	} = useQuery(get_all_item_groups, {
+// 		skip: !!itemGroupId, // skip if editing one
+// 	});
+
+// 	const {
+// 		data: oneGroupData,
+// 		loading: oneGroupLoading,
+// 		error: oneGroupError,
+// 	} = useQuery(get_one_item_group, {
+// 		variables: { id: itemGroupId },
+// 		skip: !itemGroupId, // skip if editing multiple
+// 	});
+
+// 	// ---- Effect: handle fetched data ----
+// 	useEffect(() => {
+// 		if (authLoading) return;
+
+// 		if (itemGroupId && oneGroupData) {
+// 			setItemGroups([oneGroupData.getOneItemGroup]);
+// 			setSelectedGroups([oneGroupData.getOneItemGroup]);
+// 			setLoadingState(false);
+// 		} else if (!itemGroupId && allGroupsData) {
+// 			setItemGroups(allGroupsData.getAllItemGroups || []);
+// 			setSelectedGroups(allGroupsData.getAllItemGroups || []);
+// 			setLoadingState(false);
+// 		}
+
+// 		if (allGroupsError || oneGroupError) {
+// 			console.error("Error fetching item groups:", allGroupsError || oneGroupError);
+// 			setLoadingState(false);
+// 		}
+// 	}, [authLoading, oneGroupData, allGroupsData, allGroupsError, oneGroupError, itemGroupId]);
+
+// 	// ---- Handle change ----
+// 	const handleChange = (groupIndex, field, value) => {
+// 		const updated = [...selectedGroups];
+// 		updated[groupIndex][field] = value;
+// 		setSelectedGroups(updated);
+// 	};
+
+// 	// ---- Submit ----
+// 	const handleSubmit = async (e) => {
+// 		e.preventDefault();
+
+// 		try {
+// 			const formatted = selectedGroups.map((g) => ({
+// 				id: g.id,
+// 				brand: g.brand,
+// 				itemsList: g.itemsList.map((item) => ({
+// 					id: item.id,
+// 					itemName: item.itemName,
+// 					description: item.description,
+// 				})),
+// 			}));
+
+// 			await UpdateMultipleItemGroups({
+// 				variables: { input: formatted },
+// 				onCompleted: (res) => {
+// 					console.log("Updated successfully:", res.updateMultipleItemGroups);
+// 					navigate("/admin/item-groups");
+// 				},
+// 			});
+// 		} catch (err) {
+// 			console.error("Update error:", err);
+// 		}
+// 	};
+
+// 	// ---- Render ----
+// 	if (loadingState || authLoading) return <div className="loading">Loading item groups...</div>;
+
+// 	if (!selectedGroups?.length) return <div className="no-data">No item groups available to edit.</div>;
+
+// 	return (
+// 		<div className="update-container">
+// 			<h1 className="update-form-title">{itemGroupId ? "Edit Single Item Group" : "Edit Multiple Item Groups"}</h1>
+
+// 			<form className="update-form" onSubmit={handleSubmit}>
+// 				{selectedGroups.map((group, idx) => (
+// 					<div key={group.id || idx} className="item-group-block">
+// 						<h2 className="group-header">{group.brand}</h2>
+
+// 						<div className="form-row">
+// 							<label>Brand</label>
+// 							<input type="text" value={group.brand} onChange={(e) => handleChange(idx, "brand", e.target.value)} placeholder="Brand name" />
+// 						</div>
+
+// 						{/* Items inside group */}
+// 						{group.itemsList?.map((item, itemIdx) => (
+// 							<div key={item.id || itemIdx} className="item-row">
+// 								<label>Item Name</label>
+// 								<input
+// 									type="text"
+// 									value={item.itemName}
+// 									onChange={(e) => {
+// 										const newGroups = [...selectedGroups];
+// 										newGroups[idx].itemsList[itemIdx].itemName = e.target.value;
+// 										setSelectedGroups(newGroups);
+// 									}}
+// 									placeholder="Item name"
+// 								/>
+
+// 								<label>Description</label>
+// 								<textarea
+// 									value={item.description || ""}
+// 									onChange={(e) => {
+// 										const newGroups = [...selectedGroups];
+// 										newGroups[idx].itemsList[itemIdx].description = e.target.value;
+// 										setSelectedGroups(newGroups);
+// 									}}
+// 									placeholder="Item description"
+// 								/>
+// 							</div>
+// 						))}
+// 					</div>
+// 				))}
+
+// 				<div className="form-actions">
+// 					<button type="button" onClick={() => setIsOpen(true)} className="form-submit-btn">
+// 						Save Changes
+// 					</button>
+// 				</div>
+
+// 				<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} onConFirm={handleSubmit} data={{ selectedGroups }} />
+// 			</form>
+// 		</div>
+// 	);
+// }
+
+// !!!!!!!
+// !!!!!!!
+// !!!!!!!
+// !!!!!!!
+// !!!!!!!
+// !!!!!!!
+// !!!!!!!
+
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import Select from "react-select";
@@ -13,7 +175,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 
 	const { itemId } = useParams();
 
-	// 👇 Two queries: one for all, one for single
+	//  Two queries: one for all, one for single
 	const {
 		loading: loadingAll,
 		data: allData,
@@ -223,7 +385,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 									filterOption={customUserFilter}
 									isSearchable
 									onChange={(selected) => handleSelectGroup(gIdx, selected)}
-									isDisabled={!!itemId} // 👈 disable dropdown if loaded from param
+									isDisabled={!!itemId} //  disable dropdown if loaded from param
 									styles={{
 										control: (base, state) => ({
 											...base,
@@ -319,13 +481,27 @@ export default function AdminUpdateMultipleItemsGroups() {
 	);
 }
 
+// !!!!!!!!
+// !!!!!!!!
+// !!!!!!!!
+// !!!!!!!!
+// !!!!!!!!
+// !!!!!!!!
+// !!!!!!!!
+// !!!!!!!!
+// !!!!!!!!
+// !!!!!!!!
+// !!!!!!!!
+// !!!!!!!!
+// !!!!!!!!
+
 // import { useEffect, useState } from "react";
 // import { useMutation, useQuery } from "@apollo/client";
 // import Select from "react-select";
 // import Fuse from "fuse.js";
 // import { get_all_item_groups } from "../../../graphQL/queries/queries";
-// import { update_multiple_itemGroups , get_one_item_group} from "../../../graphQL/mutations/mutations";
-// import { Link, useNavigate ,useParams} from "react-router-dom";
+// import { update_multiple_itemGroups, get_one_item_group } from "../../../graphQL/mutations/mutations";
+// import { Link, useNavigate, useParams } from "react-router-dom";
 
 // export default function AdminUpdateMultipleItemsGroups() {
 // 	const [oldItemGroups, setOldItemGroups] = useState([]);
@@ -335,7 +511,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 // 	const { loading, data, error } = useQuery(get_all_item_groups);
 // 	const [updateItemGroups] = useMutation(update_multiple_itemGroups);
 
-// 	const { itemId} = useParams();
+// 	const { itemId } = useParams();
 
 // 	useEffect(() => {
 // 		if (data?.getAllItemGroups) {

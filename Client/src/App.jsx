@@ -19,7 +19,7 @@ import AdminCreateMultipleItemsGroups from "./component/Admin/AdminCreateMultipl
 import AdminUpdateMultipleItemsGroups from "./component/Admin/AdminUpdateMultipleItemGroups";
 import AdminItemUsage from "./component/Admin/AdminItemUsage";
 
-function App({ userToken }) {
+function App() {
 	const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
 	useEffect(() => {
@@ -53,7 +53,7 @@ function App({ userToken }) {
 					{/* Material request routes */}
 					<Route path="/material/request/all" element={<GetAllMaterialRequest />} />
 					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest />} />
-					<Route path="/material/request/request/" element={<CreateOneMaterialRequest userToken={userToken} />} />
+					<Route path="/material/request/request/" element={<CreateOneMaterialRequest />} />
 					<Route path="/test" element={<Test />} />
 				</Route>
 			</Routes>

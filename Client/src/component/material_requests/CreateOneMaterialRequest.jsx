@@ -173,46 +173,116 @@ export default function CreateOneMaterialRequest() {
 
 									<div className="form-row-top-right material-request">
 										<label>Item</label>
-										<Select options={filteredItems} value={row.item} onChange={(val) => handleRowChange(idx, "item", val)} placeholder="Select Item" filterOption={customFilter} isClearable isSearchable />
+										<Select
+											className="form-row-top-select"
+											options={filteredItems}
+											value={row.item}
+											onChange={(val) => handleRowChange(idx, "item", val)}
+											placeholder="Select Item"
+											filterOption={customFilter}
+											isClearable
+											isSearchable
+											styles={{
+												control: (base) => ({
+													...base,
+													borderRadius: "12px",
+													borderColor: "blue",
+												}),
+												option: (base, state) => ({
+													...base,
+													backgroundColor: state.isFocused ? "lightblue" : "white",
+													color: "black",
+												}),
+											}}
+										/>
 									</div>
 								</div>
 
 								<div className="form-row-center-container-material-request">
 									<div className="form-row-center-container-material-request-wrapper">
 										<div className="form-row-center-container-material-request-wrapper-center">
-											<label>Color</label>
-											<Select
-												options={colorOptions}
-												value={colorOptions.find((opt) => opt.value === row.color)}
-												onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
-												placeholder="Select Color"
-												isClearable
-												isSearchable
-												formatOptionLabel={(option) => (
-													<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-														<div
-															style={{
-																width: "30px",
-																height: "30px",
-																backgroundColor: option.hex,
-																border: "1px solid #ccc",
-															}}
-														/>
-														<span>{option.label}</span>
-													</div>
-												)}
-											/>
+											<div>
+												<label>Color</label>
+												<Select
+													className="form-row-center-material-request-select"
+													classNamePrefix="material-request-color-select"
+													options={colorOptions}
+													value={colorOptions.find((opt) => opt.value === row.color)}
+													onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
+													placeholder="Select Color"
+													isClearable
+													isSearchable
+													formatOptionLabel={(option) => (
+														<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+															<div style={{ width: "30px", height: "30px", backgroundColor: option.hex, border: "1px solid #ccc" }} />
+															<span>{option.label}</span>
+														</div>
+													)}
+													styles={{
+														control: (base) => ({
+															...base,
+															borderRadius: "12px",
+															borderColor: "blue",
+														}),
+														option: (base, state) => ({
+															...base,
+															backgroundColor: state.isFocused ? "lightblue" : "white",
+															color: "black",
+														}),
+													}}
+												/>
+											</div>
 										</div>
 
 										<div className="form-row-center-container-material-request-wrapper-center">
 											<div>
 												<label>Side/Hand</label>
-												<Select options={sideOptions} value={sideOptions.find((opt) => opt.value === row.side)} onChange={(val) => handleRowChange(idx, "side", val?.value || null)} placeholder="Select Side/Hand" isClearable isSearchable />
+												<Select
+													className="form-row-top-select"
+													options={sideOptions}
+													value={sideOptions.find((opt) => opt.value === row.side)}
+													onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
+													placeholder="Select Side/Hand"
+													isClearable
+													isSearchable
+													styles={{
+														control: (base) => ({
+															...base,
+															borderRadius: "12px",
+															borderColor: "blue",
+														}),
+														option: (base, state) => ({
+															...base,
+															backgroundColor: state.isFocused ? "lightblue" : "white",
+															color: "black",
+														}),
+													}}
+												/>
 											</div>
 
 											<div>
 												<label>Size</label>
-												<Select options={sizeOptions} value={sizeOptions.find((opt) => opt.value === row.size)} onChange={(val) => handleRowChange(idx, "size", val?.value || null)} placeholder="Select Size" isClearable isSearchable />
+												<Select
+													className="form-row-top-select"
+													options={sizeOptions}
+													value={sizeOptions.find((opt) => opt.value === row.size)}
+													onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
+													placeholder="Select Size"
+													isClearable
+													isSearchable
+													styles={{
+														control: (base) => ({
+															...base,
+															borderRadius: "12px",
+															borderColor: "blue",
+														}),
+														option: (base, state) => ({
+															...base,
+															backgroundColor: state.isFocused ? "lightblue" : "white",
+															color: "black",
+														}),
+													}}
+												/>
 											</div>
 										</div>
 									</div>

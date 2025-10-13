@@ -244,7 +244,9 @@ export default function AdminItemUsage() {
 								{Object.entries(finalUsage).map(([name, total]) => (
 									<tr key={name}>
 										<td>
-											<Link to={`/material/item/${name}`}>{name}</Link>
+											{/* on click make this go to a page that show  the users that have requested this material and also  allow them to bi filter by name and by date */}
+											{/* /material/item/${name} */}
+											<Link to={``}>{name}</Link>
 										</td>
 										<td>{total}</td>
 									</tr>

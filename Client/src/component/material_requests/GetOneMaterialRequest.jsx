@@ -120,7 +120,23 @@ export default function GetOneMaterialRequest() {
 
 										<div className="form-row-top-right material-request">
 											<label>Item</label>
-											<Select value={row.item} isDisabled />
+											<Select
+												className="form-row-top-select"
+												value={row.item}
+												isDisabled
+												styles={{
+													control: (base) => ({
+														...base,
+														borderRadius: "12px",
+														borderColor: "blue",
+													}),
+													option: (base, state) => ({
+														...base,
+														backgroundColor: state.isFocused ? "lightblue" : "white",
+														color: "black",
+													}),
+												}}
+											/>
 										</div>
 									</div>
 
@@ -129,6 +145,8 @@ export default function GetOneMaterialRequest() {
 											<div className="form-row-center-container-material-request-wrapper-top">
 												<label>Color</label>
 												<Select
+													className="form-row-center-material-request-select"
+													classNamePrefix="material-request-color-select"
 													value={row.color}
 													isDisabled
 													formatOptionLabel={(option) => (
@@ -137,17 +155,63 @@ export default function GetOneMaterialRequest() {
 															<span>{option.label}</span>
 														</div>
 													)}
+													styles={{
+														control: (base) => ({
+															...base,
+															borderRadius: "12px",
+															borderColor: "blue",
+															// width: "200px",
+															// height: "50px",
+														}),
+														option: (base, state) => ({
+															...base,
+															backgroundColor: state.isFocused ? "lightblue" : "white",
+															color: "black",
+														}),
+													}}
 												/>
 											</div>
 
 											<div className="form-row-center-container-material-request-wrapper-center">
 												<div>
 													<label>Side/Hand</label>
-													<Select value={row.side} isDisabled />
+													<Select
+														value={row.side}
+														isDisabled
+														className="form-row-top-select"
+														styles={{
+															control: (base) => ({
+																...base,
+																borderRadius: "12px",
+																borderColor: "blue",
+															}),
+															option: (base, state) => ({
+																...base,
+																backgroundColor: state.isFocused ? "lightblue" : "white",
+																color: "black",
+															}),
+														}}
+													/>
 												</div>
 												<div>
 													<label>Size</label>
-													<Select value={row.size} isDisabled />
+													<Select
+														value={row.size}
+														isDisabled
+														className="form-row-top-select"
+														styles={{
+															control: (base) => ({
+																...base,
+																borderRadius: "12px",
+																borderColor: "blue",
+															}),
+															option: (base, state) => ({
+																...base,
+																backgroundColor: state.isFocused ? "lightblue" : "white",
+																color: "black",
+															}),
+														}}
+													/>
 												</div>
 											</div>
 										</div>

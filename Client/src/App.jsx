@@ -36,8 +36,10 @@ function App() {
 
 				<Route element={<ProtectedRoute screenWidth={screenWidth} />}>
 					{/* Admin user routes */}
+					{/* User routes */}
 					<Route path="/admin/user/register" element={<AdminRegisterMultipleUsers />} />
 					<Route path="/admin/user/:userId?/update" element={<AdminUpdateMultipleUsers />} />
+					{/* Material request routes */}
 					<Route path="/admin/material/request" element={<AdminCreateMultipleMaterialRequests />} />
 					<Route path="/admin/material/item/all" element={<AdminGetAllItems />} />
 					<Route path="/admin/material/item/:itemId" element={<AdminGetOneItem />} />

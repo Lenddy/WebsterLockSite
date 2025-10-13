@@ -282,11 +282,46 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 										options={userOptions}
 										value={userOptions.find((opt) => opt.value === row?.id) || null}
 										onChange={(selected) => {
-											if (row?.locked) return; //  Prevent changes if locked
+											if (row?.locked) return; // Prevent changes if locked
 											setRows((prev) => {
 												const newRows = [...prev];
-												newRows[index].id = selected?.value || "";
-												newRows[index].previousEmail = selected?.email || "";
+												const updatedRow = { ...newRows[index] };
+
+												if (selected) {
+													const selectedUser = users.find((u) => u.id === selected.value);
+
+													if (selectedUser) {
+														updatedRow.id = selectedUser.id;
+														updatedRow.previousEmail = selectedUser.email || "";
+														updatedRow.name = selectedUser.name || "";
+														updatedRow.title = selectedUser.job?.title || "";
+														updatedRow.description = selectedUser.job?.description || "";
+														updatedRow.newRole = selectedUser.role || "";
+														updatedRow.newPermissions = {
+															...updatedRow.newPermissions,
+															...(selectedUser.permissions || {}),
+														};
+													}
+												} else {
+													// If cleared, reset to empty
+													updatedRow.id = "";
+													updatedRow.previousEmail = "";
+													updatedRow.name = "";
+													updatedRow.title = "";
+													updatedRow.description = "";
+													updatedRow.newRole = "";
+													updatedRow.newPermissions = {
+														canViewAllUsers: false,
+														canEditUsers: false,
+														canDeleteUsers: false,
+														canChangeRole: false,
+														canEditSelf: true,
+														canViewSelf: true,
+														canDeleteSelf: false,
+													};
+												}
+
+												newRows[index] = updatedRow;
 												return newRows;
 											});
 										}}
@@ -386,7 +421,7 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 										{logUser?.permissions?.canChangeRole && (
 											<div>
 												<label>New Role:</label>
-
+												{/* here */}
 												<select name="newRole" value={row?.newRole} onChange={(e) => handleRowChange(index, e)}>
 													<option value="" disabled>
 														Select Role

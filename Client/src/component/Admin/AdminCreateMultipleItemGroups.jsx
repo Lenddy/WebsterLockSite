@@ -11,6 +11,7 @@ import { jwtDecode } from "jwt-decode";
 
 export default function AdminCreateMultipleItemsGroups() {
 	const [users, setUsers] = useState([]);
+	const [message, setMessage] = useState("");
 	const [itemGroups, setItemGroups] = useState([
 		{
 			brand: "",
@@ -97,11 +98,13 @@ export default function AdminCreateMultipleItemsGroups() {
 					console.log("Mutation success:", res.createMultipleItemGroups);
 					// newMr =
 					// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
+					setMessage("New Item Groups have been added");
 				},
 				onError: (err) => {
 					console.warn("Mutation success:", err);
 					// newMr =
 					// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
+					setMessage("error:", err);
 				},
 			});
 		} catch (err) {
@@ -116,34 +119,39 @@ export default function AdminCreateMultipleItemsGroups() {
 					<div key={igIdx} className="request-block" style={{ marginBottom: "10px" }}>
 						<div className="update-form-wrapper">
 							{/* Brand Section */}
-							<div className="update-form-row">
+							<div className="">
 								<h3>Item Group {igIdx + 1}</h3>
+							</div>
 
+							{/* Items Section */}
+							<div className="update-form-row">
 								<div className="form-row-top-container material-request">
 									<div className="form-row-top-right material-request">
 										<label>Brand Name</label>
 										<input type="text" value={ig?.brand} onChange={(e) => handleItemGroupChange(igIdx, "brand", e.target.value)} />
 									</div>
 								</div>
-							</div>
 
-							{/* Items Section */}
-							<div className="form-row-center item-group">
-								<label>Items</label>
+								<div className="form-row-center item-group">
+									<label>Items</label>
 
-								{ig.itemsList?.map((row, rowIdx) => (
-									<div key={rowIdx} className="form-row-item-wrapper">
-										{/* Item Name */}
-										<input type="text" value={row?.itemName} onChange={(e) => handleItemChange(igIdx, rowIdx, "itemName", e.target.value)} />
+									{ig?.itemsList?.map((row, rowIdx) => (
+										<>
+											{/* <label>Item Name</label> */}
+											<div key={rowIdx} className="form-row-item-wrapper">
+												{/* Item Name */}
+												<input type="text" value={row?.itemName} onChange={(e) => handleItemChange(igIdx, rowIdx, "itemName", e.target.value)} />
 
-										{/* Remove item */}
-										{ig?.itemsList?.length > 1 && (
-											<span className="remove-row-btn" onClick={() => removeItemRow(igIdx, rowIdx)}>
-												Remove
-											</span>
-										)}
-									</div>
-								))}
+												{/* Remove item */}
+												{ig?.itemsList?.length > 1 && (
+													<span className="remove-row-btn" onClick={() => removeItemRow(igIdx, rowIdx)}>
+														Remove
+													</span>
+												)}
+											</div>
+										</>
+									))}
+								</div>
 
 								{/* Add Item Button */}
 								<div className="form-action-btn">

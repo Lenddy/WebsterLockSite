@@ -1,16 +1,21 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DeleteOneUser from "./users/DeleteOneUser";
 import { Link, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../context/AuthContext"; // <-- use context here
 
 const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
-	const { currentUser, userToken } = useAuth(); // get currentUser and token from context
+	const { userToken } = useAuth(); // get currentUser and token from context
 	const location = useLocation();
 	const [content, setContent] = useState(null);
 
 	// Decode token once if currentUser not available (fallback)
-	const logUser = currentUser || (userToken ? jwtDecode(userToken) : null);
+	const logUser = jwtDecode(userToken);
+
+	// console.log("modal open");
+	// console.log("log user", logUser);
+	// console.log("is open", isOpen, "close", onClose, "data", data);
+	console.log("data", data);
 
 	// Setup content based on data
 	useEffect(() => {
@@ -103,20 +108,22 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 											<label>Item</label> <p>{row?.item?.value}</p>
 										</div>
 									</div>
+
 									<div className="modal-content-item-info-center">
 										<div>
-											<label>Color</label> <p>{row?.color?.value || row?.color || "N/A"}</p>
+											<label>Color</label> <p>{row?.color?.value || "N/A"}</p>
 										</div>
 										<div>
-											<label>Side/Hand</label> <p>{row?.side?.value || row?.side || "N/A"}</p>
+											<label>Side/Hand</label> <p>{row?.side?.value || "N/A"}</p>
 										</div>
 										<div>
-											<label>Size</label> <p>{row?.size?.value || row?.size || "N/A"}</p>
+											<label>Size</label> <p>{row?.size?.value || "N/A"}</p>
 										</div>
 									</div>
+
 									<div className="modal-content-item-info-bottom">
 										<div>
-											<label>Description</label> <p>{row?.itemDescription}</p>
+											<label>Description</label> <p>{row?.itemDescription || "N/A"}</p>
 										</div>
 									</div>
 								</div>
@@ -126,6 +133,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 					{/* Admin Material Item Info */}
 					{location.pathname.includes(`/admin/material/item/`) && (
 						<div className="modal-content-info">
+							``
 							<div className="modal-content-info-wrapper">
 								<div className="modal-content-item-info">
 									<h4>{data.item.itemName} (will be deleted and must be re-added to use)</h4>

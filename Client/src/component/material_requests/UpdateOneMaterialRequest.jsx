@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import { get_all_item_groups, get_one_material_request } from "../../../graphQL/queries/queries";
 import { update_One_Material_Request } from "../../../graphQL/mutations/mutations";
@@ -77,33 +77,70 @@ function UpdateOneMaterialRequest() {
 		}
 	}, [iGData]);
 
-	// ----- Prefill data -----
+	// // ----- Prefill data -----
+	// useEffect(() => {
+	// 	console.log("this is the  second us effect");
+	// 	// only run if mRData exists AND rows not yet prefilled
+	// 	if (mRData?.getOneMaterialRequest && allItems.length > 0 && rows.length === 1 && !rows[0].id) {
+	// 		const req = mRData.getOneMaterialRequest;
+	// 		console.log("adding the requestors info");
+	// 		setMRequest({ mrId: req.id, requester: req.requester });
+
+	// 		setRows(
+	// 			req.items.map((item) => {
+	// 				const matchedItem = allItems.find((i) => i.value === item.itemName);
+	// 				const matchedColor = colorOptions.find((i) => i.value === item.color);
+	// 				const matchedSide = sideOptions.find((i) => i.value === item.side);
+	// 				const matchedSize = sizeOptions.find((i) => i.value === item.size);
+
+	// 				return {
+	// 					id: item.id,
+	// 					quantity: item.quantity,
+	// 					item: matchedItem || { label: item.itemName, value: item.itemName },
+	// 					itemDescription: item.itemDescription || "",
+	// 					color: matchedColor || { label: item.color, value: item.color },
+	// 					side: matchedSide || { label: item.side, value: item.side },
+	// 					size: matchedSize || { label: item.size, value: item.size },
+	// 				};
+	// 			})
+	// 		);
+	// 	}
+	// }, [mRData, allItems, rows.length]);
+
 	useEffect(() => {
-		// only run if mRData exists AND rows not yet prefilled
-		if (mRData?.getOneMaterialRequest && allItems.length > 0 && rows.length === 1 && !rows[0].id) {
+		if (mRData?.getOneMaterialRequest) {
 			const req = mRData.getOneMaterialRequest;
-			setMRequest({ mrId: req.id, requester: req.requester });
 
-			setRows(
-				req.items.map((item) => {
-					const matchedItem = allItems.find((i) => i.value === item.itemName);
-					const matchedColor = colorOptions.find((i) => i.value === item.color);
-					const matchedSide = sideOptions.find((i) => i.value === item.side);
-					const matchedSize = sizeOptions.find((i) => i.value === item.size);
+			setMRequest({
+				mrId: req.id,
+				requester: req.requester,
+			});
 
-					return {
-						id: item.id,
-						quantity: item.quantity,
-						item: matchedItem || { label: item.itemName, value: item.itemName },
-						itemDescription: item.itemDescription || "",
-						color: matchedColor || { label: item.color, value: item.color },
-						side: matchedSide || { label: item.side, value: item.side },
-						size: matchedSize || { label: item.size, value: item.size },
-					};
-				})
-			);
+			// Only set rows if not already prefilled
+			if (rows.length === 1 && !rows[0].id && allItems.length > 0) {
+				setRows(
+					req.items.map((item) => {
+						const matchedItem = allItems.find((i) => i.value === item.itemName);
+						const matchedColor = colorOptions.find((i) => i.value === item.color);
+						const matchedSide = sideOptions.find((i) => i.value === item.side);
+						const matchedSize = sizeOptions.find((i) => i.value === item.size);
+
+						return {
+							id: item.id,
+							quantity: item.quantity,
+							item: matchedItem || { label: item.itemName, value: item.itemName },
+							itemDescription: item.itemDescription || "",
+							color: matchedColor || { label: item.color, value: item.color },
+							side: matchedSide || { label: item.side, value: item.side },
+							size: matchedSize || { label: item.size, value: item.size },
+						};
+					})
+				);
+			}
 		}
-	}, [mRData, allItems, rows.length]);
+	}, [mRData, allItems]);
+
+	console.log("requestors info", mRequest);
 
 	// ----- Row change handler -----
 	const handleRowChange = (index, field, value) => {
@@ -198,6 +235,14 @@ function UpdateOneMaterialRequest() {
 	const isFormValid = rows.every((r) => r.item && r.quantity !== "" && Number(r.quantity) > 0);
 
 	if (authLoading || mRLoading) return <p>Loading...</p>;
+
+	const openModal = () => {
+		if (!mRequest) {
+			alert("Loading request data, please wait...");
+			return;
+		}
+		setIsOpen(true);
+	};
 
 	return (
 		<div className="update-container">
@@ -439,9 +484,13 @@ function UpdateOneMaterialRequest() {
 							type="button"
 							// type="submit"
 							disabled={loading || mRLoading || !isFormValid}
-							onClick={() => {
-								setIsOpen(true);
-							}}>
+							onClick={
+								openModal
+
+								// 	() => {
+								// 	setIsOpen(true);
+								// }
+							}>
 							Approve
 						</button>
 					</div>
@@ -451,7 +500,7 @@ function UpdateOneMaterialRequest() {
 						Please fill out all required fields (Item & Quantity).
 					</p>
 				)}
-				<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} onConFirm={submit} data={{ mRequest, rows }} userToken={userToken} loading={loading} />
+				<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} onConFirm={submit} data={{ mRequest, rows }} loading={loading} />
 			</form>
 		</div>
 	);

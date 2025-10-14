@@ -112,67 +112,62 @@ export default function AdminCreateMultipleItemsGroups() {
 	return (
 		<div className="update-container">
 			<form onSubmit={submit} className="update-form">
-				{/* Dynamic rows */}
-
 				{itemGroups.map((ig, igIdx) => (
-					<div key={igIdx} className="update-form-wrapper">
-						<div key={igIdx} className="update-form-row">
-							<h3>itemGroup {igIdx + 1}</h3>
+					<div key={igIdx} className="request-block" style={{ marginBottom: "10px" }}>
+						<div className="update-form-wrapper">
+							{/* Brand Section */}
+							<div className="update-form-row">
+								<h3>Item Group {igIdx + 1}</h3>
 
-							<div className="form-row-top-container material-request ">
-								<div className="form-row-top-right material-request">
-									<label htmlFor=""> Brand Name </label>
-
-									<input type="text" value={ig?.brand} onChange={(e) => handleItemGroupChange(igIdx, "brand", e.target.value)} />
+								<div className="form-row-top-container material-request">
+									<div className="form-row-top-right material-request">
+										<label>Brand Name</label>
+										<input type="text" value={ig?.brand} onChange={(e) => handleItemGroupChange(igIdx, "brand", e.target.value)} />
+									</div>
 								</div>
 							</div>
 
-							{/* Items inside request */}
-							{ig.itemsList?.map((row, rowIdx) => {
-								return (
-									<div key={rowIdx} className="update-form-row">
-										{/* Item description */}
+							{/* Items Section */}
+							<div className="form-row-center item-group">
+								<label>Items</label>
 
-										<h3 className="form-row-count">Material Request Row {rowIdx + 1}</h3>
-										<div className="form-row-top-container material-request">
-											<div className="form-row-top-right material-request">
-												<label htmlFor=""> Item Name </label>
-												<input type="text" value={row?.itemName} onChange={(e) => handleItemChange(igIdx, rowIdx, "itemName", e.target.value)} />
-											</div>
-										</div>
+								{ig.itemsList?.map((row, rowIdx) => (
+									<div key={rowIdx} className="form-row-item-wrapper">
+										{/* Item Name */}
+										<input type="text" value={row?.itemName} onChange={(e) => handleItemChange(igIdx, rowIdx, "itemName", e.target.value)} />
 
-										{/* Remove item button */}
+										{/* Remove item */}
 										{ig?.itemsList?.length > 1 && (
-											<div className="form-row-remove-btn-container">
-												<span className="remove-row-btn" onClick={() => removeItemRow(igIdx, rowIdx)}>
-													Remove Item
-												</span>
-											</div>
+											<span className="remove-row-btn" onClick={() => removeItemRow(igIdx, rowIdx)}>
+												Remove
+											</span>
 										)}
 									</div>
-								);
-							})}
-						</div>
-						<div className="form-action-btn">
-							<div className="form-row-remove-btn-container">
-								{/* Item-level add button */}
-								<span className="form-add-row-btn" onClick={() => addItemRow(igIdx)} disabled={!canAddMore}>
-									+ Add Item
-								</span>
-							</div>
-							<div className="form-row-remove-btn-container">
-								{itemGroups.length > 1 && (
-									<span className="remove-row-btn" type="button" onClick={() => removeItemGroup(igIdx)}>
-										Remove Item Group
-									</span>
-								)}
-							</div>
-						</div>
+								))}
 
-						{/* Remove whole request */}
+								{/* Add Item Button */}
+								<div className="form-action-btn">
+									<div className="form-row-remove-btn-container">
+										<span className="form-add-row-btn" onClick={() => addItemRow(igIdx)} disabled={!canAddMore} style={{ margin: "10px 0px" }}>
+											+ Add Item
+										</span>
+									</div>
+
+									{/* Remove Item Group Button */}
+									{itemGroups.length > 1 && (
+										<div className="form-row-remove-btn-container">
+											<span className="remove-row-btn" type="button" onClick={() => removeItemGroup(igIdx)} style={{ margin: "10px 0px" }}>
+												Remove Group
+											</span>
+										</div>
+									)}
+								</div>
+							</div>
+						</div>
 					</div>
 				))}
 
+				{/* Add Group & Submit Buttons */}
 				<div className="form-action-btn">
 					<span className="form-add-row-btn" type="button" onClick={addItemGroup} disabled={!canAddMore}>
 						+ Add Group
@@ -185,10 +180,90 @@ export default function AdminCreateMultipleItemsGroups() {
 					</div>
 				</div>
 
-				{/* Add a whole new request */}
-
-				{!canAddMore && <p style={{ color: "red" }}> All required fields must be filled.</p>}
+				{/* Validation Message */}
+				{!canAddMore && <p style={{ color: "red" }}>All required fields must be filled.</p>}
 			</form>
 		</div>
+
+		// <div className="update-container">
+		// 	<form onSubmit={submit} className="update-form">
+		// 		{/* Dynamic rows */}
+
+		// 		{itemGroups.map((ig, igIdx) => (
+		// 			<div key={igIdx} className="update-form-wrapper">
+		// 				<div key={igIdx} className="update-form-row">
+		// 					<h3>itemGroup {igIdx + 1}</h3>
+
+		// 					<div className="form-row-top-container material-request ">
+		// 						<div className="form-row-top-right material-request">
+		// 							<label htmlFor=""> Brand Name </label>
+
+		// 							<input type="text" value={ig?.brand} onChange={(e) => handleItemGroupChange(igIdx, "brand", e.target.value)} />
+		// 						</div>
+		// 					</div>
+
+		// 					{/* Items inside request */}
+		// 					{ig.itemsList?.map((row, rowIdx) => {
+		// 						return (
+		// 							<div key={rowIdx} className="update-form-row">
+		// 								{/* Item description */}
+
+		// 								<h3 className="form-row-count">Material Request Row {rowIdx + 1}</h3>
+		// 								<div className="form-row-top-container material-request">
+		// 									<div className="form-row-top-right material-request">
+		// 										<label htmlFor=""> Item Name </label>
+		// 										<input type="text" value={row?.itemName} onChange={(e) => handleItemChange(igIdx, rowIdx, "itemName", e.target.value)} />
+		// 									</div>
+		// 								</div>
+
+		// 								{/* Remove item button */}
+		// 								{ig?.itemsList?.length > 1 && (
+		// 									<div className="form-row-remove-btn-container">
+		// 										<span className="remove-row-btn" onClick={() => removeItemRow(igIdx, rowIdx)}>
+		// 											Remove Item
+		// 										</span>
+		// 									</div>
+		// 								)}
+		// 							</div>
+		// 						);
+		// 					})}
+		// 				</div>
+		// 				<div className="form-action-btn">
+		// 					<div className="form-row-remove-btn-container">
+		// 						{/* Item-level add button */}
+		// 						<span className="form-add-row-btn" onClick={() => addItemRow(igIdx)} disabled={!canAddMore}>
+		// 							+ Add Item
+		// 						</span>
+		// 					</div>
+		// 					<div className="form-row-remove-btn-container">
+		// 						{itemGroups.length > 1 && (
+		// 							<span className="remove-row-btn" type="button" onClick={() => removeItemGroup(igIdx)}>
+		// 								Remove Item Group
+		// 							</span>
+		// 						)}
+		// 					</div>
+		// 				</div>
+
+		// 				{/* Remove whole request */}
+		// 			</div>
+		// 		))}
+
+		// 		<div className="form-action-btn">
+		// 			<span className="form-add-row-btn" type="button" onClick={addItemGroup} disabled={!canAddMore}>
+		// 				+ Add Group
+		// 			</span>
+
+		// 			<div>
+		// 				<button type="submit" className="form-submit-btn" disabled={!canSubmit}>
+		// 					Submit
+		// 				</button>
+		// 			</div>
+		// 		</div>
+
+		// 		{/* Add a whole new request */}
+
+		// 		{!canAddMore && <p style={{ color: "red" }}> All required fields must be filled.</p>}
+		// 	</form>
+		// </div>
 	);
 }

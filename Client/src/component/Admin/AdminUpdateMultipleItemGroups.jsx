@@ -420,21 +420,28 @@ export default function AdminUpdateMultipleItemsGroups() {
 									{group.id && (
 										<>
 											<label>Items</label>
+
 											{group.itemsList.map((item, idx) => (
-												<div key={idx} className="form-row-top-right material-request  update-form-input">
+												<div key={idx} className="form-row-item-wrapper ">
+													{/* form-row-top-right material-request  update-form-input  */}
 													{item.action?.toBeDeleted ? (
-														<div>
+														<>
 															<span style={{ color: "red" }}>{item.itemName} (Marked for Deletion)</span>
 															<span className="remove-row-btn" onClick={() => undoDeleteItem(gIdx, idx)}>
 																Undo
 															</span>
-														</div>
+														</>
 													) : (
 														<>
+															{/* <div> */}
 															<input type="text" value={item.itemName} onChange={(e) => handleItemChange(gIdx, idx, e.target.value)} />
+															{/* </div> */}
+
+															{/* <div> */}
 															<span className="remove-row-btn" onClick={() => deleteItem(gIdx, idx)}>
 																Delete
 															</span>
+															{/* </div> */}
 														</>
 													)}
 												</div>

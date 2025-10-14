@@ -21,6 +21,15 @@ export default function AdminGetAllItems() {
 	const [searchValue, setSearchValue] = useState("");
 	const [filteredItems, setFilteredItems] = useState([]);
 
+	// Helper function to sort alphabetically by brand
+	const sortByBrand = (list) => {
+		return [...list].sort((a, b) => {
+			if (!a.brand) return 1;
+			if (!b.brand) return -1;
+			return a.brand.toLowerCase().localeCompare(b.brand.toLowerCase());
+		});
+	};
+
 	// Decode token once when component mounts or token changes
 	useEffect(() => {
 		if (userToken) {
@@ -34,15 +43,50 @@ export default function AdminGetAllItems() {
 	}, [userToken]);
 
 	// Load data when query completes
+	// useEffect(() => {
+	// 	if (data?.getAllItemGroups) {
+	// 		setItems(data.getAllItemGroups);
+	// 		setFilteredItems(data.getAllItemGroups);
+	// 	}
+	// 	if (error) console.error("Error fetching item groups:", error);
+	// }, [data, error]);
+
+	// Load data when query completes
 	useEffect(() => {
 		if (data?.getAllItemGroups) {
-			setItems(data.getAllItemGroups);
-			setFilteredItems(data.getAllItemGroups);
+			const sorted = sortByBrand(data.getAllItemGroups);
+			setItems(sorted);
+			setFilteredItems(sorted);
 		}
 		if (error) console.error("Error fetching item groups:", error);
 	}, [data, error]);
 
-	// Live subscription for item group updates
+	// // Live subscription for item group updates
+	// useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
+	// 	onError: (err) => console.error("Subscription error:", err),
+	// 	onData: ({ data }) => {
+	// 		const change = data?.data?.onItemGroupChange;
+	// 		if (!change) return;
+
+	// 		const { eventType, Changes } = change;
+
+	// 		setItems((prev) => {
+	// 			let updated;
+	// 			if (eventType === "created") updated = [...prev, Changes];
+	// 			else if (eventType === "updated") updated = prev.map((ig) => (ig.id === Changes.id ? Changes : ig));
+	// 			else if (eventType === "deleted") updated = prev.filter((ig) => ig.id !== Changes.id);
+	// 			else updated = prev;
+
+	// 			// Reapply search filter
+	// 			if (searchValue) setFilteredItems(applyFuse(updated, searchValue));
+	// 			else setFilteredItems(updated);
+
+	// 			return updated;
+	// 		});
+	// 	},
+	// });
+
+	// Update subscription to apply sorting
 	useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
 		onError: (err) => console.error("Subscription error:", err),
 		onData: ({ data }) => {
@@ -58,9 +102,10 @@ export default function AdminGetAllItems() {
 				else if (eventType === "deleted") updated = prev.filter((ig) => ig.id !== Changes.id);
 				else updated = prev;
 
-				// Reapply search filter
-				if (searchValue) setFilteredItems(applyFuse(updated, searchValue));
-				else setFilteredItems(updated);
+				const sorted = sortByBrand(updated);
+
+				if (searchValue) setFilteredItems(applyFuse(sorted, searchValue));
+				else setFilteredItems(sorted);
 
 				return updated;
 			});
@@ -74,15 +119,28 @@ export default function AdminGetAllItems() {
 		return fuse.search(search).map((r) => r.item);
 	};
 
+	// const handleSearchChange = (e) => {
+	// 	const val = e.target.value;
+	// 	setSearchValue(val);
+	// 	setFilteredItems(applyFuse(items, val));
+	// };
+
+	// Update search handlers to sort search results alphabetically
 	const handleSearchChange = (e) => {
 		const val = e.target.value;
 		setSearchValue(val);
-		setFilteredItems(applyFuse(items, val));
+		const filtered = applyFuse(items, val);
+		setFilteredItems(sortByBrand(filtered));
 	};
+
+	// const clearSearch = () => {
+	// 	setSearchValue("");
+	// 	setFilteredItems(items);
+	// };
 
 	const clearSearch = () => {
 		setSearchValue("");
-		setFilteredItems(items);
+		setFilteredItems(sortByBrand(items));
 	};
 
 	if (!logUser) return null; // wait until token is decoded

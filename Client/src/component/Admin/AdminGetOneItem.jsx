@@ -17,6 +17,15 @@ export default function AdminGetOneItem({ userToken }) {
 		variables: { id: itemId },
 	});
 
+	// Helper function to sort items alphabetically by itemName
+	const sortByItemName = (list) => {
+		return [...list].sort((a, b) => {
+			if (!a.itemName) return 1;
+			if (!b.itemName) return -1;
+			return a.itemName.toLowerCase().localeCompare(b.itemName.toLowerCase());
+		});
+	};
+
 	//  Decode token
 	useEffect(() => {
 		const token = localStorage.getItem("UserToken");
@@ -24,15 +33,46 @@ export default function AdminGetOneItem({ userToken }) {
 	}, []);
 
 	//  Update items when query data changes
+	// useEffect(() => {
+	// 	if (data?.getOneItemGroup) {
+	// 		const group = data.getOneItemGroup;
+	// 		setItemGroup(group);
+	// 		setFilteredItems(group.itemsList || []);
+	// 	}
+	// }, [data]);
+
+	// Update useEffect for query data
 	useEffect(() => {
 		if (data?.getOneItemGroup) {
 			const group = data.getOneItemGroup;
 			setItemGroup(group);
-			setFilteredItems(group.itemsList || []);
+			setFilteredItems(sortByItemName(group.itemsList || []));
 		}
 	}, [data]);
 
-	// 📡 Subscription for live updates
+	//  Subscription for live updates
+	// useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
+	// 	onError: (err) => console.error("Subscription error:", err),
+	// 	onData: ({ data }) => {
+	// 		const change = data?.data?.onItemGroupChange;
+	// 		if (!change) return;
+
+	// 		const { eventType, Changes } = change;
+
+	// 		// If this is the group we’re currently viewing, update it
+	// 		if (Changes.id === itemId) {
+	// 			let updatedGroup = { ...itemGroup };
+
+	// 			if (eventType === "updated") updatedGroup = Changes;
+	// 			else if (eventType === "deleted") updatedGroup = null;
+
+	// 			setItemGroup(updatedGroup);
+	// 			setFilteredItems(updatedGroup?.itemsList || []);
+	// 		}
+	// 	},
+	// });
+
+	// Update subscription to sort live updates
 	useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
 		onError: (err) => console.error("Subscription error:", err),
 		onData: ({ data }) => {
@@ -41,7 +81,6 @@ export default function AdminGetOneItem({ userToken }) {
 
 			const { eventType, Changes } = change;
 
-			// If this is the group we’re currently viewing, update it
 			if (Changes.id === itemId) {
 				let updatedGroup = { ...itemGroup };
 
@@ -49,7 +88,7 @@ export default function AdminGetOneItem({ userToken }) {
 				else if (eventType === "deleted") updatedGroup = null;
 
 				setItemGroup(updatedGroup);
-				setFilteredItems(updatedGroup?.itemsList || []);
+				setFilteredItems(sortByItemName(updatedGroup?.itemsList || []));
 			}
 		},
 	});
@@ -67,19 +106,32 @@ export default function AdminGetOneItem({ userToken }) {
 	};
 
 	//  Handle input change
+	// const handleSearchChange = (e) => {
+	// 	const val = e.target.value;
+	// 	setSearchValue(val);
+	// 	setFilteredItems(applyFuse(itemGroup?.itemsList || [], val));
+	// };
+
+	// Update search handlers to sort results alphabetically
 	const handleSearchChange = (e) => {
 		const val = e.target.value;
 		setSearchValue(val);
-		setFilteredItems(applyFuse(itemGroup?.itemsList || [], val));
+		const filtered = applyFuse(itemGroup?.itemsList || [], val);
+		setFilteredItems(sortByItemName(filtered));
 	};
 
 	//  Clear search
+	// const clearSearch = () => {
+	// 	setSearchValue("");
+	// 	setFilteredItems(itemGroup?.itemsList || []);
+	// };
+
 	const clearSearch = () => {
 		setSearchValue("");
-		setFilteredItems(itemGroup?.itemsList || []);
+		setFilteredItems(sortByItemName(itemGroup?.itemsList || []));
 	};
 
-	// 🖥️ Render
+	//  Render
 	if (loading) return <h1>Loading...</h1>;
 	if (error) return <p style={{ color: "red" }}>{error.message}</p>;
 	if (!itemGroup) return <h2>No item group found.</h2>;

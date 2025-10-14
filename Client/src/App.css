@@ -1812,6 +1812,18 @@ textarea:disabled {
 	margin: 0px;
 }
 
+.form-row-item-wrapper {
+	/* background-color: blue; */
+	margin: 10px 0px;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	width: 95%;
+	border: solid var(--dark-red) 1px;
+	border-radius: 10px;
+}
+
 /* !!!!! */
 /* !!!!! */
 /* !!!!! */
@@ -1922,6 +1934,15 @@ textarea:disabled {
 		display: flex;
 		flex-direction: column;
 		height: 60px;
+	}
+
+	.form-row-item-wrapper {
+		flex-direction: column;
+		width: 100%;
+	}
+
+	.form-row-item-wrapper span:last-child {
+		margin-top: 5px;
 	}
 }
 

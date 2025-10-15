@@ -44,8 +44,6 @@ export const seedAdmin = async () => {
 				canEditSelf: true,
 				canViewSelf: true,
 				canDeleteSelf: true,
-				canNotBeDeleted: true,
-				canNotBeUpdated: true,
 				canRegisterUser: true,
 			},
 		});

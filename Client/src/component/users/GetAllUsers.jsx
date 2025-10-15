@@ -12,7 +12,9 @@ export default function GetAllUsers() {
 	const { userToken } = useAuth(); // Get current user token from context
 	const [logUser, setLogUser] = useState(null);
 
-	const { error, loading, data } = useQuery(get_all_users);
+	const { error, loading, data } = useQuery(get_all_users, {
+		fetchPolicy: "cache-and-network",
+	});
 	const [users, setUsers] = useState([]);
 	const [filteredUsers, setFilteredUsers] = useState([]);
 	const [searchValue, setSearchValue] = useState("");

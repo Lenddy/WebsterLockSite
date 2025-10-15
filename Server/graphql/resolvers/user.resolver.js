@@ -544,8 +544,9 @@ const userResolver = {
 						if (newPassword !== confirmNewPassword) {
 							throw new ApolloError("Passwords do not match");
 						}
-						targetUser.password = newPassword;
-						targetUser.confirmPassword = confirmNewPassword;
+
+						targetUser.password = await bcrypt.hash(newPassword, 10);
+						targetUser.confirmPassword = await bcrypt.hash(confirmNewPassword, 10);
 					}
 
 					// --- apply field updates ---

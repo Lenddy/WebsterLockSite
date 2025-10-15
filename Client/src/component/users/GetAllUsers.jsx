@@ -6,6 +6,7 @@ import { USER_CHANGE_SUBSCRIPTION } from "../../../graphQL/subscriptions/subscri
 import Fuse from "fuse.js";
 import Modal from "../Modal";
 import { useAuth } from "../../context/AuthContext"; // <-- use context here
+import { jwtDecode } from "jwt-decode";
 
 export default function GetAllUsers() {
 	const { userToken } = useAuth(); // Get current user token from context
@@ -22,7 +23,7 @@ export default function GetAllUsers() {
 	useEffect(() => {
 		if (userToken) {
 			try {
-				setLogUser(JSON.parse(atob(userToken.split(".")[1]))); // simple JWT decode
+				setLogUser(jwtDecode(userToken)); // simple JWT decode
 			} catch (err) {
 				console.error("Failed to decode token:", err.message);
 			}
@@ -87,9 +88,9 @@ export default function GetAllUsers() {
 		const perms = logUser.permissions || {};
 
 		// 1️ Self-edit always comes first
-		if (logUser.id === targetUser.id) return perms.canEditSelf ?? true;
+		if (logUser.userId === targetUser.id) return perms.canEditSelf ?? true;
 
-		// 2️Must have global permission to edit other users
+		// 2️ Must have global permission to edit other users
 		if (!perms.canEditUsers) return false;
 
 		// 3️Role hierarchy for editing others
@@ -108,7 +109,7 @@ export default function GetAllUsers() {
 		const perms = logUser.permissions || {};
 
 		// 1️Self-delete always comes first
-		if (logUser.id === targetUser.id) return perms.canDeleteSelf ?? false;
+		if (logUser.userId === targetUser.id) return perms.canDeleteSelf ?? false;
 
 		// 2 Must have global permission to delete other users
 		if (!perms.canDeleteUsers) return false;

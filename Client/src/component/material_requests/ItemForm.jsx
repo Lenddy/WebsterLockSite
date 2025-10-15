@@ -1,3 +1,9 @@
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!
+// what is this for?
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 import { create_One_Material_Request } from "../../../graphQL/mutations/mutations";
 import { useMutation, useQuery } from "@apollo/client";
 import { useState, useEffect } from "react";
@@ -86,11 +92,11 @@ export default function CreateOneMaterialRequest() {
 			},
 		})
 			.then((res) => {
-				console.log("✅ Registered user:", res.data.registerUser);
+				// console.log(" Registered user:", res.data.registerUser);
 				navigate(`/user/${res.data.registerUser.id}`);
 			})
 			.catch((err) => {
-				console.error("❌ Error registering:", err);
+				// console.error(" Error registering:", err);
 			});
 	};
 
@@ -260,127 +266,3 @@ export default function CreateOneMaterialRequest() {
 		</>
 	);
 }
-
-//!!!! old code
-
-// import React, { useState, useEffect } from "react";
-// import dayjs from "dayjs";
-// import Fuse from "fuse.js"; // for fuzzy search
-
-// export default function ItemForm() {
-// 	const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
-// 	const [brandFilter, setBrandFilter] = useState("");
-// 	const [allItems, setAllItems] = useState([]);
-// 	const [items, setItems] = useState([{ quantity: "", itemName: "", color: "", side: "", size: "" }]);
-
-// 	// Simulate fetching items from DB
-// 	useEffect(() => {
-// 		async function fetchItems() {
-// 			const response = await fetch("/api/items"); // adjust API
-// 			const data = await response.json();
-// 			setAllItems(data);
-// 		}
-// 		fetchItems();
-// 	}, []);
-
-// 	// Handle change for dynamic rows
-// 	const handleItemChange = (index, field, value) => {
-// 		const updatedItems = [...items];
-// 		updatedItems[index][field] = value;
-// 		setItems(updatedItems);
-// 	};
-
-// 	// Add new item row
-// 	const addItemRow = () => {
-// 		setItems([...items, { quantity: "", itemName: "", color: "", side: "", size: "" }]);
-// 	};
-
-// 	// Delete item row
-// 	const removeItemRow = (index) => {
-// 		const updatedItems = items.filter((_, i) => i !== index);
-// 		setItems(updatedItems);
-// 	};
-
-// 	// Fuzzy search setup
-// 	const fuse = new Fuse(
-// 		allItems.filter((i) => !brandFilter || i.brand === brandFilter),
-// 		{ keys: ["name"], threshold: 0.4 }
-// 	);
-
-// 	const getFilteredItems = (searchTerm) => {
-// 		if (!searchTerm) return allItems.filter((i) => !brandFilter || i.brand === brandFilter);
-// 		return fuse.search(searchTerm).map((res) => res.item);
-// 	};
-
-// 	// Submit handler
-// 	const handleSubmit = async () => {
-// 		const payload = { date, items };
-// 		await fetch("/api/submit", {
-// 			method: "POST",
-// 			headers: { "Content-Type": "application/json" },
-// 			body: JSON.stringify(payload),
-// 		});
-// 	};
-
-// 	return (
-// 		<div>
-// 			{/* Date */}
-// 			<div>
-// 				<label>Date:</label>
-// 				<input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-// 			</div>
-
-// 			{/* Brand Filter */}
-// 			<div>
-// 				<label>Filter by Brand:</label>
-// 				<select value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}>
-// 					<option value="">All Brands</option>
-// 					{[...new Set(allItems.map((i) => i.brand))].map((brand) => (
-// 						<option key={brand} value={brand}>
-// 							{brand}
-// 						</option>
-// 					))}
-// 				</select>
-// 			</div>
-
-// 			{/* Dynamic Items */}
-// 			{items.map((item, index) => (
-// 				<div key={index}>
-// 					<input type="number" placeholder="Quantity" value={item.quantity} onChange={(e) => handleItemChange(index, "quantity", e.target.value)} />
-
-// 					{/* Searchable dropdown */}
-// 					<SearchableSelect value={item.itemName} onChange={(val) => handleItemChange(index, "itemName", val)} options={allItems.filter((i) => !brandFilter || i.brand === brandFilter)} getFilteredItems={getFilteredItems} />
-
-// 					<input placeholder="Color" value={item.color} onChange={(e) => handleItemChange(index, "color", e.target.value)} />
-// 					<input placeholder="Side" value={item.side} onChange={(e) => handleItemChange(index, "side", e.target.value)} />
-// 					<input placeholder="Size" value={item.size} onChange={(e) => handleItemChange(index, "size", e.target.value)} />
-
-// 					<button onClick={() => removeItemRow(index)}>Remove</button>
-// 				</div>
-// 			))}
-
-// 			<button onClick={addItemRow}>Add Item</button>
-// 			<button onClick={handleSubmit}>Submit</button>
-// 		</div>
-// 	);
-// }
-
-// // Custom searchable select
-// function SearchableSelect({ value, onChange, options, getFilteredItems }) {
-// 	const [search, setSearch] = useState("");
-// 	const filtered = getFilteredItems(search);
-
-// 	return (
-// 		<div>
-// 			<input placeholder="Search item..." value={search} onChange={(e) => setSearch(e.target.value)} />
-// 			<select value={value} onChange={(e) => onChange(e.target.value)}>
-// 				<option value="">Select item</option>
-// 				{filtered.map((item) => (
-// 					<option key={item.id} value={item.name}>
-// 						{item.name}
-// 					</option>
-// 				))}
-// 			</select>
-// 		</div>
-// 	);
-// }

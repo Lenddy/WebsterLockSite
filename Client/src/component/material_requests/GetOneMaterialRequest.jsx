@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@apollo/client";
 import { get_one_material_request, get_all_item_groups } from "../../../graphQL/queries/queries";
 import { Link, useParams, useLocation } from "react-router-dom";
-import UpdateOneMaterialRequest from "./UpdateOneMaterialRequest";
+import UpdateOneMaterialRequest from "../Admin/material_request/AdminUpdateOneMaterialRequest";
 import Select from "react-select";
 import { useAuth } from "../../context/AuthContext";
 

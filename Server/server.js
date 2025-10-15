@@ -83,6 +83,9 @@ const startServer = async () => {
 	// Connect to MongoDB (ESM dynamic import)
 	await import("./config/config.js");
 
+	const { seedAdmin } = await import("./seed.js");
+	await seedAdmin();
+
 	// Start server
 	const PORT = process.env.PORT || 4000;
 	httpServer.listen(PORT, () => {

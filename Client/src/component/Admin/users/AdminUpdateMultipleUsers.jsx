@@ -1,17 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { useMutation } from "@apollo/client";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { admin_update_multiple_users } from "../../../graphQL/mutations/mutations";
+import { admin_update_multiple_users } from "../../../../graphQL/mutations/mutations";
 import Select from "react-select";
 import Fuse from "fuse.js";
-import { get_all_users } from "../../../graphQL/queries/queries";
-import { useQuery, useSubscription } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
+import { get_all_users } from "../../../../graphQL/queries/queries";
+import { useQuery } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
 import { jwtDecode } from "jwt-decode";
 
-import Eye from "../../assets/eye.svg?react";
-import CloseEye from "../../assets/closeEye.svg?react";
+import Eye from "../../../assets/eye.svg?react";
+import CloseEye from "../../../assets/closeEye.svg?react";
 
-export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
+export default function AdminUpdateMultipleUsers() {
 	const [show, setShow] = useState(false);
 	const [users, setUsers] = useState([]);
 	const [success, setSuccess] = useState();
@@ -46,7 +46,7 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 			// locked: false, //ensure new rows are never locked
 		},
 	]);
-	console.log(rows);
+	// console.log(rows);
 
 	useEffect(() => {
 		setLogUser(jwtDecode(localStorage.getItem("UserToken")));
@@ -54,9 +54,9 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 			lastRowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
 		}
 
-		if (loading) {
-			console.log("loading");
-		}
+		// if (loading) {
+		// 	console.log("loading");
+		// }
 		if (data) {
 			setUsers(data.getAllUsers);
 
@@ -72,7 +72,7 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 							// name: selectedUser.name,
 							previousEmail: selectedUser.email,
 							locked: true, // lock the row
-							// 🔹 prefill existing role + permissions
+							// prefill existing role + permissions
 							newRole: selectedUser.role || "",
 							newPermissions: {
 								...newRows[0].newPermissions, // keep defaults
@@ -85,9 +85,10 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 				}
 			}
 		}
-		if (error) {
-			console.log("there was an error", error);
-		}
+
+		// if (error) {
+		// 	console.log("there was an error", error);
+		// }
 	}, [loading, data, error, userId, location]);
 
 	const [adminChangeMultipleUserProfiles, { loading: updateLoading, error: updateError }] = useMutation(admin_update_multiple_users);
@@ -219,7 +220,7 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 			.replace(/^./, (str) => str.toUpperCase()); // capitalize first letter
 	};
 
-	// 🔹 Submit
+	// Submit
 	const submit = async (e) => {
 		e.preventDefault();
 		try {
@@ -242,16 +243,16 @@ export default function AdminUpdateMultipleUsers({ LaterUserId, user }) {
 					})),
 				},
 				onCompleted: (res) => {
-					console.log("Mutation success:", res);
+					// console.log("Mutation success:", res);
 					setSuccess({ success: true, update: "Update has been completed" });
 				},
 				onError: (errRes) => {
-					console.log("Mutation error:", errRes);
+					// console.log("Mutation error:", errRes);
 				},
 			});
-			console.log(" Users updated");
+			// console.log(" Users updated");
 		} catch (err) {
-			console.error(" Error updating users:", err);
+			// console.error(" Error updating users:", err);
 		}
 	};
 

@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useMutation } from "@apollo/client";
-import { useAuth } from "../../context/AuthContext"; // use context
-import { register_multiple_Users } from "../../../graphQL/mutations/mutations";
+import { useAuth } from "../../../context/AuthContext"; // use context
+import { register_multiple_Users } from "../../../../graphQL/mutations/mutations";
 import { jwtDecode } from "jwt-decode";
-import Eye from "../../assets/eye.svg?react";
-import CloseEye from "../../assets/closeEye.svg?react";
+import Eye from "../../../assets/eye.svg?react";
+import CloseEye from "../../../assets/closeEye.svg?react";
 
 export default function AdminRegisterMultipleUsers() {
 	const { userToken } = useAuth(); // get token from context
@@ -51,11 +51,10 @@ export default function AdminRegisterMultipleUsers() {
 
 		setRows((prev) => {
 			const newRows = [...prev];
-			if (type === "checkbox") {
-				newRows[index].permissions[name] = checked;
-			} else {
-				newRows[index][name] = value;
-			}
+
+			if (type === "checkbox") newRows[index].permissions[name] = checked;
+			else newRows[index][name] = value;
+
 			return newRows;
 		});
 	};

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
-import { get_all_item_groups } from "../../../graphQL/queries/queries";
-import { create_multiple_material_requests } from "../../../graphQL/mutations/mutations";
-import { get_all_users } from "../../../graphQL/queries/queries";
+import { get_all_item_groups } from "../../../../graphQL/queries/queries";
+import { create_multiple_material_requests } from "../../../../graphQL/mutations/mutations";
+import { get_all_users } from "../../../../graphQL/queries/queries";
 import Select from "react-select";
 import Fuse from "fuse.js";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 
@@ -55,11 +55,11 @@ export default function AdminCreateMultipleMaterialRequests() {
 
 	useEffect(() => {
 		// setLogUser(jwtDecode(localStorage.getItem("UserToken")));
-		if (iGLoading) console.log("loading");
+		// if (iGLoading) console.log("loading");
 
-		if (loading) {
-			console.log("loading");
-		}
+		// if (loading) {
+		// 	console.log("loading");
+		// }
 
 		if (data) {
 			// console.log(data.getAllUsers);
@@ -72,15 +72,15 @@ export default function AdminCreateMultipleMaterialRequests() {
 			setItemGroups(iGData?.getAllItemGroups || []);
 		}
 
-		if (error) {
-			console.log("there was an error", error);
-		}
+		// if (error) {
+		// 	// console.log("there was an error", error);
+		// }
 
-		if (iGError) {
-			console.log("there was an error", iGError);
-		}
+		// if (iGError) {
+		// 	console.log("there was an error", iGError);
+		// }
 		// const fetchData = async () => {
-	}, [loading, iGLoading, data, iGData, error, iGError]);
+	}, [loading, iGLoading, data, iGData]);
 
 	// Add a new request (with one blank row)
 	const addRequest = () => {
@@ -272,31 +272,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 		}
 	};
 
-	// await createNewMaterialRequests({
-	//   variables: { inputs },
-	//   update: (cache, { data: { createMultipleMaterialRequests } }) => {
-	//     // Read existing data
-	//     const existing = cache.readQuery({ query: get_all_material_requests });
-
-	//     if (existing) {
-	//       cache.writeQuery({
-	//         query: get_all_material_requests,
-	//         data: {
-	//           getAllMaterialRequests: [
-	//             ...existing.getAllMaterialRequests,
-	//             ...createMultipleMaterialRequests, // append the new requests
-	//           ],
-	//         },
-	//       });
-	//     }
-	//   },
-	//   onCompleted: (res) => {
-	//     console.log("Mutation success:", res.createMultipleMaterialRequests);
-	//     navigate(`/material/request/all`);
-	//   },
-	//   onError: (err) => console.warn("Mutation error:", err),
-	// });
-
 	return (
 		<div className="update-container">
 			{/* Simple navigation/test links */}
@@ -446,8 +421,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 																	...base,
 																	borderRadius: "12px",
 																	borderColor: "blue",
-																	// width: "200px",
-																	// height: "50px",
 																}),
 																option: (base, state) => ({
 																	...base,

@@ -4,20 +4,28 @@ import { Routes, Route } from "react-router-dom";
 import Test from "./component/Test";
 import ProtectedRoute from "./component/ProtectedRoutes";
 import LogIn from "./component/users/LogIn";
+
+// admin users
+import AdminRegisterMultipleUsers from "./component/Admin/users/AdminRegisterMultipleUsers";
+import AdminUpdateMultipleUsers from "./component/Admin/users/AdminUpdateMultipleUsers";
+
+// admin material-request
+import AdminCreateMultipleMaterialRequests from "./component/Admin/material_request/AdminCreateMultipleMaterialRequests";
+
+// admin item Groups
+import AdminGetAllItems from "./component/Admin/item_Groups/AdminGetAllItems";
+import AdminGetOneItem from "./component/Admin/item_Groups/AdminGetOneItem";
+import AdminCreateMultipleItemsGroups from "./component/Admin/item_Groups/AdminCreateMultipleItemGroups";
+import AdminUpdateMultipleItemsGroups from "./component/Admin/item_Groups/AdminUpdateMultipleItemGroups";
+import AdminItemUsage from "./component/Admin/item_Groups/AdminItemUsage";
+
+// regular
 import RegisterUser from "./component/users/RegisterUser";
 import GetAllUsers from "./component/users/GetAllUsers";
 import GetOneUser from "./component/users/GetOneUser";
 import GetAllMaterialRequest from "./component/material_requests/GetAllMaterialRequest";
 import GetOneMaterialRequest from "./component/material_requests/GetOneMaterialRequest";
 import CreateOneMaterialRequest from "./component/material_requests/CreateOneMaterialRequest";
-import AdminRegisterMultipleUsers from "./component/Admin/AdminRegisterMultipleUsers";
-import AdminUpdateMultipleUsers from "./component/Admin/AdminUpdateMultipleUsers";
-import AdminCreateMultipleMaterialRequests from "./component/Admin/AdminCreateMultipleMaterialRequests";
-import AdminGetAllItems from "./component/Admin/AdminGetAllItems";
-import AdminGetOneItem from "./component/Admin/AdminGetOneItem";
-import AdminCreateMultipleItemsGroups from "./component/Admin/AdminCreateMultipleItemGroups";
-import AdminUpdateMultipleItemsGroups from "./component/Admin/AdminUpdateMultipleItemGroups";
-import AdminItemUsage from "./component/Admin/AdminItemUsage";
 
 function App() {
 	const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -35,15 +43,17 @@ function App() {
 				<Route index element={<LogIn screenWidth={screenWidth} />} />
 
 				<Route element={<ProtectedRoute screenWidth={screenWidth} />}>
-					{/* Admin user routes */}
-					{/* User routes */}
+					{/* Admin User routes */}
 					<Route path="/admin/user/register" element={<AdminRegisterMultipleUsers />} />
 					<Route path="/admin/user/:userId?/update" element={<AdminUpdateMultipleUsers />} />
-					{/* Material request routes */}
+
+					{/* Admin Material request routes */}
 					<Route path="/admin/material/request" element={<AdminCreateMultipleMaterialRequests />} />
+
+					{/* Admin item groups */}
 					<Route path="/admin/material/item/all" element={<AdminGetAllItems />} />
-					<Route path="/admin/material/item/:itemId" element={<AdminGetOneItem />} />
 					<Route path="/admin/material/item/create" element={<AdminCreateMultipleItemsGroups />} />
+					<Route path="/admin/material/item/:itemId" element={<AdminGetOneItem />} />
 					<Route path="/admin/material/item/:itemId?/update" element={<AdminUpdateMultipleItemsGroups />} />
 					<Route path="/admin/material/item/usage" element={<AdminItemUsage />} />
 
@@ -56,7 +66,7 @@ function App() {
 					<Route path="/material/request/all" element={<GetAllMaterialRequest />} />
 					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest />} />
 					<Route path="/material/request/request/" element={<CreateOneMaterialRequest />} />
-					<Route path="/test" element={<Test />} />
+					{/* <Route path="/test" element={<Test />} /> */}
 				</Route>
 			</Routes>
 		</div>

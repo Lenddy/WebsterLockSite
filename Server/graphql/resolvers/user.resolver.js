@@ -285,6 +285,22 @@ const userResolver = {
 						})
 					)
 				);
+				// await Promise.all(
+				// 	savedUsersArray.map(async (savedUser) => {
+				// 		const plainUser = savedUser.toObject ? savedUser.toObject() : savedUser;
+
+				// 		// Ensure timestamps are properly formatted for GraphQL
+				// 		const safeUser = {
+				// 			...plainUser,
+				// 			createdAt: plainUser.createdAt ? new Date(plainUser.createdAt).toISOString() : null,
+				// 			updatedAt: plainUser.updatedAt ? new Date(plainUser.updatedAt).toISOString() : null,
+				// 		};
+
+				// 		await pubsub.publish("USER_ADDED", {
+				// 			onUserChange: { eventType: "created", Changes: safeUser },
+				// 		});
+				// 	})
+				// );
 
 				//  Prepare final response
 				const finalResult = savedUsersArray.map((u) => ({

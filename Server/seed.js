@@ -9,7 +9,7 @@ const seedMarkerPath = path.resolve("./.seeded_admin"); // local marker file
 export const seedAdmin = async () => {
 	try {
 		// --- Step 1: Prevent rerun in prod or after initial seed ---
-		if (process.env.NODE_ENV === "PORDUCTION" && fs.existsSync(seedMarkerPath)) {
+		if (process.env.NODE_ENV === "production" && fs.existsSync(seedMarkerPath)) {
 			console.log(" Seed skipped: admin already initialized in production.");
 			return;
 		}

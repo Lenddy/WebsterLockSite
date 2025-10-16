@@ -1,6 +1,10 @@
 #seed creation
 .seeded_admin
 
+# redis example
+redis/
+
+
 # notes
 *.txt
 

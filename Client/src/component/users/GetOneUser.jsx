@@ -1,18 +1,21 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@apollo/client";
 import { get_one_user } from "../../../graphQL/queries/queries";
 import { Link, useParams, useLocation } from "react-router-dom";
-import UpdateOneUser from "./updateOneUser";
+import UpdateOneUser from "./UpdateOneUser";
+
 import Modal from "../Modal";
 import DeleteOneUser from "./DeleteOneUser";
 import { useAuth } from "../../context/AuthContext"; // <-- use context
+import { jwtDecode } from "jwt-decode";
 
 export default function GetOneUser() {
 	const { userId } = useParams();
 	const location = useLocation();
 	const currentRoutePath = location.pathname;
 
-	const { userToken, logUser } = useAuth(); // <-- get user info from context
+	const { userToken } = useAuth(); // <-- get user info from context
+	const [logUser, setLogUser] = useState();
 	const [user, setUser] = useState({});
 	const [isOpen, setIsOpen] = useState(false);
 	const [selectedUser, setSelectedUser] = useState(null);
@@ -23,8 +26,9 @@ export default function GetOneUser() {
 	});
 
 	useEffect(() => {
+		setLogUser(jwtDecode(userToken));
 		if (data) {
-			console.log("Fetched user:", data.getOneUser);
+			// console.log("Fetched user:", data.getOneUser);
 			setUser(data.getOneUser);
 		}
 	}, [data]);

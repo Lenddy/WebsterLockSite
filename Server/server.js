@@ -41,6 +41,17 @@ const startServer = async () => {
 	const app = express();
 	const httpServer = createServer(app);
 
+	//  Allow requests from your frontend Render domain
+	app.use(
+		cors({
+			origin: [
+				"https://webster-lock-material-requests.onrender.com", // we'll replace this after deploy
+				"http://localhost:3000", // local dev
+			],
+			credentials: true,
+		})
+	);
+
 	// WebSocket server for subscriptions
 	const wsServer = new WebSocketServer({
 		server: httpServer,

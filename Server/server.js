@@ -48,6 +48,7 @@ const startServer = async () => {
 			origin: [
 				"https://webster-lock-material-requests.onrender.com", // we'll replace this after deploy
 				"http://localhost:5173", // local dev
+				"http://localhost:3000",
 			],
 			credentials: true,
 		})

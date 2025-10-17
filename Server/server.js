@@ -42,11 +42,12 @@ const startServer = async () => {
 	const httpServer = createServer(app);
 
 	//  Allow requests from your frontend Render domain
+	// back end is not getting front end  route
 	app.use(
 		cors({
 			origin: [
 				"https://webster-lock-material-requests.onrender.com", // we'll replace this after deploy
-				"http://localhost:3000", // local dev
+				"http://localhost:5173", // local dev
 			],
 			credentials: true,
 		})

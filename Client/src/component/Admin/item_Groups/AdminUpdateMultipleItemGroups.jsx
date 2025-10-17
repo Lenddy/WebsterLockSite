@@ -197,7 +197,10 @@ export default function AdminUpdateMultipleItemsGroups() {
 
 		await updateItemGroups({
 			variables: { input },
-			onCompleted: (res) => console.log("Success:", res),
+			onCompleted: (res) => {
+				alert("Item Groups have been Updated successfully!");
+				//  console.log("Success:", res)
+			},
 			onError: (err) => console.error("Error:", err),
 		});
 	};

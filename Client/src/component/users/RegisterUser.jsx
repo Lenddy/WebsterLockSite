@@ -72,7 +72,8 @@ export default function RegisterUser() {
 			},
 		})
 			.then((res) => {
-				console.log("✅ Registered user:", res.data.registerUser);
+				// console.log("✅ Registered user:", res.data.registerUser);
+				alert("User registered successfully!");
 				navigate(`/user/${res.data.registerUser.id}`);
 			})
 			.catch((err) => {

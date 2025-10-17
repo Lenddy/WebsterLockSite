@@ -193,7 +193,8 @@ function AdminUpdateOneMaterialRequest() {
 			await updatedMaterialRequest({
 				variables: { input },
 				onCompleted: (res) => {
-					console.log("Mutation success:", res?.updateOneMaterialRequest);
+					// console.log("Mutation success:", res?.updateOneMaterialRequest);
+					alert("Material requests have been updated successfully!");
 					navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
 				},
 			});

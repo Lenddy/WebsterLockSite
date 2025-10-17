@@ -92,6 +92,7 @@ export default function AdminCreateMultipleItemsGroups() {
 					// console.log("Mutation success:", res.createMultipleItemGroups);
 					// newMr =
 					// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
+					alert("Item groups added successfully!");
 					setMessage("New Item Groups have been added");
 				},
 				onError: (err) => {

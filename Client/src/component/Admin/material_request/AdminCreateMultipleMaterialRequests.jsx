@@ -257,8 +257,9 @@ export default function AdminCreateMultipleMaterialRequests() {
 				variables: { inputs },
 
 				onCompleted: (res) => {
-					console.log("Mutation success on the create multiple:", res.createMultipleMaterialRequests);
+					// console.log("Mutation success on the create multiple:", res.createMultipleMaterialRequests);
 					// newMr =
+					alert("Material requests have been requested successfully!");
 					navigate(`/material/request/all`);
 				},
 				onError: (err) => {

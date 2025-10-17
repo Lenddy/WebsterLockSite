@@ -59,7 +59,8 @@ export default function UpdateOneUser({ userId, user }) {
 				},
 				onCompleted: (data) => {
 					// Handle successful update, e.g. show a message or redirect
-					console.log(" User updated:", data);
+					// console.log(" User updated:", data);
+					alert("User updated successfully!");
 				},
 			});
 		} catch (err) {

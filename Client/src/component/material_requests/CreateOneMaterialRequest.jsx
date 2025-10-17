@@ -112,7 +112,8 @@ export default function CreateOneMaterialRequest() {
 			await NewMaterialRequest({
 				variables: { input },
 				onCompleted: (res) => {
-					console.log("Mutation success:", res?.createOneMaterialRequest);
+					// console.log("Mutation success:", res?.createOneMaterialRequest);
+					alert("Material has been requested successfully!");
 					navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
 				},
 			});

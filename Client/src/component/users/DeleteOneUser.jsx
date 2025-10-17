@@ -15,14 +15,15 @@ export default function DeleteOneUser({ userId, btnActive }) {
 				},
 				onCompleted: (result) => {
 					// console.log("admin updateMutation success:", result);
-					console.log;
+					// console.log;
+					alert("User deleted successfully!");
 				},
 			});
 
-			// console.log("✅ Registered user:", res.data);
+			// console.log(" Registered user:", res.data);
 			// navigate(`/user/all`);
 		} catch (err) {
-			console.error("❌ Error registering:", err);
+			console.error(" Error registering:", err);
 		}
 	};
 

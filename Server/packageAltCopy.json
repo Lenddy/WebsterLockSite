@@ -1,0 +1,50 @@
+{
+	"name": "websterlocksite",
+	"version": "1.0.0",
+	"description": "Material request and inventory management app backend",
+	"license": "ISC",
+	"author": "Lenddy",
+	"type": "module",
+	"main": "dist/server.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"dev": "nodemon server.js",
+		"build": "npx babel . --out-dir dist --copy-files --ignore node_modules,dist",
+		"start": "node dist/server.js"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"dependencies": {
+		"@apollo/server": "latest",
+		"@as-integrations/express4": "latest",
+		"@graphql-tools/merge": "latest",
+		"@graphql-tools/schema": "latest",
+		"apollo-server-errors": "latest",
+		"bcrypt": "latest",
+		"cors": "latest",
+		"dayjs": "latest",
+		"dotenv": "latest",
+		"express": "latest",
+		"graphql": "latest",
+		"graphql-redis-subscriptions": "latest",
+		"graphql-subscriptions": "latest",
+		"graphql-tag": "latest",
+		"graphql-ws": "latest",
+		"http": "latest",
+		"ioredis": "latest",
+		"jsonwebtoken": "latest",
+		"moment": "latest",
+		"mongoose": "latest",
+		"socket.io": "latest",
+		"uuid": "latest",
+		"ws": "latest"
+	},
+	"devDependencies": {
+		"@babel/cli": "^7.28.3",
+		"@babel/core": "^7.28.4",
+		"@babel/node": "^7.28.0",
+		"@babel/preset-env": "^7.28.3",
+		"nodemon": "latest"
+	}
+}

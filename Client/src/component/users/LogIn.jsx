@@ -57,7 +57,7 @@ export default function LogIn({ screenWidth }) {
 
 				// Redirect based on role
 				if (["headAdmin", "admin", "subAdmin"].includes(decoded.role)) {
-					navigate("/user/all");
+					navigate("/material/request/all");
 				} else {
 					navigate("/material/request/request");
 				}

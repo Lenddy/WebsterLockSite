@@ -67,6 +67,7 @@ const materialRequestTypeDef = gql`
 		items: [UpdateMaterialRequestItemInput]
 		approvalStatus: ApprovalStatusInput
 		comment: String
+		requesterId: ID
 	}
 
 	input MaterialRequestItemDescriptionInput { # Item in a material request

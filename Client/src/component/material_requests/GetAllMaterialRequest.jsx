@@ -104,9 +104,10 @@ export default function GetAllMaterialRequest() {
 	const canReview = () => {
 		const token = jwtDecode(userToken);
 		const role = typeof token?.role === "string" ? token?.role : token?.role?.role;
+
 		return ["headAdmin", "admin", "subAdmin"].includes(role);
 	};
-
+	console.log("requests", filteredMRequests);
 	return (
 		<>
 			{loading ? (
@@ -157,9 +158,14 @@ export default function GetAllMaterialRequest() {
 											<td>{request?.items.length}</td>
 											<td>
 												<div className="table-action-wrapper">
+													{/* canReview() */}
 													{canReview() ? (
 														<Link to={`/material/request/${request.id}/update`}>
 															<span className="table-action first">Review</span>
+														</Link>
+													) : !request?.approvalStatus?.isApproved ? (
+														<Link to={`/material/request/${request.id}/update`}>
+															<span className="table-action first">Update Request</span>
 														</Link>
 													) : (
 														<Link to={`/material/request/${request.id}`}>

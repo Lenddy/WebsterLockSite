@@ -188,6 +188,7 @@ function AdminUpdateOneMaterialRequest() {
 					isApproved: true,
 					approvedAt: new Date(),
 				},
+				requesterId: mRequest?.requester?.userId,
 			};
 
 			await updatedMaterialRequest({
@@ -214,6 +215,8 @@ function AdminUpdateOneMaterialRequest() {
 		}
 		setIsOpen(true);
 	};
+
+	// console.log("request", mRequest?.requester?.userId);
 
 	return (
 		<div className="update-container">

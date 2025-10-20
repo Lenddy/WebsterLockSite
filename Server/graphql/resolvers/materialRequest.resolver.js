@@ -306,9 +306,13 @@ const materialRequestResolvers = {
 		// 	}
 		// },
 
-		updateOneMaterialRequest: async (_, { input: { id, description, items, approvalStatus, comment } }, { user, pubsub }) => {
+		updateOneMaterialRequest: async (_, { input: { id, description, items, approvalStatus, comment, requesterId } }, { user, pubsub }) => {
+			console.log("users id ", user.userId);
+			console.log("requesters info", requesterId);
 			try {
 				if (!user) throw new ApolloError("Unauthorized: No user context.");
+
+				//! here  it is saying that even if the id of the users and the requester match it will not work because  of the validation checking if they have permission to edit other users      find a solution to this
 				if ((!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole" || user.role === "technician") {
 					throw new ApolloError("Unauthorized: You lack permission.");
 				}
@@ -360,7 +364,9 @@ const materialRequestResolvers = {
 				// permissions check
 				const isReviewer = target.reviewers.some((r) => r.userId.toString() === user.userId.toString());
 
-				const isAdmin = user.permissions.canEditUsers || user.role === "headAdmin";
+				//  you need to make sure that if the  material request is approved the techs (none admins cant keeps changing their request)
+				// the condition bellow must be change so that it checks if the  request has been approved or not  to check if the users id is === to the requesters id
+				const isAdmin = user.UserId === requesterId || user.permissions.canEditUsers || user.role === "headAdmin";
 				if (!isReviewer && !isAdmin) {
 					throw new ApolloError("Unauthorized: You lack permission to update this request.");
 				}

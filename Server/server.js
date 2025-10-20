@@ -46,9 +46,9 @@ const startServer = async () => {
 	app.use(
 		cors({
 			origin: [
-				"https://webster-lock-material-requests.onrender.com", // we'll replace this after deploy
+				"https://webster-lock-material-requests.onrender.com", // productions
 				"http://localhost:5173", // local dev
-				"http://localhost:3000",
+				"http://localhost:3000", //local dev
 			],
 			credentials: true,
 		})

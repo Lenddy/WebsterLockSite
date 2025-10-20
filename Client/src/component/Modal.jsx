@@ -53,7 +53,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 					)}
 
 					{/* Material Request New */}
-					{location.pathname === `/material/request/request/` && logUser && (
+					{location.pathname === `/material/request/request` && logUser && (
 						<div className="modal-content-header">
 							<div className="modal-content-top-info-title-wrapper">
 								<div>
@@ -64,7 +64,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 					)}
 
 					{/* Admin Material Item */}
-					{location.pathname.includes(`/admin/material/item/`) && (
+					{location.pathname.includes(`/admin/material/item`) && (
 						<div className="modal-content-header">
 							<div className="modal-content-top-info-title-wrapper">
 								<div>
@@ -95,7 +95,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 
 				<div className="modal-content">
 					{/* Material Request Rows */}
-					{(location.pathname === `/material/request/${data?.mRequest?.mrId}/update` || location.pathname === `/material/request/request/`) &&
+					{(location.pathname === `/material/request/${data?.mRequest?.mrId}/update` || location.pathname === `/material/request/request`) &&
 						data?.rows?.map((row, idx) => (
 							<div className="modal-content-info-wrapper" key={idx}>
 								<p>Material Request Row {idx + 1}</p>
@@ -131,7 +131,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 						))}
 
 					{/* Admin Material Item Info */}
-					{location.pathname.includes(`/admin/material/item/`) && (
+					{location.pathname.includes(`/admin/material/item`) && (
 						<div className="modal-content-info">
 							``
 							<div className="modal-content-info-wrapper">
@@ -193,7 +193,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 				<div className="modal-bottom">
 					<div className="model-bottom-wrapper">
 						{/* Material Request Confirm/Cancel */}
-						{(location.pathname === `/material/request/${data?.mRequest?.mrId}/update` || location.pathname === `/material/request/request/`) && (
+						{(location.pathname === `/material/request/${data?.mRequest?.mrId}/update` || location.pathname === `/material/request/request`) && (
 							<>
 								<div className={`model-btn-view ${loading ? "disabled" : ""}`} onClick={onConFirm}>
 									<span>Confirm</span>
@@ -205,7 +205,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 						)}
 
 						{/* Admin Material Item */}
-						{location.pathname.includes(`/admin/material/item/`) && (
+						{location.pathname.includes(`/admin/material/item`) && (
 							<>
 								<div className={`model-btn-view ${loading ? "disabled" : ""}`} onClick={onConFirm}>
 									<span>Confirm</span>

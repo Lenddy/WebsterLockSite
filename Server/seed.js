@@ -85,7 +85,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 // 		// Check if a head admin already exists
 // 		const existingAdmin = await User.findOne({ role: "headAdmin" });
 // 		if (existingAdmin) {
-// 			console.log("🟢 Head admin already exists:", existingAdmin.email);
+// 			console.log(" Head admin already exists:", existingAdmin.email);
 // 			return;
 // 		}
 

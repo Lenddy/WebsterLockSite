@@ -160,6 +160,20 @@ function AdminUpdateOneMaterialRequest() {
 		return fuse.search(inputValue).some((r) => r.item.value === option.value);
 	};
 
+	// console.log({
+	// 	hello: "heelooooo",
+	// 	...(jwtDecode(userToken).userId !== requestId && { hello1: "hello1" }),
+	// });
+
+	// console.log("userToken", jwtDecode(userToken).userId);
+	// console.log("user id requestor", requestId);
+
+	// console.log({
+	// 	user: jwtDecode(userToken).name,
+	// 	hello: "heelooooo",
+	// 	...(jwtDecode(userToken).userId === mRequest?.requester?.userId && { hello1: "hello1" }),
+	// });
+
 	// ----- Submit -----
 	const submit = async (e) => {
 		e.preventDefault();
@@ -167,6 +181,7 @@ function AdminUpdateOneMaterialRequest() {
 
 		try {
 			const decoded = jwtDecode(userToken);
+			const requestersID = mRequest?.requester?.userId;
 			const input = {
 				id: requestId,
 				items: rows.map((r) => ({
@@ -185,10 +200,9 @@ function AdminUpdateOneMaterialRequest() {
 						name: decoded.name,
 						email: decoded.email,
 					},
-					isApproved: true,
-					approvedAt: new Date(),
+					...(jwtDecode(userToken).userId !== requestersID && { isApproved: true, approvedAt: new Date() }),
 				},
-				requesterId: mRequest?.requester?.userId,
+				requesterId: requestersID,
 			};
 
 			await updatedMaterialRequest({

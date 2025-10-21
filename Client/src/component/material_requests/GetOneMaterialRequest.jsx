@@ -2,11 +2,12 @@ import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@apollo/client";
 import { get_one_material_request, get_all_item_groups } from "../../../graphQL/queries/queries";
 import { Link, useParams, useLocation } from "react-router-dom";
-import UpdateOneMaterialRequest from "../Admin/material_request/AdminUpdateOneMaterialRequest";
+// import UpdateOneMaterialRequest from "../Admin/material_request/AdminUpdateOneMaterialRequest";
+import AdminUpdateOneMaterialRequest from "../Admin/material_request/AdminUpdateOneMaterialRequest";
 import Select from "react-select";
 import { useAuth } from "../../context/AuthContext";
 
-export default function GetOneMaterialRequest() {
+export default function GetOneMaterialRequest({ client }) {
 	const { userToken, authLoading } = useAuth(); // get token from context
 	const { requestId } = useParams();
 	const location = useLocation();
@@ -103,7 +104,8 @@ export default function GetOneMaterialRequest() {
 	return (
 		<>
 			{currentRoutePath === `/material/request/${requestId}/update` ? (
-				<UpdateOneMaterialRequest requestId={requestId} />
+				// <UpdateOneMaterialRequest client={client} requestId={requestId} />
+				<AdminUpdateOneMaterialRequest client={client} requestId={requestId} />
 			) : (
 				<div className="update-container">
 					<div className="update-form">

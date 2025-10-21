@@ -507,6 +507,8 @@
 	border-collapse: collapse;
 	background-color: var(--slate-dark-gray);
 	max-height: calc(100vh - 200px - 90px); /* always stop 50px before bottom */
+	/* border-collapse: separate; */
+	/* border-spacing: 0 10px; */
 }
 
 /* Sticky table header */
@@ -518,6 +520,9 @@
 	font-size: clamp(1.25rem, 1.172rem + 0.42vw, 1.563rem);
 	border-bottom: 4px solid var(--slate-gray);
 	z-index: 5;
+	/* border: 1px solid #ccc; */
+	padding: 0 10px;
+	border-bottom: solid 1px var(--white);
 }
 
 .table-wrapper tr:nth-child(even) {

@@ -57,7 +57,7 @@ export default function NavBar({ children, screenWidth }) {
 					title: "Material Requests",
 					links: [
 						{ name: "View All", path: "/material/request/all" },
-						{ name: "Request Material", path: "/admin/material/request/" },
+						{ name: "Request Material", path: "/admin/material/request" },
 					],
 				},
 				{
@@ -75,7 +75,7 @@ export default function NavBar({ children, screenWidth }) {
 					title: "Material Requests",
 					links: [
 						{ name: "View All", path: "/material/request/all" },
-						{ name: "Request Material", path: "/material/request/request/" },
+						{ name: "Request Material", path: "/material/request/request" },
 					],
 				},
 		  ];

@@ -9,7 +9,7 @@ import Fuse from "fuse.js";
 import Modal from "../../Modal";
 import { useAuth } from "../../../context/AuthContext";
 
-function AdminUpdateOneMaterialRequest() {
+function AdminUpdateOneMaterialRequest({ client }) {
 	const { userToken, loading: authLoading } = useAuth();
 	const { requestId } = useParams();
 	const navigate = useNavigate();
@@ -208,8 +208,10 @@ function AdminUpdateOneMaterialRequest() {
 			await updatedMaterialRequest({
 				variables: { input },
 				onCompleted: (res) => {
-					// console.log("Mutation success:", res?.updateOneMaterialRequest);
-					alert("Material requests have been updated successfully!");
+					console.log("user update ", jwtDecode(userToken).userId == requestersID);
+					console.log("Mutation success:", res?.updateOneMaterialRequest);
+					console.log("this is the client / caches", client.cache.extract()); // check cache after update
+					// alert("Material requests have been updated successfully!");
 					navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
 				},
 			});
@@ -231,6 +233,13 @@ function AdminUpdateOneMaterialRequest() {
 	};
 
 	// console.log("request", mRequest?.requester?.userId);
+
+	const canReview = () => {
+		const token = jwtDecode(userToken);
+		const role = typeof token?.role === "string" ? token?.role : token?.role?.role;
+
+		return ["headAdmin", "admin", "subAdmin"].includes(role);
+	};
 
 	return (
 		<div className="update-container">
@@ -479,7 +488,7 @@ function AdminUpdateOneMaterialRequest() {
 								// 	setIsOpen(true);
 								// }
 							}>
-							Approve
+							{canReview() ? "Approve" : "Update"}
 						</button>
 					</div>
 				</div>

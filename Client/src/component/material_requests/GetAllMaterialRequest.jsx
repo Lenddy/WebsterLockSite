@@ -65,6 +65,7 @@ export default function GetAllMaterialRequest() {
 	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
 		onData: ({ data: subscriptionData }) => {
 			const change = subscriptionData?.data?.onMaterialRequestChange;
+			console.log("sub update", change);
 			if (!change) return;
 
 			const { eventType, Changes } = change;
@@ -107,7 +108,7 @@ export default function GetAllMaterialRequest() {
 
 		return ["headAdmin", "admin", "subAdmin"].includes(role);
 	};
-	console.log("requests", filteredMRequests);
+	// console.log("requests", filteredMRequests);
 	return (
 		<>
 			{loading ? (
@@ -135,7 +136,7 @@ export default function GetAllMaterialRequest() {
 									<th>Requestor's Name</th>
 									<th>Description</th>
 									<th>Approval</th>
-									<th style={{ paddingRight: "15px" }}>Requested Date</th>
+									<th>Requested Date</th>
 									<th>Amount of items</th>
 									<th>Action</th>
 								</tr>

@@ -27,7 +27,7 @@ import GetAllMaterialRequest from "./component/material_requests/GetAllMaterialR
 import GetOneMaterialRequest from "./component/material_requests/GetOneMaterialRequest";
 import CreateOneMaterialRequest from "./component/material_requests/CreateOneMaterialRequest";
 
-function App() {
+function App({ client }) {
 	const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
 	useEffect(() => {
@@ -64,7 +64,7 @@ function App() {
 
 					{/* Material request routes */}
 					<Route path="/material/request/all" element={<GetAllMaterialRequest />} />
-					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest />} />
+					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest client={client} />} />
 					<Route path="/material/request/request" element={<CreateOneMaterialRequest />} />
 					{/* <Route path="/test" element={<Test />} /> */}
 				</Route>

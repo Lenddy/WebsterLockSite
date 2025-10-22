@@ -90,6 +90,7 @@ const client = new ApolloClient({
 			},
 
 			UserSnapshot: { keyFields: ["userId"] },
+
 			MaterialRequest: {
 				keyFields: ["id"],
 				fields: {
@@ -127,6 +128,12 @@ const client = new ApolloClient({
 			},
 
 			MaterialRequestItem: { keyFields: ["id"] },
+			ApprovalStatus: {
+				keyFields: false, // these are small embedded objects, not standalone entities
+			},
+			ApprovedBy: {
+				keyFields: false,
+			},
 
 			ItemGroup: {
 				fields: {
@@ -155,5 +162,7 @@ const client = new ApolloClient({
  * @constant
  * @type {ApolloClient}
  */
-
+// console.log("this is the client / caches from the apollo client before cleaning", client.cache.extract());
+// client.resetStore();
+// console.log("this is the client / caches from the apollo client after cleaning", client.cache.extract());
 export default client;

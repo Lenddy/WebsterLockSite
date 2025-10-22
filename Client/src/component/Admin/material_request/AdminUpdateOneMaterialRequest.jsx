@@ -8,8 +8,9 @@ import Select from "react-select";
 import Fuse from "fuse.js";
 import Modal from "../../Modal";
 import { useAuth } from "../../../context/AuthContext";
+import client from "../../../../graphQL/apolloClient";
 
-function AdminUpdateOneMaterialRequest({ client }) {
+function AdminUpdateOneMaterialRequest() {
 	const { userToken, loading: authLoading } = useAuth();
 	const { requestId } = useParams();
 	const navigate = useNavigate();
@@ -178,7 +179,7 @@ function AdminUpdateOneMaterialRequest({ client }) {
 	const submit = async (e) => {
 		e.preventDefault();
 		if (!userToken) return alert("Please log in first.");
-
+		client.clearStore();
 		try {
 			const decoded = jwtDecode(userToken);
 			const requestersID = mRequest?.requester?.userId;

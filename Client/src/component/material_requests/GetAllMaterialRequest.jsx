@@ -12,7 +12,10 @@ import { jwtDecode } from "jwt-decode";
 
 export default function GetAllMaterialRequest() {
 	const { userToken } = useAuth();
-	const { error, loading, data } = useQuery(get_all_material_requests, { fetchPolicy: "cache-and-network" });
+	const { error, loading, data } = useQuery(
+		get_all_material_requests
+		// , { fetchPolicy: "cache-and-network" }
+	);
 
 	const [mRequests, setMRequests] = useState([]);
 	// const [filteredMRequests, setFilteredMRequests] = useState([]);

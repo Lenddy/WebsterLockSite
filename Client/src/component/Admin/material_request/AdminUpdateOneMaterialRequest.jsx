@@ -211,7 +211,7 @@ function AdminUpdateOneMaterialRequest() {
 				onCompleted: (res) => {
 					console.log("user update ", jwtDecode(userToken).userId == requestersID);
 					console.log("Mutation success:", res?.updateOneMaterialRequest);
-					console.log("this is the client / caches", client.cache.extract()); // check cache after update
+					// console.log("this is the client / caches", client.cache.extract());
 					// alert("Material requests have been updated successfully!");
 					navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
 				},

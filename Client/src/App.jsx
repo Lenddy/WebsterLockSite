@@ -27,6 +27,8 @@ import GetAllMaterialRequest from "./component/material_requests/GetAllMaterialR
 import GetOneMaterialRequest from "./component/material_requests/GetOneMaterialRequest";
 import CreateOneMaterialRequest from "./component/material_requests/CreateOneMaterialRequest";
 
+import NotFound from "./component/NotFound";
+
 function App({ client }) {
 	const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
@@ -64,9 +66,11 @@ function App({ client }) {
 
 					{/* Material request routes */}
 					<Route path="/material/request/all" element={<GetAllMaterialRequest />} />
-					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest client={client} />} />
+					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest />} />
 					<Route path="/material/request/request" element={<CreateOneMaterialRequest />} />
 					{/* <Route path="/test" element={<Test />} /> */}
+
+					<Route path="*" element={<NotFound to="/404" replace />} />
 				</Route>
 			</Routes>
 		</div>

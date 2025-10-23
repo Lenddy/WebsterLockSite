@@ -93,41 +93,47 @@ const client = new ApolloClient({
 
 			MaterialRequest: {
 				keyFields: ["id"],
+
 				fields: {
-					requester: { merge: true },
-					approvalStatus: {
-						merge(existing = {}, incoming) {
-							return {
-								...existing,
-								...incoming,
-								approvedBy: {
-									...existing?.approvedBy,
-									...incoming?.approvedBy,
-								},
-							};
-						},
-					},
-					reviewers: {
-						merge(existing = [], incoming) {
-							return incoming ?? existing;
-						},
-					},
-					items: {
-						merge(existing = [], incoming) {
-							const existingMap = new Map(existing.map((i) => [i.id, i]));
-							incoming.forEach((item) => {
-								existingMap.set(item.id, {
-									...existingMap.get(item.id),
-									...item,
-								});
-							});
-							return Array.from(existingMap.values());
-						},
-					},
+					// requester: { merge: true },
+					// approvalStatus: {
+					// 	merge(existing = {}, incoming) {
+					// 		return {
+					// 			...existing,
+					// 			...incoming,
+					// 			approvedBy: {
+					// 				...existing?.approvedBy,
+					// 				...incoming?.approvedBy,
+					// 			},
+					// 		};
+					// 	},
+					// },
+					// reviewers: {
+					// 	merge(existing = [], incoming) {
+					// 		return incoming ?? existing;
+					// 	},
+					// },
+					// ! this is were the problem is  its returning only one item figure out why
+					// items: {
+					// 	merge(existing = [], incoming) {
+					// 		const existingMap = new Map(existing.map((i) => [i.id, i]));
+					// 		incoming.forEach((item) => {
+					// 			existingMap.set(item.id, {
+					// 				...existingMap.get(item.id),
+					// 				...item,
+					// 			});
+					// 		});
+					// 			// me trying to log what  existing map is
+					// 		// console.log("items coming from the apollo client", existingMap);
+					// 		// return existingMap;
+					// 		return Array.from(existingMap.values());
+					// 	},
+					// },
 				},
 			},
 
 			MaterialRequestItem: { keyFields: ["id"] },
+
 			ApprovalStatus: {
 				keyFields: false, // these are small embedded objects, not standalone entities
 			},

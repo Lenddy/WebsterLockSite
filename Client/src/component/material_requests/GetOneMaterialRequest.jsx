@@ -7,7 +7,7 @@ import AdminUpdateOneMaterialRequest from "../Admin/material_request/AdminUpdate
 import Select from "react-select";
 import { useAuth } from "../../context/AuthContext";
 
-export default function GetOneMaterialRequest({ client }) {
+export default function GetOneMaterialRequest() {
 	const { userToken, authLoading } = useAuth(); // get token from context
 	const { requestId } = useParams();
 	const location = useLocation();
@@ -105,7 +105,7 @@ export default function GetOneMaterialRequest({ client }) {
 		<>
 			{currentRoutePath === `/material/request/${requestId}/update` ? (
 				// <UpdateOneMaterialRequest client={client} requestId={requestId} />
-				<AdminUpdateOneMaterialRequest client={client} requestId={requestId} />
+				<AdminUpdateOneMaterialRequest requestId={requestId} />
 			) : (
 				<div className="update-container">
 					<div className="update-form">

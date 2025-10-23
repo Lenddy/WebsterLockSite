@@ -313,7 +313,7 @@ const materialRequestResolvers = {
 				if (!user) throw new ApolloError("Unauthorized: No user context.");
 
 				//! here  it is saying that even if the id of the users and the requester match it will not work because  of the validation checking if they have permission to edit other users      find a solution to this
-				if ((!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole" || user.userId !== requesterId) {
+				if ((!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole" || (!user.permissions.canEditUsers && user.userId !== requesterId)) {
 					throw new ApolloError("Unauthorized: You lack permission.");
 				}
 

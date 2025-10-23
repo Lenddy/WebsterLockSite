@@ -5,11 +5,17 @@ import bcrypt from "bcrypt"; // Module for hashing passwords securely
 // const bcrypt = require("bcrypt"); // Alternative import syntax
 
 import { encrypt, decrypt } from "../middleware/encrypt_decrypt.js";
+import { type } from "os";
 // Encryption/decryption middleware (not used in this snippet, but imported)
 
 // Defining the User schema with fields and validation
 const UserSchema = new Schema(
 	{
+		employeeNum: {
+			type: Number,
+			requiredF: false,
+		},
+
 		// User's full name
 		name: {
 			type: String,
@@ -38,6 +44,11 @@ const UserSchema = new Schema(
 			type: String,
 			required: true,
 			minLength: 3, // Minimum length validation
+		},
+
+		department: {
+			type: String,
+			required: false,
 		},
 
 		// JWT token for authentication/session management

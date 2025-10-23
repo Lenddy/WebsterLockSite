@@ -10,12 +10,14 @@ const userTypeDef = gql`
 	# Core user type returned in queries/mutations
 	type User {
 		id: ID! # Unique user ID
+		employeeNum: Int
 		name: String! # User's name
 		email: String! # Email address
 		password: String! # User's password
 		confirmPassword: String # Optional, for internal validation
 		token: String! # JWT token for session/auth
 		role: UserRole! # Assigned role enum
+		department: String
 		job: Job # Nested job object
 		permissions: Permissions # Nested permissions object
 		createdAt: DateTime # Timestamp for when user was created
@@ -76,11 +78,13 @@ const userTypeDef = gql`
 
 	# Input object for registering a user
 	input RegisterInput {
+		employeeNum: Int
 		name: String! # Full name of the user
 		email: String! # Email address
 		password: String # Password for login
 		confirmPassword: String # For password match validation
 		role: UserRole # Initial role to assign
+		department: String
 		job: JobInput # Optional job data
 		permissions: PermissionsInput # Optional custom permissions for the user
 	}
@@ -88,13 +92,14 @@ const userTypeDef = gql`
 	# Input object for registering a user
 	input RegisterManyInput {
 		# register
-
+		employeeNum: Int
 		name: String! # Full name of the user
 		email: String! # Email address
 		password: String # Password for login
 		confirmPassword: String # For password match validation
 		role: UserRole # Initial role to assign
 		job: JobInput # Optional job data
+		department: String
 		permissions: PermissionsInput # Optional custom permissions for the user
 	}
 
@@ -106,6 +111,7 @@ const userTypeDef = gql`
 
 	# Input object for updating a user profile
 	input UpdateUserProfileInput {
+		employeeNum: Int
 		name: String # New name (optional)
 		previousEmail: String # For verification
 		newEmail: String # New email to update to
@@ -113,6 +119,7 @@ const userTypeDef = gql`
 		newPassword: String # New password to update to
 		confirmNewPassword: String # Confirm the new password
 		job: JobInput # Optional update to job details
+		department: String
 	}
 
 	# # Input object for updating a user profile
@@ -131,6 +138,9 @@ const userTypeDef = gql`
 	# Input for updating multiple users
 	input AdminChangeUserProfileInput {
 		id: ID! # The ID of the user to update
+		employeeNum: Int
+		newEmployeeNum: Int
+
 		name: String
 		previousEmail: String
 		newEmail: String
@@ -138,6 +148,8 @@ const userTypeDef = gql`
 		newPassword: String
 		confirmNewPassword: String
 		job: JobInput
+		department: String
+		newDepartment: String
 		newRole: UserRole
 		newPermissions: PermissionsInput
 	}

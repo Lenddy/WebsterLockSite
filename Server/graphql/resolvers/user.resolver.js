@@ -64,7 +64,7 @@ const userResolver = {
 
 	Mutation: {
 		// Register a new user
-		registerUser: async (_, { input: { name, email, password, confirmPassword, role = "user", job, permissions } }, { user, pubsub }) => {
+		registerUser: async (_, { input: { name, email, password, confirmPassword, role = "user", job, permissions, employeeNum, department } }, { user, pubsub }) => {
 			try {
 				if (user.role !== "headAdmin" && user.role !== "admin" && (user.role !== "subAdmin" || !user.permissions.canRegisterUser)) {
 					throw new ApolloError("Unauthorized: You lack required permissions to register users.", "USER_LACK_PERMISSION");
@@ -90,6 +90,8 @@ const userResolver = {
 					role, // User role
 					job, // User job
 					permissions: finalPermissions, // User permissions
+					employeeNum,
+					department,
 				});
 
 				console.log("new user", newUser);
@@ -241,7 +243,7 @@ const userResolver = {
 
 				//  Prepare Mongoose documents
 				const userDocs = inputs.map((input, idx) => {
-					let { name, email, password, confirmPassword, role = "user", job, permissions } = input;
+					let { name, email, password, confirmPassword, role = "user", job, permissions, employeeNum, department } = input;
 
 					if (!validRoles.includes(role)) {
 						role = "noRole";
@@ -259,6 +261,8 @@ const userResolver = {
 						role,
 						job,
 						permissions: permissions || {},
+						employeeNum,
+						department,
 					});
 
 					// Temporary token (optional, will be overwritten if needed)
@@ -349,7 +353,9 @@ const userResolver = {
 		},
 
 		// Update user profile (self)
-		updateUserProfile: async (_, { id, input: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword } }, { user, pubsub }) => {
+		updateUserProfile: async (_, { id, input: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, employeeNum, department } }, { user, pubsub }) => {
+			console.log(employeeNum, department);
+
 			try {
 				if (!user) {
 					throw new ApolloError("Unauthorized: No user context."); // Check authentication
@@ -410,6 +416,9 @@ const userResolver = {
 
 				if (name) targetUser.name = name; // Update name
 
+				if (employeeNum) targetUser.employeeNum = employeeNum;
+				if (department) targetUser.department = department;
+
 				const newToken = jwt.sign(
 					{
 						userId: targetUser.id, // User ID
@@ -439,6 +448,8 @@ const userResolver = {
 					permissions: targetUser.permissions, // Permissions
 					role: targetUser.role, // Role
 					token: newToken, // Token
+					employeeNum: targetUser.employeeNum,
+					department: targetUser.department,
 				};
 			} catch (error) {
 				console.error("Error updating user profile:", error); // Log error
@@ -511,7 +522,7 @@ const userResolver = {
 				const updatedUsers = [];
 
 				for (const input of inputs) {
-					const { id, name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, newRole, newPermissions, job } = input;
+					const { id, name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, newRole, newPermissions, job, employeeNum, department } = input;
 
 					const targetUser = usersToUpdate.find((u) => u.id.toString() === id);
 					if (!targetUser) continue;
@@ -569,6 +580,8 @@ const userResolver = {
 					if (name) targetUser.name = name;
 					if (job) targetUser.job = job;
 					if (newRole) targetUser.role = newRole;
+					if (employeeNum) targetUser.employeeNum = employeeNum;
+					if (department) targetUser.department = department;
 
 					if (newPermissions) {
 						const allowedPermissionKeys = ["canEditUsers", "canDeleteUsers", "canChangeRole", "canViewUsers", "canViewAllUsers", "canEditSelf", "canViewSelf", "canDeleteSelf", "canNotBeUpdated", "canRegisterUser"];
@@ -610,6 +623,8 @@ const userResolver = {
 									role: targetUser.role,
 									job: targetUser.job,
 									permissions: targetUser.permissions,
+									employeeNum: targetUser.employeeNum,
+									department: targetUser.department,
 									token: newToken,
 								},
 							},
@@ -624,6 +639,8 @@ const userResolver = {
 						role: targetUser.role,
 						token: newToken,
 						job: targetUser.job,
+						employeeNum: targetUser.employeeNum,
+						department: targetUser.department,
 					});
 				}
 

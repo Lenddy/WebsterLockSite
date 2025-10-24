@@ -38,10 +38,6 @@ export default function RegisterUser() {
 		});
 	};
 
-	console.log("Info", info);
-	console.log("permissionsInfo", permission);
-	console.log("jobInfo", job);
-
 	// Function to handle form submission
 	const submit = async (e) => {
 		e.preventDefault();
@@ -72,12 +68,12 @@ export default function RegisterUser() {
 			},
 		})
 			.then((res) => {
-				// console.log("✅ Registered user:", res.data.registerUser);
+				// console.log(" Registered user:", res.data.registerUser);
 				alert("User registered successfully!");
 				navigate(`/user/${res.data.registerUser.id}`);
 			})
 			.catch((err) => {
-				console.error("❌ Error registering:", err);
+				console.error(" Error registering:", err);
 			});
 	};
 
@@ -91,6 +87,16 @@ export default function RegisterUser() {
 				<div className="register-form-wrapper">
 					<div className="register-form-row">
 						<div className="form-row-top-container">
+							<div className="form-row-top-left">
+								<label htmlFor="employeeNun">Employee Number:</label>
+								<input type="text" name="employeeNum" onChange={(e) => SubmissionInfo(e)} placeholder="Employee Number" />
+							</div>
+
+							<div className="form-row-top-right">
+								<label htmlFor="department">Department:</label>
+								<input type="text" name="department" onChange={(e) => SubmissionInfo(e)} placeholder="Department" />
+							</div>
+
 							<div className="form-row-top-left">
 								<label htmlFor="name">Name:</label>
 								<input type="text" name="name" onChange={(e) => SubmissionInfo(e)} placeholder="Name" />

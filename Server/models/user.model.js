@@ -12,7 +12,7 @@ import { type } from "os";
 const UserSchema = new Schema(
 	{
 		employeeNum: {
-			type: Number,
+			type: String,
 			requiredF: false,
 		},
 

@@ -61,8 +61,10 @@ export default function GetOneUser() {
 				<div className="get-one-content-wrapper">
 					{/* Top */}
 					<div className="get-one-content-wrapper-top">
+						<h1>Num: {user.employeeNum}</h1>
 						<h1>Name: {user.name}</h1>
 						<h1>Email: {user.email}</h1>
+						<h1>Dep: {user.department}</h1>
 					</div>
 
 					{/* Middle */}

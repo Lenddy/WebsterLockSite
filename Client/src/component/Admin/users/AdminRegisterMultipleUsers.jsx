@@ -19,9 +19,11 @@ export default function AdminRegisterMultipleUsers() {
 			email: "",
 			password: "",
 			confirmPassword: "",
-			title: "",
+			employeeNum: "",
 			description: "",
+			title: "",
 			role: "",
+			department: "",
 			permissions: {
 				canViewAllUsers: false,
 				canEditUsers: false,
@@ -68,6 +70,8 @@ export default function AdminRegisterMultipleUsers() {
 				email: "",
 				password: "",
 				confirmPassword: "",
+				employeeNum: "",
+				department: "",
 				title: "",
 				description: "",
 				role: "",
@@ -115,6 +119,8 @@ export default function AdminRegisterMultipleUsers() {
 						password: row.password,
 						confirmPassword: row.confirmPassword,
 						role: row.role,
+						employeeNum: row?.employeeNum,
+						department: row?.department,
 						job: {
 							title: row.title,
 							description: row.description,
@@ -151,7 +157,7 @@ export default function AdminRegisterMultipleUsers() {
 							<h3 className="form-row-count">User Row {index + 1}</h3>
 
 							<div className="form-row-top-container">
-								<div className="form-row-top-left">
+								{/* <div className="form-row-top-left">
 									<label>Name:</label>
 									<input type="text" name="name" value={row.name} onChange={(e) => handleRowChange(index, e)} placeholder="Name" />
 								</div>
@@ -159,6 +165,26 @@ export default function AdminRegisterMultipleUsers() {
 								<div className="form-row-top-right">
 									<label>Email:</label>
 									<input type="text" name="email" value={row.email} onChange={(e) => handleRowChange(index, e)} placeholder="Email" />
+								</div> */}
+
+								<div className="form-row-top-left">
+									<label htmlFor="name">Name:</label>
+									<input type="text" name="name" onChange={(e) => handleRowChange(index, e)} placeholder="Name" />
+								</div>
+
+								<div className="form-row-top-right">
+									<label htmlFor="email">Email:</label>
+									<input type="text" name="email" onChange={(e) => handleRowChange(index, e)} placeholder="Email" />
+								</div>
+
+								<div className="form-row-top-left">
+									<label htmlFor="employeeNun">Employee Number:</label>
+									<input type="text" name="employeeNum" onChange={(e) => handleRowChange(index, e)} placeholder="Employee Number" />
+								</div>
+
+								<div className="form-row-top-right">
+									<label htmlFor="department">Department:</label>
+									<input type="text" name="department" onChange={(e) => handleRowChange(index, e)} placeholder="Department" />
 								</div>
 							</div>
 

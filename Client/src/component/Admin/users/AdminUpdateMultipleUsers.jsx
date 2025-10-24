@@ -34,6 +34,8 @@ export default function AdminUpdateMultipleUsers() {
 			title: "",
 			description: "",
 			newRole: "",
+			employeeNum: "",
+			department: "",
 			newPermissions: {
 				canViewAllUsers: false,
 				canEditUsers: false,
@@ -58,6 +60,8 @@ export default function AdminUpdateMultipleUsers() {
 		// 	console.log("loading");
 		// }
 		if (data) {
+			// console.log("all user on the update many", data.getAllUsers);
+			// console.log("all user on the update many", data.getAllUsers[0].employeeNum);
 			setUsers(data.getAllUsers);
 
 			// Auto-select user from params if found
@@ -69,7 +73,8 @@ export default function AdminUpdateMultipleUsers() {
 						newRows[0] = {
 							...newRows[0],
 							id: selectedUser.id,
-							// name: selectedUser.name,
+							employeeNum: selectedUser.employeeNum || "",
+							department: selectedUser.department || "",
 							previousEmail: selectedUser.email,
 							locked: true, // lock the row
 							// prefill existing role + permissions
@@ -144,6 +149,8 @@ export default function AdminUpdateMultipleUsers() {
 				previousPassword: "",
 				newPassword: "",
 				confirmNewPassword: "",
+				employeeNum: "",
+				department: "",
 				title: "",
 				description: "",
 				newRole: "",
@@ -187,7 +194,7 @@ export default function AdminUpdateMultipleUsers() {
 		}
 
 		// 4. If ID is selected but *no other field is changed*
-		const noChangesMade = !row.newEmail && !row.newPassword && !row?.confirmNewPassword && !row?.role && !row?.newPermissions && !row?.name && !row?.title && !row?.description;
+		const noChangesMade = !row.newEmail && !row.newPassword && !row?.confirmNewPassword && !row?.role && !row?.newPermissions && !row?.name && !row?.title && !row?.description && !row?.department && !row?.employeeNum;
 
 		if (row?.id && noChangesMade) {
 			console.warn(" Row has an ID but no other fields were changed.");
@@ -235,6 +242,8 @@ export default function AdminUpdateMultipleUsers() {
 						newPassword: row?.newPassword,
 						confirmNewPassword: row?.confirmNewPassword,
 						newRole: row?.newRole,
+						employeeNum: row?.employeeNum,
+						department: row?.department,
 						job: {
 							title: row?.title,
 							description: row?.description,
@@ -244,7 +253,9 @@ export default function AdminUpdateMultipleUsers() {
 				},
 				onCompleted: (res) => {
 					// console.log("Mutation success:", res);
+
 					setSuccess({ success: true, update: "Update has been completed" });
+					alert("users have been Updated");
 				},
 				onError: (errRes) => {
 					// console.log("Mutation error:", errRes);
@@ -294,6 +305,8 @@ export default function AdminUpdateMultipleUsers() {
 													if (selectedUser) {
 														updatedRow.id = selectedUser.id;
 														updatedRow.previousEmail = selectedUser.email || "";
+														updatedRow.employeeNum = selectedUser.employeeNum || "";
+														updatedRow.department = selectedUser.department || "";
 														updatedRow.name = selectedUser.name || "";
 														updatedRow.title = selectedUser.job?.title || "";
 														updatedRow.description = selectedUser.job?.description || "";
@@ -307,6 +320,8 @@ export default function AdminUpdateMultipleUsers() {
 													// If cleared, reset to empty
 													updatedRow.id = "";
 													updatedRow.previousEmail = "";
+													updatedRow.employeeNum = "";
+													updatedRow.department = "";
 													updatedRow.name = "";
 													updatedRow.title = "";
 													updatedRow.description = "";
@@ -350,6 +365,32 @@ export default function AdminUpdateMultipleUsers() {
 								<div className="form-row-top-right">
 									<label>Previous Email:</label>
 									<input type="text" name="previousEmail" value={row?.previousEmail} onChange={(e) => handleRowChange(index, e)} disabled placeholder="Previous Email" />
+								</div>
+
+								<div className="form-row-top-left">
+									<label htmlFor="employeeNun">Employee Number</label>
+									<input
+										type="text"
+										name="employeeNum"
+										value={row?.employeeNum}
+										onChange={(e) => {
+											handleRowChange(index, e), console.log(row?.employeeNum);
+										}}
+										placeholder="Employee Number"
+									/>
+								</div>
+
+								<div className="form-row-top-right">
+									<label htmlFor="department">Department</label>
+									<input
+										type="text"
+										name="department"
+										value={row?.department}
+										onChange={(e) => {
+											handleRowChange(index, e), console.log(row?.department);
+										}}
+										placeholder="Department"
+									/>
 								</div>
 							</div>
 

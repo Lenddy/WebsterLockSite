@@ -29,7 +29,7 @@ import CreateOneMaterialRequest from "./component/material_requests/CreateOneMat
 
 import NotFound from "./component/NotFound";
 
-function App({ client }) {
+function App() {
 	const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
 	useEffect(() => {

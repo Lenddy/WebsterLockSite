@@ -12,9 +12,12 @@ export default function GetAllUsers() {
 	const { userToken } = useAuth(); // Get current user token from context
 	const [logUser, setLogUser] = useState(null);
 
-	const { error, loading, data } = useQuery(get_all_users, {
-		fetchPolicy: "cache-and-network",
-	});
+	const { error, loading, data } = useQuery(
+		get_all_users
+		// 	{
+		// 	fetchPolicy: "cache-and-network",
+		// }
+	);
 	const [users, setUsers] = useState([]);
 	const [filteredUsers, setFilteredUsers] = useState([]);
 	const [searchValue, setSearchValue] = useState("");
@@ -35,6 +38,7 @@ export default function GetAllUsers() {
 	// Initialize users and filtered users
 	useEffect(() => {
 		if (data) {
+			console.log(data.getAllUsers);
 			setUsers(data.getAllUsers);
 			setFilteredUsers(data.getAllUsers);
 		}
@@ -65,7 +69,7 @@ export default function GetAllUsers() {
 	// Fuse.js search
 	const applyFuse = (list, search) => {
 		if (!search) return list;
-		const fuse = new Fuse(list, { keys: ["name", "email"], threshold: 0.4 });
+		const fuse = new Fuse(list, { keys: ["name", "email", "employeeNum", "department"], threshold: 0.4 });
 		return fuse.search(search).map((r) => r.item);
 	};
 
@@ -144,33 +148,43 @@ export default function GetAllUsers() {
 						<table>
 							<thead>
 								<tr>
-									<th>ID</th>
+									{logUser?.role == "headAdmin" && <th>ID</th>}
+
+									<th>#</th>
 									<th>Name</th>
 									<th>Email</th>
 									<th>Role</th>
-									<th>Job</th>
+									<th>Department</th>
 									<th>Action</th>
 								</tr>
 							</thead>
+
 							<tbody>
 								{filteredUsers.map((user) => (
 									<tr key={user.id}>
+										{logUser?.role == "headAdmin" && (
+											<td>
+												<Link to={`/user/${user.id}`}>{user.id}</Link>
+											</td>
+										)}
+
 										<td>
-											<Link to={`/user/${user.id}`}>{user.id}</Link>
+											<Link to={`/user/${user.id}`}>{user.employeeNum}</Link>
 										</td>
+
 										<td>
 											<Link to={`/user/${user.id}`}>{user.name}</Link>
 										</td>
 										<td>
 											<Link to={`/user/${user.id}`}>{user.email}</Link>
 										</td>
-										<td>{user.role}</td>
-										<td>{user.job?.title ?? "N/A"}</td>
+										<td>{user?.role}</td>
+										<td>{user?.department}</td>
 										<td>
 											{(canEditUser(logUser, user) || canDeleteUser(logUser, user)) && logUser ? (
 												<div className="table-action-wrapper">
 													{canEditUser(logUser, user) && (
-														<Link to={`/admin/user/${user.id}/update`}>
+														<Link to={`/admin/user/${user?.id}/update`}>
 															<span className="table-action first">Update</span>
 														</Link>
 													)}

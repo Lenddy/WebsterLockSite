@@ -6,8 +6,8 @@ export const register_User = gql`
 			id
 			name
 			email
-			password
-			confirmPassword
+			employeeNum
+			department
 			role
 			job {
 				title
@@ -23,8 +23,6 @@ export const register_User = gql`
 				canViewSelf
 				canDeleteSelf
 			}
-			createdAt
-			updatedAt
 		}
 	}
 `;
@@ -35,6 +33,8 @@ export const register_multiple_Users = gql`
 			id
 			name
 			email
+			employeeNum
+			department
 			role
 			job {
 				title
@@ -50,8 +50,6 @@ export const register_multiple_Users = gql`
 				canViewSelf
 				canDeleteSelf
 			}
-			createdAt
-			updatedAt
 		}
 	}
 `;
@@ -72,22 +70,24 @@ export const update_One_user = gql`
 			id
 			name
 			email
+			employeeNum
+			department
 			token
 			role
 			job {
 				title
 				description
 			}
-			# permissions {
-			# 	canEditUsers
-			# 	canDeleteUsers
-			# 	canChangeRole
-			# 	canViewUsers
-			# 	canViewAllUsers
-			# 	canEditSelf
-			# 	canViewSelf
-			# 	canDeleteSelf
-			# }
+			permissions {
+				canEditUsers
+				canDeleteUsers
+				canChangeRole
+				canViewUsers
+				canViewAllUsers
+				canEditSelf
+				canViewSelf
+				canDeleteSelf
+			}
 		}
 	}
 `;
@@ -98,6 +98,8 @@ export const admin_update_multiple_users = gql`
 			id
 			name
 			email
+			employeeNum
+			department
 			token
 			role
 			job {

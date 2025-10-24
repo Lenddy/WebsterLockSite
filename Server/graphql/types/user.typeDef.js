@@ -10,10 +10,10 @@ const userTypeDef = gql`
 	# Core user type returned in queries/mutations
 	type User {
 		id: ID! # Unique user ID
-		employeeNum: Int
+		employeeNum: String
 		name: String! # User's name
 		email: String! # Email address
-		password: String! # User's password
+		password: String # User's password
 		confirmPassword: String # Optional, for internal validation
 		token: String! # JWT token for session/auth
 		role: UserRole! # Assigned role enum
@@ -78,7 +78,7 @@ const userTypeDef = gql`
 
 	# Input object for registering a user
 	input RegisterInput {
-		employeeNum: Int
+		employeeNum: String
 		name: String! # Full name of the user
 		email: String! # Email address
 		password: String # Password for login
@@ -92,7 +92,7 @@ const userTypeDef = gql`
 	# Input object for registering a user
 	input RegisterManyInput {
 		# register
-		employeeNum: Int
+		employeeNum: String
 		name: String! # Full name of the user
 		email: String! # Email address
 		password: String # Password for login
@@ -111,7 +111,7 @@ const userTypeDef = gql`
 
 	# Input object for updating a user profile
 	input UpdateUserProfileInput {
-		employeeNum: Int
+		employeeNum: String
 		name: String # New name (optional)
 		previousEmail: String # For verification
 		newEmail: String # New email to update to
@@ -138,9 +138,7 @@ const userTypeDef = gql`
 	# Input for updating multiple users
 	input AdminChangeUserProfileInput {
 		id: ID! # The ID of the user to update
-		employeeNum: Int
-		newEmployeeNum: Int
-
+		employeeNum: String
 		name: String
 		previousEmail: String
 		newEmail: String
@@ -149,7 +147,6 @@ const userTypeDef = gql`
 		confirmNewPassword: String
 		job: JobInput
 		department: String
-		newDepartment: String
 		newRole: UserRole
 		newPermissions: PermissionsInput
 	}

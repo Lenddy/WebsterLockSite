@@ -110,6 +110,7 @@ const materialRequestTypeDef = gql`
 		userId: ID
 		email: String
 		name: String
+
 		role: String
 		permissions: PermissionSnapshot
 	}

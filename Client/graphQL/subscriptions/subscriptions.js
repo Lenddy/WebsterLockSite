@@ -8,6 +8,8 @@ export const USER_CHANGE_SUBSCRIPTION = gql`
 				id
 				name
 				email
+				employeeNum
+				department
 				role
 				job {
 					title

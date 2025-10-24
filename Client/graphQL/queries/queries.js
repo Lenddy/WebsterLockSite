@@ -7,6 +7,8 @@ export const get_all_users = gql`
 			id
 			name
 			email
+			employeeNum
+			department
 			token
 			role
 			job {
@@ -36,6 +38,8 @@ export const get_one_user = gql`
 			id
 			name
 			email
+			employeeNum
+			department
 			role
 			token
 			job {

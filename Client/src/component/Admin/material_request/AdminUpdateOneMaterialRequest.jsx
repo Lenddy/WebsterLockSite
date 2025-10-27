@@ -200,6 +200,8 @@ function AdminUpdateOneMaterialRequest() {
 						userId: decoded.userId,
 						name: decoded.name,
 						email: decoded.email,
+						employeeNum: decoded.employeeNum,
+						department: decoded.department,
 					},
 					...(jwtDecode(userToken).userId !== requestersID && { isApproved: true, approvedAt: new Date() }),
 				},

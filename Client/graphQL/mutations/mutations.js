@@ -146,6 +146,8 @@ export const create_one_material_request = gql`
 				userId
 				name
 				email
+				employeeNum
+				department
 			}
 
 			reviewers {
@@ -154,6 +156,8 @@ export const create_one_material_request = gql`
 				name
 				comment
 				reviewedAt
+				employeeNum
+				department
 			}
 
 			approvalStatus {
@@ -161,6 +165,8 @@ export const create_one_material_request = gql`
 					userId
 					name
 					email
+					employeeNum
+					department
 				}
 				isApproved
 				approvedAt
@@ -189,6 +195,8 @@ export const create_multiple_material_requests = gql`
 				userId
 				name
 				email
+				employeeNum
+				department
 			}
 
 			reviewers {
@@ -197,6 +205,8 @@ export const create_multiple_material_requests = gql`
 				name
 				comment
 				reviewedAt
+				employeeNum
+				department
 			}
 
 			approvalStatus {
@@ -204,6 +214,8 @@ export const create_multiple_material_requests = gql`
 					userId
 					name
 					email
+					employeeNum
+					department
 				}
 				isApproved
 				approvedAt
@@ -234,6 +246,8 @@ export const update_One_Material_Request = gql`
 				userId
 				name
 				email
+				employeeNum
+				department
 			}
 
 			reviewers {
@@ -242,6 +256,8 @@ export const update_One_Material_Request = gql`
 				name
 				comment
 				reviewedAt
+				employeeNum
+				department
 			}
 
 			approvalStatus {
@@ -249,6 +265,8 @@ export const update_One_Material_Request = gql`
 					userId
 					name
 					email
+					employeeNum
+					department
 				}
 				isApproved
 				approvedAt

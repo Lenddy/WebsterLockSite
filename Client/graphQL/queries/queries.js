@@ -80,6 +80,8 @@ export const get_all_material_requests = gql`
 				userId
 				name
 				email
+				employeeNum
+				department
 			}
 
 			reviewers {
@@ -88,6 +90,8 @@ export const get_all_material_requests = gql`
 				name
 				comment
 				reviewedAt
+				employeeNum
+				department
 			}
 
 			approvalStatus {
@@ -95,6 +99,8 @@ export const get_all_material_requests = gql`
 					userId
 					name
 					email
+					employeeNum
+					department
 				}
 				isApproved
 				approvedAt
@@ -126,6 +132,8 @@ export const get_one_material_request = gql`
 				userId
 				name
 				email
+				employeeNum
+				department
 			}
 
 			reviewers {
@@ -134,6 +142,8 @@ export const get_one_material_request = gql`
 				name
 				comment
 				reviewedAt
+				employeeNum
+				department
 			}
 
 			approvalStatus {
@@ -141,6 +151,8 @@ export const get_one_material_request = gql`
 					userId
 					name
 					email
+					employeeNum
+					department
 				}
 				isApproved
 				approvedAt

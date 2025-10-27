@@ -12,10 +12,7 @@ import { jwtDecode } from "jwt-decode";
 
 export default function GetAllMaterialRequest() {
 	const { userToken } = useAuth();
-	const { error, loading, data } = useQuery(
-		get_all_material_requests
-		// , { fetchPolicy: "cache-and-network" }
-	);
+	const { error, loading, data } = useQuery(get_all_material_requests, { fetchPolicy: "cache-and-network" });
 
 	const [mRequests, setMRequests] = useState([]);
 	// const [filteredMRequests, setFilteredMRequests] = useState([]);
@@ -62,7 +59,7 @@ export default function GetAllMaterialRequest() {
 	// Fuse.js search
 	const applyFuse = (list, search) => {
 		if (!search) return list;
-		const fuse = new Fuse(list, { keys: ["requester.name", "requester.email"], threshold: 0.4 });
+		const fuse = new Fuse(list, { keys: ["requester.name", "requester.email", "requester.employeeNum", "requester.department"], threshold: 0.4 });
 		return fuse.search(search).map((r) => r.item);
 	};
 
@@ -283,7 +280,7 @@ export default function GetAllMaterialRequest() {
 					{/* Search */}
 					<div className="search-filter-wrapper">
 						<div className="search-filter-container">
-							<input type="text" className="search-filter-input" placeholder="Search users by name or email" value={searchValue} onChange={handleSearchChange} autoComplete="off" />
+							<input type="text" className="search-filter-input" placeholder="Search users by Name,Email,#,Dep" value={searchValue} onChange={handleSearchChange} autoComplete="off" />
 							<button className="search-clear-btn" onClick={clearSearch} disabled={!searchValue}>
 								✕
 							</button>
@@ -295,7 +292,10 @@ export default function GetAllMaterialRequest() {
 						<table>
 							<thead>
 								<tr>
-									<th>ID</th>
+									{jwtDecode(userToken)?.role == "headAdmin" && <th>ID</th>}
+
+									<th>Requestor's #</th>
+
 									<th>Requestor's Name</th>
 									<th>Description</th>
 									<th>Approval</th>
@@ -308,9 +308,16 @@ export default function GetAllMaterialRequest() {
 								{filteredMRequests.length !== 0 ? (
 									filteredMRequests.map((request) => (
 										<tr key={request.id}>
+											{jwtDecode(userToken)?.role == "headAdmin" && (
+												<td>
+													<Link to={`/material/request/${request.id}`}>{request.id}</Link>
+												</td>
+											)}
+
 											<td>
-												<Link to={`/material/request/${request.id}`}>{request.id}</Link>
+												<Link to={`/material/request/${request.id}`}>{request?.requester?.employeeNum}</Link>
 											</td>
+
 											<td>
 												<Link to={`/material/request/${request.id}`}>{request.requester?.name}</Link>
 											</td>

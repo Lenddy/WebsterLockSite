@@ -245,6 +245,8 @@ const userResolver = {
 							email: user.email, // Email
 							role: user.role, // Role
 							permissions: user.permissions, // Permissions
+							employeeNum: user.employeeNum,
+							department: user.department,
 						},
 						process.env.Secret_Key // Secret key
 					);

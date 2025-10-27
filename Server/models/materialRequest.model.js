@@ -37,6 +37,8 @@ const MaterialRequestSchema = new Schema(
 					message: (props) => `${props.value} is not a valid email address!`,
 				},
 			},
+			employeeNum: String,
+			department: String,
 
 			role: String,
 			permissions: {
@@ -69,6 +71,8 @@ const MaterialRequestSchema = new Schema(
 						message: (props) => `${props.value} is not a valid email address!`,
 					},
 				},
+				employeeNum: String,
+				department: String,
 				role: String,
 				permissions: {
 					canEditUsers: Boolean,
@@ -102,10 +106,12 @@ const MaterialRequestSchema = new Schema(
 						message: (props) => `${props.value} is not a valid email address!`,
 					},
 				},
+				employeeNum: String,
+				department: String,
 			},
 			approvedAt: {
 				type: Date,
-				default: dayjs().toISOString(),
+				// default: dayjs().toISOString(),
 			},
 			isApproved: { type: Boolean, default: false },
 		},

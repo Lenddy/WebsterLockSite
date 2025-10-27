@@ -32,6 +32,8 @@ export default function AdminCreateMultipleMaterialRequests() {
 				email: "",
 				name: "",
 				role: "",
+				employeeNum: "",
+				department: "",
 				permissions: {
 					canEditUsers: false,
 					canDeleteUsers: false,
@@ -105,6 +107,8 @@ export default function AdminCreateMultipleMaterialRequests() {
 					email: "",
 					name: "",
 					role: "",
+					employeeNum: "",
+					department: "",
 					permissions: {
 						canEditUsers: false,
 						canDeleteUsers: false,
@@ -165,6 +169,8 @@ export default function AdminCreateMultipleMaterialRequests() {
 			email: user.email,
 			name: user.name,
 			role: user.role,
+			employeeNum: user.employeeNum,
+			department: user.department,
 			permissions: { ...user.permissions },
 		},
 	}));

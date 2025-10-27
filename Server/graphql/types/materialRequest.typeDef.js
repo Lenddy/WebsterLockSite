@@ -91,6 +91,8 @@ const materialRequestTypeDef = gql`
 		userId: ID
 		email: String
 		name: String
+		employeeNum: String
+		department: String
 	}
 
 	input ApprovalStatusInput { # Input for approval status
@@ -103,6 +105,8 @@ const materialRequestTypeDef = gql`
 		userId: ID
 		email: String
 		name: String
+		employeeNum: String
+		department: String
 	}
 
 	# --- User snapshot types ---
@@ -110,7 +114,8 @@ const materialRequestTypeDef = gql`
 		userId: ID
 		email: String
 		name: String
-
+		employeeNum: String
+		department: String
 		role: String
 		permissions: PermissionSnapshot
 	}
@@ -119,6 +124,8 @@ const materialRequestTypeDef = gql`
 		userId: ID
 		email: String
 		name: String
+		employeeNum: String
+		department: String
 		role: String
 		permissions: PermissionSnapshot
 		comment: String
@@ -162,6 +169,8 @@ const materialRequestTypeDef = gql`
 		userId: ID!
 		email: String!
 		name: String!
+		employeeNum: String
+		department: String
 		role: String!
 		permissions: PermissionSnapshotInput
 	}

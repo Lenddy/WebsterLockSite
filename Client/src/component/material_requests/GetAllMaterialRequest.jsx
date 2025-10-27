@@ -315,7 +315,7 @@ export default function GetAllMaterialRequest() {
 											)}
 
 											<td>
-												<Link to={`/material/request/${request.id}`}>{request?.requester?.employeeNum}</Link>
+												<Link to={`/material/request/${request.id}`}>{request?.requester?.employeeNum ? request?.requester?.employeeNum : "N/A"}</Link>
 											</td>
 
 											<td>

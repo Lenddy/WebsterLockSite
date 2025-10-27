@@ -168,9 +168,7 @@ export default function GetAllUsers() {
 											</td>
 										)}
 
-										<td>
-											<Link to={`/user/${user.id}`}>{user.employeeNum}</Link>
-										</td>
+										<td>{user.employeeNum ? <Link to={`/user/${user.id}`}>{user.employeeNum}</Link> : "N/A"}</td>
 
 										<td>
 											<Link to={`/user/${user.id}`}>{user.name}</Link>
@@ -179,7 +177,8 @@ export default function GetAllUsers() {
 											<Link to={`/user/${user.id}`}>{user.email}</Link>
 										</td>
 										<td>{user?.role}</td>
-										<td>{user?.department}</td>
+
+										<td>{user?.department ? user?.department : "N/A"}</td>
 										<td>
 											{(canEditUser(logUser, user) || canDeleteUser(logUser, user)) && logUser ? (
 												<div className="table-action-wrapper">

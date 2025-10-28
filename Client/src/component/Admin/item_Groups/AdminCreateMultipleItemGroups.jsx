@@ -131,20 +131,17 @@ export default function AdminCreateMultipleItemsGroups() {
 									<label>Items</label>
 
 									{ig?.itemsList?.map((row, rowIdx) => (
-										<>
-											{/* <label>Item Name</label> */}
-											<div key={rowIdx} className="form-row-item-wrapper">
-												{/* Item Name */}
-												<input type="text" value={row?.itemName} onChange={(e) => handleItemChange(igIdx, rowIdx, "itemName", e.target.value)} />
+										<div key={rowIdx} className="form-row-item-wrapper">
+											{/* Item Name */}
+											<input type="text" value={row?.itemName} onChange={(e) => handleItemChange(igIdx, rowIdx, "itemName", e.target.value)} />
 
-												{/* Remove item */}
-												{ig?.itemsList?.length > 1 && (
-													<span className="remove-row-btn" onClick={() => removeItemRow(igIdx, rowIdx)}>
-														Remove
-													</span>
-												)}
-											</div>
-										</>
+											{/* Remove item */}
+											{ig?.itemsList?.length > 1 && (
+												<span className="remove-row-btn" onClick={() => removeItemRow(igIdx, rowIdx)}>
+													Remove
+												</span>
+											)}
+										</div>
 									))}
 								</div>
 

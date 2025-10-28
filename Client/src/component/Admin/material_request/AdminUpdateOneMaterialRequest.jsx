@@ -1,7 +1,8 @@
-import { useEffect, useState, useMemo } from "react";
-import { useMutation, useQuery } from "@apollo/client";
+import { useEffect, useState, useMemo, useRef } from "react";
+import { useMutation, useQuery, useSubscription } from "@apollo/client";
 import { get_all_item_groups, get_one_material_request } from "../../../../graphQL/queries/queries";
 import { update_One_Material_Request } from "../../../../graphQL/mutations/mutations";
+import { MATERIAL_REQUEST_CHANGE_SUBSCRIPTION } from "../../../../graphQL/subscriptions/subscriptions";
 import { useParams, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Select from "react-select";
@@ -9,16 +10,19 @@ import Fuse from "fuse.js";
 import Modal from "../../Modal";
 import { useAuth } from "../../../context/AuthContext";
 import client from "../../../../graphQL/apolloClient";
+import MaterialRequest from "../../../../../Server/models/materialRequest.model";
 
 function AdminUpdateOneMaterialRequest() {
 	const { userToken, loading: authLoading } = useAuth();
 	const { requestId } = useParams();
 	const navigate = useNavigate();
+	const skipNextSubAlert = useRef(false);
 
 	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
 	const [isOpen, setIsOpen] = useState(false);
 	const [mRequest, setMRequest] = useState();
 	const [itemGroups, setItemGroups] = useState([]);
+	const [requestApproved, setRequestApproved] = useState(false);
 
 	const { data: iGData } = useQuery(get_all_item_groups);
 	const { data: mRData, loading: mRLoading } = useQuery(get_one_material_request, {
@@ -111,9 +115,56 @@ function AdminUpdateOneMaterialRequest() {
 		}
 	}, [mRData, allItems]);
 
-	// console.log("requestors info", mRequest);
+	// add this sub to the get one material request too
 
-	// ----- Row change handler -----
+	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
+		onData: ({ data: subscriptionData }) => {
+			if (skipNextSubAlert.current) {
+				skipNextSubAlert.current = false;
+				return; // skip alert triggered by your own update
+			}
+
+			const change = subscriptionData?.data?.onMaterialRequestChange;
+			if (!change) return;
+
+			const { eventType, Changes } = change;
+			// console.log("Material Request subscription event:", eventType, Changes);
+
+			if (Changes?.id === requestId) {
+				if (eventType === "updated" && Array.isArray(Changes.items)) {
+					alert("The material request has been updated");
+					setRows(() => {
+						//  Map updated items into the same format as the initial useEffect
+						return Changes.items.map((item) => {
+							const matchedItem = allItems.find((i) => i.value === item.itemName);
+							const matchedColor = colorOptions.find((i) => i.value === item.color);
+							const matchedSide = sideOptions.find((i) => i.value === item.side);
+							const matchedSize = sizeOptions.find((i) => i.value === item.size);
+
+							return {
+								id: item.id,
+								quantity: item.quantity,
+								item: matchedItem || { label: item.itemName, value: item.itemName },
+								itemDescription: item.itemDescription || "",
+								color: matchedColor || { label: item.color, value: item.color },
+								side: matchedSide || { label: item.side, value: item.side },
+								size: matchedSize || { label: item.size, value: item.size },
+							};
+						});
+					});
+				}
+
+				if (eventType === "deleted") {
+					alert("The material request has been deleted. You will be redirected to view all material requests.");
+					navigate("/material/request/all");
+				}
+			}
+		},
+		onError: (err) => {
+			console.error(" Subscription error:", err);
+		},
+	});
+
 	const handleRowChange = (index, field, value) => {
 		const newRows = [...rows];
 		const row = { ...newRows[index] };
@@ -161,23 +212,10 @@ function AdminUpdateOneMaterialRequest() {
 		return fuse.search(inputValue).some((r) => r.item.value === option.value);
 	};
 
-	// console.log({
-	// 	hello: "heelooooo",
-	// 	...(jwtDecode(userToken).userId !== requestId && { hello1: "hello1" }),
-	// });
-
-	// console.log("userToken", jwtDecode(userToken).userId);
-	// console.log("user id requestor", requestId);
-
-	// console.log({
-	// 	user: jwtDecode(userToken).name,
-	// 	hello: "heelooooo",
-	// 	...(jwtDecode(userToken).userId === mRequest?.requester?.userId && { hello1: "hello1" }),
-	// });
-
 	// ----- Submit -----
 	const submit = async (e) => {
 		e.preventDefault();
+		skipNextSubAlert.current = true;
 		if (!userToken) return alert("Please log in first.");
 		client.clearStore();
 		try {
@@ -211,8 +249,8 @@ function AdminUpdateOneMaterialRequest() {
 			await updatedMaterialRequest({
 				variables: { input },
 				onCompleted: (res) => {
-					console.log("user update ", jwtDecode(userToken).userId == requestersID);
-					console.log("Mutation success:", res?.updateOneMaterialRequest);
+					// console.log("user update ", jwtDecode(userToken).userId == requestersID);
+					// console.log("Mutation success:", res?.updateOneMaterialRequest);
 					// console.log("this is the client / caches", client.cache.extract());
 					// alert("Material requests have been updated successfully!");
 					navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
@@ -243,6 +281,8 @@ function AdminUpdateOneMaterialRequest() {
 
 		return ["headAdmin", "admin", "subAdmin"].includes(role);
 	};
+
+	console.log("this are the items on the material request rows ,", rows);
 
 	return (
 		<div className="update-container">

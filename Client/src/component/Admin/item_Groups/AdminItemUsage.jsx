@@ -176,7 +176,7 @@ export default function AdminItemUsage() {
 					{/* Filter Buttons */}
 					<div>
 						<div className="filter-btn-container">
-							{["All", "Day", "Week", "Month", "Year"].map((f) => (
+							{["All", "Today", "Week", "Month", "Year"].map((f) => (
 								<button key={f} className={`filter-btn ${filter === f ? "selected-filter" : ""}`} disabled={filter === f} onClick={() => setFilter(f)}>
 									{f}
 								</button>

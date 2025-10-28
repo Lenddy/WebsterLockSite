@@ -1,8 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
-import { useQuery } from "@apollo/client";
+import { useQuery, useSubscription } from "@apollo/client";
 import { get_one_material_request, get_all_item_groups } from "../../../graphQL/queries/queries";
-import { Link, useParams, useLocation } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 // import UpdateOneMaterialRequest from "../Admin/material_request/AdminUpdateOneMaterialRequest";
+import { MATERIAL_REQUEST_CHANGE_SUBSCRIPTION } from "../../../graphQL/subscriptions/subscriptions";
 import AdminUpdateOneMaterialRequest from "../Admin/material_request/AdminUpdateOneMaterialRequest";
 import Select from "react-select";
 import { useAuth } from "../../context/AuthContext";
@@ -12,6 +13,8 @@ export default function GetOneMaterialRequest() {
 	const { requestId } = useParams();
 	const location = useLocation();
 	const currentRoutePath = location.pathname;
+
+	const navigate = useNavigate();
 
 	const [rows, setRows] = useState([]);
 	const [itemGroups, setItemGroups] = useState([]);
@@ -98,6 +101,56 @@ export default function GetOneMaterialRequest() {
 			);
 		}
 	}, [data, allItems]);
+
+	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
+		onData: ({ data: subscriptionData }) => {
+			const change = subscriptionData?.data?.onMaterialRequestChange;
+			if (!change) return;
+
+			const { eventType, Changes } = change;
+			// console.log("Material Request subscription event:", eventType, Changes);
+
+			if (Changes?.id === requestId) {
+				alert("The material request has been updated");
+
+				if (eventType === "updated" && Array.isArray(Changes.items)) {
+					setRows(() => {
+						//  Map updated items into the same format as the initial useEffect
+						return Changes.items.map((item) => {
+							const matchedItem = allItems.find((i) => i.value === item.itemName);
+							const matchedColor = colorOptions.find((i) => i.value === item.color);
+							const matchedSide = sideOptions.find((i) => i.value === item.side);
+							const matchedSize = sizeOptions.find((i) => i.value === item.size);
+
+							return {
+								id: item.id,
+								quantity: item.quantity,
+								item: matchedItem || { label: item.itemName, value: item.itemName },
+								itemDescription: item.itemDescription || "",
+								color: matchedColor || { label: item.color, value: item.color },
+								side: matchedSide || { label: item.side, value: item.side },
+								size: matchedSize || { label: item.size, value: item.size },
+							};
+						});
+					});
+				}
+
+				if (eventType === "deleted") {
+					alert("The material request has been deleted. You will be redirected to view all material requests.");
+					navigate("/material/request/all");
+				}
+			}
+		},
+		onError: (err) => {
+			console.error(" Subscription error:", err);
+		},
+	});
+
+	const canReview = () => {
+		const token = decodedUser;
+		const role = typeof token?.role === "string" ? token?.role : token?.role?.role;
+		return ["headAdmin", "admin", "subAdmin"].includes(role);
+	};
 
 	if (authLoading || loading) return <h1>Loading...</h1>;
 
@@ -227,15 +280,21 @@ export default function GetOneMaterialRequest() {
 							))}
 						</div>
 
-						{canEdit && (
-							<div className="form-action-btn">
+						<div className="form-action-btn">
+							{canReview() ? (
 								<Link to={`/material/request/${requestId}/update`}>
 									<button className="form-submit-btn" type="button">
 										Review
 									</button>
 								</Link>
-							</div>
-						)}
+							) : !data?.getOneMaterialRequest?.approvalStatus?.isApproved ? (
+								<Link to={`/material/request/${requestId}/update`}>
+									<button className="form-submit-btn" type="button">
+										Update Request
+									</button>
+								</Link>
+							) : null}
+						</div>
 					</div>
 				</div>
 			)}

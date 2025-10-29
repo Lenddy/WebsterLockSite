@@ -12,7 +12,7 @@ import { useAuth } from "../../context/AuthContext"; //  use context
 
 export default function CreateOneMaterialRequest() {
 	const { userToken, loading: authLoading } = useAuth(); //  use context instead of prop
-	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
+	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
 	const [itemGroups, setItemGroups] = useState([]);
 	const [logUser, setLogUser] = useState(null);
 	const [isOpen, setIsOpen] = useState(false);
@@ -87,13 +87,23 @@ export default function CreateOneMaterialRequest() {
 		});
 	};
 
+	const toggleItemField = (rowIdx, field) => {
+		// updated[rowIdx].items[field] = !updated[reqIdx].items[rowIdx][field];
+		setRows((prev) => {
+			const updated = [...prev];
+			updated[rowIdx][field] = !updated[rowIdx][field];
+		});
+	};
+
 	const addRow = () => {
-		setRows([...rows, { brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
+		setRows([...rows, { brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
 	};
 
 	const removeRow = (index) => {
 		setRows((prev) => prev.filter((_, i) => i !== index));
 	};
+
+	console.log("this are the rows", rows);
 
 	const submit = async (e) => {
 		e.preventDefault();
@@ -121,6 +131,8 @@ export default function CreateOneMaterialRequest() {
 			console.error("Submit error:", err);
 		}
 	};
+
+	// ! you get an erro here  find out why
 
 	const isFormValid = rows.every((r) => r.item && r.quantity !== "" && Number(r.quantity) > 0);
 
@@ -199,98 +211,116 @@ export default function CreateOneMaterialRequest() {
 									</div>
 								</div>
 
+								{/* update here */}
+
+								{/* update here */}
+
 								<div className="form-row-center-container-material-request">
-									<div className="form-row-center-container-material-request-wrapper">
-										<div className="form-row-center-container-material-request-wrapper-center">
-											<div>
-												<label>Color</label>
-												<Select
-													className="form-row-center-material-request-select"
-													classNamePrefix="material-request-color-select"
-													options={colorOptions}
-													value={colorOptions.find((opt) => opt.value === row.color)}
-													onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
-													placeholder="Select Color"
-													isClearable
-													isSearchable
-													formatOptionLabel={(option) => (
-														<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-															<div style={{ width: "30px", height: "30px", backgroundColor: option.hex, border: "1px solid #ccc" }} />
-															<span>{option.label}</span>
-														</div>
-													)}
-													styles={{
-														control: (base) => ({
-															...base,
-															borderRadius: "12px",
-															borderColor: "blue",
-														}),
-														option: (base, state) => ({
-															...base,
-															backgroundColor: state.isFocused ? "lightblue" : "white",
-															color: "black",
-														}),
-													}}
-												/>
+									{row.showOptional && (
+										<div className="form-row-center-container-material-request-wrapper">
+											<div className="form-row-center-container-material-request-wrapper-center">
+												<div>
+													<label>Color</label>
+													<Select
+														className="form-row-center-material-request-select"
+														classNamePrefix="material-request-color-select"
+														options={colorOptions}
+														value={colorOptions.find((opt) => opt.value === row.color)}
+														onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
+														placeholder="Select Color"
+														isClearable
+														isSearchable
+														formatOptionLabel={(option) => (
+															<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+																<div style={{ width: "30px", height: "30px", backgroundColor: option.hex, border: "1px solid #ccc" }} />
+																<span>{option.label}</span>
+															</div>
+														)}
+														styles={{
+															control: (base) => ({
+																...base,
+																borderRadius: "12px",
+																borderColor: "blue",
+															}),
+															option: (base, state) => ({
+																...base,
+																backgroundColor: state.isFocused ? "lightblue" : "white",
+																color: "black",
+															}),
+														}}
+													/>
+												</div>
+											</div>
+
+											<div className="form-row-center-container-material-request-wrapper-center">
+												<div>
+													<label>Side/Hand</label>
+													<Select
+														className="form-row-top-select"
+														options={sideOptions}
+														value={sideOptions.find((opt) => opt.value === row.side)}
+														onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
+														placeholder="Select Side/Hand"
+														isClearable
+														isSearchable
+														styles={{
+															control: (base) => ({
+																...base,
+																borderRadius: "12px",
+																borderColor: "blue",
+															}),
+															option: (base, state) => ({
+																...base,
+																backgroundColor: state.isFocused ? "lightblue" : "white",
+																color: "black",
+															}),
+														}}
+													/>
+												</div>
+
+												<div>
+													<label>Size</label>
+													<Select
+														className="form-row-top-select"
+														options={sizeOptions}
+														value={sizeOptions.find((opt) => opt.value === row.size)}
+														onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
+														placeholder="Select Size"
+														isClearable
+														isSearchable
+														styles={{
+															control: (base) => ({
+																...base,
+																borderRadius: "12px",
+																borderColor: "blue",
+															}),
+															option: (base, state) => ({
+																...base,
+																backgroundColor: state.isFocused ? "lightblue" : "white",
+																color: "black",
+															}),
+														}}
+													/>
+												</div>
 											</div>
 										</div>
+									)}
 
-										<div className="form-row-center-container-material-request-wrapper-center">
-											<div>
-												<label>Side/Hand</label>
-												<Select
-													className="form-row-top-select"
-													options={sideOptions}
-													value={sideOptions.find((opt) => opt.value === row.side)}
-													onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
-													placeholder="Select Side/Hand"
-													isClearable
-													isSearchable
-													styles={{
-														control: (base) => ({
-															...base,
-															borderRadius: "12px",
-															borderColor: "blue",
-														}),
-														option: (base, state) => ({
-															...base,
-															backgroundColor: state.isFocused ? "lightblue" : "white",
-															color: "black",
-														}),
-													}}
-												/>
-											</div>
-
-											<div>
-												<label>Size</label>
-												<Select
-													className="form-row-top-select"
-													options={sizeOptions}
-													value={sizeOptions.find((opt) => opt.value === row.size)}
-													onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
-													placeholder="Select Size"
-													isClearable
-													isSearchable
-													styles={{
-														control: (base) => ({
-															...base,
-															borderRadius: "12px",
-															borderColor: "blue",
-														}),
-														option: (base, state) => ({
-															...base,
-															backgroundColor: state.isFocused ? "lightblue" : "white",
-															color: "black",
-														}),
-													}}
-												/>
-											</div>
+									{row.showDescription && (
+										<div className="form-row-center-container-material-request-wrapper-bottom">
+											<label>Description</label>
+											<textarea value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder="Description for the item" cols={40} rows={10} />
 										</div>
-									</div>
+									)}
 
-									<div className="form-row-center-container-material-request-wrapper-bottom">
-										<label>Description</label>
-										<textarea value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder="Description for the item" cols={40} rows={10} />
+									<div className="form-action-hidden-fields">
+										<span className="show-fields-btn" type="button" onClick={() => toggleItemField(idx, "showOptional")}>
+											{row.showOptional ? "Hide" : "Show"} optional fields
+										</span>
+
+										<span className="show-fields-btn" type="button" onClick={() => toggleItemField(idx, "showDescription")}>
+											{row.showDescription ? "Hide" : "Show"} description
+										</span>
 									</div>
 								</div>
 

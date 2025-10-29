@@ -10,7 +10,6 @@ import Fuse from "fuse.js";
 import Modal from "../../Modal";
 import { useAuth } from "../../../context/AuthContext";
 import client from "../../../../graphQL/apolloClient";
-import MaterialRequest from "../../../../../Server/models/materialRequest.model";
 
 function AdminUpdateOneMaterialRequest() {
 	const { userToken, loading: authLoading } = useAuth();

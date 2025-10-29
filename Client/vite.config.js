@@ -12,9 +12,9 @@ export default defineConfig({
 		VitePWA({
 			registerType: "autoUpdate",
 			manifest: {
-				name: "My Awesome App",
-				short_name: "MyApp",
-				description: "My Awesome App description",
+				name: "Webster Lock & Hardware",
+				short_name: "Webster-Lock",
+				description: "Webster Lock & Hardware is an app that initially allow you to make material request(app is subjected to change either in its functionality or name) made by Lenddy Morales",
 				theme_color: "#ffffff",
 				icons: [
 					{

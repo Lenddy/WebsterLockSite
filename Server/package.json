@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"description": "will be a collection of multiple sites in the future (for now its a material request and inventory management app)",
 	"license": "ISC",
-	"author": "Lenddy",
+	"author": "Lenddy Morales",
 	"type": "module",
 	"main": "server.js",
 	"scripts": {

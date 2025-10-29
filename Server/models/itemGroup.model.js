@@ -21,6 +21,9 @@ const ItemGroupSchema = new Schema(
 				_id: { type: Schema.Types.ObjectId, auto: true },
 				itemName: { type: String }, //  Name is required
 				// Must be unique across users
+				colors: [{ type: String }],
+				sides: [{ type: String }],
+				sizes: [{ type: String }],
 			},
 		],
 	},
@@ -36,3 +39,62 @@ const ItemGroup = model("ItemGroups", ItemGroupSchema);
 
 // Exporting the User model for use elsewhere in the app
 export default ItemGroup;
+
+// import { Schema, model } from "mongoose";
+
+// // --- Item Group Schema ---
+// const ItemGroupSchema = new Schema(
+// 	{
+// 		brand: {
+// 			type: String,
+// 			required: true,
+// 			unique: true,
+// 		},
+
+// 		itemsList: [
+// 			{
+// 				_id: { type: Schema.Types.ObjectId, auto: true },
+// 				itemName: { type: String,},
+
+// 				// Inline subfields (colors, sides, sizes)
+// 				colors: [
+// 					{
+// 						_id: { type: Schema.Types.ObjectId, auto: true },
+// 						color: { type: String,  },
+// 					},
+// 				],
+
+// 				sides: [
+// 					{
+// 						_id: { type: Schema.Types.ObjectId, auto: true },
+// 						side: { type: String, },
+// 					},
+// 				],
+
+// 				sizes: [
+// 					{
+// 						_id: { type: Schema.Types.ObjectId, auto: true },
+// 						size: { type: String, },
+// 					},
+// 				],
+
+// 				functions: [
+// 					{
+// 						_id: { type: Schema.Types.ObjectId, auto: true },
+// 						size: { type: String,  },
+// 					},
+// 				],
+// 			},
+// 		],
+// 	},
+// 	{
+// 		timestamps: true,
+// 		toJSON: { getters: true },
+// 		toObject: { getters: true },
+// 	}
+// );
+
+// // --- Create the model ---
+// const ItemGroup = model("ItemGroups", ItemGroupSchema);
+
+// export default ItemGroup;

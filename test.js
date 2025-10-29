@@ -19,14 +19,14 @@ function calcClampBreakpoints(minPx, preferredBasePx, preferredVw, maxPx) {
 		maxViewport: Math.round(maxViewport),
 	};
 }
-
+// clamp(0.938rem, 0.75rem + 1vw, 1.25rem)
 // Example from your clamp(1.25rem, 0.537rem + 1.49vw, 2.813rem)
 // Convert rem to px assuming 1rem = 16px
 const result = calcClampBreakpoints(
-	4.688 * 16, // min = 20px
-	0.426 * 16, // base = 8.6px
-	22.73, // 1.49vw
-	12.5 * 16 // max = 45px
+	0.938 * 16, // min = 20px
+	0.75 * 16, // base = 8.6px
+	1, // 1.49vw
+	1.25 * 16 // max = 45px
 );
 
 //  clamp(4.688 0.426 + 22.73 12.5);

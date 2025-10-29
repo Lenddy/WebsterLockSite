@@ -25,8 +25,11 @@ export default function AdminCreateMultipleMaterialRequests() {
 					side: null,
 					size: null,
 					itemDescription: "",
+					showOptional: false,
+					showDescription: false,
 				},
 			],
+
 			requester: {
 				userId: "",
 				email: "",
@@ -100,6 +103,8 @@ export default function AdminCreateMultipleMaterialRequests() {
 						side: null,
 						size: null,
 						itemDescription: "",
+						showOptional: false,
+						showDescription: false,
 					},
 				],
 				requester: {
@@ -133,13 +138,15 @@ export default function AdminCreateMultipleMaterialRequests() {
 	const addItemRow = (reqIdx) => {
 		const updated = [...requests];
 		updated[reqIdx].items.push({
-			brand: null,
+			brand: "",
 			quantity: "",
 			item: null,
 			color: null,
 			side: null,
 			size: null,
 			itemDescription: "",
+			showOptional: false,
+			showDescription: false,
 		});
 		setRequests(updated);
 	};
@@ -159,6 +166,12 @@ export default function AdminCreateMultipleMaterialRequests() {
 	const handleItemChange = (reqIdx, rowIdx, field, value) => {
 		const updated = [...requests];
 		updated[reqIdx].items[rowIdx][field] = value;
+		setRequests(updated);
+	};
+
+	const toggleItemField = (reqIdx, rowIdx, field) => {
+		const updated = [...requests];
+		updated[reqIdx].items[rowIdx][field] = !updated[reqIdx].items[rowIdx][field];
 		setRequests(updated);
 	};
 
@@ -278,6 +291,8 @@ export default function AdminCreateMultipleMaterialRequests() {
 			console.error("Submit error:", err);
 		}
 	};
+
+	// const [showOptional, setShowOptional] = useState(false);
 
 	return (
 		<div className="update-container">
@@ -411,106 +426,124 @@ export default function AdminCreateMultipleMaterialRequests() {
 										</div>
 
 										<div className="form-row-center-container-material-request">
-											<div className="form-row-center-container-material-request-wrapper">
-												<div className="form-row-center-container-material-request-wrapper-center">
-													<div>
-														<label htmlFor="">Color</label>
+											{/* come here to update */}
 
-														{/* Color select */}
-														<Select
-															className="form-row-top-select"
-															options={colorOptions}
-															value={colorOptions.find((opt) => opt.value === row.color)}
-															onChange={(val) => handleItemChange(reqIdx, rowIdx, "color", val?.value || null)}
-															placeholder="Select Color"
-															styles={{
-																control: (base) => ({
-																	...base,
-																	borderRadius: "12px",
-																	borderColor: "blue",
-																}),
-																option: (base, state) => ({
-																	...base,
-																	backgroundColor: state.isFocused ? "lightblue" : "white",
-																	color: "black",
-																}),
-															}}
-															formatOptionLabel={(option) => (
-																<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-																	<div style={{ width: "30px", height: "30px", backgroundColor: option.hex, border: "1px solid #ccc" }} />
-																	<span>{option.label}</span>
-																</div>
-															)}
-														/>
+											{row.showOptional && (
+												<div className="form-row-center-container-material-request-wrapper">
+													{/* <div className="form-row-center-container-material-request-wrapper"> */}
+													<div className="form-row-center-container-material-request-wrapper-center">
+														<div>
+															<label htmlFor="">Color</label>
+
+															{/* Color select */}
+															<Select
+																className="form-row-top-select"
+																options={colorOptions}
+																value={colorOptions.find((opt) => opt.value === row.color)}
+																onChange={(val) => handleItemChange(reqIdx, rowIdx, "color", val?.value || null)}
+																placeholder="Select Color"
+																styles={{
+																	control: (base) => ({
+																		...base,
+																		borderRadius: "12px",
+																		borderColor: "blue",
+																	}),
+																	option: (base, state) => ({
+																		...base,
+																		backgroundColor: state.isFocused ? "lightblue" : "white",
+																		color: "black",
+																	}),
+																}}
+																formatOptionLabel={(option) => (
+																	<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+																		<div style={{ width: "30px", height: "30px", backgroundColor: option.hex, border: "1px solid #ccc" }} />
+																		<span>{option.label}</span>
+																	</div>
+																)}
+															/>
+														</div>
 													</div>
+
+													<div className="form-row-center-container-material-request-wrapper-center">
+														<div>
+															<label htmlFor="">side/hand</label>
+															{/* Side select */}
+															<Select
+																className="form-row-top-select"
+																options={sideOptions}
+																value={sideOptions.find((opt) => opt.value === row.side)}
+																onChange={(val) => handleItemChange(reqIdx, rowIdx, "side", val?.value || null)}
+																placeholder="Select Side/Hand"
+																filterOption={customFilter}
+																isClearable
+																isSearchable
+																styles={{
+																	control: (base) => ({
+																		...base,
+																		borderRadius: "12px",
+																		borderColor: "blue",
+																		// width: "200px",
+																		// height: "50px",
+																	}),
+																	option: (base, state) => ({
+																		...base,
+																		backgroundColor: state.isFocused ? "lightblue" : "white",
+																		color: "black",
+																	}),
+																}}
+															/>
+														</div>
+
+														<div>
+															<label htmlFor=""> Size</label>
+															{/* Size select */}
+															<Select
+																className="form-row-top-select"
+																options={sizeOptions}
+																value={sizeOptions.find((opt) => opt.value === row.size)}
+																onChange={(val) => handleItemChange(reqIdx, rowIdx, "size", val?.value || null)}
+																placeholder="Select Size"
+																filterOption={customFilter}
+																isClearable
+																isSearchable
+																styles={{
+																	control: (base) => ({
+																		...base,
+																		borderRadius: "12px",
+																		borderColor: "blue",
+																		// width: "200px",
+																		// height: "50px",
+																	}),
+																	option: (base, state) => ({
+																		...base,
+																		backgroundColor: state.isFocused ? "lightblue" : "white",
+																		color: "black",
+																	}),
+																}}
+															/>
+														</div>
+													</div>
+													{/* </div> */}
 												</div>
+											)}
 
-												<div className="form-row-center-container-material-request-wrapper-center">
-													<div>
-														<label htmlFor="">side/hand</label>
-														{/* Side select */}
-														<Select
-															className="form-row-top-select"
-															options={sideOptions}
-															value={sideOptions.find((opt) => opt.value === row.side)}
-															onChange={(val) => handleItemChange(reqIdx, rowIdx, "side", val?.value || null)}
-															placeholder="Select Side/Hand"
-															filterOption={customFilter}
-															isClearable
-															isSearchable
-															styles={{
-																control: (base) => ({
-																	...base,
-																	borderRadius: "12px",
-																	borderColor: "blue",
-																	// width: "200px",
-																	// height: "50px",
-																}),
-																option: (base, state) => ({
-																	...base,
-																	backgroundColor: state.isFocused ? "lightblue" : "white",
-																	color: "black",
-																}),
-															}}
-														/>
-													</div>
+											{row.showDescription && (
+												<div className="form-row-center-container-material-request-wrapper-bottom">
+													<label htmlFor="">Description</label>
 
-													<div>
-														<label htmlFor=""> Size</label>
-														{/* Size select */}
-														<Select
-															className="form-row-top-select"
-															options={sizeOptions}
-															value={sizeOptions.find((opt) => opt.value === row.size)}
-															onChange={(val) => handleItemChange(reqIdx, rowIdx, "size", val?.value || null)}
-															placeholder="Select Size"
-															filterOption={customFilter}
-															isClearable
-															isSearchable
-															styles={{
-																control: (base) => ({
-																	...base,
-																	borderRadius: "12px",
-																	borderColor: "blue",
-																	// width: "200px",
-																	// height: "50px",
-																}),
-																option: (base, state) => ({
-																	...base,
-																	backgroundColor: state.isFocused ? "lightblue" : "white",
-																	color: "black",
-																}),
-															}}
-														/>
-													</div>
+													{/* Item description */}
+													<textarea type="text" value={row.itemDescription} onChange={(e) => handleItemChange(reqIdx, rowIdx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
 												</div>
-											</div>
+											)}
 
-											<div className="form-row-center-container-material-request-wrapper-bottom">
-												<label htmlFor=""> description</label>
+											<div className="form-action-hidden-fields">
+												<span className="show-fields-btn" type="button" onClick={() => toggleItemField(reqIdx, rowIdx, "showOptional")}>
+													{row.showOptional ? "Hide" : "Show"} optional fields
+												</span>
 
-												{/* Item description */}
-												<textarea type="text" value={row.itemDescription} onChange={(e) => handleItemChange(reqIdx, rowIdx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
+												<span className="show-fields-btn" type="button" onClick={() => toggleItemField(reqIdx, rowIdx, "showDescription")}>
+													{row.showDescription ? "Hide" : "Show"} description
+												</span>
 											</div>
 										</div>
 

@@ -251,6 +251,9 @@ export default function GetAllMaterialRequest() {
 
 					{/* Table */}
 					<div className="table-wrapper">
+						<div className="table-title">
+							<h2>Requests</h2>
+						</div>
 						<table>
 							<thead>
 								<tr>

@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import DeleteOneUser from "./users/DeleteOneUser";
 import { Link, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { useAuth } from "../context/AuthContext"; // <-- use context here
+import { useAuth } from "../context/AuthContext";
+import doorHanding from "../assets/doorHanding.jpg";
 
 const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 	const { userToken } = useAuth(); // get currentUser and token from context
@@ -15,7 +16,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 	// console.log("modal open");
 	// console.log("log user", logUser);
 	// console.log("is open", isOpen, "close", onClose, "data", data);
-	// console.log("data", data);
+	console.log("data", data);
 
 	// Setup content based on data
 	useEffect(() => {
@@ -95,6 +96,9 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 
 				<div className="modal-content">
 					{/* Material Request Rows */}
+
+					{(location.pathname === `/material/request/request`) & (data.showDoorHanding == true) ? <img className="door-handing" src={doorHanding} alt="logo" /> : null}
+
 					{(location.pathname === `/material/request/${data?.mRequest?.mrId}/update` || location.pathname === `/material/request/request`) &&
 						data?.rows?.map((row, idx) => (
 							<div className="modal-content-info-wrapper" key={idx}>

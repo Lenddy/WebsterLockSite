@@ -122,6 +122,9 @@ export default function AdminGetAllItems() {
 					</div>
 
 					<div className="table-wrapper">
+						<div className="table-title">
+							<h2>Items</h2>
+						</div>
 						<table>
 							<thead>
 								<tr>

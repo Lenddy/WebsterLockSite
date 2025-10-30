@@ -10,7 +10,6 @@ export default function AdminGetOneItem() {
 	const [itemGroup, setItemGroup] = useState(null); // the full group (brand + itemsList)
 	const [filteredItems, setFilteredItems] = useState([]); // only items
 	const [searchValue, setSearchValue] = useState("");
-	const [logUser, setLogUser] = useState({});
 	const { itemId } = useParams();
 
 	const { error, loading, data } = useQuery(get_one_item_group, {
@@ -26,16 +25,11 @@ export default function AdminGetOneItem() {
 		});
 	};
 
-	//  Decode token
-	useEffect(() => {
-		const token = localStorage.getItem("UserToken");
-		if (token) setLogUser(jwtDecode(token));
-	}, []);
-
 	// Update useEffect for query data
 	useEffect(() => {
 		if (data?.getOneItemGroup) {
 			const group = data.getOneItemGroup;
+			console.log(group);
 			setItemGroup(group);
 			setFilteredItems(sortByItemName(group.itemsList || []));
 		}
@@ -106,6 +100,10 @@ export default function AdminGetOneItem() {
 			</div>
 
 			<div className="table-wrapper">
+				<div className="table-title">
+					<h2>{itemGroup?.brand}</h2>
+				</div>
+
 				<table>
 					<thead>
 						<tr>

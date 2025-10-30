@@ -145,6 +145,9 @@ export default function GetAllUsers() {
 					</div>
 
 					<div className="table-wrapper">
+						<div className="table-title">
+							<h2>Users</h2>
+						</div>
 						<table>
 							<thead>
 								<tr>

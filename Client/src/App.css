@@ -394,11 +394,13 @@
 
 /* here  */
 .search-filter-wrapper {
-	margin-top: 50px;
+	margin-top: 30px;
 	display: flex;
 	justify-content: center;
 	align-items: center;
+
 	width: 100%; /* full width container */
+	/* gap: 10; */
 }
 
 /* Container around input + button */
@@ -477,6 +479,21 @@
 	border-radius: 10px;
 	background: var(--slate-dark-gray);
 	margin-bottom: 50px;
+}
+
+.table-title {
+	/* background-color: var(--brass); */
+	display: flex;
+	justify-content: start;
+	/* width: 100%; */
+}
+
+.table-title h2 {
+	position: sticky;
+	top: 0;
+	left: 10px;
+	color: var(--blue);
+	/* color: var(--black); */
 }
 
 /* Scrollbar styling (only inside .table-wrapper) */
@@ -612,6 +629,10 @@
 	align-items: center;
 	justify-content: center;
 	z-index: 1000;
+}
+
+.door-handing {
+	width: clamp(17.5rem, -1.25rem + 100vw, 43.75rem);
 }
 
 .modal-container h4 {

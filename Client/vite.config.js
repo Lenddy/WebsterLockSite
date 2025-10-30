@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import svgr from "vite-plugin-svgr";
 import { VitePWA } from "vite-plugin-pwa";
-
+// #b5a642
 export default defineConfig({
 	plugins: [
 		react(),
@@ -13,10 +13,10 @@ export default defineConfig({
 				name: "Webster Lock & Hardware",
 				short_name: "Webster-Lock",
 				description: "Webster Lock & Hardware is an app that allows you to make material requests. (Developed by Lenddy Morales)",
-				theme_color: "#ffffff",
-				background_color: "#ffffff",
+				theme_color: "#050510",
+				background_color: "#050510",
 				display: "standalone",
-				start_url: "/",
+				start_url: "/material/request/all",
 				icons: [
 					{
 						src: "/pwa-192x192.png",

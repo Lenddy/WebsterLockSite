@@ -12,7 +12,7 @@ import { useAuth } from "../../context/AuthContext"; //  use context
 
 export default function CreateOneMaterialRequest() {
 	const { userToken, loading: authLoading } = useAuth(); //  use context instead of prop
-	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
+	const [rows, setRows] = useState([{ brand: "", item: "", quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
 	const [itemGroups, setItemGroups] = useState([]);
 	const [logUser, setLogUser] = useState(null);
 	const [isOpen, setIsOpen] = useState(false);
@@ -88,15 +88,16 @@ export default function CreateOneMaterialRequest() {
 	};
 
 	const toggleItemField = (rowIdx, field) => {
-		// updated[rowIdx].items[field] = !updated[reqIdx].items[rowIdx][field];
 		setRows((prev) => {
+			if (!prev) return [];
 			const updated = [...prev];
-			updated[rowIdx][field] = !updated[rowIdx][field];
+			updated[rowIdx] = { ...updated[rowIdx], [field]: !updated[rowIdx][field] };
+			return updated;
 		});
 	};
 
 	const addRow = () => {
-		setRows([...rows, { brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
+		setRows([...rows, { brand: "", item: "", quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
 	};
 
 	const removeRow = (index) => {
@@ -132,9 +133,7 @@ export default function CreateOneMaterialRequest() {
 		}
 	};
 
-	// ! you get an erro here  find out why
-
-	const isFormValid = rows.every((r) => r.item && r.quantity !== "" && Number(r.quantity) > 0);
+	const isFormValid = rows?.every((r) => r?.item && r?.quantity !== "" && Number(r?.quantity) > 0);
 
 	//  Handle loading state cleanly
 	if (authLoading || iGLoading) return <h1>Loading...</h1>;
@@ -145,7 +144,7 @@ export default function CreateOneMaterialRequest() {
 				<h1 className="update-form-title">Request Material</h1>
 
 				<div className="update-form-wrapper">
-					{rows.map((row, idx) => {
+					{rows?.map((row, idx) => {
 						const filteredItems = row.brand?.value ? allItems?.filter((i) => i.brand === row.brand.value) : allItems;
 
 						return (
@@ -319,7 +318,7 @@ export default function CreateOneMaterialRequest() {
 										</span>
 
 										<span className="show-fields-btn" type="button" onClick={() => toggleItemField(idx, "showDescription")}>
-											{row.showDescription ? "Hide" : "Show"} description
+											{row.itemDescription ? (row.showDescription ? "Hide description" : "Show description") : "Add description"}
 										</span>
 									</div>
 								</div>

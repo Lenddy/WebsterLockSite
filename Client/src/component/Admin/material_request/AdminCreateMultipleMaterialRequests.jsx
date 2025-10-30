@@ -542,7 +542,17 @@ export default function AdminCreateMultipleMaterialRequests() {
 												</span>
 
 												<span className="show-fields-btn" type="button" onClick={() => toggleItemField(reqIdx, rowIdx, "showDescription")}>
-													{row.showDescription ? "Hide" : "Show"} description
+													{row.showDescription ? "Hide Description" : "Show Description"}
+
+													{/* {
+													!row.itemDescription
+													? isEditingDescription
+														? "Cancel"
+														: "Add description"
+													: row.showDescription
+													? "Hide description"
+													: "Show description"
+													} */}
 												</span>
 											</div>
 										</div>

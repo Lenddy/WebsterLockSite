@@ -1117,7 +1117,7 @@
 	min-height: 280px;
 	/* border: solid 1px brown; */
 	border-radius: 10px;
-	gap: 20px;
+	gap: 1px;
 	margin: 10px 0px;
 	border: solid 1px var(--black);
 }

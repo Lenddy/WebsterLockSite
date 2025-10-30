@@ -17,7 +17,7 @@ function AdminUpdateOneMaterialRequest() {
 	const navigate = useNavigate();
 	const skipNextSubAlert = useRef(false);
 
-	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null }]);
+	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
 	const [isOpen, setIsOpen] = useState(false);
 	const [mRequest, setMRequest] = useState();
 	const [itemGroups, setItemGroups] = useState([]);
@@ -92,12 +92,34 @@ function AdminUpdateOneMaterialRequest() {
 
 			// Only set rows if not already prefilled
 			if (rows.length === 1 && !rows[0].id && allItems.length > 0) {
+				// setRows(
+				// 	req.items.map((item) => {
+				// 		const matchedItem = allItems.find((i) => i.value === item.itemName);
+				// 		const matchedColor = colorOptions.find((i) => i.value === item.color);
+				// 		const matchedSide = sideOptions.find((i) => i.value === item.side);
+				// 		const matchedSize = sizeOptions.find((i) => i.value === item.size);
+
+				// 		return {
+				// 			id: item.id,
+				// 			quantity: item.quantity,
+				// 			item: matchedItem || { label: item.itemName, value: item.itemName },
+				// 			itemDescription: item.itemDescription || "",
+				// 			color: matchedColor || { label: item.color, value: item.color },
+				// 			side: matchedSide || { label: item.side, value: item.side },
+				// 			size: matchedSize || { label: item.size, value: item.size },
+				// 		};
+				// 	})
+				// );
+
 				setRows(
 					req.items.map((item) => {
 						const matchedItem = allItems.find((i) => i.value === item.itemName);
 						const matchedColor = colorOptions.find((i) => i.value === item.color);
 						const matchedSide = sideOptions.find((i) => i.value === item.side);
 						const matchedSize = sizeOptions.find((i) => i.value === item.size);
+
+						const hasOptional = item.color || item.side || item.size;
+						const hasDescription = item.itemDescription && item.itemDescription.trim() !== "";
 
 						return {
 							id: item.id,
@@ -107,6 +129,8 @@ function AdminUpdateOneMaterialRequest() {
 							color: matchedColor || { label: item.color, value: item.color },
 							side: matchedSide || { label: item.side, value: item.side },
 							size: matchedSize || { label: item.size, value: item.size },
+							showOptional: !!hasOptional,
+							showDescription: !!hasDescription,
 						};
 					})
 				);
@@ -183,9 +207,19 @@ function AdminUpdateOneMaterialRequest() {
 		setRows(newRows);
 	};
 
+	// Helper function
+	const toggleItemField = (rowIdx, field) => {
+		setRows((prev) => {
+			if (!prev) return [];
+			const updated = [...prev];
+			updated[rowIdx] = { ...updated[rowIdx], [field]: !updated[rowIdx][field] };
+			return updated;
+		});
+	};
+
 	// ----- Add / Remove Row -----
 	const addRow = () => {
-		setRows([...rows, { brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null, action: { toBeAdded: true } }]);
+		setRows([...rows, { brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null, action: { toBeAdded: true }, showOptional: false, showDescription: false }]);
 	};
 
 	const removeRow = (index) => {
@@ -370,127 +404,152 @@ function AdminUpdateOneMaterialRequest() {
 								</div>
 
 								<div className={`form-row-center-container-material-request   ${row?.action?.toBeDeleted ? "disabled" : ""}`}>
-									<div className="form-row-center-container-material-request-wrapper">
-										<div className="form-row-center-container-material-request-wrapper-center">
-											{/* <div></div> */}
+									{row.showOptional && (
+										<div className="form-row-center-container-material-request-wrapper">
+											<div className="form-row-center-container-material-request-wrapper-center">
+												{/* <div></div> */}
 
-											<div>
-												<label htmlFor="color"> color </label>
-												<Select
-													className="form-row-center-material-request-select"
-													classNamePrefix="material-request-color-select"
-													options={colorOptions}
-													// colorOptions.find((opt) => row.color opt.value === )
-													value={row.color}
-													// onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
-													onChange={(val) => handleRowChange(idx, "color", val)}
-													placeholder={mRLoading ? "loading" : "Color"}
-													isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
-													isClearable
-													isSearchable
-													styles={{
-														control: (base) => ({
-															...base,
-															borderRadius: "12px",
-															borderColor: "blue",
-															width: "100%",
-															// maxWidth: "600px",
-														}),
-														option: (base, state) => ({
-															...base,
-															backgroundColor: state.isFocused ? "lightblue" : "white",
-															color: "black",
-														}),
-													}}
-													//  This custom renderer shows the swatch + label
-													formatOptionLabel={(option) => (
-														<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-															<div
-																style={{
-																	width: "30px",
-																	height: "30px",
-																	backgroundColor: option.hex,
-																	border: "1px solid #ccc",
-																}}
-															/>
-															<span>{option.label}</span>
-														</div>
-													)}
-												/>
+												<div>
+													<label htmlFor="color"> color </label>
+													<Select
+														className="form-row-center-material-request-select"
+														classNamePrefix="material-request-color-select"
+														options={colorOptions}
+														// colorOptions.find((opt) => row.color opt.value === )
+														value={row.color}
+														// onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
+														onChange={(val) => handleRowChange(idx, "color", val)}
+														placeholder={mRLoading ? "loading" : "Color"}
+														isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
+														isClearable
+														isSearchable
+														styles={{
+															control: (base) => ({
+																...base,
+																borderRadius: "12px",
+																borderColor: "blue",
+																width: "100%",
+																// maxWidth: "600px",
+															}),
+															option: (base, state) => ({
+																...base,
+																backgroundColor: state.isFocused ? "lightblue" : "white",
+																color: "black",
+															}),
+														}}
+														//  This custom renderer shows the swatch + label
+														formatOptionLabel={(option) => (
+															<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+																<div
+																	style={{
+																		width: "30px",
+																		height: "30px",
+																		backgroundColor: option.hex,
+																		border: "1px solid #ccc",
+																	}}
+																/>
+																<span>{option.label}</span>
+															</div>
+														)}
+													/>
+												</div>
+											</div>
+
+											<div className="form-row-center-container-material-request-wrapper-center">
+												<div>
+													<label htmlFor="">side/hand</label>
+
+													<Select
+														className="form-row-top-select"
+														options={sideOptions}
+														// sideOptions.find((opt) => opt.value === row.side)
+														value={row.side}
+														// onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
+														onChange={(val) => handleRowChange(idx, "side", val)}
+														placeholder={mRLoading ? "loading" : "Side/Hand"}
+														isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
+														filterOption={customFilter}
+														isClearable
+														isSearchable
+														styles={{
+															control: (base) => ({
+																...base,
+																borderRadius: "12px",
+																borderColor: "blue",
+																// width: "200px",
+																// height: "50px",
+															}),
+															option: (base, state) => ({
+																...base,
+																backgroundColor: state.isFocused ? "lightblue" : "white",
+																color: "black",
+															}),
+														}}
+													/>
+												</div>
+
+												<div>
+													<label htmlFor=""> Size</label>
+
+													<Select
+														className="form-row-top-select"
+														options={sizeOptions}
+														// sizeOptions.find((opt) => opt.value === row.size)
+														value={row.size}
+														// onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
+														onChange={(val) => handleRowChange(idx, "size", val)}
+														placeholder={mRLoading ? "loading" : "Size"}
+														isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
+														filterOption={customFilter}
+														isClearable
+														isSearchable
+														styles={{
+															control: (base) => ({
+																...base,
+																borderRadius: "12px",
+																borderColor: "blue",
+																// width: "200px",
+																// height: "50px",
+															}),
+															option: (base, state) => ({
+																...base,
+																backgroundColor: state.isFocused ? "lightblue" : "white",
+																color: "black",
+															}),
+														}}
+													/>
+												</div>
 											</div>
 										</div>
+									)}
 
-										<div className="form-row-center-container-material-request-wrapper-center">
-											<div>
-												<label htmlFor="">side/hand</label>
+									{row.showDescription && (
+										<div className="form-row-center-container-material-request-wrapper-bottom">
+											<label htmlFor=""> description</label>
 
-												<Select
-													className="form-row-top-select"
-													options={sideOptions}
-													// sideOptions.find((opt) => opt.value === row.side)
-													value={row.side}
-													// onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
-													onChange={(val) => handleRowChange(idx, "side", val)}
-													placeholder={mRLoading ? "loading" : "Side/Hand"}
-													isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
-													filterOption={customFilter}
-													isClearable
-													isSearchable
-													styles={{
-														control: (base) => ({
-															...base,
-															borderRadius: "12px",
-															borderColor: "blue",
-															// width: "200px",
-															// height: "50px",
-														}),
-														option: (base, state) => ({
-															...base,
-															backgroundColor: state.isFocused ? "lightblue" : "white",
-															color: "black",
-														}),
-													}}
-												/>
-											</div>
-
-											<div>
-												<label htmlFor=""> Size</label>
-
-												<Select
-													className="form-row-top-select"
-													options={sizeOptions}
-													// sizeOptions.find((opt) => opt.value === row.size)
-													value={row.size}
-													// onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
-													onChange={(val) => handleRowChange(idx, "size", val)}
-													placeholder={mRLoading ? "loading" : "Size"}
-													isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
-													filterOption={customFilter}
-													isClearable
-													isSearchable
-													styles={{
-														control: (base) => ({
-															...base,
-															borderRadius: "12px",
-															borderColor: "blue",
-															// width: "200px",
-															// height: "50px",
-														}),
-														option: (base, state) => ({
-															...base,
-															backgroundColor: state.isFocused ? "lightblue" : "white",
-															color: "black",
-														}),
-													}}
-												/>
-											</div>
+											<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder={mRLoading ? "loading" : "description for the item"} disabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
 										</div>
-									</div>
+									)}
 
-									<div className="form-row-center-container-material-request-wrapper-bottom">
-										<label htmlFor=""> description</label>
-
-										<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder={mRLoading ? "loading" : "description for the item"} disabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
+									{/* update styling */}
+									<div className="form-action-hidden-fields">
+										<span
+											className="show-fields-btn"
+											// type="button"
+											onClick={() => {
+												toggleItemField(idx, "showOptional");
+											}}>
+											{row.showOptional ? "Hide Optional Fields" : "Show Optional Fields"}
+										</span>
+										{/* here for update */}
+										<span
+											className="show-fields-btn"
+											// type="button"
+											onClick={() => {
+												toggleItemField(idx, "showDescription");
+											}}>
+											{row.showDescription ? "Hide Description" : "Show Description"}
+										</span>
 									</div>
 								</div>
 

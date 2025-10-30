@@ -97,7 +97,15 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 				<div className="modal-content">
 					{/* Material Request Rows */}
 
-					{(location.pathname === `/material/request/request`) & (data.showDoorHanding == true) ? <img className="door-handing" src={doorHanding} alt="logo" /> : null}
+					{(location.pathname === `/material/request/request`) & (data.showDoorHanding == true) ? (
+						<>
+							<img className="door-handing" src={doorHanding} alt="logo" />
+
+							<h1>
+								<strong> ALWAYS FROM THE OUTSIDE </strong>{" "}
+							</h1>
+						</>
+					) : null}
 
 					{(location.pathname === `/material/request/${data?.mRequest?.mrId}/update` || location.pathname === `/material/request/request`) &&
 						data?.rows?.map((row, idx) => (

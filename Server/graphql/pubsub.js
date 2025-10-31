@@ -7,7 +7,7 @@ let pubsub;
 // --- Redis connection options
 const redisOptions = {
 	// Render KV requires TLS for secure connection
-	tls: {},
+	// tls: {},
 
 	// Reconnect strategy
 	retryStrategy: (times) => {

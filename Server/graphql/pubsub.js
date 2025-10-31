@@ -7,11 +7,9 @@ import Redis from "ioredis";
 let pubsub;
 
 if (process.env.REDIS_URL && process.env.BUILD) {
-	console.log("✅ Using Redis PubSub via TCP");
+	console.log("✅ Using Redis PubSub via TCP (Render Valkey)");
 
-	// --- Connection options with retry & logging
 	const redisOptions = {
-		// tls: {}, // Required for secure Upstash/Render connections
 		retryStrategy: (times) => {
 			const delay = Math.min(times * 200, 3000);
 			console.warn(`🔁 Redis reconnect attempt #${times} — waiting ${delay}ms`);
@@ -25,12 +23,14 @@ if (process.env.REDIS_URL && process.env.BUILD) {
 			}
 			return shouldReconnect;
 		},
+		maxRetriesPerRequest: 10, // Prevents crash loop
 	};
 
+	// Direct TCP connection (no TLS)
 	const publisher = new Redis(process.env.REDIS_URL, redisOptions);
 	const subscriber = new Redis(process.env.REDIS_URL, redisOptions);
 
-	// --- Helpful connection logging
+	// Connection logging
 	const logStatus = (client, label) => {
 		client.on("connect", () => console.log(`✅ ${label} connected to Redis`));
 		client.on("ready", () => console.log(`🚀 ${label} ready`));
@@ -47,7 +47,7 @@ if (process.env.REDIS_URL && process.env.BUILD) {
 		subscriber,
 	});
 } else {
-	console.warn("Using in-memory PubSub (no Redis connection)");
+	console.warn("⚠️ Using in-memory PubSub (no Redis connection)");
 	pubsub = new PubSub();
 }
 

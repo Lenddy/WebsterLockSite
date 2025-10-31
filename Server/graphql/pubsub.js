@@ -1,8 +1,8 @@
 // pubsub.js
-import "dotenv/config";
-import { PubSub } from "graphql-subscriptions";
-import { RedisPubSub } from "graphql-redis-subscriptions";
-import Redis from "ioredis";
+// import "dotenv/config";
+// import { PubSub } from "graphql-subscriptions";
+// import { RedisPubSub } from "graphql-redis-subscriptions";
+// import Redis from "ioredis";
 
 // let pubsub;
 

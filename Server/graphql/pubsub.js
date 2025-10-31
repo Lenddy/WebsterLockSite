@@ -80,12 +80,12 @@ if (process.env.REDIS_URL && process.env.BUILD) {
 
 	//  Use REDIS_URL directly
 	const publisher = new Redis(process.env.REDIS_URL, {
-		tls: {}, // required for secure connection
+		// tls: {}, // required for secure connection
 		retryStrategy: (times) => Math.min(times * 50, 2000),
 	});
 
 	const subscriber = new Redis(process.env.REDIS_URL, {
-		tls: {},
+		// tls: {},
 		retryStrategy: (times) => Math.min(times * 50, 2000),
 	});
 

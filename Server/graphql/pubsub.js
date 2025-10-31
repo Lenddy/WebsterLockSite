@@ -74,26 +74,27 @@ import Redis from "ioredis";
 
 let pubsub;
 
-if (process.env.REDIS_URL && process.env.BUILD) {
-	console.log("Using Upstash Redis PubSub via TCP");
-	console.log("ignore for now ");
+// if (process.env.REDIS_URL && process.env.BUILD) {
+// 	console.log("Using Upstash Redis PubSub via TCP");
+// 	console.log("ignore for now ");
 
-	//  Use REDIS_URL directly
-	const publisher = new Redis(process.env.REDIS_URL, {
-		// tls: {}, // required for secure connection
-		retryStrategy: (times) => Math.min(times * 50, 2000),
-	});
+// 	//  Use REDIS_URL directly
+// 	const publisher = new Redis(process.env.REDIS_URL, {
+// 		// tls: {}, // required for secure connection
+// 		retryStrategy: (times) => Math.min(times * 50, 2000),
+// 	});
 
-	const subscriber = new Redis(process.env.REDIS_URL, {
-		// tls: {},
-		retryStrategy: (times) => Math.min(times * 50, 2000),
-	});
+// 	const subscriber = new Redis(process.env.REDIS_URL, {
+// 		// tls: {},
+// 		retryStrategy: (times) => Math.min(times * 50, 2000),
+// 	});
 
-	pubsub = new RedisPubSub({ publisher, subscriber });
-} else {
-	console.warn(" Using in-memory PubSub fallback");
-	pubsub = new PubSub();
-}
+// 	pubsub = new RedisPubSub({ publisher, subscriber });
+// } else {
+// 	console.warn(" Using in-memory PubSub fallback");
+// 	pubsub = new PubSub();
+// }
+pubsub = new PubSub();
 
 export default pubsub;
 

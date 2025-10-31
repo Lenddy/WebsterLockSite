@@ -7,9 +7,10 @@ import Redis from "ioredis";
 let pubsub;
 
 if (process.env.REDIS_URL && process.env.BUILD) {
-	console.log("✅ Using Redis PubSub via TCP (Render Valkey)");
+	console.log("✅ Using Redis PubSub via TCP");
 
 	const redisOptions = {
+		tls: {}, // Upstash requires TLS
 		retryStrategy: (times) => {
 			const delay = Math.min(times * 200, 3000);
 			console.warn(`🔁 Redis reconnect attempt #${times} — waiting ${delay}ms`);
@@ -23,14 +24,11 @@ if (process.env.REDIS_URL && process.env.BUILD) {
 			}
 			return shouldReconnect;
 		},
-		maxRetriesPerRequest: 10, // Prevents crash loop
 	};
 
-	// Direct TCP connection (no TLS)
 	const publisher = new Redis(process.env.REDIS_URL, redisOptions);
 	const subscriber = new Redis(process.env.REDIS_URL, redisOptions);
 
-	// Connection logging
 	const logStatus = (client, label) => {
 		client.on("connect", () => console.log(`✅ ${label} connected to Redis`));
 		client.on("ready", () => console.log(`🚀 ${label} ready`));
@@ -42,16 +40,48 @@ if (process.env.REDIS_URL && process.env.BUILD) {
 	logStatus(publisher, "Publisher");
 	logStatus(subscriber, "Subscriber");
 
-	pubsub = new RedisPubSub({
-		publisher,
-		subscriber,
-	});
+	// --- Test actual connectivity with a ping
+	(async () => {
+		try {
+			const pong = await publisher.ping();
+			console.log(`📡 Redis ping response: ${pong}`);
+		} catch (err) {
+			console.error("🚨 Redis ping failed:", err.message);
+		}
+	})();
+
+	pubsub = new RedisPubSub({ publisher, subscriber });
 } else {
-	console.warn("⚠️ Using in-memory PubSub (no Redis connection)");
+	console.warn("Using in-memory PubSub (no Redis connection)");
 	pubsub = new PubSub();
 }
 
 export default pubsub;
+
+// --- TEST PUBSUB MESSAGES ---
+(async () => {
+	try {
+		// Step 1: Define a test channel name
+		const TEST_CHANNEL = "connection_test_channel";
+
+		// Step 2: Subscribe to the test channel
+		const subIterator = await pubsub.asyncIterableIterator(TEST_CHANNEL);
+		(async () => {
+			for await (const payload of subIterator) {
+				console.log("📨 Received message from Redis PubSub:", payload);
+			}
+		})();
+
+		// Step 3: Publish a test message after a small delay
+		setTimeout(async () => {
+			const message = { msg: "Hello from Redis PubSub test!" };
+			await pubsub.publish(TEST_CHANNEL, message);
+			console.log("🚀 Published test message to Redis PubSub:", message);
+		}, 2000);
+	} catch (err) {
+		console.error("🚨 PubSub test failed:", err.message);
+	}
+})();
 
 // !!!! old pub sub code (does not works on render at the moment )
 

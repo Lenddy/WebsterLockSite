@@ -76,7 +76,7 @@ let pubsub;
 
 if (process.env.REDIS_URL && process.env.BUILD) {
 	console.log("Using Upstash Redis PubSub via TCP");
-	console.log("ignore fore now ");
+	console.log("ignore for now ");
 
 	//  Use REDIS_URL directly
 	const publisher = new Redis(process.env.REDIS_URL, {

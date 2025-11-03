@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === "production") {
 	console.log("Using RedisPubSub for production");
 
 	const redisOptions = {
-		tls: {}, // TLS required for Render ValKey
+		// tls: {}, // TLS required for Render ValKey
 		retryStrategy: (times) => Math.min(times * 50, 2000),
 		reconnectOnError: (err) => [/READONLY/, /ECONNRESET/, /ETIMEDOUT/].some((re) => re.test(err.message)),
 		maxRetriesPerRequest: null,

@@ -194,10 +194,13 @@ const materialRequestResolvers = {
 
 				// Publish subscription events for each created request
 				for (const request of createdRequests) {
+					console.log("form inside the pub sube");
 					await pubsub.publish("MATERIAL_REQUEST_ADDED", {
 						onMaterialRequestChange: { eventType: "created", Changes: request },
 					});
 				}
+
+				console.log("this is the new info that was just added", createdRequests);
 
 				return createdRequests;
 			} catch (err) {

@@ -11,6 +11,8 @@ import { expressMiddleware } from "@as-integrations/express4";
 
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { mergeTypeDefs, mergeResolvers } from "@graphql-tools/merge";
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// import { useServer } from "graphql-ws/lib/use/ws";
 import { useServer } from "graphql-ws/use/ws"; // later on you might need to import graphql-ws/lib/use/ws //i remove lib because it was giving an error  not allowing me to use the import
 
 // const { useServer } = await import("graphql-ws/lib/use/ws");
@@ -58,6 +60,10 @@ const startServer = async () => {
 	const wsServer = new WebSocketServer({
 		server: httpServer,
 		path: "/graphql",
+	});
+
+	wsServer.on("error", (error) => {
+		console.error(`WebSocket server error:  ${error}`.black.bgRed);
 	});
 
 	// Use graphql-ws for subscriptions

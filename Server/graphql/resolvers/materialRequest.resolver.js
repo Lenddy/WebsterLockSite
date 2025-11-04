@@ -136,11 +136,32 @@ const materialRequestResolvers = {
 
 				// Save the new material request to the database
 				await newMaterialRequest.save();
+				console.log("this is the payload", newMaterialRequest);
 
-				// Publish a subscription event for material request creation
+				const payload = {
+					...newMaterialRequest.toObject(),
+					id: newMaterialRequest._id.toString(),
+					items: newMaterialRequest.items.map((item) => ({
+						id: item._id.toString(),
+						itemName: item.itemName,
+						quantity: item.quantity,
+						itemDescription: item.itemDescription ?? null,
+						color: item.color ?? null,
+						side: item.side ?? null,
+						size: item.size ?? null,
+					})),
+				};
+
+				console.log("the id that is send ", payload.id);
+
 				await pubsub.publish("MATERIAL_REQUEST_ADDED", {
-					onMaterialRequestChange: { eventType: "created", Changes: newMaterialRequest }, // Event payload
+					onMaterialRequestChange: { eventType: "created", Changes: payload },
 				});
+
+				// // Publish a subscription event for material request creation
+				// await pubsub.publish("MATERIAL_REQUEST_ADDED", {
+				// 	onMaterialRequestChange: { eventType: "created", Changes: newMaterialRequest }, // Event payload
+				// });
 
 				// Return the newly created material request
 				return newMaterialRequest;
@@ -512,9 +533,9 @@ const materialRequestResolvers = {
 	// Field resolvers for MaterialRequest type
 	MaterialRequest: {
 		// Format createdAt as ISO string
-		createdAt: (materialRequest) => materialRequest.createdAt.toISOString(),
+		createdAt: (materialRequest) => materialRequest?.createdAt?.toISOString(),
 		// Format updatedAt as ISO string
-		updatedAt: (materialRequest) => materialRequest.updatedAt.toISOString(),
+		updatedAt: (materialRequest) => materialRequest?.updatedAt?.toISOString(),
 	},
 };
 

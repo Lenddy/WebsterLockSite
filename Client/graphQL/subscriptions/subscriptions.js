@@ -60,8 +60,8 @@ export const MATERIAL_REQUEST_CHANGE_SUBSCRIPTION = gql`
 					side
 					size
 				}
-				createdAt
-				updatedAt
+				# createdAt
+				# updatedAt
 			}
 		}
 	}

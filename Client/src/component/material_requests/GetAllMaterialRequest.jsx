@@ -73,6 +73,7 @@ export default function GetAllMaterialRequest() {
 	// Subscription to real-time updates
 	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
 		onData: ({ data: subscriptionData, client }) => {
+			console.log("material request data:", data);
 			const change = subscriptionData?.data?.onMaterialRequestChange;
 			if (!change) return;
 
@@ -155,8 +156,8 @@ export default function GetAllMaterialRequest() {
 																email
 															}
 														}
-														createdAt
-														updatedAt
+														# createdAt
+														# updatedAt
 													}
 												`,
 										  })
@@ -196,8 +197,8 @@ export default function GetAllMaterialRequest() {
 													email
 												}
 											}
-											createdAt
-											updatedAt
+											# createdAt
+											# updatedAt
 										}
 									`,
 								});

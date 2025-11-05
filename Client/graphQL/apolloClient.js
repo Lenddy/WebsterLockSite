@@ -163,6 +163,82 @@ const client = new ApolloClient({
 	}),
 });
 
+// const client = new ApolloClient({
+// 	link: splitLink,
+// 	cache: new InMemoryCache({
+// 		typePolicies: {
+// 			Query: {
+// 				fields: {
+// 					getAllMaterialRequests: {
+// 						keyArgs: false, // treats all requests as part of the same list
+// 						merge(existing = [], incoming = [], { readField }) {
+// 							// Convert to map by ID to avoid duplicates
+// 							const merged = [...existing];
+
+// 							for (const item of incoming) {
+// 								const id = readField("id", item);
+// 								const existingIndex = merged.findIndex((ref) => readField("id", ref) === id);
+
+// 								if (existingIndex > -1) {
+// 									// Update existing
+// 									merged[existingIndex] = item;
+// 								} else {
+// 									// Append new
+// 									merged.push(item);
+// 								}
+// 							}
+
+// 							return merged;
+// 						},
+// 					},
+// 				},
+// 			},
+
+// 			MaterialRequest: {
+// 				keyFields: ["id"],
+// 				fields: {
+// 					approvalStatus: {
+// 						merge(existing = {}, incoming) {
+// 							return {
+// 								...existing,
+// 								...incoming,
+// 								approvedBy: {
+// 									...existing?.approvedBy,
+// 									...incoming?.approvedBy,
+// 								},
+// 							};
+// 						},
+// 					},
+// 					items: {
+// 						merge(existing = [], incoming = [], { readField }) {
+// 							const mergedMap = new Map();
+
+// 							for (const item of existing) {
+// 								const id = readField("id", item) || item.id;
+// 								if (id) mergedMap.set(id, item);
+// 							}
+
+// 							for (const item of incoming) {
+// 								const id = readField("id", item) || item.id;
+// 								if (id) mergedMap.set(id, { ...mergedMap.get(id), ...item });
+// 							}
+
+// 							const incomingIds = new Set(incoming.map((i) => readField("id", i) || i.id));
+// 							for (const id of mergedMap.keys()) {
+// 								if (!incomingIds.has(id)) mergedMap.delete(id);
+// 							}
+
+// 							return Array.from(mergedMap.values());
+// 						},
+// 					},
+// 				},
+// 			},
+
+// 			MaterialRequestItem: { keyFields: ["id"] },
+// 		},
+// 	}),
+// });
+
 //  Apollo Client instance
 /**
  * Apollo Client instance configured with custom cache policies.

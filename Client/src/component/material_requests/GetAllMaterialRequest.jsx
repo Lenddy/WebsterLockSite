@@ -33,8 +33,8 @@ export default function GetAllMaterialRequest() {
 			const aApproved = a?.approvalStatus?.isApproved ? 1 : 0;
 			const bApproved = b?.approvalStatus?.isApproved ? 1 : 0;
 
-			const aDate = dayjs(a.addedDate);
-			const bDate = dayjs(b.addedDate);
+			const aDate = dayjs(a?.addedDate);
+			const bDate = dayjs(b?.addedDate);
 
 			const aIsFutureOrToday = aDate.isSame(today, "day") || aDate.isAfter(today);
 			const bIsFutureOrToday = bDate.isSame(today, "day") || bDate.isAfter(today);
@@ -71,150 +71,322 @@ export default function GetAllMaterialRequest() {
 	const filteredMRequests = React.useMemo(() => searchAndSort(mRequests, searchValue), [mRequests, searchValue]);
 
 	// Subscription to real-time updates
+	// useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
+	// 	onData: ({ data: subscriptionData, client }) => {
+	// 		console.log("material request data:", data);
+	// 		console.log("material request subscriptionData:", subscriptionData);
+	// 		// const change = subscriptionData?.data?.onMaterialRequestChange;
+	// 		// if (!change) return;
+
+	// 		// const { eventType, Changes } = change;
+	// 		// console.log("📡 Material Request subscription event:", eventType, Changes);
+
+	// 		// setMRequests((prevRequests) => {
+	// 		// 	let updated = [...prevRequests];
+
+	// 		// 	if (eventType === "created") {
+	// 		// 		const exists = prevRequests.some((r) => r.id === Changes.id);
+	// 		// 		if (!exists) {
+	// 		// 			updated = [...prevRequests, Changes];
+	// 		// 		}
+	// 		// 	} else if (eventType === "updated") {
+	// 		// 		updated = prevRequests.map((req) => {
+	// 		// 			if (req.id !== Changes.id) return req;
+
+	// 		// 			const existingItems = req.items || [];
+	// 		// 			const updatedItems = (Changes.items || []).map((newItem) => {
+	// 		// 				const index = existingItems.findIndex((i) => i.id === newItem.id);
+	// 		// 				if (index > -1) return { ...existingItems[index], ...newItem };
+	// 		// 				return newItem;
+	// 		// 			});
+
+	// 		// 			const remainingItems = existingItems.filter((i) => !updatedItems.some((u) => u.id === i.id));
+
+	// 		// 			return { ...req, items: [...remainingItems, ...updatedItems], ...Changes };
+	// 		// 		});
+	// 		// 	} else if (eventType === "deleted") {
+	// 		// 		updated = prevRequests.filter((req) => req.id !== Changes.id);
+	// 		// 	}
+
+	// 		// 	return updated;
+	// 		// });
+
+	// 		// try {
+	// 		// 	client.cache.modify({
+	// 		// 		fields: {
+	// 		// 			getAllMaterialRequests(existingRefs = [], { readField }) {
+	// 		// 				if (eventType === "deleted") {
+	// 		// 					return existingRefs.filter((ref) => readField("id", ref) !== Changes.id);
+	// 		// 				}
+
+	// 		// 				const existingIndex = existingRefs.findIndex((ref) => readField("id", ref) === Changes.id);
+
+	// 		// 				if (existingIndex > -1 && eventType === "updated") {
+	// 		// 					return existingRefs.map((ref) =>
+	// 		// 						readField("id", ref) === Changes.id
+	// 		// 							? client.cache.writeFragment({
+	// 		// 									data: Changes,
+	// 		// 									fragment: gql`
+	// 		// 										fragment UpdatedMaterialRequest on MaterialRequest {
+	// 		// 											id
+	// 		// 											items {
+	// 		// 												id
+	// 		// 												itemName
+	// 		// 												quantity
+	// 		// 												itemDescription
+	// 		// 												color
+	// 		// 												side
+	// 		// 												size
+	// 		// 											}
+	// 		// 											requester {
+	// 		// 												userId
+	// 		// 												name
+	// 		// 												email
+	// 		// 											}
+	// 		// 											reviewers {
+	// 		// 												userId
+	// 		// 												email
+	// 		// 												name
+	// 		// 												comment
+	// 		// 												reviewedAt
+	// 		// 											}
+	// 		// 											approvalStatus {
+	// 		// 												approvedBy {
+	// 		// 													userId
+	// 		// 													name
+	// 		// 													email
+	// 		// 												}
+	// 		// 											}
+	// 		// 											# createdAt
+	// 		// 											# updatedAt
+	// 		// 										}
+	// 		// 									`,
+	// 		// 							  })
+	// 		// 							: ref
+	// 		// 					);
+	// 		// 				} else if (eventType === "created") {
+	// 		// 					const newRef = client.cache.writeFragment({
+	// 		// 						data: Changes,
+	// 		// 						fragment: gql`
+	// 		// 							fragment NewMaterialRequest on MaterialRequest {
+	// 		// 								id
+	// 		// 								items {
+	// 		// 									id
+	// 		// 									itemName
+	// 		// 									quantity
+	// 		// 									itemDescription
+	// 		// 									color
+	// 		// 									side
+	// 		// 									size
+	// 		// 								}
+	// 		// 								requester {
+	// 		// 									userId
+	// 		// 									name
+	// 		// 									email
+	// 		// 								}
+	// 		// 								reviewers {
+	// 		// 									userId
+	// 		// 									email
+	// 		// 									name
+	// 		// 									comment
+	// 		// 									reviewedAt
+	// 		// 								}
+	// 		// 								approvalStatus {
+	// 		// 									approvedBy {
+	// 		// 										userId
+	// 		// 										name
+	// 		// 										email
+	// 		// 									}
+	// 		// 								}
+	// 		// 								# createdAt
+	// 		// 								# updatedAt
+	// 		// 							}
+	// 		// 						`,
+	// 		// 					});
+	// 		// 					return [...existingRefs, newRef];
+	// 		// 				}
+
+	// 		// 				return existingRefs;
+	// 		// 			},
+	// 		// 		},
+	// 		// 	});
+	// 		// } catch (cacheErr) {
+	// 		// 	console.warn(" Cache update skipped:", cacheErr.message);
+	// 		// }
+	// 	},
+	// 	onError: (err) => {
+	// 		console.error(" Subscription error:", err);
+	// 	},
+	// });
+
 	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
 		onData: ({ data: subscriptionData, client }) => {
-			console.log("material request data:", data);
-			const change = subscriptionData?.data?.onMaterialRequestChange;
-			if (!change) return;
+			console.log("📡 Subscription raw data:", subscriptionData);
 
-			const { eventType, Changes } = change;
-			console.log("📡 Material Request subscription event:", eventType, Changes);
+			const changeEvent = subscriptionData?.data?.onMaterialRequestChange;
+			console.log("before the return ");
+			console.log("this is the change event", changeEvent);
+			if (!changeEvent) return;
+			console.log("after the return ");
 
+			// const { eventType, changeType, change: singleChange, changes: multipleChanges } = changeEvent;
+			const { eventType, changeType, change, changes } = changeEvent;
+			console.warn("this is event type", eventType);
+			console.warn("this is change type", changeType);
+			console.warn("this is singe change", change);
+			console.warn("this is multiple changes", changes);
+			// Normalize into an array — so downstream logic doesn’t have to care
+			const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
+
+			console.log("this is normalize", changesArray);
+
+			console.warn("before the check of of change array length");
+			if (!changesArray.length) return;
+			console.warn("after the check of of change array length");
+
+			console.log(`📡 Material Request subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+
+			// --- Update state ---
 			setMRequests((prevRequests) => {
 				let updated = [...prevRequests];
 
-				if (eventType === "created") {
-					const exists = prevRequests.some((r) => r.id === Changes.id);
-					if (!exists) {
-						updated = [...prevRequests, Changes];
-					}
-				} else if (eventType === "updated") {
-					updated = prevRequests.map((req) => {
-						if (req.id !== Changes.id) return req;
+				for (const Changes of changesArray) {
+					if (eventType === "created") {
+						const exists = prevRequests.some((r) => r.id === Changes.id);
+						if (!exists) {
+							updated = [...updated, Changes];
+						}
+					} else if (eventType === "updated") {
+						updated = updated.map((req) => {
+							if (req.id !== Changes.id) return req;
 
-						const existingItems = req.items || [];
-						const updatedItems = (Changes.items || []).map((newItem) => {
-							const index = existingItems.findIndex((i) => i.id === newItem.id);
-							if (index > -1) return { ...existingItems[index], ...newItem };
-							return newItem;
+							const existingItems = req.items || [];
+							const updatedItems = (Changes.items || []).map((newItem) => {
+								const index = existingItems.findIndex((i) => i.id === newItem.id);
+								if (index > -1) return { ...existingItems[index], ...newItem };
+								return newItem;
+							});
+
+							const remainingItems = existingItems.filter((i) => !updatedItems.some((u) => u.id === i.id));
+
+							return { ...req, items: [...remainingItems, ...updatedItems], ...Changes };
 						});
-
-						const remainingItems = existingItems.filter((i) => !updatedItems.some((u) => u.id === i.id));
-
-						return { ...req, items: [...remainingItems, ...updatedItems], ...Changes };
-					});
-				} else if (eventType === "deleted") {
-					updated = prevRequests.filter((req) => req.id !== Changes.id);
+					} else if (eventType === "deleted") {
+						updated = updated.filter((req) => req.id !== Changes.id);
+					}
 				}
 
 				return updated;
 			});
 
+			// --- Update Apollo Cache ---
 			try {
 				client.cache.modify({
 					fields: {
 						getAllMaterialRequests(existingRefs = [], { readField }) {
-							if (eventType === "deleted") {
-								return existingRefs.filter((ref) => readField("id", ref) !== Changes.id);
-							}
+							let newRefs = [...existingRefs];
 
-							const existingIndex = existingRefs.findIndex((ref) => readField("id", ref) === Changes.id);
+							for (const Changes of changesArray) {
+								if (eventType === "deleted") {
+									newRefs = newRefs.filter((ref) => readField("id", ref) !== Changes.id);
+									continue;
+								}
 
-							if (existingIndex > -1 && eventType === "updated") {
-								return existingRefs.map((ref) =>
-									readField("id", ref) === Changes.id
-										? client.cache.writeFragment({
-												data: Changes,
-												fragment: gql`
-													fragment UpdatedMaterialRequest on MaterialRequest {
-														id
-														items {
+								const existingIndex = newRefs.findIndex((ref) => readField("id", ref) === Changes.id);
+
+								if (existingIndex > -1 && eventType === "updated") {
+									newRefs = newRefs.map((ref) =>
+										readField("id", ref) === Changes.id
+											? client.cache.writeFragment({
+													data: Changes,
+													fragment: gql`
+														fragment UpdatedMaterialRequest on MaterialRequest {
 															id
-															itemName
-															quantity
-															itemDescription
-															color
-															side
-															size
-														}
-														requester {
-															userId
-															name
-															email
-														}
-														reviewers {
-															userId
-															email
-															name
-															comment
-															reviewedAt
-														}
-														approvalStatus {
-															approvedBy {
+															items {
+																id
+																itemName
+																quantity
+																itemDescription
+																color
+																side
+																size
+															}
+															requester {
 																userId
 																name
 																email
 															}
+															reviewers {
+																userId
+																email
+																name
+																comment
+																reviewedAt
+															}
+															approvalStatus {
+																approvedBy {
+																	userId
+																	name
+																	email
+																}
+															}
 														}
-														# createdAt
-														# updatedAt
-													}
-												`,
-										  })
-										: ref
-								);
-							} else if (eventType === "created") {
-								const newRef = client.cache.writeFragment({
-									data: Changes,
-									fragment: gql`
-										fragment NewMaterialRequest on MaterialRequest {
-											id
-											items {
+													`,
+											  })
+											: ref
+									);
+								} else if (eventType === "created") {
+									const newRef = client.cache.writeFragment({
+										data: Changes,
+										fragment: gql`
+											fragment NewMaterialRequest on MaterialRequest {
 												id
-												itemName
-												quantity
-												itemDescription
-												color
-												side
-												size
-											}
-											requester {
-												userId
-												name
-												email
-											}
-											reviewers {
-												userId
-												email
-												name
-												comment
-												reviewedAt
-											}
-											approvalStatus {
-												approvedBy {
+												items {
+													id
+													itemName
+													quantity
+													itemDescription
+													color
+													side
+													size
+												}
+												requester {
 													userId
 													name
 													email
 												}
+												reviewers {
+													userId
+													email
+													name
+													comment
+													reviewedAt
+												}
+												approvalStatus {
+													approvedBy {
+														userId
+														name
+														email
+													}
+												}
 											}
-											# createdAt
-											# updatedAt
-										}
-									`,
-								});
-								return [...existingRefs, newRef];
+										`,
+									});
+									newRefs = [...newRefs, newRef];
+								}
 							}
 
-							return existingRefs;
+							return newRefs;
 						},
 					},
 				});
 			} catch (cacheErr) {
-				console.warn(" Cache update skipped:", cacheErr.message);
+				console.warn("⚠️ Cache update skipped:", cacheErr.message);
 			}
 		},
+
 		onError: (err) => {
-			console.error(" Subscription error:", err);
+			console.error("🚨 Subscription error:", err);
 		},
 	});
 
@@ -271,19 +443,19 @@ export default function GetAllMaterialRequest() {
 							<tbody>
 								{filteredMRequests.length !== 0 ? (
 									filteredMRequests.map((request) => (
-										<tr key={request.id}>
+										<tr key={request?.id}>
 											{jwtDecode(userToken)?.role == "headAdmin" && (
 												<td>
-													<Link to={`/material/request/${request.id}`}>{request.id}</Link>
+													<Link to={`/material/request/${request?.id}`}>{request?.id}</Link>
 												</td>
 											)}
 											<td>
-												<Link to={`/material/request/${request.id}`}>{request?.requester?.employeeNum ? request?.requester?.employeeNum : "N/A"}</Link>
+												<Link to={`/material/request/${request?.id}`}>{request?.requester?.employeeNum ? request?.requester?.employeeNum : "N/A"}</Link>
 											</td>
 											<td>
-												<Link to={`/material/request/${request.id}`}>{request.requester?.name}</Link>
+												<Link to={`/material/request/${request?.id}`}>{request?.requester?.name}</Link>
 											</td>
-											<td>{request.description}</td>
+											<td>{request?.description}</td>
 											<td>
 												<p className={`${request?.approvalStatus?.isApproved ? "approved" : "waiting-approval"}`}>{request?.approvalStatus?.isApproved ? "Approved" : "Waiting for approval"}</p>
 											</td>
@@ -292,15 +464,15 @@ export default function GetAllMaterialRequest() {
 											<td>
 												<div className="table-action-wrapper">
 													{canReview() ? (
-														<Link to={`/material/request/${request.id}/update`}>
+														<Link to={`/material/request/${request?.id}/update`}>
 															<span className="table-action first">Review</span>
 														</Link>
 													) : !request?.approvalStatus?.isApproved ? (
-														<Link to={`/material/request/${request.id}/update`}>
+														<Link to={`/material/request/${request?.id}/update`}>
 															<span className="table-action first">Update Request</span>
 														</Link>
 													) : (
-														<Link to={`/material/request/${request.id}`}>
+														<Link to={`/material/request/${request?.id}`}>
 															<span className="table-action second">View</span>
 														</Link>
 													)}

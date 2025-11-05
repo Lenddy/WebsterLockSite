@@ -42,31 +42,34 @@ const subscriber = new Redis(process.env.REDIS_URL, redisOptions);
 const pubsub = new RedisPubSub({ publisher, subscriber });
 
 // --- Optional: test publishing
-(async () => {
-	try {
-		const pong = await publisher.ping();
-		console.log("📡 Redis ping response:", pong);
+// (
+// 	async () => {
+// 	try {
+// 		const pong = await publisher.ping();
+// 		console.log("📡 Redis ping response:", pong);
 
-		const TEST_CHANNEL = "test_channel";
-		const asyncIterator = pubsub.asyncIterator(TEST_CHANNEL);
+// 		const TEST_CHANNEL = "test_channel";
+// 		const asyncIterator = pubsub.asyncIterator(TEST_CHANNEL);
 
-		// Log any test messages
-		(async () => {
-			for await (const payload of asyncIterator) {
-				console.log("📨 Received test message:", payload);
-			}
-		})();
+// 		// Log any test messages
+// 		(async () => {
+// 			for await (const payload of asyncIterator) {
+// 				console.log("📨 Received test message:", payload);
+// 			}
+// 		})();
 
-		// Publish a test message after 1s
-		setTimeout(async () => {
-			const message = { msg: "Hello from Upstash RedisPubSub!" };
-			await pubsub.publish(TEST_CHANNEL, message);
-			console.log("🚀 Published test message:", message);
-		}, 1000);
-	} catch (err) {
-		console.error("🚨 Redis PubSub test failed:", err.message);
-	}
-})();
+// 		// Publish a test message after 1s
+// 		setTimeout(async () => {
+// 			const message = { msg: "Hello from Upstash RedisPubSub!" };
+// 			await pubsub.publish(TEST_CHANNEL, message);
+// 			console.log("🚀 Published test message:", message);
+// 		}, 1000);
+// 	} catch (err) {
+// 		console.error("🚨 Redis PubSub test failed:", err.message);
+// 	}
+// }
+
+// )();
 
 export default pubsub;
 

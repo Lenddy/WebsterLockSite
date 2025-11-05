@@ -24,33 +24,102 @@ export const MATERIAL_REQUEST_CHANGE_SUBSCRIPTION = gql`
 	subscription OnMaterialRequestChange {
 		onMaterialRequestChange {
 			eventType
-			Changes {
+			changeType
+			change {
 				id
-				description
-				addedDate
 				requester {
 					userId
-					name
 					email
+					name
+					employeeNum
+					department
 					role
+					permissions {
+						canEditUsers
+						canDeleteUsers
+						canChangeRole
+						canViewUsers
+						canViewAllUsers
+						canEditSelf
+						canViewSelf
+						canDeleteSelf
+						canRegisterUser
+					}
 				}
 				reviewers {
 					userId
-					name
 					email
+					name
+					employeeNum
+					department
 					role
+					permissions {
+						canEditUsers
+						canDeleteUsers
+						canChangeRole
+						canViewUsers
+						canViewAllUsers
+						canEditSelf
+						canViewSelf
+						canDeleteSelf
+						canRegisterUser
+					}
 					comment
 					reviewedAt
 				}
 				approvalStatus {
-					isApproved
-					approvedAt
 					approvedBy {
 						userId
-						name
 						email
+						name
+						employeeNum
+						department
 					}
+					approvedAt
+					isApproved
 				}
+				description
+				addedDate
+				items {
+					id
+					itemName
+					quantity
+					itemDescription
+					color
+					side
+					size
+				}
+			}
+
+			changes {
+				id
+				requester {
+					userId
+					email
+					name
+					role
+					employeeNum
+					department
+				}
+				reviewers {
+					userId
+					email
+					name
+					role
+					employeeNum
+					department
+				}
+				approvalStatus {
+					approvedBy {
+						userId
+						email
+						name
+					}
+					approvedAt
+					isApproved
+				}
+				description
+				addedDate
 				items {
 					id
 					itemName

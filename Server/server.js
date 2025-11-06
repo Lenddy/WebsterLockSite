@@ -73,7 +73,7 @@ const startServer = async () => {
 			schema,
 			context: async (ctx, msg) => {
 				// ctx.connectionParams is what the client sends on connect
-				console.log("WS connectionParams:", ctx.connectionParams);
+				// console.log("WS connectionParams:", ctx.connectionParams);
 				const token = ctx.connectionParams?.authorization?.split(" ")[1];
 				if (token) {
 					try {

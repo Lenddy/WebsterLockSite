@@ -30,6 +30,7 @@
 		"http": "latest",
 		"ioredis": "latest",
 		"jsonwebtoken": "latest",
+		"lodash.clonedeep": "^4.5.0",
 		"moment": "latest",
 		"mongoose": "latest",
 		"socket.io": "latest",

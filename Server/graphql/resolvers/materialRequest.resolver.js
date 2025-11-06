@@ -4,6 +4,7 @@ import MaterialRequest from "../../models/materialRequest.model.js"; // Mongoose
 import pubsub from "../pubsub.js"; // PubSub instance for subscriptions
 import dayjs from "dayjs";
 import { withFilter } from "graphql-subscriptions";
+import cloneDeep from "lodash.clonedeep";
 
 /**
  * GraphQL resolvers for MaterialRequest operations.
@@ -158,81 +159,6 @@ const materialRequestResolvers = {
 			}
 		},
 
-		// createMultipleMaterialRequests: async (_, { inputs }, { user }) => {
-		// 	// Still check that a valid logged-in user is making the call
-		// 	// console.log("inputs from the front end ?");
-		// 	// console.dir(inputs, { depth: null });
-		// 	if (!user) throw new ApolloError("Unauthorized: no user context given.");
-
-		// 	try {
-		// 		// Map over inputs (array of requests with their own requester info)
-		// 		const materialRequests = inputs.map(({ requester, description, items, addedDate }) => {
-		// 			// Normalize items for each request
-		// 			const normalizedItems = items.map((item) => ({
-		// 				itemName: item.itemName,
-		// 				quantity: item.quantity,
-		// 				itemDescription: item?.itemDescription ?? null,
-		// 				color: item?.color ?? null,
-		// 				side: item?.side ?? null,
-		// 				size: item?.size ?? null,
-		// 			}));
-
-		// 			// Build a new request
-		// 			return {
-		// 				requester: {
-		// 					userId: requester.userId,
-		// 					email: requester.email,
-		// 					name: requester.name,
-		// 					employeeNum: requester.employeeNum,
-		// 					department: requester.department,
-		// 					role: requester.role,
-		// 					permissions: { ...requester.permissions },
-		// 				},
-		// 				reviewers: [],
-		// 				description,
-		// 				items: normalizedItems,
-		// 				addedDate: addedDate,
-		// 			};
-		// 		});
-
-		// 		// Insert them all at once
-		// 		const createdRequests = await MaterialRequest.insertMany(materialRequests);
-
-		// 		// Publish subscription events for each created request (stringified-safe payloads)
-		// 		for (const request of createdRequests) {
-		// 			const payload = {
-		// 				...request.toObject(),
-		// 				id: request._id.toString(),
-		// 				items: request.items.map((item) => ({
-		// 					id: item._id?.toString?.() ?? null,
-		// 					itemName: item.itemName ?? null,
-		// 					quantity: item.quantity ?? 0,
-		// 					itemDescription: item.itemDescription ?? null,
-		// 					color: item.color ?? null,
-		// 					side: item.side ?? null,
-		// 					size: item.size ?? null,
-		// 				})),
-		// 			};
-
-		// 			// console.log("📡 Publishing MATERIAL_REQUEST_ADDED for:", payload.id);
-
-		// 			await pubsub.publish("MATERIAL_REQUEST_ADDED", {
-		// 				onMaterialRequestChange: {
-		// 					eventType: "created",
-		// 					Changes: payload,
-		// 				},
-		// 			});
-		// 		}
-
-		// 		// console.log("this is the new info that was just added", createdRequests);
-
-		// 		return createdRequests;
-		// 	} catch (err) {
-		// 		console.log("Error creating many material requests", err, "\n____________________");
-		// 		throw err;
-		// 	}
-		// },
-
 		createMultipleMaterialRequests: async (_, { inputs }, { user }) => {
 			if (!user) throw new ApolloError("Unauthorized: no user context given.");
 
@@ -282,8 +208,8 @@ const materialRequestResolvers = {
 				}));
 
 				const changeType = createdRequests.length > 1 ? "multiple" : "single";
-				console.log("length", changeType);
-				console.log("this is the info", payloadArray);
+				// console.log("length", changeType);
+				// console.log("this is the info", payloadArray);
 
 				const changes = changeType === "multiple" ? payloadArray : payloadArray[0];
 
@@ -407,10 +333,31 @@ const materialRequestResolvers = {
 
 				await Promise.all([shouldSave ? target.save() : null, bulkOps.length > 0 ? MaterialRequest.bulkWrite(bulkOps) : null]);
 
+				// Fetch updated document
 				const updatedTarget = await MaterialRequest.findById(id);
 
+				// Convert it to a pure JSON-safe object
+				const payload = {
+					...updatedTarget.toObject(),
+					id: updatedTarget._id.toString(),
+					items: updatedTarget.items.map((item) => ({
+						id: item._id.toString(),
+						itemName: item.itemName,
+						quantity: item.quantity,
+						itemDescription: item.itemDescription ?? null,
+						color: item.color ?? null,
+						side: item.side ?? null,
+						size: item.size ?? null,
+					})),
+				};
+
+				// Publish the update event through RedisPubSub
 				await pubsub.publish("MATERIAL_REQUEST_UPDATED", {
-					onMaterialRequestChange: { eventType: "updated", Changes: updatedTarget },
+					onMaterialRequestChange: {
+						eventType: "updated",
+						changeType: "single",
+						change: payload,
+					},
 				});
 
 				return updatedTarget;
@@ -533,12 +480,35 @@ const materialRequestResolvers = {
 			// Fetch updated records in one query
 			const updatedRequests = await MaterialRequest.find({ _id: { $in: requestIds } });
 
-			// Publish events
-			updatedRequests.forEach((r) =>
-				pubsub.publish("MATERIAL_REQUEST_UPDATED", {
-					onMaterialRequestChange: { eventType: "updated", Changes: r },
-				})
-			);
+			// Prepare payload array (JSON-safe)
+			const payloadArray = updatedRequests.map((r) => ({
+				...r.toObject(),
+				id: r._id.toString(),
+				items: r.items.map((item) => ({
+					id: item._id.toString(),
+					itemName: item.itemName,
+					quantity: item.quantity,
+					itemDescription: item.itemDescription ?? null,
+					color: item.color ?? null,
+					side: item.side ?? null,
+					size: item.size ?? null,
+				})),
+			}));
+
+			const changeType = updatedRequests.length > 1 ? "multiple" : "single";
+			// console.log("length", changeType);
+			// console.log("this is the info", payloadArray);
+
+			const changes = changeType === "multiple" ? payloadArray : payloadArray[0];
+
+			// Publish as a single bulk event
+			await pubsub.publish("MATERIAL_REQUEST_UPDATED", {
+				onMaterialRequestChange: {
+					eventType: "updated",
+					changeType: changeType,
+					...(changeType === "multiple" ? { changes: changes } : { change: changes }),
+				},
+			});
 
 			return updatedRequests;
 		},
@@ -548,12 +518,31 @@ const materialRequestResolvers = {
 			if (!user) throw new ApolloError("Unauthorized: No context provided."); // Require authentication
 			if (!user.permissions.canDeleteUsers) throw new ApolloError("You lack permission to delete Material request."); // Require permission
 
-			const deletedMaterialRequest = await MaterialRequest.findByIdAndDelete(id); // Delete by ID
-			if (!deletedMaterialRequest) throw new ApolloError("Material Request not found"); // Error if not found
+			const deletedMaterialRequest = await MaterialRequest.findByIdAndDelete(id);
+			if (!deletedMaterialRequest) throw new ApolloError("Material Request not found");
+
+			// Prepare JSON-safe payload
+			const payload = {
+				...deletedMaterialRequest.toObject(),
+				id: deletedMaterialRequest._id.toString(),
+				items: deletedMaterialRequest.items.map((item) => ({
+					id: item._id.toString(),
+					itemName: item.itemName,
+					quantity: item.quantity,
+					itemDescription: item.itemDescription ?? null,
+					color: item.color ?? null,
+					side: item.side ?? null,
+					size: item.size ?? null,
+				})),
+			};
 
 			// Publish deletion event for subscriptions
 			await pubsub.publish("MATERIAL_REQUEST_DELETED", {
-				onMaterialRequestChange: { eventType: "deleted", Changes: deletedMaterialRequest },
+				onMaterialRequestChange: {
+					eventType: "deleted",
+					changeType: "single",
+					change: payload,
+				},
 			});
 
 			// MaterialRequest;
@@ -578,15 +567,38 @@ const materialRequestResolvers = {
 					throw new ApolloError("No Material Requests found for the provided IDs.");
 				}
 
-				// Delete all at once using deleteMany
+				// Delete all at once
 				await MaterialRequest.deleteMany({ _id: { $in: ids } });
 
-				// Publish deletion events for subscriptions
-				for (const request of requestsToDelete) {
-					await pubsub.publish("MATERIAL_REQUEST_DELETED", {
-						onMaterialRequestChange: { eventType: "deleted", Changes: request },
-					});
-				}
+				// Prepare JSON-safe payloads
+				const payloadArray = requestsToDelete.map((req) => ({
+					...req.toObject(),
+					id: req._id.toString(),
+					items: req.items.map((item) => ({
+						id: item._id.toString(),
+						itemName: item.itemName,
+						quantity: item.quantity,
+						itemDescription: item.itemDescription ?? null,
+						color: item.color ?? null,
+						side: item.side ?? null,
+						size: item.size ?? null,
+					})),
+				}));
+
+				const changeType = MaterialRequest.length > 1 ? "multiple" : "single";
+				// console.log("length", changeType);
+				// console.log("this is the info", payloadArray);
+
+				const changes = changeType === "multiple" ? payloadArray : payloadArray[0];
+
+				// Publish one event for all deletions
+				await pubsub.publish("MATERIAL_REQUEST_DELETED", {
+					onMaterialRequestChange: {
+						eventType: "deleted",
+						changeType: changeType,
+						...(changeType === "multiple" ? { changes: changes } : { change: changes }),
+					},
+				});
 
 				// Return the deleted requests
 				return requestsToDelete;
@@ -597,125 +609,60 @@ const materialRequestResolvers = {
 		},
 	},
 
-	// Subscription resolvers
 	Subscription: {
-		// Listen for changes to material requests
-		// onMaterialRequestChange: {
-		// 	subscribe: () => pubsub.asyncIterableIterator(["MATERIAL_REQUEST_ADDED", "MATERIAL_REQUEST_UPDATED", "MATERIAL_REQUEST_DELETED"]),
-		// },
 		onMaterialRequestChange: {
-			// subscribe: withFilter(
-			// 	// Async iterator (unchanged)
-			// 	() => pubsub.asyncIterator(["MATERIAL_REQUEST_ADDED", "MATERIAL_REQUEST_UPDATED", "MATERIAL_REQUEST_DELETED"]),
-
-			// 	// Filtering logic
-			// 	(payload, variables, { user }) => {
-			// 		if (!user) return false;
-
-			// 		const isAdmin = ["headAdmin", "admin", "subAdmin"].includes(user.role);
-			// 		if (isAdmin) return true; // Admins get everything
-
-			// 		// Otherwise only get requests where this user is the requester
-			// 		const { change, changes } = payload.onMaterialRequestChange;
-
-			// 		if (change && !Array.isArray(change)) {
-			// 			return change.requester?.userId === user.userId;
-			// 		}
-
-			// 		if (Array.isArray(changes)) {
-			// 			const filtered = changes.filter((req) => req?.requester?.userId === user.userId);
-			// 			payload.onMaterialRequestChange.changes = filtered;
-			// 			return filtered.length > 0;
-			// 		}
-
-			// 		return false;
-			// 	}
-			// ),
-			// subscribe: withFilter(
-			// 	(root, args, context) => {
-			// 		console.log("context this is context ", context);
-			// 		// context now has user & pubsub
-			// 		return context.pubsub.asyncIterator(["MATERIAL_REQUEST_ADDED", "MATERIAL_REQUEST_UPDATED", "MATERIAL_REQUEST_DELETED"]);
-			// 	},
-			// 	(payload, variables, context) => {
-			// 		const { user } = context;
-			// 		console.log("this is users", user);
-			// 		if (!user) return false;
-
-			// 		const isAdmin = ["headAdmin", "admin", "subAdmin"].includes(user.role);
-			// 		if (isAdmin) return true; // Admins get everything
-
-			// 		const { change, changes } = payload.onMaterialRequestChange;
-
-			// 		if (change && !Array.isArray(change)) {
-			// 			return change.requester?.userId === user.userId;
-			// 		}
-
-			// 		if (Array.isArray(changes)) {
-			// 			const filtered = changes.filter((req) => req?.requester?.userId === user.userId);
-			// 			payload.onMaterialRequestChange.changes = filtered;
-			// 			return filtered.length > 0;
-			// 		}
-
-			// 		return false;
-			// 	}
-			// ),
-			// subscribe: withFilter(
-			// 	(root, args, context) => {
-			// 		console.log("this is context", context);
-			// 		return context.pubsub.asyncIterator(["MATERIAL_REQUEST_ADDED", "MATERIAL_REQUEST_UPDATED", "MATERIAL_REQUEST_DELETED"]);
-			// 	},
-			// 	(payload, variables, context) => {
-			// 		const { user } = context;
-			// 		console.log("this is user", user);
-			// 		if (!user) return false;
-
-			// 		const isAdmin = ["headAdmin", "admin", "subAdmin"].includes(user.role);
-			// 		if (isAdmin) return true;
-
-			// 		const { change, changes } = payload.onMaterialRequestChange;
-
-			// 		if (change && !Array.isArray(change)) {
-			// 			return change.requester?.userId === user.userId;
-			// 		}
-
-			// 		if (Array.isArray(changes)) {
-			// 			const filtered = changes.filter((req) => req?.requester?.userId === user.userId);
-			// 			payload.onMaterialRequestChange.changes = filtered;
-			// 			return filtered.length > 0;
-			// 		}
-
-			// 		return false;
-			// 	}
-			// ),
 			subscribe: withFilter(
-				(root, args, context) => {
-					if (!context.pubsub) throw new Error("PubSub not found in context");
-					return context.pubsub.asyncIterator(["MATERIAL_REQUEST_ADDED", "MATERIAL_REQUEST_UPDATED", "MATERIAL_REQUEST_DELETED"]);
-				},
+				() => pubsub.asyncIterator(["MATERIAL_REQUEST_ADDED", "MATERIAL_REQUEST_UPDATED", "MATERIAL_REQUEST_DELETED"]),
 				(payload, variables, context) => {
 					const { user } = context;
 					if (!user) return false;
-					console.log("this is the payload", payload);
 
+					const eventData = cloneDeep(payload.onMaterialRequestChange);
+
+					// Admins always see everything
 					if (["headAdmin", "admin", "subAdmin"].includes(user.role)) return true;
 
-					const data = payload.onMaterialRequestChange;
-					if (!data) return false;
-
-					if (data.change && !Array.isArray(data.change)) {
-						return data.change.requester?.userId === user.userId;
+					// Non-admins see only their requests
+					if (eventData.change && !Array.isArray(eventData.change)) {
+						return eventData.change.requester?.userId === user.userId;
 					}
 
-					if (Array.isArray(data.changes)) {
-						const filteredChanges = data.changes.filter((req) => req?.requester?.userId === user.userId);
-						payload.onMaterialRequestChange = { ...data, changes: filteredChanges };
-						return filteredChanges.length > 0;
+					if (Array.isArray(eventData.changes)) {
+						const filtered = eventData.changes.filter((req) => req?.requester?.userId === user.userId);
+						eventData.changes = filtered;
+						return filtered.length > 0;
 					}
 
 					return false;
 				}
 			),
+
+			resolve: (payload, args, context) => {
+				const { user } = context;
+				const cloned = cloneDeep(payload.onMaterialRequestChange);
+
+				// Admins see everything
+				if (["headAdmin", "admin", "subAdmin"].includes(user.role)) {
+					return cloned;
+				}
+
+				// Non-admins only see their own changes
+				if (Array.isArray(cloned.changes)) {
+					cloned.changes = cloned.changes.filter((r) => r?.requester?.userId === user.userId);
+				} else if (cloned.change && cloned.change.requester) {
+					if (cloned.change.requester.userId !== user.userId) {
+						// Instead of returning null, return a safe empty object
+						return { ...cloned, changes: [] };
+					}
+				}
+
+				// Always return something valid
+				if (!cloned.change && !cloned.changes) {
+					return { changes: [] };
+				}
+
+				return cloned;
+			},
 		},
 	},
 

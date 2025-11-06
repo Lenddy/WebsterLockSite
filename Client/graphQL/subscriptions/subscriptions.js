@@ -3,17 +3,61 @@ import { gql } from "@apollo/client";
 export const USER_CHANGE_SUBSCRIPTION = gql`
 	subscription OnUserChange {
 		onUserChange {
+			changeType
 			eventType
-			Changes {
+			change {
 				id
+				employeeNum
 				name
 				email
-				employeeNum
-				department
+				token
 				role
+				department
 				job {
 					title
 					description
+				}
+				permissions {
+					canEditUsers
+					canDeleteUsers
+					canChangeRole
+					canViewUsers
+					canViewAllUsers
+					canEditSelf
+					canViewSelf
+					canDeleteSelf
+					canRegisterUser
+					canNotBeDeleted
+					canNotBeUpdated
+				}
+			}
+
+			changes {
+				id
+				name
+				email
+				token
+				role
+				employeeNum
+				department
+				# createdAt
+				# updatedAt
+				job {
+					title
+					description
+				}
+				permissions {
+					canEditUsers
+					canDeleteUsers
+					canChangeRole
+					canViewUsers
+					canViewAllUsers
+					canEditSelf
+					canViewSelf
+					canDeleteSelf
+					canRegisterUser
+					canNotBeDeleted
+					canNotBeUpdated
 				}
 			}
 		}
@@ -140,7 +184,17 @@ export const ITEM_GROUP_CHANGE_SUBSCRIPTION = gql`
 	subscription OnItemGroupChange {
 		onItemGroupChange {
 			eventType
-			Changes {
+			changeType
+			change {
+				id
+				brand
+				itemsList {
+					id
+					itemName
+				}
+			}
+
+			changes {
 				id
 				brand
 				itemsList {

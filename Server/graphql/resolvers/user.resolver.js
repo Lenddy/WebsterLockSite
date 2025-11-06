@@ -103,17 +103,43 @@ const userResolver = {
 					role: newUser.role, // Role
 					permissions: newUser.permissions, // Permissions
 				};
+
 				const token = jwt.sign(tokenPayload, process.env.Secret_Key); // Create JWT token
+
 				newUser.token = token; // Attach token to user
+
+				// const res = await newUser.save(); // Save user to DB
+
+				// await pubsub.publish("USER_ADDED", {
+				// 	onUserChange: {
+				// 		eventType: "created", // Event type
+				// 		Changes: res, // User data
+				// 	},
+				// });
 
 				const res = await newUser.save(); // Save user to DB
 
+				// Convert Mongoose document to plain JS object
+				const payload = {
+					...res.toObject(),
+					id: res._id.toString(),
+					// Optional: normalize nested arrays if your user has any, e.g., roles
+					roles:
+						res.roles?.map((role) => ({
+							id: role._id?.toString() || role.id,
+							name: role.name,
+						})) || [],
+				};
+
+				// Publish the event for TRedis / Upstash Redis PubSub
 				await pubsub.publish("USER_ADDED", {
 					onUserChange: {
-						eventType: "created", // Event type
-						Changes: res, // User data
+						eventType: "created",
+						changeType: "single", // Always use 'single' for one user
+						change: payload,
 					},
 				});
+
 				return {
 					id: res.id, // User ID
 					...res._doc, // User document
@@ -186,37 +212,53 @@ const userResolver = {
 				console.log("Mongoose documents ready for bulkSave:", userDocs);
 
 				//  Bulk save all documents
-				const bulkSaveResult = await User.bulkSave(userDocs, { ordered: true });
-				console.log("bulkSave result:", bulkSaveResult);
+				// const bulkSaveResult = await User.bulkSave(userDocs, { ordered: true });
+				// console.log("bulkSave result:", bulkSaveResult);
 
-				//  Convert result into an array of actual documents
-				// Since bulkSave returns the docs themselves in Mongoose v7+, you can do:
+				// //  Convert result into an array of actual documents
+				// // Since bulkSave returns the docs themselves in Mongoose v7+, you can do:
+				// const savedUsersArray = Array.isArray(bulkSaveResult) ? bulkSaveResult : userDocs;
+
+				// //  Publish subscription events
+				// await Promise.all(
+				// 	savedUsersArray.map((savedUser) =>
+				// 		pubsub.publish("USER_ADDED", {
+				// 			onUserChange: { eventType: "created", Changes: savedUser },
+				// 		})
+				// 	)
+				// );
+				// Bulk save all documents
+				const bulkSaveResult = await User.bulkSave(userDocs, { ordered: true });
+
+				// Convert result into an array of actual documents
 				const savedUsersArray = Array.isArray(bulkSaveResult) ? bulkSaveResult : userDocs;
 
-				//  Publish subscription events
-				await Promise.all(
-					savedUsersArray.map((savedUser) =>
-						pubsub.publish("USER_ADDED", {
-							onUserChange: { eventType: "created", Changes: savedUser },
-						})
-					)
-				);
-				// await Promise.all(
-				// 	savedUsersArray.map(async (savedUser) => {
-				// 		const plainUser = savedUser.toObject ? savedUser.toObject() : savedUser;
+				// Build payload array (serialize each user properly)
+				const payloadArray = savedUsersArray.map((user) => ({
+					...user.toObject(),
+					id: user._id.toString(),
+					// Optional: normalize nested arrays if user has any, e.g., roles
+					roles:
+						user.roles?.map((role) => ({
+							id: role._id?.toString() ?? role.id,
+							name: role.name,
+						})) ?? [],
+				}));
 
-				// 		// Ensure timestamps are properly formatted for GraphQL
-				// 		const safeUser = {
-				// 			...plainUser,
-				// 			createdAt: plainUser.createdAt ? new Date(plainUser.createdAt).toISOString() : null,
-				// 			updatedAt: plainUser.updatedAt ? new Date(plainUser.updatedAt).toISOString() : null,
-				// 		};
+				// Determine changeType
+				const changeType = payloadArray.length > 1 ? "multiple" : "single";
 
-				// 		await pubsub.publish("USER_ADDED", {
-				// 			onUserChange: { eventType: "created", Changes: safeUser },
-				// 		});
-				// 	})
-				// );
+				// Prepare changes
+				const changes = changeType === "multiple" ? payloadArray : payloadArray[0];
+
+				// Publish a single event with all users
+				await pubsub.publish("USER_ADDED", {
+					onUserChange: {
+						eventType: "created",
+						changeType: changeType,
+						...(changeType === "multiple" ? { changes } : { change: changes }),
+					},
+				});
 
 				//  Prepare final response
 				const finalResult = savedUsersArray.map((u) => ({
@@ -346,12 +388,36 @@ const userResolver = {
 
 				targetUser.token = newToken; // Update token
 
-				await targetUser.save(); // Save changes
+				// await targetUser.save(); // Save changes
 
+				// await pubsub.publish("USER_UPDATED", {
+				// 	onUserChange: {
+				// 		eventType: "updated", // Event type
+				// 		Changes: targetUser, // User data
+				// 	},
+				// });
+
+				// Save changes
+				await targetUser.save();
+
+				// Build payload
+				const payload = {
+					...targetUser.toObject(),
+					id: targetUser._id.toString(),
+					// Optional: normalize nested arrays if needed
+					roles:
+						targetUser.roles?.map((role) => ({
+							id: role._id?.toString() ?? role.id,
+							name: role.name,
+						})) ?? [],
+				};
+
+				// Publish subscription event
 				await pubsub.publish("USER_UPDATED", {
 					onUserChange: {
-						eventType: "updated", // Event type
-						Changes: targetUser, // User data
+						eventType: "updated",
+						changeType: "single",
+						change: payload,
 					},
 				});
 
@@ -556,18 +622,41 @@ const userResolver = {
 						employeeNum: targetUser.employeeNum,
 						department: targetUser.department,
 					});
-				}
 
-				if (bulkOps.length > 0) {
-					await User.bulkWrite(bulkOps);
-				}
+					// if (bulkOps.length > 0) {
+					// 	await User.bulkWrite(bulkOps);
+					// }
 
-				// publish one by one
-				for (const u of updatedUsers) {
+					// // publish one by one
+					// for (const u of updatedUsers) {
+					// 	await pubsub.publish("USER_UPDATED", {
+					// 		onUserChange: {
+					// 			eventType: "updated",
+					// 			Changes: u,
+					// 		},
+					// 	});
+
+					// After performing your bulk updates
+					if (bulkOps.length > 0) {
+						await User.bulkWrite(bulkOps);
+					}
+
+					// Build payload array
+					const payloadArray = updatedUsers.map((user) => ({
+						...user,
+						id: user.id.toString(),
+						// Optional: normalize nested structures if any
+					}));
+
+					const changeType = payloadArray.length > 1 ? "multiple" : "single";
+					const changes = changeType === "multiple" ? payloadArray : payloadArray[0];
+
+					// Publish a single event with all updated users
 					await pubsub.publish("USER_UPDATED", {
 						onUserChange: {
 							eventType: "updated",
-							Changes: u,
+							changeType,
+							...(changeType === "multiple" ? { changes } : { change: changes }),
 						},
 					});
 				}
@@ -596,10 +685,25 @@ const userResolver = {
 				if (targetUser.permissions?.canNotBeDeleted) throw new ApolloError("This user cannot be deleted."); // Cannot delete
 			}
 
-			const deletedUser = await User.findByIdAndDelete(id); // Delete user
+			// const deletedUser = await User.findByIdAndDelete(id); // Delete user
 
+			// await pubsub.publish("USER_DELETED", {
+			// 	onUserChange: { eventType: "deleted", Changes: deletedUser }, // Publish event
+			// });
+
+			const deletedUser = await User.findByIdAndDelete(id); // Delete user
+			if (!deletedUser) throw new ApolloError("User not found");
+
+			// Publish subscription event
 			await pubsub.publish("USER_DELETED", {
-				onUserChange: { eventType: "deleted", Changes: deletedUser }, // Publish event
+				onUserChange: {
+					eventType: "deleted",
+					changeType: "single",
+					change: {
+						...deletedUser.toObject(),
+						id: deletedUser._id.toString(), // normalize id
+					},
+				},
 			});
 
 			return deletedUser; // Return deleted user
@@ -639,6 +743,20 @@ const userResolver = {
 					}
 				}
 
+				// // Perform bulk delete
+				// const bulkOps = ids.map((id) => ({
+				// 	deleteOne: { filter: { _id: id } },
+				// }));
+
+				// await User.bulkWrite(bulkOps);
+
+				// // Publish subscription events for each deleted user
+				// for (const deletedUser of targetUsers) {
+				// 	await pubsub.publish("USER_DELETED", {
+				// 		onUserChange: { eventType: "deleted", Changes: deletedUser },
+				// 	});
+				// }
+
 				// Perform bulk delete
 				const bulkOps = ids.map((id) => ({
 					deleteOne: { filter: { _id: id } },
@@ -646,12 +764,19 @@ const userResolver = {
 
 				await User.bulkWrite(bulkOps);
 
-				// Publish subscription events for each deleted user
-				for (const deletedUser of targetUsers) {
-					await pubsub.publish("USER_DELETED", {
-						onUserChange: { eventType: "deleted", Changes: deletedUser },
-					});
-				}
+				// Publish a single subscription event for all deleted users
+				const payloadArray = targetUsers.map((user) => ({
+					...user.toObject(),
+					id: user._id.toString(), // normalize id
+				}));
+
+				await pubsub.publish("USER_DELETED", {
+					onUserChange: {
+						eventType: "deleted",
+						changeType: payloadArray.length > 1 ? "multiple" : "single",
+						...(payloadArray.length > 1 ? { changes: payloadArray } : { change: payloadArray[0] }),
+					},
+				});
 
 				return targetUsers; // Return deleted users
 			} catch (error) {

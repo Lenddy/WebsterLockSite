@@ -70,8 +70,10 @@ const itemGroupTypeDef = gql`
 
 	# --- Subscription ---
 	type ItemGroupChange { # Change event for subscription
-		eventType: String
-		Changes: ItemGroup!
+		eventType: String!
+		changeType: String! # "single" or "multiple"
+		change: ItemGroup
+		changes: [ItemGroup!]
 	}
 
 	type Subscription {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQuery, useSubscription } from "@apollo/client";
+import { useQuery, useSubscription, gql } from "@apollo/client";
 import { get_all_users } from "../../../graphQL/queries/queries";
 import { Link } from "react-router-dom";
 import { USER_CHANGE_SUBSCRIPTION } from "../../../graphQL/subscriptions/subscriptions";
@@ -45,24 +45,135 @@ export default function GetAllUsers() {
 	}, [data]);
 
 	// Live subscription for updates
+	// useSubscription(USER_CHANGE_SUBSCRIPTION, {
+	// 	onData: ({ data }) => {
+	// 		const change = data?.data?.onUserChange;
+	// 		if (!change) return;
+
+	// 		const { eventType, Changes } = change;
+	// 		setUsers((prev) => {
+	// 			let updated;
+	// 			if (eventType === "created") updated = [...prev, Changes];
+	// 			else if (eventType === "updated") updated = prev.map((u) => (u.id === Changes.id ? Changes : u));
+	// 			else if (eventType === "deleted") updated = prev.filter((u) => u.id !== Changes.id);
+	// 			else updated = prev;
+
+	// 			if (searchValue) setFilteredUsers(applyFuse(updated, searchValue));
+	// 			else setFilteredUsers(updated);
+
+	// 			return updated;
+	// 		});
+	// 	},
+	// });
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
-		onData: ({ data }) => {
-			const change = data?.data?.onUserChange;
-			if (!change) return;
+		onData: ({ data: subscriptionData, client }) => {
+			console.log("📡 Subscription raw data:", subscriptionData);
 
-			const { eventType, Changes } = change;
-			setUsers((prev) => {
-				let updated;
-				if (eventType === "created") updated = [...prev, Changes];
-				else if (eventType === "updated") updated = prev.map((u) => (u.id === Changes.id ? Changes : u));
-				else if (eventType === "deleted") updated = prev.filter((u) => u.id !== Changes.id);
-				else updated = prev;
+			const changeEvent = subscriptionData?.data?.onUserChange;
+			if (!changeEvent) return;
 
-				if (searchValue) setFilteredUsers(applyFuse(updated, searchValue));
-				else setFilteredUsers(updated);
+			const { eventType, changeType, change, changes } = changeEvent;
+
+			// Normalize into an array so downstream logic doesn’t have to care
+			const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
+
+			if (!changesArray.length) return;
+
+			console.log(`📡 User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+
+			// --- Update local state ---
+			setUsers((prevUsers) => {
+				let updated = [...prevUsers];
+
+				for (const Changes of changesArray) {
+					if (eventType === "created") {
+						const exists = prevUsers.some((u) => u.id === Changes.id);
+						if (!exists) updated = [...updated, Changes];
+					} else if (eventType === "updated") {
+						updated = updated.map((u) => (u.id === Changes.id ? { ...u, ...Changes } : u));
+					} else if (eventType === "deleted") {
+						updated = updated.filter((u) => u.id !== Changes.id);
+					}
+				}
+
+				// Apply search/filtering
+				const sorted = updated; // optionally add a sort function if needed
+				if (searchValue) setFilteredUsers(applyFuse(sorted, searchValue));
+				else setFilteredUsers(sorted);
 
 				return updated;
 			});
+
+			// !!!!!!!
+
+			// --- Update Apollo Cache (optional) ---
+			// try {
+			// 	client.cache.modify({
+			// 		fields: {
+			// 			getAllUsers(existingRefs = [], { readField }) {
+			// 				let newRefs = [...existingRefs];
+
+			// 				for (const Changes of changesArray) {
+			// 					if (eventType === "deleted") {
+			// 						newRefs = newRefs.filter((ref) => readField("id", ref) !== Changes.id);
+			// 						continue;
+			// 					}
+
+			// 					const existingIndex = newRefs.findIndex((ref) => readField("id", ref) === Changes.id);
+
+			// 					if (existingIndex > -1 && eventType === "updated") {
+			// 						newRefs = newRefs.map((ref) =>
+			// 							readField("id", ref) === Changes.id
+			// 								? client.cache.writeFragment({
+			// 										data: Changes,
+			// 										fragment: gql`
+			// 											fragment UpdatedUser on User {
+			// 												id
+			// 												name
+			// 												email
+			// 												role
+			// 												permissions
+			// 												job
+			// 												employeeNum
+			// 												department
+			// 												token
+			// 											}
+			// 										`,
+			// 								  })
+			// 								: ref
+			// 						);
+			// 					} else if (eventType === "created") {
+			// 						const newRef = client.cache.writeFragment({
+			// 							data: Changes,
+			// 							fragment: gql`
+			// 								fragment NewUser on User {
+			// 									id
+			// 									name
+			// 									email
+			// 									role
+			// 									permissions
+			// 									job
+			// 									employeeNum
+			// 									department
+			// 									token
+			// 								}
+			// 							`,
+			// 						});
+			// 						newRefs = [...newRefs, newRef];
+			// 					}
+			// 				}
+
+			// 				return newRefs;
+			// 			},
+			// 		},
+			// 	});
+			// } catch (cacheErr) {
+			// 	console.warn("⚠️ Cache update skipped:", cacheErr.message);
+			// }
+		},
+
+		onError: (err) => {
+			console.error("🚨 Subscription error:", err);
 		},
 	});
 

@@ -102,47 +102,102 @@ export default function GetOneMaterialRequest() {
 		}
 	}, [data, allItems]);
 
+	// useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
+	// 	onData: ({ data: subscriptionData }) => {
+	// 		const change = subscriptionData?.data?.onMaterialRequestChange;
+	// 		if (!change) return;
+
+	// 		const { eventType, Changes } = change;
+	// 		// console.log("Material Request subscription event:", eventType, Changes);
+
+	// 		if (Changes?.id === requestId) {
+	// 			alert("The material request has been updated");
+
+	// 			if (eventType === "updated" && Array.isArray(Changes.items)) {
+	// 				setRows(() => {
+	// 					//  Map updated items into the same format as the initial useEffect
+	// 					return Changes.items.map((item) => {
+	// 						const matchedItem = allItems.find((i) => i.value === item.itemName);
+	// 						const matchedColor = colorOptions.find((i) => i.value === item.color);
+	// 						const matchedSide = sideOptions.find((i) => i.value === item.side);
+	// 						const matchedSize = sizeOptions.find((i) => i.value === item.size);
+
+	// 						return {
+	// 							id: item.id,
+	// 							quantity: item.quantity,
+	// 							item: matchedItem || { label: item.itemName, value: item.itemName },
+	// 							itemDescription: item.itemDescription || "",
+	// 							color: matchedColor || { label: item.color, value: item.color },
+	// 							side: matchedSide || { label: item.side, value: item.side },
+	// 							size: matchedSize || { label: item.size, value: item.size },
+	// 						};
+	// 					});
+	// 				});
+	// 			}
+
+	// 			if (eventType === "deleted") {
+	// 				alert("The material request has been deleted. You will be redirected to view all material requests.");
+	// 				navigate("/material/request/all");
+	// 			}
+	// 		}
+	// 	},
+	// 	onError: (err) => {
+	// 		console.error(" Subscription error:", err);
+	// 	},
+	// });
+
 	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
-		onData: ({ data: subscriptionData }) => {
-			const change = subscriptionData?.data?.onMaterialRequestChange;
-			if (!change) return;
+		onData: ({ data: subscriptionData, client }) => {
+			console.log("📡 Subscription raw data:", subscriptionData);
 
-			const { eventType, Changes } = change;
-			// console.log("Material Request subscription event:", eventType, Changes);
+			const changeEvent = subscriptionData?.data?.onMaterialRequestChange;
+			if (!changeEvent) return;
 
-			if (Changes?.id === requestId) {
-				alert("The material request has been updated");
+			const { eventType, changeType, change, changes } = changeEvent;
 
-				if (eventType === "updated" && Array.isArray(Changes.items)) {
-					setRows(() => {
-						//  Map updated items into the same format as the initial useEffect
-						return Changes.items.map((item) => {
-							const matchedItem = allItems.find((i) => i.value === item.itemName);
-							const matchedColor = colorOptions.find((i) => i.value === item.color);
-							const matchedSide = sideOptions.find((i) => i.value === item.side);
-							const matchedSize = sizeOptions.find((i) => i.value === item.size);
+			// Normalize into an array so logic is consistent
+			const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
 
-							return {
-								id: item.id,
-								quantity: item.quantity,
-								item: matchedItem || { label: item.itemName, value: item.itemName },
-								itemDescription: item.itemDescription || "",
-								color: matchedColor || { label: item.color, value: item.color },
-								side: matchedSide || { label: item.side, value: item.side },
-								size: matchedSize || { label: item.size, value: item.size },
-							};
-						});
-					});
-				}
+			if (!changesArray.length) return;
 
-				if (eventType === "deleted") {
-					alert("The material request has been deleted. You will be redirected to view all material requests.");
-					navigate("/material/request/all");
+			console.log(`📡 Material Request subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+
+			// --- Update local state for detailed request view (setRows) ---
+			if (requestId) {
+				const targetChange = changesArray.find((c) => c.id === requestId);
+				if (targetChange) {
+					if (eventType === "updated" && Array.isArray(targetChange.items)) {
+						setRows(() =>
+							targetChange.items.map((item) => {
+								const matchedItem = allItems.find((i) => i.value === item.itemName);
+								const matchedColor = colorOptions.find((i) => i.value === item.color);
+								const matchedSide = sideOptions.find((i) => i.value === item.side);
+								const matchedSize = sizeOptions.find((i) => i.value === item.size);
+
+								return {
+									id: item.id,
+									quantity: item.quantity,
+									item: matchedItem || { label: item.itemName, value: item.itemName },
+									itemDescription: item.itemDescription || "",
+									color: matchedColor || { label: item.color, value: item.color },
+									side: matchedSide || { label: item.side, value: item.side },
+									size: matchedSize || { label: item.size, value: item.size },
+								};
+							})
+						);
+						alert("The material request has been updated");
+					}
+
+					if (eventType === "deleted") {
+						alert("The material request has been deleted. You will be redirected to view all material requests.");
+						navigate("/material/request/all");
+					}
 				}
 			}
 		},
+
 		onError: (err) => {
-			console.error(" Subscription error:", err);
+			console.error("🚨 Subscription error:", err);
 		},
 	});
 

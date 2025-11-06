@@ -202,8 +202,10 @@ const materialRequestTypeDef = gql`
 
 	# --- Subscription ---
 	type MaterialRequestChange { # Change event for subscription
-		eventType: String
-		Changes: MaterialRequest!
+		eventType: String!
+		changeType: String! # "single" or "multiple"
+		change: MaterialRequest
+		changes: [MaterialRequest!]
 	}
 
 	type Subscription {

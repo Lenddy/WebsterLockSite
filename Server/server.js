@@ -67,7 +67,28 @@ const startServer = async () => {
 	});
 
 	// Use graphql-ws for subscriptions
-	useServer({ schema }, wsServer);
+	// useServer({ schema }, wsServer);
+	useServer(
+		{
+			schema,
+			context: async (ctx, msg) => {
+				// ctx.connectionParams is what the client sends on connect
+				// console.log("WS connectionParams:", ctx.connectionParams);
+				const token = ctx.connectionParams?.authorization?.split(" ")[1];
+				if (token) {
+					try {
+						const user = await authenticator(token);
+						return { user, pubsub };
+					} catch (err) {
+						console.error("WS auth error:", err.message);
+						return { pubsub }; // fallback context if auth fails
+					}
+				}
+				return { pubsub }; // if no token, just pubsub
+			},
+		},
+		wsServer
+	);
 
 	// Apollo Server v4
 	const apolloServer = new ApolloServer({

@@ -54,31 +54,144 @@ export default function AdminGetAllItems() {
 	}, [data, error]);
 
 	// Update subscription to apply sorting
+	// useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
+	// 	onError: (err) => console.error("Subscription error:", err),
+
+	// 	onData: ({ data }) => {
+	// 		const change = data?.data?.onItemGroupChange;
+
+	// 		if (!change) return;
+
+	// 		const { eventType, Changes } = change;
+
+	// 		setItems((prev) => {
+	// 			let updated;
+
+	// 			if (eventType === "created") updated = [...prev, Changes];
+	// 			else if (eventType === "updated") updated = prev.map((ig) => (ig.id === Changes.id ? Changes : ig));
+	// 			else if (eventType === "deleted") updated = prev.filter((ig) => ig.id !== Changes.id);
+	// 			else updated = prev;
+
+	// 			const sorted = sortByBrand(updated);
+
+	// 			if (searchValue) setFilteredItems(applyFuse(sorted, searchValue));
+	// 			else setFilteredItems(sorted);
+
+	// 			return updated;
+	// 		});
+	// 	},
+	// });
+
 	useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
-		onError: (err) => console.error("Subscription error:", err),
+		onData: ({ data: subscriptionData, client }) => {
+			console.log("📡 Subscription raw data:", subscriptionData);
 
-		onData: ({ data }) => {
-			const change = data?.data?.onItemGroupChange;
+			const changeEvent = subscriptionData?.data?.onItemGroupChange;
+			if (!changeEvent) return;
 
-			if (!change) return;
+			const { eventType, changeType, change, changes } = changeEvent;
 
-			const { eventType, Changes } = change;
+			// Normalize payload into a uniform array
+			const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
 
-			setItems((prev) => {
-				let updated;
+			if (!changesArray.length) return;
 
-				if (eventType === "created") updated = [...prev, Changes];
-				else if (eventType === "updated") updated = prev.map((ig) => (ig.id === Changes.id ? Changes : ig));
-				else if (eventType === "deleted") updated = prev.filter((ig) => ig.id !== Changes.id);
-				else updated = prev;
+			console.log(`📡 ItemGroup subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
 
+			// --- Update local state ---
+			setItems((prevItems) => {
+				let updated = [...prevItems];
+
+				for (const Changes of changesArray) {
+					if (eventType === "created") {
+						const exists = prevItems.some((ig) => ig.id === Changes.id);
+						if (!exists) updated = [...updated, Changes];
+					} else if (eventType === "updated") {
+						updated = updated.map((ig) => (ig.id === Changes.id ? { ...ig, ...Changes } : ig));
+					} else if (eventType === "deleted") {
+						updated = updated.filter((ig) => ig.id !== Changes.id);
+					}
+				}
+
+				// Apply sorting and search filtering
 				const sorted = sortByBrand(updated);
 
 				if (searchValue) setFilteredItems(applyFuse(sorted, searchValue));
 				else setFilteredItems(sorted);
 
-				return updated;
+				return sorted;
 			});
+
+			// --- Optional: Apollo cache sync ---
+			/*
+		try {
+			client.cache.modify({
+				fields: {
+					getAllItemGroups(existingRefs = [], { readField }) {
+						let newRefs = [...existingRefs];
+
+						for (const Changes of changesArray) {
+							if (eventType === "deleted") {
+								newRefs = newRefs.filter(
+									(ref) => readField("id", ref) !== Changes.id
+								);
+								continue;
+							}
+
+							const existingIndex = newRefs.findIndex(
+								(ref) => readField("id", ref) === Changes.id
+							);
+
+							if (existingIndex > -1 && eventType === "updated") {
+								newRefs = newRefs.map((ref) =>
+									readField("id", ref) === Changes.id
+										? client.cache.writeFragment({
+												data: Changes,
+												fragment: gql`
+													fragment UpdatedItemGroup on ItemGroup {
+														id
+														brand
+														itemsList {
+															id
+															itemName
+															itemDescription
+														}
+													}
+												`,
+										  })
+										: ref
+								);
+							} else if (eventType === "created") {
+								const newRef = client.cache.writeFragment({
+									data: Changes,
+									fragment: gql`
+										fragment NewItemGroup on ItemGroup {
+											id
+											brand
+											itemsList {
+												id
+												itemName
+												itemDescription
+											}
+										}
+									`,
+								});
+								newRefs = [...newRefs, newRef];
+							}
+						}
+
+						return newRefs;
+					},
+				},
+			});
+		} catch (cacheErr) {
+			console.warn("⚠️ Cache update skipped:", cacheErr.message);
+		}
+		*/
+		},
+
+		onError: (err) => {
+			console.error("🚨 Subscription error:", err);
 		},
 	});
 

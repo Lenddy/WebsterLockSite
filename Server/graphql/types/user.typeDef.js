@@ -172,7 +172,9 @@ const userTypeDef = gql`
 	# Used in subscriptions to indicate type of change and changed user
 	type UserChange {
 		eventType: String # Type of change (e.g., "created", "updated", "deleted")
-		Changes: User! # Updated user object after the change
+		changeType: String! # "single" or "multiple"
+		change: User # Updated user object after the change
+		changes: [User!]
 	}
 
 	# Root subscription operations (real-time updates)

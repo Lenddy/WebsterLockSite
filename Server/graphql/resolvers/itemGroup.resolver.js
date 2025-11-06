@@ -167,25 +167,62 @@ const itemGroupResolver = {
 					throw new ApolloError(`These brands already exist: ${existingBrands.join(", ")}`, "BRAND_ALREADY_EXISTS");
 				}
 
-				//  Insert many at once
+				// //  Insert many at once
+				// const createdItemGroups = await ItemGroup.insertMany(
+				// 	input.map((ig) => ({
+				// 		brand: ig.brand,
+				// 		itemsList: ig.itemsList || [], //  allow no items
+				// 	}))
+				// );
+
+				// const forSub = createdItemGroups;
+
+				// forSub?.forEach((group) => {
+				// 	pubsub.publish("ITEMGROUP_ADDED", {
+				// 		onItemGroupChange: {
+				// 			eventType: "created",
+				// 			Changes: group,
+				// 		},
+				// 	});
+				// });
+
+				// Insert multiple ItemGroups at once
 				const createdItemGroups = await ItemGroup.insertMany(
 					input.map((ig) => ({
 						brand: ig.brand,
-						itemsList: ig.itemsList || [], //  allow no items
+						itemsList: ig.itemsList || [], // Allow empty items
 					}))
 				);
 
-				const forSub = createdItemGroups;
+				// Normalize and serialize created groups
+				const payloadArray = createdItemGroups.map((group) => ({
+					...group.toObject(),
+					id: group._id.toString(),
+					itemsList:
+						group.itemsList?.map((item) => ({
+							...(item.toObject?.() ?? item),
+							id: item._id?.toString() ?? item.id,
+						})) ?? [],
+				}));
 
-				forSub?.forEach((group) => {
-					pubsub.publish("ITEMGROUP_ADDED", {
-						onItemGroupChange: {
-							eventType: "created",
-							Changes: group,
-						},
-					});
+				// Determine if this is single or multiple creation
+				const changeType = payloadArray.length > 1 ? "multiple" : "single";
+
+				// Select proper change payload
+				const changes = changeType === "multiple" ? payloadArray : payloadArray[0];
+
+				// Publish a single unified event
+				await pubsub.publish("ITEMGROUP_ADDED", {
+					onItemGroupChange: {
+						eventType: "created",
+						changeType: changeType,
+						...(changeType === "multiple"
+							? { changes } // plural for arrays
+							: { change: changes }), // singular for single insert
+					},
 				});
 
+				// Return the created item groups to the mutation
 				return createdItemGroups;
 			} catch (err) {
 				throw new ApolloError(err.message, err.code || "ITEMGROUP_CREATION_FAILED");
@@ -286,30 +323,74 @@ const itemGroupResolver = {
 					}
 				}
 
-				// No operations
+				// // No operations
+				// if (bulkOps.length === 0) {
+				// 	throw new ApolloError("No updates happened this time.");
+				// }
+
+				// // Run bulk operations
+				// const result = await ItemGroup.bulkWrite(bulkOps);
+
+				// // Return updated groups
+				// const updatedGroups = await ItemGroup.find({
+				// 	_id: { $in: input.map((g) => g.id) },
+				// });
+
+				// const forSub = updatedGroups;
+
+				// forSub.forEach((group) => {
+				// 	pubsub.publish("ITEMGROUP_UPDATED", {
+				// 		onItemGroupChange: {
+				// 			eventType: "updated",
+				// 			Changes: group,
+				// 		},
+				// 	});
+				// });
+
+				// return updatedGroups;
+
+				// No operations check
 				if (bulkOps.length === 0) {
 					throw new ApolloError("No updates happened this time.");
 				}
 
-				// Run bulk operations
-				const result = await ItemGroup.bulkWrite(bulkOps);
+				//  Execute bulk update
+				await ItemGroup.bulkWrite(bulkOps);
 
-				// Return updated groups
+				//  Retrieve updated groups
 				const updatedGroups = await ItemGroup.find({
 					_id: { $in: input.map((g) => g.id) },
 				});
 
-				const forSub = updatedGroups;
+				//  Normalize payload
+				const payloadArray = updatedGroups.map((group) => ({
+					...group.toObject(),
+					id: group._id.toString(),
+					itemsList:
+						group.itemsList?.map((item) => ({
+							...(item.toObject?.() ?? item),
+							id: item._id?.toString() ?? item.id,
+						})) ?? [],
+				}));
 
-				forSub.forEach((group) => {
-					pubsub.publish("ITEMGROUP_UPDATED", {
-						onItemGroupChange: {
-							eventType: "updated",
-							Changes: group,
-						},
-					});
+				// Determine if single or multiple
+				const changeType = payloadArray.length > 1 ? "multiple" : "single";
+
+				//  Select proper payload format
+				const changes = changeType === "multiple" ? payloadArray : payloadArray[0];
+
+				// Publish a single unified event
+				await pubsub.publish("ITEMGROUP_UPDATED", {
+					onItemGroupChange: {
+						eventType: "updated",
+						changeType: changeType,
+						...(changeType === "multiple"
+							? { changes } // multiple updated
+							: { change: changes }), // single updated
+					},
 				});
 
+				// Return the updated records
 				return updatedGroups;
 			} catch (err) {
 				console.error("Error updating/deleting Item group(s):", err);
@@ -335,28 +416,67 @@ const itemGroupResolver = {
 				}
 
 				// --- 3) Find the groups first (so we can send them in subscription)
+				// const groupsToDelete = await ItemGroup.find({ _id: { $in: ids } });
+				// const forSub = groupsToDelete;
+
+				// // --- 4) Delete groups ---
+				// const result = await ItemGroup.deleteMany({ _id: { $in: ids } });
+
+				// // --- 5) Handle no matches ---
+				// if (result.deletedCount === 0) {
+				// 	throw new UserInputError("No matching ItemGroups found for deletion.");
+				// }
+
+				// // --- 6) Publish subscription events ---
+				// forSub.forEach((group) => {
+				// 	pubsub.publish("ITEMGROUP_DELETED", {
+				// 		onItemGroupChange: {
+				// 			eventType: "deleted",
+				// 			Changes: group,
+				// 		},
+				// 	});
+				// });
+
+				// // --- 7) Return deleted IDs ---
+				// return groupsToDelete;
+				//  Delete groups
 				const groupsToDelete = await ItemGroup.find({ _id: { $in: ids } });
-				const forSub = groupsToDelete;
-
-				// --- 4) Delete groups ---
-				const result = await ItemGroup.deleteMany({ _id: { $in: ids } });
-
-				// --- 5) Handle no matches ---
-				if (result.deletedCount === 0) {
+				if (!groupsToDelete.length) {
 					throw new UserInputError("No matching ItemGroups found for deletion.");
 				}
 
-				// --- 6) Publish subscription events ---
-				forSub.forEach((group) => {
-					pubsub.publish("ITEMGROUP_DELETED", {
-						onItemGroupChange: {
-							eventType: "deleted",
-							Changes: group,
-						},
-					});
+				// Store normalized version for pubsub
+				const payloadArray = groupsToDelete.map((group) => ({
+					...group.toObject(),
+					id: group._id.toString(),
+					itemsList:
+						group.itemsList?.map((item) => ({
+							...(item.toObject?.() ?? item),
+							id: item._id?.toString() ?? item.id,
+						})) ?? [],
+				}));
+
+				// Actually delete them
+				await ItemGroup.deleteMany({ _id: { $in: ids } });
+
+				// Determine change type
+				const changeType = payloadArray.length > 1 ? "multiple" : "single";
+
+				// Select payload format
+				const changes = changeType === "multiple" ? payloadArray : payloadArray[0];
+
+				// Publish one unified PubSub event
+				await pubsub.publish("ITEMGROUP_DELETED", {
+					onItemGroupChange: {
+						eventType: "deleted",
+						changeType: changeType,
+						...(changeType === "multiple"
+							? { changes } // multiple deletions
+							: { change: changes }), // single deletion
+					},
 				});
 
-				// --- 7) Return deleted IDs ---
+				// Return deleted groups (or IDs)
 				return groupsToDelete;
 			} catch (err) {
 				console.error("Error deleting ItemGroups:", err);

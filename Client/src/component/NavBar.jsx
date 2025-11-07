@@ -84,7 +84,7 @@ export default function NavBar({ children, screenWidth }) {
 		<div className="content-container">
 			<div className="nav-container">
 				<div className="nav-logo">
-					<Link to={menuItems[1]?.links[0]?.path}>
+					<Link to={isAdmin ? menuItems[1]?.links[0]?.path : menuItems[0]?.links[0]?.path}>
 						<img src={Logo} alt="logo" />
 					</Link>
 				</div>

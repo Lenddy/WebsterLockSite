@@ -1,7 +1,6 @@
 // Core imports
 import express from "express";
 import { createServer } from "http";
-import { Server as SocketIOServer } from "socket.io";
 import dotenv from "dotenv";
 dotenv.config();
 

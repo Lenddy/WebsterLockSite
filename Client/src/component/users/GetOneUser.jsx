@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@apollo/client";
+import { useQuery, useSubscription, gql } from "@apollo/client";
 import { get_one_user } from "../../../graphQL/queries/queries";
-import { Link, useParams, useLocation } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import UpdateOneUser from "./UpdateOneUser";
-
+import { USER_CHANGE_SUBSCRIPTION } from "../../../graphQL/subscriptions/subscriptions";
 import Modal from "../Modal";
 import DeleteOneUser from "./DeleteOneUser";
 import { useAuth } from "../../context/AuthContext"; // <-- use context
@@ -13,6 +13,7 @@ export default function GetOneUser() {
 	const { userId } = useParams();
 	const location = useLocation();
 	const currentRoutePath = location.pathname;
+	const navigate = useNavigate();
 
 	const { userToken } = useAuth(); // <-- get user info from context
 	const [logUser, setLogUser] = useState();
@@ -28,7 +29,7 @@ export default function GetOneUser() {
 	useEffect(() => {
 		setLogUser(jwtDecode(userToken));
 		if (data) {
-			// console.log("Fetched user:", data.getOneUser);
+			console.log("Fetched user:", data.getOneUser);
 			setUser(data.getOneUser);
 		}
 	}, [data]);
@@ -48,6 +49,140 @@ export default function GetOneUser() {
 		}
 		return `/user/${user.id}/update`;
 	};
+
+	useSubscription(USER_CHANGE_SUBSCRIPTION, {
+		onData: ({ data: subscriptionData, client }) => {
+			console.log("📡 Subscription raw data:", subscriptionData);
+
+			const changeEvent = subscriptionData?.data?.onUserChange;
+			if (!changeEvent) return;
+
+			const { eventType, changeType, change, changes } = changeEvent;
+
+			// --- Normalize payload ---
+			const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
+
+			if (!changesArray.length) return;
+
+			console.log(`📡 User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+
+			// --- Update local state for the current user view ---
+			if (userId) {
+				const targetChange = changesArray.find((c) => c.id === userId);
+
+				if (targetChange) {
+					if (eventType === "updated") {
+						setUser((prevUser) => ({
+							...prevUser,
+							...targetChange,
+						}));
+						alert("User has been updated.");
+					}
+
+					if (eventType === "deleted") {
+						// const isAmin = ["headAdmin","admin","subAdmin"]
+						//  jwtDecode(userToken)?.role?.includes(isAmin)?
+						alert("User has been deleted. You will be redirected to see all User.");
+						navigate("/user/all");
+					}
+				}
+			}
+
+			// --- Update Apollo cache for all users (if applicable) ---
+			try {
+				client.cache.modify({
+					fields: {
+						getAllUsers(existingRefs = [], { readField }) {
+							let newRefs = [...existingRefs];
+
+							for (const updatedUser of changesArray) {
+								if (eventType === "deleted") {
+									newRefs = newRefs.filter((ref) => readField("id", ref) !== updatedUser.id);
+									continue;
+								}
+
+								const existingIndex = newRefs.findIndex((ref) => readField("id", ref) === updatedUser.id);
+
+								if (existingIndex > -1 && eventType === "updated") {
+									// Replace existing reference with the updated one
+									newRefs[existingIndex] = client.cache.writeFragment({
+										data: updatedUser,
+										fragment: gql`
+											fragment UpdatedUser on User {
+												id
+												name
+												email
+												role
+												permissions {
+													canEditUsers
+													canViewUsers
+													canDeleteUsers
+													canChangeRole
+													canEditSelf
+													canViewSelf
+													canViewAllUsers
+													canNotBeDeleted
+													canNotBeUpdated
+													canRegisterUser
+												}
+												job {
+													title
+													description
+												}
+												employeeNum
+												department
+												token
+											}
+										`,
+									});
+								} else if (eventType === "created") {
+									const newRef = client.cache.writeFragment({
+										data: updatedUser,
+										fragment: gql`
+											fragment NewUser on User {
+												id
+												name
+												email
+												role
+												permissions {
+													canEditUsers
+													canViewUsers
+													canDeleteUsers
+													canChangeRole
+													canEditSelf
+													canViewSelf
+													canViewAllUsers
+													canNotBeDeleted
+													canNotBeUpdated
+													canRegisterUser
+												}
+												job {
+													title
+													description
+												}
+												employeeNum
+												department
+												token
+											}
+										`,
+									});
+									newRefs = [...newRefs, newRef];
+								}
+							}
+
+							return newRefs;
+						},
+					},
+				});
+			} catch (cacheErr) {
+				console.warn("⚠️ Cache update skipped:", cacheErr.message);
+			}
+		},
+
+		onError: (err) => {
+			console.error("🚨 Subscription error:", err);
+		},
+	});
 
 	return (
 		<div className="get-one-container list-get-all-content">

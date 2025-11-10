@@ -5,12 +5,21 @@ import { useAuth } from "../context/AuthContext";
 import Logo from "../assets/WebsterSiteLogo.png";
 import Burger from "../assets/burgerMenu.svg?react";
 import X from "../assets/x.svg?react";
+import { get_all_users } from "../../graphQL/queries/queries";
+import { get_all_material_requests } from "../../graphQL/queries/queries";
+import { get_all_item_groups } from "../../graphQL/queries/queries";
+import { useQuery } from "@apollo/client";
+import RefetchButton from "./utilities/RefetchButton";
 
 export default function NavBar({ children, screenWidth }) {
 	const { userToken, setUserToken, loading: authLoading } = useAuth();
 	const [decodedUser, setDecodedUser] = useState(null);
 	const [mobileOpen, setMobileOpen] = useState(false);
 	const location = useLocation();
+
+	const { refetch: URefetch } = useQuery(get_all_users);
+	const { refetch: mRRefetch } = useQuery(get_all_material_requests);
+	const { refetch: iGRefetch } = useQuery(get_all_item_groups);
 
 	// Decode token once it becomes available
 	useEffect(() => {
@@ -80,6 +89,22 @@ export default function NavBar({ children, screenWidth }) {
 				},
 		  ];
 
+	// --- 1) Compute which refetch function to use ---
+	const getRefetchFn = () => {
+		if (menuItems[0]?.links?.some((p) => location?.pathname?.includes(p?.path))) {
+			return URefetch;
+		}
+		if (menuItems[1]?.links?.some((p) => location?.pathname?.includes(p?.path))) {
+			return mRRefetch;
+		}
+		if (menuItems[2]?.links?.some((p) => location?.pathname?.includes(p?.path))) {
+			return iGRefetch;
+		}
+		return null; // <-- no match
+	};
+
+	const currentRefetch = getRefetchFn();
+
 	return (
 		<div className="content-container">
 			<div className="nav-container">
@@ -147,7 +172,12 @@ export default function NavBar({ children, screenWidth }) {
 				</div>
 			)}
 
-			<div className="site-content">{children}</div>
+			<div className="site-content">
+				{/* / --- 2) Conditionally render RefetchButton only if there’s a match --- */}
+				{currentRefetch && <RefetchButton refetch={currentRefetch} />}
+
+				{children}
+			</div>
 		</div>
 	);
 }

@@ -17,7 +17,7 @@ export default function AdminGetAllItems() {
 	const [isOpen, setIsOpen] = useState(false);
 	const [selectedItem, setSelectedItem] = useState(null);
 	const [searchValue, setSearchValue] = useState("");
-	const { error, loading, data, refetch } = useQuery(get_all_item_groups);
+	const { error, loading, data, refetch } = useQuery(get_all_item_groups, { fetchPolicy: "cache-and-network" });
 	// { fetchPolicy: "cache-and-network" }
 
 	// Decode token once when component mounts or token changes

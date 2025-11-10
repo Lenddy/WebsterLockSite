@@ -7,17 +7,15 @@ import Fuse from "fuse.js";
 import Modal from "../Modal";
 import { useAuth } from "../../context/AuthContext"; // <-- use context here
 import { jwtDecode } from "jwt-decode";
+import RefetchButton from "../utilities/RefetchButton";
 
 export default function GetAllUsers() {
 	const { userToken } = useAuth(); // Get current user token from context
 	const [logUser, setLogUser] = useState(null);
 
-	const { error, loading, data } = useQuery(
-		get_all_users
-		// 	{
-		// 	fetchPolicy: "cache-and-network",
-		// }
-	);
+	const { error, loading, data, refetch } = useQuery(get_all_users, {
+		fetchPolicy: "cache-and-network",
+	});
 	const [users, setUsers] = useState([]);
 	const [filteredUsers, setFilteredUsers] = useState([]);
 	const [searchValue, setSearchValue] = useState("");
@@ -45,26 +43,6 @@ export default function GetAllUsers() {
 	}, [data]);
 
 	// Live subscription for updates
-	// useSubscription(USER_CHANGE_SUBSCRIPTION, {
-	// 	onData: ({ data }) => {
-	// 		const change = data?.data?.onUserChange;
-	// 		if (!change) return;
-
-	// 		const { eventType, Changes } = change;
-	// 		setUsers((prev) => {
-	// 			let updated;
-	// 			if (eventType === "created") updated = [...prev, Changes];
-	// 			else if (eventType === "updated") updated = prev.map((u) => (u.id === Changes.id ? Changes : u));
-	// 			else if (eventType === "deleted") updated = prev.filter((u) => u.id !== Changes.id);
-	// 			else updated = prev;
-
-	// 			if (searchValue) setFilteredUsers(applyFuse(updated, searchValue));
-	// 			else setFilteredUsers(updated);
-
-	// 			return updated;
-	// 		});
-	// 	},
-	// });
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
 		onData: ({ data: subscriptionData, client }) => {
 			console.log("📡 Subscription raw data:", subscriptionData);
@@ -107,69 +85,69 @@ export default function GetAllUsers() {
 			// !!!!!!!
 
 			// --- Update Apollo Cache (optional) ---
-			// try {
-			// 	client.cache.modify({
-			// 		fields: {
-			// 			getAllUsers(existingRefs = [], { readField }) {
-			// 				let newRefs = [...existingRefs];
+			try {
+				client.cache.modify({
+					fields: {
+						getAllUsers(existingRefs = [], { readField }) {
+							let newRefs = [...existingRefs];
 
-			// 				for (const Changes of changesArray) {
-			// 					if (eventType === "deleted") {
-			// 						newRefs = newRefs.filter((ref) => readField("id", ref) !== Changes.id);
-			// 						continue;
-			// 					}
+							for (const Changes of changesArray) {
+								if (eventType === "deleted") {
+									newRefs = newRefs.filter((ref) => readField("id", ref) !== Changes.id);
+									continue;
+								}
 
-			// 					const existingIndex = newRefs.findIndex((ref) => readField("id", ref) === Changes.id);
+								const existingIndex = newRefs.findIndex((ref) => readField("id", ref) === Changes.id);
 
-			// 					if (existingIndex > -1 && eventType === "updated") {
-			// 						newRefs = newRefs.map((ref) =>
-			// 							readField("id", ref) === Changes.id
-			// 								? client.cache.writeFragment({
-			// 										data: Changes,
-			// 										fragment: gql`
-			// 											fragment UpdatedUser on User {
-			// 												id
-			// 												name
-			// 												email
-			// 												role
-			// 												permissions
-			// 												job
-			// 												employeeNum
-			// 												department
-			// 												token
-			// 											}
-			// 										`,
-			// 								  })
-			// 								: ref
-			// 						);
-			// 					} else if (eventType === "created") {
-			// 						const newRef = client.cache.writeFragment({
-			// 							data: Changes,
-			// 							fragment: gql`
-			// 								fragment NewUser on User {
-			// 									id
-			// 									name
-			// 									email
-			// 									role
-			// 									permissions
-			// 									job
-			// 									employeeNum
-			// 									department
-			// 									token
-			// 								}
-			// 							`,
-			// 						});
-			// 						newRefs = [...newRefs, newRef];
-			// 					}
-			// 				}
+								if (existingIndex > -1 && eventType === "updated") {
+									newRefs = newRefs.map((ref) =>
+										readField("id", ref) === Changes.id
+											? client.cache.writeFragment({
+													data: Changes,
+													fragment: gql`
+														fragment UpdatedUser on User {
+															id
+															name
+															email
+															role
+															permissions
+															job
+															employeeNum
+															department
+															token
+														}
+													`,
+											  })
+											: ref
+									);
+								} else if (eventType === "created") {
+									const newRef = client.cache.writeFragment({
+										data: Changes,
+										fragment: gql`
+											fragment NewUser on User {
+												id
+												name
+												email
+												role
+												permissions
+												job
+												employeeNum
+												department
+												token
+											}
+										`,
+									});
+									newRefs = [...newRefs, newRef];
+								}
+							}
 
-			// 				return newRefs;
-			// 			},
-			// 		},
-			// 	});
-			// } catch (cacheErr) {
-			// 	console.warn("⚠️ Cache update skipped:", cacheErr.message);
-			// }
+							return newRefs;
+						},
+					},
+				});
+			} catch (cacheErr) {
+				console.warn("⚠️ Cache update skipped:", cacheErr.message);
+			}
 		},
 
 		onError: (err) => {
@@ -246,6 +224,7 @@ export default function GetAllUsers() {
 			) : (
 				<div className="list-get-all-content">
 					{/* Search */}
+
 					<div className="search-filter-wrapper">
 						<div className="search-filter-container">
 							<input type="text" className="search-filter-input" placeholder="Search users by name or email" value={searchValue} onChange={handleSearchChange} autoComplete="false" />

@@ -27,12 +27,31 @@
 }
 
 .site-content {
-	margin-top: 50px;
+	margin-top: 10px;
 	width: 100%;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	gap: 10px;
+}
+
+/*! utils */
+
+.refetch-btn-container {
+	/* background-color: red; */
+	width: 99%;
+	display: flex;
+	justify-content: end;
+}
+
+.refetch-btn {
+	padding: 8px 8px;
+	border-radius: 6px;
+	/* background-color: var(--slate-dark-gray); */
+	color: var(--white);
+	border: var(--white) 1px solid;
+	cursor: pointer;
+	font-size: 14px;
 }
 
 /* ! log in form*/

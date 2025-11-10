@@ -21,7 +21,6 @@
 		"react-dom": "latest",
 		"react-router-dom": "latest",
 		"react-select": "^5.10.2",
-		"socket.io-client": "latest",
 		"vite-plugin-pwa": "^1.1.0"
 	},
 	"devDependencies": {

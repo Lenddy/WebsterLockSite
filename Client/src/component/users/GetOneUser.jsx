@@ -15,7 +15,7 @@ export default function GetOneUser() {
 	const currentRoutePath = location.pathname;
 	const navigate = useNavigate();
 
-	const { userToken } = useAuth(); // <-- get user info from context
+	const { userToken, setPageLoading } = useAuth(); // <-- get user info from context
 	const [logUser, setLogUser] = useState();
 	const [user, setUser] = useState({});
 	const [isOpen, setIsOpen] = useState(false);
@@ -28,6 +28,7 @@ export default function GetOneUser() {
 
 	useEffect(() => {
 		setLogUser(jwtDecode(userToken));
+		setPageLoading(loading);
 		if (data) {
 			console.log("Fetched user:", data.getOneUser);
 			setUser(data.getOneUser);

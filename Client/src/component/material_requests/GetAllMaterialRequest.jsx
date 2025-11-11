@@ -9,7 +9,7 @@ import { useAuth } from "../../context/AuthContext";
 import { jwtDecode } from "jwt-decode";
 
 export default function GetAllMaterialRequest() {
-	const { userToken } = useAuth();
+	const { userToken, setPageLoading } = useAuth();
 	const { error, loading, data } = useQuery(get_all_material_requests, {
 		fetchPolicy: "cache-and-network",
 	});
@@ -19,11 +19,13 @@ export default function GetAllMaterialRequest() {
 
 	// Fetch and set requests
 	useEffect(() => {
+		setPageLoading(loading);
+
 		if (data?.getAllMaterialRequests) {
 			console.log("requests", data?.getAllMaterialRequests);
 			setMRequests(data.getAllMaterialRequests);
 		}
-	}, [data]);
+	}, [data, loading, setPageLoading]);
 
 	//  New improved sorting function
 	const sortRequests = (arr) => {

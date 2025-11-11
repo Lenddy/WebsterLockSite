@@ -12,14 +12,14 @@ import { useQuery } from "@apollo/client";
 import RefetchButton from "./utilities/RefetchButton";
 
 export default function NavBar({ children, screenWidth }) {
-	const { userToken, setUserToken, loading: authLoading } = useAuth();
+	const { userToken, setUserToken, loading: authLoading, pageLoading } = useAuth();
 	const [decodedUser, setDecodedUser] = useState(null);
 	const [mobileOpen, setMobileOpen] = useState(false);
 	const location = useLocation();
 
-	const { refetch: URefetch } = useQuery(get_all_users);
-	const { refetch: mRRefetch } = useQuery(get_all_material_requests);
-	const { refetch: iGRefetch } = useQuery(get_all_item_groups);
+	const { loading: ULoading, refetch: URefetch } = useQuery(get_all_users);
+	const { loading: mRLoading, refetch: mRRefetch } = useQuery(get_all_material_requests);
+	const { loading: iGLoading, refetch: iGRefetch } = useQuery(get_all_item_groups);
 
 	// Decode token once it becomes available
 	useEffect(() => {
@@ -60,6 +60,7 @@ export default function NavBar({ children, screenWidth }) {
 						{ name: "View All", path: "/user/all" },
 						{ name: "Register Users", path: "/admin/user/register" },
 						{ name: "Update Users", path: "/admin/user/update" },
+						{ name: "Update Profile", path: `/user/${decodedUser?.userId}/update` },
 					],
 				},
 				{
@@ -81,6 +82,10 @@ export default function NavBar({ children, screenWidth }) {
 		  ]
 		: [
 				{
+					title: "Users",
+					links: [{ name: "Update Profile", path: `/user/${decodedUser?.userId}/update` }],
+				},
+				{
 					title: "Material Requests",
 					links: [
 						{ name: "View All", path: "/material/request/all" },
@@ -91,15 +96,20 @@ export default function NavBar({ children, screenWidth }) {
 
 	// --- 1) Compute which refetch function to use ---
 	const getRefetchFn = () => {
-		if (menuItems[0]?.links?.some((p) => location?.pathname?.includes(p?.path))) {
-			return URefetch;
+		if (isAdmin) {
+			if (menuItems[0]?.links?.some((p) => location?.pathname?.includes(p?.path))) {
+				return URefetch;
+			}
+
+			if (menuItems[2]?.links?.some((p) => location?.pathname?.includes(p?.path))) {
+				return iGRefetch;
+			}
 		}
+
 		if (menuItems[1]?.links?.some((p) => location?.pathname?.includes(p?.path))) {
 			return mRRefetch;
 		}
-		if (menuItems[2]?.links?.some((p) => location?.pathname?.includes(p?.path))) {
-			return iGRefetch;
-		}
+
 		return null; // <-- no match
 	};
 
@@ -109,7 +119,7 @@ export default function NavBar({ children, screenWidth }) {
 		<div className="content-container">
 			<div className="nav-container">
 				<div className="nav-logo">
-					<Link to={isAdmin ? menuItems[1]?.links[0]?.path : menuItems[0]?.links[0]?.path}>
+					<Link to={isAdmin ? menuItems[1]?.links[0]?.path : menuItems[1]?.links[1]?.path}>
 						<img src={Logo} alt="logo" />
 					</Link>
 				</div>
@@ -174,7 +184,8 @@ export default function NavBar({ children, screenWidth }) {
 
 			<div className="site-content">
 				{/* / --- 2) Conditionally render RefetchButton only if there’s a match --- */}
-				{currentRefetch && <RefetchButton refetch={currentRefetch} />}
+				{/* {!(ULoading || mRLoading || iGLoading) && currentRefetch && <RefetchButton refetch={currentRefetch} />} */}
+				{!pageLoading && currentRefetch && <RefetchButton refetch={currentRefetch} />}
 
 				{children}
 			</div>

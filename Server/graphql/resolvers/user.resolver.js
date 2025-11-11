@@ -309,7 +309,7 @@ const userResolver = {
 		},
 
 		// Update user profile (self)
-		updateUserProfile: async (_, { id, input: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, employeeNum, department } }, { user, pubsub }) => {
+		updateUserProfile: async (_, { id, input: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, employeeNum, department, role, job } }, { user, pubsub }) => {
 			console.log(employeeNum, department);
 
 			try {
@@ -374,14 +374,21 @@ const userResolver = {
 
 				if (employeeNum) targetUser.employeeNum = employeeNum;
 				if (department) targetUser.department = department;
+				const validRoles = ["headAdmin", "admin", "subAdmin", "user", "noRole", "technician"]; // Valid roles
+				if (!validRoles.includes(role)) {
+					role = "noRole"; // Default role if invalid
+				}
+				if (role) targetUser.role = role;
+				if (job) targetUser.job = job;
 
 				const newToken = jwt.sign(
 					{
-						userId: targetUser.id, // User ID
-						name: targetUser.name,
-						email: targetUser.email, // Email
-						role: targetUser.role, // Role
-						permissions: targetUser.permissions, // Permissions
+						userId: targetUser?.id, // User ID
+						name: targetUser?.name,
+						email: targetUser?.email, // Email
+						role: targetUser?.role, // Role
+						employeeNum: targetUser?.employeeNum,
+						permissions: targetUser?.permissions, // Permissions
 					},
 					process.env.Secret_Key // Secret key
 				);
@@ -406,9 +413,13 @@ const userResolver = {
 					id: targetUser._id.toString(),
 					// Optional: normalize nested arrays if needed
 					roles:
-						targetUser.roles?.map((role) => ({
+						targetUser?.map((role) => ({
 							id: role._id?.toString() ?? role.id,
 							name: role.name,
+							email: role?.email, // Email
+							role: role?.role, // Role
+							employeeNum: role?.employeeNum,
+							permissions: role?.permissions, // Permissions
 						})) ?? [],
 				};
 

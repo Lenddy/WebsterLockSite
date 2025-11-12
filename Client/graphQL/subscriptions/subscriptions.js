@@ -5,6 +5,7 @@ export const USER_CHANGE_SUBSCRIPTION = gql`
 		onUserChange {
 			changeType
 			eventType
+			updateBy
 			change {
 				id
 				employeeNum

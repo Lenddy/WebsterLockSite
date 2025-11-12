@@ -33,7 +33,7 @@ export default function GetOneUser() {
 			console.log("Fetched user:", data.getOneUser);
 			setUser(data.getOneUser);
 		}
-	}, [data]);
+	}, [data, setPageLoading, loading, userToken]);
 
 	// Helper function to format keys
 	const formatKey = (key) =>
@@ -77,7 +77,9 @@ export default function GetOneUser() {
 							...prevUser,
 							...targetChange,
 						}));
-						alert("User has been updated.");
+						if (currentRoutePath === `/user/${userId}`) {
+							alert("User has been updated.");
+						}
 					}
 
 					if (eventType === "deleted") {

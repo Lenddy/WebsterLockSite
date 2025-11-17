@@ -7,10 +7,9 @@ import Fuse from "fuse.js";
 import Modal from "../Modal";
 import { useAuth } from "../../context/AuthContext"; // <-- use context here
 import { jwtDecode } from "jwt-decode";
-import RefetchButton from "../utilities/RefetchButton";
 
 export default function GetAllUsers() {
-	const { userToken } = useAuth(); // Get current user token from context
+	const { userToken, setPageLoading } = useAuth(); // Get current user token from context
 	const [logUser, setLogUser] = useState(null);
 
 	const { error, loading, data, refetch } = useQuery(get_all_users, {
@@ -35,12 +34,13 @@ export default function GetAllUsers() {
 
 	// Initialize users and filtered users
 	useEffect(() => {
+		setPageLoading(loading);
 		if (data) {
 			console.log(data.getAllUsers);
 			setUsers(data.getAllUsers);
 			setFilteredUsers(data.getAllUsers);
 		}
-	}, [data]);
+	}, [data, loading, setPageLoading]);
 
 	// Live subscription for updates
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
@@ -257,17 +257,17 @@ export default function GetAllUsers() {
 									<tr key={user.id}>
 										{logUser?.role == "headAdmin" && (
 											<td>
-												<Link to={`/user/${user.id}`}>{user.id}</Link>
+												<Link to={`/user/${user?.id}`}>{user?.id}</Link>
 											</td>
 										)}
 
-										<td>{user.employeeNum ? <Link to={`/user/${user.id}`}>{user.employeeNum}</Link> : "N/A"}</td>
+										<td>{user.employeeNum ? <Link to={`/user/${user?.id}`}>{user?.employeeNum}</Link> : "N/A"}</td>
 
 										<td>
-											<Link to={`/user/${user.id}`}>{user.name}</Link>
+											<Link to={`/user/${user?.id}`}>{user?.name}</Link>
 										</td>
 										<td>
-											<Link to={`/user/${user.id}`}>{user.email}</Link>
+											<Link to={`/user/${user?.id}`}>{user?.email}</Link>
 										</td>
 										<td>{user?.role}</td>
 

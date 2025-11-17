@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import Modal from "../../Modal";
 
 export default function AdminGetAllItems() {
-	const { userToken } = useAuth(); // get token from context
+	const { userToken, setPageLoading } = useAuth(); // get token from context
 
 	const [items, setItems] = useState([]);
 	const [filteredItems, setFilteredItems] = useState([]);
@@ -22,6 +22,7 @@ export default function AdminGetAllItems() {
 
 	// Decode token once when component mounts or token changes
 	useEffect(() => {
+		setPageLoading(loading);
 		if (userToken) {
 			try {
 				const decoded = jwtDecode(userToken);
@@ -30,7 +31,7 @@ export default function AdminGetAllItems() {
 				console.error("Failed to decode token:", err.message);
 			}
 		}
-	}, [userToken]);
+	}, [userToken, setPageLoading, loading]);
 
 	// Helper function to sort alphabetically by brand
 	const sortByBrand = (list) => {

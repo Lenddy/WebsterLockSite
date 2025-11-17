@@ -309,8 +309,8 @@ const userResolver = {
 		},
 
 		// Update user profile (self)
-		updateUserProfile: async (_, { id, input: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, employeeNum, department } }, { user, pubsub }) => {
-			console.log(employeeNum, department);
+		updateUserProfile: async (_, { id, input: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, employeeNum, department, role, job } }, { user, pubsub }) => {
+			console.log("updated data", name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, employeeNum, department, role, job);
 
 			try {
 				if (!user) {
@@ -322,6 +322,8 @@ const userResolver = {
 				}
 
 				const targetUser = await User.findById(id); // Find user by ID
+				console.log();
+
 				if (!targetUser) {
 					throw new ApolloError("User not found", "USER_NOT_FOUND"); // User not found
 				}
@@ -374,14 +376,22 @@ const userResolver = {
 
 				if (employeeNum) targetUser.employeeNum = employeeNum;
 				if (department) targetUser.department = department;
+				const validRoles = ["headAdmin", "admin", "subAdmin", "user", "noRole", "technician"]; // Valid roles
+				if (!validRoles.includes(role)) {
+					role = "noRole"; // Default role if invalid
+				}
+				// if (role) targetUser.role = role;
+				if (job) targetUser.job = job;
 
 				const newToken = jwt.sign(
 					{
-						userId: targetUser.id, // User ID
-						name: targetUser.name,
-						email: targetUser.email, // Email
-						role: targetUser.role, // Role
-						permissions: targetUser.permissions, // Permissions
+						userId: targetUser?.id, // User ID
+						name: targetUser?.name,
+						email: targetUser?.email, // Email
+						role: targetUser?.role, // Role
+						employeeNum: targetUser?.employeeNum,
+						department: targetUser?.department,
+						permissions: targetUser?.permissions, // Permissions
 					},
 					process.env.Secret_Key // Secret key
 				);
@@ -405,18 +415,23 @@ const userResolver = {
 					...targetUser.toObject(),
 					id: targetUser._id.toString(),
 					// Optional: normalize nested arrays if needed
-					roles:
-						targetUser.roles?.map((role) => ({
-							id: role._id?.toString() ?? role.id,
-							name: role.name,
-						})) ?? [],
+					// roles:
+					// 	targetUser?.map((role) => ({
+					// 		id: role._id?.toString() ?? role.id,
+					// 		name: role.name,
+					// 		email: role?.email, // Email
+					// 		role: role?.role, // Role
+					// 		employeeNum: role?.employeeNum,
+					// 		permissions: role?.permissions, // Permissions
+					// 	})) ?? [],
 				};
-
+				console.log("this is the user", user);
 				// Publish subscription event
 				await pubsub.publish("USER_UPDATED", {
 					onUserChange: {
 						eventType: "updated",
 						changeType: "single",
+						updateBy: user.userId,
 						change: payload,
 					},
 				});
@@ -580,10 +595,12 @@ const userResolver = {
 					// --- generate new token ---
 					const newToken = jwt.sign(
 						{
-							userId: targetUser.id,
-							name: targetUser.name,
-							email: targetUser.email,
-							role: targetUser.role,
+							userId: targetUser?.id,
+							name: targetUser?.name,
+							email: targetUser?.email,
+							role: targetUser?.role,
+							employeeNum: targetUser?.employeeNum,
+							department: targetUser?.department,
 							permissions: targetUser.permissions,
 						},
 						process.env.Secret_Key
@@ -656,6 +673,7 @@ const userResolver = {
 						onUserChange: {
 							eventType: "updated",
 							changeType,
+							updateBy: user?.userId,
 							...(changeType === "multiple" ? { changes } : { change: changes }),
 						},
 					});

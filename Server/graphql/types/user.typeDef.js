@@ -173,6 +173,7 @@ const userTypeDef = gql`
 	type UserChange {
 		eventType: String # Type of change (e.g., "created", "updated", "deleted")
 		changeType: String! # "single" or "multiple"
+		updateBy: String
 		change: User # Updated user object after the change
 		changes: [User!]
 	}

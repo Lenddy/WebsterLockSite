@@ -23,11 +23,13 @@ function calcClampBreakpoints(minPx, preferredBasePx, preferredVw, maxPx) {
 // Example from your clamp(1.25rem, 0.537rem + 1.49vw, 2.813rem)
 // Convert rem to px assuming 1rem = 16px
 const result = calcClampBreakpoints(
-	0.938 * 16, // min = 20px
-	0.75 * 16, // base = 8.6px
-	1, // 1.49vw
-	1.25 * 16 // max = 45px
+	16 * 16, // min = 20px
+	2.969 * 16, // base = 8.6px
+	72.5, // 1.49vw
+	43.75 * 16 // max = 45px
 );
+
+// clamp(rem, rem + vw, rem)
 
 //  clamp(4.688 0.426 + 22.73 12.5);
 

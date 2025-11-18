@@ -54,6 +54,14 @@
 	font-size: 14px;
 }
 
+/* .log-in-outer-container{
+
+} */
+
+.back-home {
+	color: var(--red);
+}
+
 /* ! log in form*/
 /* contains everything in the logIn container */
 .log-in-container {
@@ -63,6 +71,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	flex-direction: column;
 	border-radius: 10px;
 	margin-top: 20px;
 }

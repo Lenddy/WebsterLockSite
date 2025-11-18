@@ -70,4 +70,11 @@ export default defineConfig({
 			},
 		}),
 	],
+
+	build: {
+		minify: "esbuild",
+		esbuild: {
+			drop: ["console", "debugger"], // removes ALL console.* in production
+		},
+	},
 });

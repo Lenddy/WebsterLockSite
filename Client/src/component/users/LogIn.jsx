@@ -1,14 +1,14 @@
 import { log_In_user } from "../../../graphQL/mutations/mutations";
 import { useMutation } from "@apollo/client";
 import { useState } from "react";
-import { Await, useNavigate } from "react-router-dom";
+import { Await, useNavigate, Link } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Eye from "../../assets/eye.svg?react";
 import CloseEye from "../../assets/closeEye.svg?react";
 import { useAuth } from "../../context/AuthContext"; // import your context
 
 export default function LogIn({ screenWidth }) {
-	const { setUserToken } = useAuth(); //  get setter from context
+	const { setUserToken, userToken } = useAuth(); //  get setter from context
 	const [info, setInfo] = useState({});
 	const navigate = useNavigate();
 	const [logInUser, { data, loading, error }] = useMutation(log_In_user);
@@ -53,7 +53,7 @@ export default function LogIn({ screenWidth }) {
 
 				// Decode quickly to check role
 				const decoded = jwtDecode(token);
-				console.log("Decoded token:", decoded);
+				// console.log("Decoded token:", decoded);
 
 				// Redirect based on role
 				if (["headAdmin", "admin", "subAdmin"].includes(decoded.role)) {
@@ -86,28 +86,42 @@ export default function LogIn({ screenWidth }) {
 		// }
 	};
 
+	console.log("testing stop logs on production");
+
 	return (
-		<div className="log-in-container">
-			<form onSubmit={submit} className="log-in-form">
-				<h1 className="log-in-tite">LogIn</h1>
-				<div className="log-in-email-container">
-					<input type="text" name="email" onChange={(e) => SubmissionInfo(e)} placeholder="Email" className="log-in-form-input" />
-				</div>
+		<div>
+			<div className="log-in-container">
+				{userToken && (
+					<div className="back-home">
+						<p>{jwtDecode(userToken).name} is log in / Go back to home ?</p>
 
-				<div className="log-in-password-container">
-					<input type={show === true ? "text" : "password"} name="password" onChange={(e) => SubmissionInfo(e)} className="log-in-form-input log-in-password" style={screenWidth <= 340 && screenWidth >= 320 ? { width: "230px" } : screenWidth <= 319 ? { width: "220px" } : {}} placeholder="Password" />
+						<Link to={`${["headAdmin", "admin", "subAdmin"].includes(jwtDecode(userToken).role) ? "/material/request/all" : "/material/request/request"}`}>
+							<button> Back Home {"->"}</button>
+						</Link>
+					</div>
+				)}
 
-					<span className="log-in-show-hide" type="button" onClick={() => setShow(!show)}>
-						{show === false ? <CloseEye className="eye" /> : <Eye className="eye" />}
-					</span>
-				</div>
+				<form onSubmit={submit} className="log-in-form">
+					<h1 className="log-in-tite">LogIn</h1>
+					<div className="log-in-email-container">
+						<input type="text" name="email" onChange={(e) => SubmissionInfo(e)} placeholder="Email" className="log-in-form-input" />
+					</div>
 
-				<button className="form-submission-btn" type="submit" disabled={loading}>
-					{loading ? "Logging In..." : "Log In"}
-				</button>
+					<div className="log-in-password-container">
+						<input type={show === true ? "text" : "password"} name="password" onChange={(e) => SubmissionInfo(e)} className="log-in-form-input log-in-password" style={screenWidth <= 340 && screenWidth >= 320 ? { width: "230px" } : screenWidth <= 319 ? { width: "220px" } : {}} placeholder="Password" />
 
-				{error && <p className="form-error-message">{error.message}</p>}
-			</form>
+						<span className="log-in-show-hide" type="button" onClick={() => setShow(!show)}>
+							{show === false ? <CloseEye className="eye" /> : <Eye className="eye" />}
+						</span>
+					</div>
+
+					<button className="form-submission-btn" type="submit" disabled={loading}>
+						{loading ? "Logging In..." : "Log In"}
+					</button>
+
+					{error && <p className="form-error-message">{error.message}</p>}
+				</form>
+			</div>
 		</div>
 	);
 }

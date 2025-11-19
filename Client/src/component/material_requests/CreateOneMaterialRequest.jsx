@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import React from "react";
+
+import { useEffect, useState, useMemo } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import { get_all_item_groups } from "../../../graphQL/queries/queries";
 import { create_one_material_request } from "../../../graphQL/mutations/mutations";
@@ -9,8 +11,57 @@ import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 import Modal from "../Modal";
 import { useAuth } from "../../context/AuthContext"; //  use context
+import { List } from "react-window";
+import { useDebounce } from "use-debounce";
+// import FixedSizeList from "react-window";
+
+// import {FixedSizeList} from "react-window"
 
 export default function CreateOneMaterialRequest() {
+	// !!!!!!!
+	// !!!!!!!
+	// this one work for a time if i hover over the items and start moving the mouse up and down on the items  in my console i see new log that tells me the the fucntion is re rusing for no reason or mounting an un mounting also if i start typing  a brand name that is not there it give me an error  that sas cannot read properties of undefined (reading 'props')
+	// i fix that the problem was // console.log("children data", children[0].props.data); and i just did console.log("children data", children[0]?.props?.data);
+	// !!!!!!!
+	// !!!!!!!
+	const HEIGHT = 35; // height per row
+	const MAX_MENU_HEIGHT = 300; // total dropdown height
+
+	function VirtualizedMenuList({ options, children, maxHeight }) {
+		// console.log("maxHeight", maxHeight);
+		// console.log("children", children);
+		// console.log("children data", children[0]?.props?.data);
+		// // console.log("children data", children[0].props.data);
+		// console.log("options", options);
+		const childrenArray = React.Children.toArray(children || []);
+		// console.log("children array", childrenArray);
+		const height = Math.min(MAX_MENU_HEIGHT, childrenArray.length * HEIGHT);
+
+		if (!childrenArray.length) {
+			console.log("children array is null ");
+			return null;
+		}
+
+		console.log("rendering the list ");
+		return (
+			<List
+				style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
+				rowCount={children.length}
+				rowHeight={40} //old 35
+				rowProps={{}}
+				// rowComponent={({ index, style }) => {
+				// 	const item = children[index];
+				// 	// return <div style={style}>{item ? item.props.data.value : "none"}</div>;
+				// 	return <div style={style}>{item}</div>;
+				// }}
+				rowComponent={({ index, style, rowProps }) => {
+					const item = children[index];
+					return <div style={{ ...style, display: "flex" }}>{item}</div>;
+				}}
+			/>
+		);
+	}
+
 	const { userToken, loading: authLoading } = useAuth(); //  use context instead of prop
 	const [rows, setRows] = useState([{ brand: "", item: "", quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
 	const [itemGroups, setItemGroups] = useState([]);
@@ -21,6 +72,11 @@ export default function CreateOneMaterialRequest() {
 	const navigate = useNavigate();
 	const [NewMaterialRequest] = useMutation(create_one_material_request);
 	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
+
+	const [searchValue, setSearchValue] = useState("");
+	const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
+
+	// const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms delay
 
 	//  Decode token only if it exists and once AuthContext is ready
 	useEffect(() => {
@@ -136,6 +192,47 @@ export default function CreateOneMaterialRequest() {
 
 	const isFormValid = rows?.every((r) => r?.item && r?.quantity !== "" && Number(r?.quantity) > 0);
 
+	// const filteredItems = useMemo(() => {
+	//     let items = row.brand?.value
+	//         ? allItems.filter((i) => i.brand === row.brand.value)
+	//         : allItems;
+
+	//     if (!debouncedSearch) return items;
+
+	//     const fuse = new Fuse(items, { keys: ["label"], threshold: 0.4 });
+	//     const results = fuse.search(debouncedSearch);
+	//     return results.map(r => r.item);
+	// }, [debouncedSearch, row.brand?.value, allItems]);
+
+	// !!!!!!!!
+	// !!!!!!!!
+	// !!!!!!!!
+	//* 848 entries on the list
+
+	// 848:
+	// {brand: "THUMB", label: "THUMB - TURN", value: "THU…}
+	// brand
+	// :
+	// "THUMB"
+	// label
+	// :
+	// "THUMB - TURN"
+	// value
+	// :
+	// "THUMB - TURN"
+
+	// !!!!!!!!
+	// !!!!!!!!
+	// !!!!!!!!
+
+	const filteredAllItems = useMemo(() => {
+		if (!debouncedSearch) return allItems;
+
+		const fuse = new Fuse(allItems, { keys: ["label"], threshold: 0.4 });
+		const results = fuse.search(debouncedSearch);
+		return results.map((r) => r.item);
+	}, [allItems, debouncedSearch]);
+
 	//  Handle loading state cleanly
 	if (authLoading || iGLoading) return <h1>Loading...</h1>;
 
@@ -146,7 +243,10 @@ export default function CreateOneMaterialRequest() {
 
 				<div className="update-form-wrapper">
 					{rows?.map((row, idx) => {
-						const filteredItems = row.brand?.value ? allItems?.filter((i) => i.brand === row.brand.value) : allItems;
+						// const filteredItems = row.brand?.value ? allItems?.filter((i) => i.brand === row.brand.value) : allItems;
+						// const filteredItems = row.brand?.value ? allItems?.filter((i) => i.brand === row.brand.value) : allItems;
+
+						const filteredItems = row.brand?.value ? filteredAllItems.filter((i) => i.brand === row.brand.value) : filteredAllItems;
 
 						return (
 							<div key={idx} className="update-form-row">
@@ -186,7 +286,7 @@ export default function CreateOneMaterialRequest() {
 
 									<div className="form-row-top-right material-request">
 										<label>Item</label>
-										<Select
+										{/* <Select
 											className="form-row-top-select"
 											options={filteredItems}
 											value={row.item}
@@ -195,6 +295,30 @@ export default function CreateOneMaterialRequest() {
 											filterOption={customFilter}
 											isClearable
 											isSearchable
+											styles={{
+												control: (base) => ({
+													...base,
+													borderRadius: "12px",
+													borderColor: "blue",
+												}),
+												option: (base, state) => ({
+													...base,
+													backgroundColor: state.isFocused ? "lightblue" : "white",
+													color: "black",
+												}),
+											}}
+										/> */}
+										<Select
+											className="form-row-top-select"
+											options={filteredItems}
+											// options={allItems}
+											value={row.item}
+											onChange={(val) => handleRowChange(idx, "item", val)}
+											placeholder="Select Item"
+											onInputChange={(val) => setSearchValue(val)} // update debouncedSearch via useDebounce
+											isClearable
+											isSearchable
+											components={{ MenuList: VirtualizedMenuList }}
 											styles={{
 												control: (base) => ({
 													...base,

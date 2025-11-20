@@ -158,22 +158,30 @@ export default function CreateOneMaterialRequest() {
 		// console.log("children data", children[0]?.props?.data);
 		// // console.log("children data", children[0].props.data);
 		// console.log("options", options);
-		const childrenArray = React.Children.toArray(children || []);
-		// console.log("children array", childrenArray);
 		const rowHeight = useDynamicRowHeight({
 			defaultRowHeight: 50,
 		});
+		const itemCount = children.length;
 
-		if (!childrenArray.length) {
-			// console.log("children array is null ");
-			return null;
+		if (itemCount === 0) {
+			return <div style={{ padding: "10px", textAlign: "center", color: "#777" }}>No results found</div>;
 		}
+
+		// const childrenArray = React.Children.toArray(children || []);
+		// console.log("children array", childrenArray);
+
+		// if (!childrenArray.length || childrenArray.length === 0) {
+		// 	// console.log("children array is null ");
+		// 	// return null;
+		// 	return <div style={{ padding: "10px", textAlign: "center", color: "#777" }}>No results found</div>;
+		// }
 
 		// console.log("rendering the list ");
 		return (
 			<List
 				style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
-				rowCount={children.length}
+				// rowCount={children?.length || 0}
+				rowCount={children.length || 0}
 				rowHeight={rowHeight} //old 35
 				rowProps={{}}
 				// rowComponent={({ index, style }) => {
@@ -227,7 +235,7 @@ export default function CreateOneMaterialRequest() {
 
 			console.log("🎯 Fuse raw results:", results);
 
-			const mapped = results.map((r) => r.item);
+			const mapped = results.map((r) => r?.item);
 			// const mapped = results.some((r) => r.item);
 			console.log("📌 Mapped results:", mapped);
 

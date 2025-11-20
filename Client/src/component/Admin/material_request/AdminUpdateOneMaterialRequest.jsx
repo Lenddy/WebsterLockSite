@@ -109,7 +109,7 @@ function AdminUpdateOneMaterialRequest() {
 		return (
 			<List
 				style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
-				rowCount={children.length}
+				rowCount={children.length || 0}
 				rowHeight={rowHeight} //old 35
 				rowProps={{}}
 				// rowComponent={({ index, style }) => {

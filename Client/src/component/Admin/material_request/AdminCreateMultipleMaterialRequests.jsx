@@ -9,7 +9,7 @@ import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
-import { List } from "react-window";
+import { List, useDynamicRowHeight } from "react-window";
 import { useDebounce } from "use-debounce";
 
 export default function AdminCreateMultipleMaterialRequests() {
@@ -299,9 +299,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 
 	// const [showOptional, setShowOptional] = useState(false);
 
-	const HEIGHT = 35; // height per row
-	const MAX_MENU_HEIGHT = 300; // total dropdown height
-
 	function VirtualizedMenuList({ options, children, maxHeight }) {
 		// console.log("maxHeight", maxHeight);
 		// console.log("children", children);
@@ -310,7 +307,10 @@ export default function AdminCreateMultipleMaterialRequests() {
 		// console.log("options", options);
 		const childrenArray = React.Children.toArray(children || []);
 		// console.log("children array", childrenArray);
-		const height = Math.min(MAX_MENU_HEIGHT, childrenArray.length * HEIGHT);
+
+		const rowHeight = useDynamicRowHeight({
+			defaultRowHeight: 50,
+		});
 
 		if (!childrenArray.length) {
 			// console.log("children array is null ");
@@ -322,7 +322,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 			<List
 				style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
 				rowCount={children.length}
-				rowHeight={40} //old 35
+				rowHeight={rowHeight} //old 35
 				rowProps={{}}
 				// rowComponent={({ index, style }) => {
 				// 	const item = children[index];
@@ -332,7 +332,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 				rowComponent={({ index, style, rowProps }) => {
 					const item = children[index];
 					// ?.props?.data?.label
-					return <div style={{ ...style, display: "flex" }}>{item}</div>;
+					return <div style={{ ...style, display: "flex", borderBottom: " dashed 1px black" }}>{item}</div>;
 				}}
 			/>
 		);

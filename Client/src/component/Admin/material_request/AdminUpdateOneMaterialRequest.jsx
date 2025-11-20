@@ -11,7 +11,7 @@ import Fuse from "fuse.js";
 import Modal from "../../Modal";
 import { useAuth } from "../../../context/AuthContext";
 import client from "../../../../graphQL/apolloClient";
-import { List } from "react-window";
+import { List, useDynamicRowHeight } from "react-window";
 import { useDebounce } from "use-debounce";
 
 function AdminUpdateOneMaterialRequest() {
@@ -79,9 +79,6 @@ function AdminUpdateOneMaterialRequest() {
 		[itemGroups]
 	);
 
-	const HEIGHT = 35; // height per row
-	const MAX_MENU_HEIGHT = 300; // total dropdown height
-
 	function VirtualizedMenuList({ options, children, maxHeight }) {
 		// console.log("maxHeight", maxHeight);
 		// console.log("children", children);
@@ -90,7 +87,9 @@ function AdminUpdateOneMaterialRequest() {
 		// console.log("options", options);
 		const childrenArray = React.Children.toArray(children || []);
 		// console.log("children array", childrenArray);
-		const height = Math.min(MAX_MENU_HEIGHT, childrenArray.length * HEIGHT);
+		const rowHeight = useDynamicRowHeight({
+			defaultRowHeight: 50,
+		});
 
 		if (!childrenArray.length) {
 			// console.log("children array is null ");
@@ -102,7 +101,7 @@ function AdminUpdateOneMaterialRequest() {
 			<List
 				style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
 				rowCount={children.length}
-				rowHeight={40} //old 35
+				rowHeight={rowHeight} //old 35
 				rowProps={{}}
 				// rowComponent={({ index, style }) => {
 				// 	const item = children[index];
@@ -112,7 +111,7 @@ function AdminUpdateOneMaterialRequest() {
 				rowComponent={({ index, style, rowProps }) => {
 					const item = children[index];
 					// ?.props?.data?.label
-					return <div style={{ ...style, display: "flex" }}>{item}</div>;
+					return <div style={{ ...style, display: "flex", borderBottom: " dashed 1px black" }}>{item}</div>;
 				}}
 			/>
 		);

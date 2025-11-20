@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useMutation, useQuery, useSubscription } from "@apollo/client";
 import { get_all_item_groups, get_one_material_request } from "../../../../graphQL/queries/queries";
@@ -10,6 +11,8 @@ import Fuse from "fuse.js";
 import Modal from "../../Modal";
 import { useAuth } from "../../../context/AuthContext";
 import client from "../../../../graphQL/apolloClient";
+import { List } from "react-window";
+import { useDebounce } from "use-debounce";
 
 function AdminUpdateOneMaterialRequest() {
 	const { userToken, loading: authLoading } = useAuth();
@@ -22,6 +25,8 @@ function AdminUpdateOneMaterialRequest() {
 	const [mRequest, setMRequest] = useState();
 	const [itemGroups, setItemGroups] = useState([]);
 	const [requestApproved, setRequestApproved] = useState(false);
+	const [searchValue, setSearchValue] = useState("");
+	const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
 
 	const { data: iGData } = useQuery(get_all_item_groups);
 	const { data: mRData, loading: mRLoading } = useQuery(get_one_material_request, {
@@ -73,6 +78,90 @@ function AdminUpdateOneMaterialRequest() {
 			})),
 		[itemGroups]
 	);
+
+	const HEIGHT = 35; // height per row
+	const MAX_MENU_HEIGHT = 300; // total dropdown height
+
+	function VirtualizedMenuList({ options, children, maxHeight }) {
+		// console.log("maxHeight", maxHeight);
+		// console.log("children", children);
+		// console.log("children data", children[0]?.props?.data);
+		// // console.log("children data", children[0].props.data);
+		// console.log("options", options);
+		const childrenArray = React.Children.toArray(children || []);
+		// console.log("children array", childrenArray);
+		const height = Math.min(MAX_MENU_HEIGHT, childrenArray.length * HEIGHT);
+
+		if (!childrenArray.length) {
+			// console.log("children array is null ");
+			return null;
+		}
+
+		// console.log("rendering the list ");
+		return (
+			<List
+				style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
+				rowCount={children.length}
+				rowHeight={40} //old 35
+				rowProps={{}}
+				// rowComponent={({ index, style }) => {
+				// 	const item = children[index];
+				// 	// return <div style={style}>{item ? item.props.data.value : "none"}</div>;
+				// 	return <div style={style}>{item}</div>;
+				// }}
+				rowComponent={({ index, style, rowProps }) => {
+					const item = children[index];
+					// ?.props?.data?.label
+					return <div style={{ ...style, display: "flex" }}>{item}</div>;
+				}}
+			/>
+		);
+	}
+
+	const filteredAllItems = useMemo(() => {
+		console.log("🔍 debouncedSearch:", debouncedSearch);
+		console.log("📦 allItems:", allItems);
+
+		if (!debouncedSearch) {
+			console.log("➡ Returning all items (no search)");
+			return allItems;
+		}
+
+		// return fuse.search(inputValue).some((r) => r.item.value === option.value);
+
+		try {
+			const fuse = new Fuse(allItems, {
+				keys: ["label"],
+				threshold: 0.4,
+				ignoreLocation: true,
+			});
+			const results = fuse.search(debouncedSearch);
+			// const results = fuse.search(debouncedSearch).some((r) => r.item.value);
+
+			console.log("🎯 Fuse raw results:", results);
+
+			const mapped = results.map((r) => r.item);
+			// const mapped = results.some((r) => r.item);
+			console.log("📌 Mapped results:", mapped);
+
+			return mapped;
+		} catch (err) {
+			console.error("❌ Fuzzy error:", err);
+			return allItems;
+		}
+	}, [allItems, debouncedSearch]);
+
+	// const filteredAllItems = useMemo(() => {
+	// 	if (!debouncedSearch) return allItems;
+
+	// 	const fuse = new Fuse(allItems, {
+	// 		keys: ["label", "brand"],
+	// 		threshold: 0.4,
+	// 		ignoreLocation: true,
+	// 	});
+
+	// 	return fuse.search(debouncedSearch).map((r) => r.item);
+	// }, [allItems, debouncedSearch]);
 
 	// ----- Load item groups -----
 	useEffect(() => {
@@ -331,7 +420,8 @@ function AdminUpdateOneMaterialRequest() {
 						// - If brand is selected → filter down to that brand
 						// - If no brand is selected → show ALL items
 
-						const filteredItems = row.brand?.value ? allItems?.filter((i) => i?.brand === row.brand.value) : allItems;
+						// const filteredItems = row.brand?.value ? allItems?.filter((i) => i?.brand === row.brand.value) : allItems;
+						const filteredItems = row.brand?.value ? filteredAllItems.filter((i) => i.brand === row.brand.value) : filteredAllItems;
 
 						return (
 							<div className={`update-form-row`} key={idx}>
@@ -377,7 +467,7 @@ function AdminUpdateOneMaterialRequest() {
 									<div className="form-row-top-right  material-request">
 										<label htmlFor="">Item</label>
 										{/* Item select */}
-										<Select
+										{/* <Select
 											className="form-row-top-select"
 											options={filteredItems}
 											value={row.item}
@@ -399,7 +489,39 @@ function AdminUpdateOneMaterialRequest() {
 													color: "black",
 												}),
 											}}
-										/>{" "}
+										/> */}
+
+										<Select
+											className="form-row-top-select"
+											options={filteredItems}
+											// options={allItems}
+											value={row.item}
+											onChange={(val) => handleRowChange(idx, "item", val)}
+											placeholder="Select Item"
+											onInputChange={(val, meta) => {
+												// console.log("InputChange value:", val, "action:", meta.action);
+												if (meta.action === "input-change") {
+													setSearchValue(val);
+												}
+											}}
+											// onInputChange={(val) => setSearchValue(val)} // update debouncedSearch via useDebounce
+											filterOption={() => true}
+											isClearable
+											isSearchable
+											components={{ MenuList: VirtualizedMenuList }}
+											styles={{
+												control: (base) => ({
+													...base,
+													borderRadius: "12px",
+													borderColor: "blue",
+												}),
+												option: (base, state) => ({
+													...base,
+													backgroundColor: state.isFocused ? "lightblue" : "white",
+													color: "black",
+												}),
+											}}
+										/>
 									</div>
 								</div>
 

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import React from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import { get_all_item_groups } from "../../../../graphQL/queries/queries";
 import { create_multiple_material_requests } from "../../../../graphQL/mutations/mutations";
@@ -8,6 +9,8 @@ import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
+import { List } from "react-window";
+import { useDebounce } from "use-debounce";
 
 export default function AdminCreateMultipleMaterialRequests() {
 	const [users, setUsers] = useState([]);
@@ -55,6 +58,8 @@ export default function AdminCreateMultipleMaterialRequests() {
 	const { loading, data, error, refetch } = useQuery(get_all_users);
 	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
 	const [createNewMaterialRequests] = useMutation(create_multiple_material_requests);
+	const [searchValue, setSearchValue] = useState("");
+	const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
 
 	const navigate = useNavigate();
 
@@ -294,6 +299,90 @@ export default function AdminCreateMultipleMaterialRequests() {
 
 	// const [showOptional, setShowOptional] = useState(false);
 
+	const HEIGHT = 35; // height per row
+	const MAX_MENU_HEIGHT = 300; // total dropdown height
+
+	function VirtualizedMenuList({ options, children, maxHeight }) {
+		// console.log("maxHeight", maxHeight);
+		// console.log("children", children);
+		// console.log("children data", children[0]?.props?.data);
+		// // console.log("children data", children[0].props.data);
+		// console.log("options", options);
+		const childrenArray = React.Children.toArray(children || []);
+		// console.log("children array", childrenArray);
+		const height = Math.min(MAX_MENU_HEIGHT, childrenArray.length * HEIGHT);
+
+		if (!childrenArray.length) {
+			// console.log("children array is null ");
+			return null;
+		}
+
+		// console.log("rendering the list ");
+		return (
+			<List
+				style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
+				rowCount={children.length}
+				rowHeight={40} //old 35
+				rowProps={{}}
+				// rowComponent={({ index, style }) => {
+				// 	const item = children[index];
+				// 	// return <div style={style}>{item ? item.props.data.value : "none"}</div>;
+				// 	return <div style={style}>{item}</div>;
+				// }}
+				rowComponent={({ index, style, rowProps }) => {
+					const item = children[index];
+					// ?.props?.data?.label
+					return <div style={{ ...style, display: "flex" }}>{item}</div>;
+				}}
+			/>
+		);
+	}
+
+	const filteredAllItems = useMemo(() => {
+		console.log("🔍 debouncedSearch:", debouncedSearch);
+		console.log("📦 allItems:", allItems);
+
+		if (!debouncedSearch) {
+			console.log("➡ Returning all items (no search)");
+			return allItems;
+		}
+
+		// return fuse.search(inputValue).some((r) => r.item.value === option.value);
+
+		try {
+			const fuse = new Fuse(allItems, {
+				keys: ["label"],
+				threshold: 0.4,
+				ignoreLocation: true,
+			});
+			const results = fuse.search(debouncedSearch);
+			// const results = fuse.search(debouncedSearch).some((r) => r.item.value);
+
+			console.log("🎯 Fuse raw results:", results);
+
+			const mapped = results.map((r) => r.item);
+			// const mapped = results.some((r) => r.item);
+			console.log("📌 Mapped results:", mapped);
+
+			return mapped;
+		} catch (err) {
+			console.error("❌ Fuzzy error:", err);
+			return allItems;
+		}
+	}, [allItems, debouncedSearch]);
+
+	// const filteredAllItems = useMemo(() => {
+	// 	if (!debouncedSearch) return allItems;
+
+	// 	const fuse = new Fuse(allItems, {
+	// 		keys: ["label", "brand"],
+	// 		threshold: 0.4,
+	// 		ignoreLocation: true,
+	// 	});
+
+	// 	return fuse.search(debouncedSearch).map((r) => r.item);
+	// }, [allItems, debouncedSearch]);
+
 	return (
 		<div className="update-container">
 			{/* Simple navigation/test links */}
@@ -356,7 +445,8 @@ export default function AdminCreateMultipleMaterialRequests() {
 
 							{/* Items inside request */}
 							{req.items.map((row, rowIdx) => {
-								const filteredItems = row?.brand?.value ? allItems?.filter((i) => i?.brand === row?.brand?.value) : allItems;
+								// const filteredItems = row?.brand?.value ? allItems?.filter((i) => i?.brand === row?.brand?.value) : allItems;
+								const filteredItems = row.brand?.value ? filteredAllItems.filter((i) => i.brand === row.brand.value) : filteredAllItems;
 
 								return (
 									<div key={rowIdx} className="update-form-row">
@@ -398,7 +488,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 											<div className="form-row-top-right material-request">
 												<label htmlFor="">Item</label>
 												{/* Item select */}
-												<Select
+												{/* <Select
 													className="form-row-top-select"
 													options={filteredItems}
 													value={row.item}
@@ -414,6 +504,38 @@ export default function AdminCreateMultipleMaterialRequests() {
 															borderColor: "blue",
 															// width: "200px",
 															// height: "50px",
+														}),
+														option: (base, state) => ({
+															...base,
+															backgroundColor: state.isFocused ? "lightblue" : "white",
+															color: "black",
+														}),
+													}}
+												/> */}
+
+												<Select
+													className="form-row-top-select"
+													options={filteredItems}
+													// options={allItems}
+													value={row.item}
+													onChange={(val) => handleItemChange(reqIdx, rowIdx, "item", val)}
+													placeholder="Select Item"
+													onInputChange={(val, meta) => {
+														// console.log("InputChange value:", val, "action:", meta.action);
+														if (meta.action === "input-change") {
+															setSearchValue(val);
+														}
+													}}
+													// onInputChange={(val) => setSearchValue(val)} // update debouncedSearch via useDebounce
+													filterOption={() => true}
+													isClearable
+													isSearchable
+													components={{ MenuList: VirtualizedMenuList }}
+													styles={{
+														control: (base) => ({
+															...base,
+															borderRadius: "12px",
+															borderColor: "blue",
 														}),
 														option: (base, state) => ({
 															...base,

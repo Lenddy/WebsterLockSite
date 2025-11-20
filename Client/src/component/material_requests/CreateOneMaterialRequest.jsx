@@ -18,50 +18,6 @@ import { useDebounce } from "use-debounce";
 // import {FixedSizeList} from "react-window"
 
 export default function CreateOneMaterialRequest() {
-	// !!!!!!!
-	// !!!!!!!
-	// this one work for a time if i hover over the items and start moving the mouse up and down on the items  in my console i see new log that tells me the the fucntion is re rusing for no reason or mounting an un mounting also if i start typing  a brand name that is not there it give me an error  that sas cannot read properties of undefined (reading 'props')
-	// i fix that the problem was // console.log("children data", children[0].props.data); and i just did console.log("children data", children[0]?.props?.data);
-	// !!!!!!!
-	// !!!!!!!
-	const HEIGHT = 35; // height per row
-	const MAX_MENU_HEIGHT = 300; // total dropdown height
-
-	function VirtualizedMenuList({ options, children, maxHeight }) {
-		// console.log("maxHeight", maxHeight);
-		// console.log("children", children);
-		// console.log("children data", children[0]?.props?.data);
-		// // console.log("children data", children[0].props.data);
-		// console.log("options", options);
-		const childrenArray = React.Children.toArray(children || []);
-		// console.log("children array", childrenArray);
-		const height = Math.min(MAX_MENU_HEIGHT, childrenArray.length * HEIGHT);
-
-		if (!childrenArray.length) {
-			console.log("children array is null ");
-			return null;
-		}
-
-		console.log("rendering the list ");
-		return (
-			<List
-				style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
-				rowCount={children.length}
-				rowHeight={40} //old 35
-				rowProps={{}}
-				// rowComponent={({ index, style }) => {
-				// 	const item = children[index];
-				// 	// return <div style={style}>{item ? item.props.data.value : "none"}</div>;
-				// 	return <div style={style}>{item}</div>;
-				// }}
-				rowComponent={({ index, style, rowProps }) => {
-					const item = children[index];
-					return <div style={{ ...style, display: "flex" }}>{item}</div>;
-				}}
-			/>
-		);
-	}
-
 	const { userToken, loading: authLoading } = useAuth(); //  use context instead of prop
 	const [rows, setRows] = useState([{ brand: "", item: "", quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
 	const [itemGroups, setItemGroups] = useState([]);
@@ -130,12 +86,6 @@ export default function CreateOneMaterialRequest() {
 		}))
 	);
 
-	const customFilter = (option, inputValue) => {
-		if (!inputValue) return true;
-		const fuse = new Fuse(allItems, { keys: ["label"], threshold: 0.4 });
-		return fuse.search(inputValue).some((r) => r.item.value === option.value);
-	};
-
 	const handleRowChange = (index, field, value) => {
 		setRows((prev) => {
 			const updated = [...prev];
@@ -192,46 +142,104 @@ export default function CreateOneMaterialRequest() {
 
 	const isFormValid = rows?.every((r) => r?.item && r?.quantity !== "" && Number(r?.quantity) > 0);
 
-	// const filteredItems = useMemo(() => {
-	//     let items = row.brand?.value
-	//         ? allItems.filter((i) => i.brand === row.brand.value)
-	//         : allItems;
+	const HEIGHT = 35; // height per row
+	const MAX_MENU_HEIGHT = 300; // total dropdown height
 
-	//     if (!debouncedSearch) return items;
+	function VirtualizedMenuList({ options, children, maxHeight }) {
+		// console.log("maxHeight", maxHeight);
+		// console.log("children", children);
+		// console.log("children data", children[0]?.props?.data);
+		// // console.log("children data", children[0].props.data);
+		// console.log("options", options);
+		const childrenArray = React.Children.toArray(children || []);
+		// console.log("children array", childrenArray);
+		const height = Math.min(MAX_MENU_HEIGHT, childrenArray.length * HEIGHT);
 
-	//     const fuse = new Fuse(items, { keys: ["label"], threshold: 0.4 });
-	//     const results = fuse.search(debouncedSearch);
-	//     return results.map(r => r.item);
-	// }, [debouncedSearch, row.brand?.value, allItems]);
+		if (!childrenArray.length) {
+			// console.log("children array is null ");
+			return null;
+		}
 
-	// !!!!!!!!
-	// !!!!!!!!
-	// !!!!!!!!
-	//* 848 entries on the list
+		// console.log("rendering the list ");
+		return (
+			<List
+				style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
+				rowCount={children.length}
+				rowHeight={40} //old 35
+				rowProps={{}}
+				// rowComponent={({ index, style }) => {
+				// 	const item = children[index];
+				// 	// return <div style={style}>{item ? item.props.data.value : "none"}</div>;
+				// 	return <div style={style}>{item}</div>;
+				// }}
+				rowComponent={({ index, style, rowProps }) => {
+					const item = children[index];
+					// ?.props?.data?.label
+					return <div style={{ ...style, display: "flex" }}>{item}</div>;
+				}}
+			/>
+		);
+	}
 
-	// 848:
-	// {brand: "THUMB", label: "THUMB - TURN", value: "THU…}
-	// brand
-	// :
-	// "THUMB"
-	// label
-	// :
-	// "THUMB - TURN"
-	// value
-	// :
-	// "THUMB - TURN"
+	const customFilter = (option, inputValue) => {
+		if (!inputValue) return true;
+		const fuse = new Fuse(allItems, { keys: ["label"], threshold: 0.4 });
+		return fuse.search(inputValue).some((r) => r.item.value === option.value);
+	};
 
-	// !!!!!!!!
-	// !!!!!!!!
-	// !!!!!!!!
+	// const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
+	// const filteredAllItems = useMemo(() => {
+	// 	if (!debouncedSearch) return allItems;
+
+	// 	const fuse = new Fuse(allItems, { keys: ["label"], threshold: 0.4 });
+	// 	const results = fuse.search(debouncedSearch);
+	// 	return results.map((r) => r.item);
+	// }, [allItems, debouncedSearch]);
 
 	const filteredAllItems = useMemo(() => {
-		if (!debouncedSearch) return allItems;
+		console.log("🔍 debouncedSearch:", debouncedSearch);
+		console.log("📦 allItems:", allItems);
 
-		const fuse = new Fuse(allItems, { keys: ["label"], threshold: 0.4 });
-		const results = fuse.search(debouncedSearch);
-		return results.map((r) => r.item);
+		if (!debouncedSearch) {
+			console.log("➡ Returning all items (no search)");
+			return allItems;
+		}
+
+		// return fuse.search(inputValue).some((r) => r.item.value === option.value);
+
+		try {
+			const fuse = new Fuse(allItems, {
+				keys: ["label"],
+				threshold: 0.4,
+				ignoreLocation: true,
+			});
+			const results = fuse.search(debouncedSearch);
+			// const results = fuse.search(debouncedSearch).some((r) => r.item.value);
+
+			console.log("🎯 Fuse raw results:", results);
+
+			const mapped = results.map((r) => r.item);
+			// const mapped = results.some((r) => r.item);
+			console.log("📌 Mapped results:", mapped);
+
+			return mapped;
+		} catch (err) {
+			console.error("❌ Fuzzy error:", err);
+			return allItems;
+		}
 	}, [allItems, debouncedSearch]);
+
+	// const filteredAllItems = useMemo(() => {
+	// 	if (!debouncedSearch) return allItems;
+
+	// 	const fuse = new Fuse(allItems, {
+	// 		keys: ["label", "brand"],
+	// 		threshold: 0.4,
+	// 		ignoreLocation: true,
+	// 	});
+
+	// 	return fuse.search(debouncedSearch).map((r) => r.item);
+	// }, [allItems, debouncedSearch]);
 
 	//  Handle loading state cleanly
 	if (authLoading || iGLoading) return <h1>Loading...</h1>;
@@ -245,6 +253,8 @@ export default function CreateOneMaterialRequest() {
 					{rows?.map((row, idx) => {
 						// const filteredItems = row.brand?.value ? allItems?.filter((i) => i.brand === row.brand.value) : allItems;
 						// const filteredItems = row.brand?.value ? allItems?.filter((i) => i.brand === row.brand.value) : allItems;
+
+						// const filteredItems = row.brand?.value ? filteredAllItems.filter((i) => i.brand === row.brand.value) : filteredAllItems;
 
 						const filteredItems = row.brand?.value ? filteredAllItems.filter((i) => i.brand === row.brand.value) : filteredAllItems;
 
@@ -315,7 +325,14 @@ export default function CreateOneMaterialRequest() {
 											value={row.item}
 											onChange={(val) => handleRowChange(idx, "item", val)}
 											placeholder="Select Item"
-											onInputChange={(val) => setSearchValue(val)} // update debouncedSearch via useDebounce
+											onInputChange={(val, meta) => {
+												// console.log("InputChange value:", val, "action:", meta.action);
+												if (meta.action === "input-change") {
+													setSearchValue(val);
+												}
+											}}
+											// onInputChange={(val) => setSearchValue(val)} // update debouncedSearch via useDebounce
+											filterOption={() => true}
 											isClearable
 											isSearchable
 											components={{ MenuList: VirtualizedMenuList }}

@@ -27,6 +27,7 @@ function AdminUpdateOneMaterialRequest() {
 	const [requestApproved, setRequestApproved] = useState(false);
 	const [searchValue, setSearchValue] = useState("");
 	const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
+	const [isItemsReady, setIsItemsReady] = useState(false);
 
 	const { data: iGData } = useQuery(get_all_item_groups);
 	const { data: mRData, loading: mRLoading } = useQuery(get_one_material_request, {
@@ -69,6 +70,14 @@ function AdminUpdateOneMaterialRequest() {
 			) || [],
 		[itemGroups]
 	);
+
+	useEffect(() => {
+		if (allItems && allItems.length > 0) {
+			setIsItemsReady(true);
+		} else {
+			setIsItemsReady(false);
+		}
+	}, [allItems]);
 
 	const brands = useMemo(
 		() =>
@@ -496,7 +505,8 @@ function AdminUpdateOneMaterialRequest() {
 											// options={allItems}
 											value={row.item}
 											onChange={(val) => handleRowChange(idx, "item", val)}
-											placeholder="Select Item"
+											placeholder={isItemsReady ? "Select Item" : "Loading items..."}
+											isDisabled={!isItemsReady}
 											onInputChange={(val, meta) => {
 												// console.log("InputChange value:", val, "action:", meta.action);
 												if (meta.action === "input-change") {

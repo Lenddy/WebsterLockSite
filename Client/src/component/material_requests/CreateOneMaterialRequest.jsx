@@ -32,6 +32,8 @@ export default function CreateOneMaterialRequest() {
 	const [searchValue, setSearchValue] = useState("");
 	const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
 
+	const [isItemsReady, setIsItemsReady] = useState(false);
+
 	// const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms delay
 
 	//  Decode token only if it exists and once AuthContext is ready
@@ -85,6 +87,14 @@ export default function CreateOneMaterialRequest() {
 			brand: group.brand,
 		}))
 	);
+
+	useEffect(() => {
+		if (allItems && allItems.length > 0) {
+			setIsItemsReady(true);
+		} else {
+			setIsItemsReady(false);
+		}
+	}, [allItems]);
 
 	const handleRowChange = (index, field, value) => {
 		setRows((prev) => {
@@ -323,7 +333,8 @@ export default function CreateOneMaterialRequest() {
 											// options={allItems}
 											value={row.item}
 											onChange={(val) => handleRowChange(idx, "item", val)}
-											placeholder="Select Item"
+											placeholder={isItemsReady ? "Select Item" : "Loading items..."}
+											isDisabled={!isItemsReady}
 											onInputChange={(val, meta) => {
 												// console.log("InputChange value:", val, "action:", meta.action);
 												if (meta.action === "input-change") {

@@ -11,7 +11,7 @@ import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 import Modal from "../Modal";
 import { useAuth } from "../../context/AuthContext"; //  use context
-import { List } from "react-window";
+import { List, useDynamicRowHeight } from "react-window";
 import { useDebounce } from "use-debounce";
 // import FixedSizeList from "react-window";
 
@@ -142,9 +142,6 @@ export default function CreateOneMaterialRequest() {
 
 	const isFormValid = rows?.every((r) => r?.item && r?.quantity !== "" && Number(r?.quantity) > 0);
 
-	const HEIGHT = 35; // height per row
-	const MAX_MENU_HEIGHT = 300; // total dropdown height
-
 	function VirtualizedMenuList({ options, children, maxHeight }) {
 		// console.log("maxHeight", maxHeight);
 		// console.log("children", children);
@@ -153,7 +150,9 @@ export default function CreateOneMaterialRequest() {
 		// console.log("options", options);
 		const childrenArray = React.Children.toArray(children || []);
 		// console.log("children array", childrenArray);
-		const height = Math.min(MAX_MENU_HEIGHT, childrenArray.length * HEIGHT);
+		const rowHeight = useDynamicRowHeight({
+			defaultRowHeight: 50,
+		});
 
 		if (!childrenArray.length) {
 			// console.log("children array is null ");
@@ -165,7 +164,7 @@ export default function CreateOneMaterialRequest() {
 			<List
 				style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
 				rowCount={children.length}
-				rowHeight={40} //old 35
+				rowHeight={rowHeight} //old 35
 				rowProps={{}}
 				// rowComponent={({ index, style }) => {
 				// 	const item = children[index];
@@ -175,7 +174,7 @@ export default function CreateOneMaterialRequest() {
 				rowComponent={({ index, style, rowProps }) => {
 					const item = children[index];
 					// ?.props?.data?.label
-					return <div style={{ ...style, display: "flex" }}>{item}</div>;
+					return <div style={{ ...style, display: "flex", borderBottom: " dashed 1px black" }}>{item}</div>;
 				}}
 			/>
 		);

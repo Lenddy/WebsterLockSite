@@ -7,6 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 import { ApolloProvider } from "@apollo/client";
 import client from "../graphQL/apolloClient.js"; // imported client
 import { AuthProvider } from "./context/AuthContext";
+import "../i18n.js";
 
 //  Render app
 createRoot(document.getElementById("root")).render(

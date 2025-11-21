@@ -257,4 +257,3 @@ const client = new ApolloClient({
 // client.resetStore();
 // console.log("this is the client / caches from the apollo client after cleaning", client.cache.extract());
 export default client;
-6;

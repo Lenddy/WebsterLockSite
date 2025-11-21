@@ -8,7 +8,8 @@
 		"dev": "vite",
 		"build": "vite build",
 		"lint": "eslint .",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"scan": "npx i18next-scanner --config ./i18next-scanner.config.cjs"
 	},
 	"dependencies": {
 		"@apollo/client": "latest",
@@ -16,9 +17,12 @@
 		"fuse.js": "^7.1.0",
 		"graphql": "latest",
 		"graphql-ws": "latest",
+		"i18next": "^25.6.3",
+		"i18next-http-backend": "^3.0.2",
 		"jwt-decode": "^4.0.0",
 		"react": "latest",
 		"react-dom": "latest",
+		"react-i18next": "^16.3.5",
 		"react-router-dom": "latest",
 		"react-select": "^5.10.2",
 		"react-window": "^2.2.3",

@@ -6,6 +6,8 @@ import { jwtDecode } from "jwt-decode";
 import Eye from "../../assets/eye.svg?react";
 import CloseEye from "../../assets/closeEye.svg?react";
 import { useAuth } from "../../context/AuthContext"; // import your context
+import { useTranslation } from "react-i18next";
+import i18n from "../../../i18n";
 
 export default function LogIn({ screenWidth }) {
 	const { setUserToken, userToken } = useAuth(); //  get setter from context
@@ -13,6 +15,18 @@ export default function LogIn({ screenWidth }) {
 	const navigate = useNavigate();
 	const [logInUser, { data, loading, error }] = useMutation(log_In_user);
 	const [show, setShow] = useState(false);
+	const { t } = useTranslation();
+
+	const languages = [
+		{
+			code: "en",
+			name: "English",
+		},
+		{
+			code: "es",
+			name: "Español",
+		},
+	];
 
 	const SubmissionInfo = (e) => {
 		setInfo({
@@ -90,6 +104,16 @@ export default function LogIn({ screenWidth }) {
 
 	return (
 		<div>
+			<div>
+				<h1>{t("welcome")}</h1>
+				<h1>{t("left")}</h1>
+				{languages.map((language) => (
+					<button onClick={() => i18n.changeLanguage(language.code)} key={language.code}>
+						{language.name}{" "}
+					</button>
+				))}
+			</div>
+
 			<div className="log-in-container">
 				{userToken && (
 					<div className="back-home">

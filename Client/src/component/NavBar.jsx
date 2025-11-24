@@ -1,19 +1,39 @@
-import { useState, useEffect, useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../context/AuthContext";
 import Logo from "../assets/WebsterSiteLogo.png";
 import Burger from "../assets/burgerMenu.svg?react";
 import X from "../assets/x.svg?react";
+import Settings from "../assets/settings.svg?react";
 import { get_one_user, get_all_users, get_all_material_requests, get_all_item_groups } from "../../graphQL/queries/queries";
 import { useQuery } from "@apollo/client";
 import RefetchButton from "./utilities/RefetchButton";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 export default function NavBar({ children, screenWidth }) {
 	const { userToken, setUserToken, loading: authLoading, pageLoading } = useAuth();
 	const [decodedUser, setDecodedUser] = useState(null);
 	const [mobileOpen, setMobileOpen] = useState(false);
+	const [configOpen, setConfigOpen] = useState(false);
+	const containerRef = useRef(null);
 	const location = useLocation();
+
+	const { t } = useTranslation();
+
+	const languages = [
+		{
+			code: "en",
+			name: "English",
+		},
+		{
+			code: "es",
+			name: "Español",
+		},
+	];
+
+	const navigate = useNavigate();
 
 	// Decode token once available
 	useEffect(() => {
@@ -28,6 +48,32 @@ export default function NavBar({ children, screenWidth }) {
 			setDecodedUser(null);
 		}
 	}, [userToken]);
+
+	// Close on outside click
+	useEffect(() => {
+		const handleClickOutside = (e) => {
+			if (containerRef.current && !containerRef.current.contains(e.target)) {
+				setConfigOpen(false);
+			}
+		};
+
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => document.removeEventListener("mousedown", handleClickOutside);
+	}, []);
+
+	// Keyboard support
+	useEffect(() => {
+		const handleKey = (e) => {
+			if (!configOpen) return;
+
+			if (e.key === "Escape") {
+				setConfigOpen(false);
+			}
+		};
+
+		document.addEventListener("keydown", handleKey);
+		return () => document.removeEventListener("keydown", handleKey);
+	}, [configOpen]);
 
 	const role = decodedUser?.role;
 	const isAdmin = useMemo(() => ["headAdmin", "admin", "subAdmin"].includes(role), [role]);
@@ -50,30 +96,35 @@ export default function NavBar({ children, screenWidth }) {
 			isAdmin
 				? [
 						{
-							title: "Users",
+							title: t("Users"), //Users,
 							links: [
-								{ name: "View All", path: "/user/all" },
-								{ name: "Register Users", path: "/admin/user/register" },
-								{ name: "Update Users", path: "/admin/user/update" },
-								{ name: "Update Profile", path: `/user/${decodedUser?.userId}/update` },
+								{ name: t("view-all"), path: "/user/all" },
+								{ name: t("register-users"), path: "/admin/user/register" },
+								{ name: t("update-users"), path: "/admin/user/update" },
+								{ name: t("update-profile"), path: `/user/${decodedUser?.userId}/update` },
 							],
 						},
 						{
-							title: "Material Requests",
+							title: t("material-requests"),
 							links: [
-								{ name: "View All", path: "/material/request/all" },
-								{ name: "Request Material", path: "/admin/material/request" },
+								{ name: t("view-all"), path: "/material/request/all" },
+								{ name: t("request-material"), path: "/admin/material/request" },
+								// "Request Material"
 							],
 						},
 						{
-							title: "Items",
+							title: t("items"),
 							links: [
-								{ name: "View All", path: "/admin/material/item/all" },
-								{ name: "Add Items", path: "/admin/material/item/create" },
-								{ name: "Update Items", path: "/admin/material/item/update" },
-								{ name: "Items Usage", path: "/admin/material/item/usage" },
+								{ name: t("view-all"), path: "/admin/material/item/all" },
+								{ name: t("add-items"), path: "/admin/material/item/create" },
+								{ name: t("update-items"), path: "/admin/material/item/update" },
+								{ name: t("items-usage"), path: "/admin/material/item/usage" },
 							],
 						},
+						// {
+						// 	title: "Language",
+						// 	links: [{ name: "English" }, { name: "Español" }],
+						// },
 				  ]
 				: [
 						{
@@ -87,15 +138,34 @@ export default function NavBar({ children, screenWidth }) {
 								{ name: "Request Material", path: "/material/request/request" },
 							],
 						},
+						// {
+						// 	title: "Language",
+						// 	links: [{ name: "English" }, { name: "Español" }],
+						// },
 				  ],
 		[isAdmin, decodedUser?.userId]
 	);
 
 	const closeMenu = () => setMobileOpen(false);
+
 	const handleLogout = () => {
-		setUserToken(null);
-		window.location.reload();
+		const confirmLogout = window.confirm("Are you sure you want to log out?");
+
+		if (confirmLogout) {
+			// window.location.reload();
+			setUserToken(null);
+			// navigate("/");
+		}
+		if (!confirmLogout) return;
+
+		//   localStorage.removeItem("token");
+		//   navigate("/login");
 	};
+
+	// const handleLogout = () => {
+	// 	setUserToken(null);
+	// 	window.location.reload();
+	// };
 
 	if (authLoading) return null;
 	if (!decodedUser) return null; // ProtectedRoutes will redirect
@@ -113,6 +183,8 @@ export default function NavBar({ children, screenWidth }) {
 
 	return (
 		<div className="content-container">
+			{/* <img src{Settings} alt="" /> */}
+			{/* < className="nav-link-container-dropdown-title-config settings" /> */}
 			<div className="nav-container">
 				<div className="nav-logo">
 					<Link to={isAdmin ? menuItems[1]?.links[0]?.path : menuItems[1]?.links[1]?.path}>
@@ -138,9 +210,34 @@ export default function NavBar({ children, screenWidth }) {
 						</ul>
 
 						<div className="desktop-logout">
-							<Link to="/" onClick={handleLogout}>
+							{/* <Link to="/" onClick={handleLogout}>
 								Log Out
-							</Link>
+							</Link> */}
+
+							<ul ref={containerRef} className="nav-link-container-config desktop">
+								<li className={`nav-link-container-dropdown-config ${configOpen ? "active" : ""}`} onClick={() => setConfigOpen(!configOpen)}>
+									{/* <div className="nav-burger-menu-links-section-title"> Config</div> */}
+									<span className="nav-link-container-dropdown-title-config">
+										<Settings className={`nav-link-container-dropdown-title-config settings ${configOpen ? "active" : ""}`} />▾
+									</span>
+									<div className="nav-link-container-dropdown-link-config">
+										{languages.map((language) => (
+											<Link onClick={() => i18n.changeLanguage(language.code)} key={language.code} className={localStorage.getItem("i18nextLng") === language.code ? "nav-bar-link-disabled" : ""}>
+												{language.name}
+											</Link>
+										))}
+										<Link onClick={handleLogout} className="Log-out">
+											Log Out
+										</Link>
+									</div>
+								</li>
+
+								{/* <li className="nav-burger-menu-links-section logout">
+									<Link to="/" onClick={handleLogout}>
+										Log Out
+									</Link>
+								</li> */}
+							</ul>
 						</div>
 					</>
 				) : (
@@ -157,6 +254,7 @@ export default function NavBar({ children, screenWidth }) {
 						{menuItems.map((m) => (
 							<li className="nav-burger-menu-links-section" key={m.title}>
 								<div className="nav-burger-menu-links-section-title">{m.title}</div>
+
 								{m.links.map((i) => (
 									<Link key={i.path} to={i.path} onClick={closeMenu} className={location.pathname === i.path ? "nav-bar-link-disabled" : ""}>
 										{i.name}
@@ -165,10 +263,24 @@ export default function NavBar({ children, screenWidth }) {
 							</li>
 						))}
 
-						<li className="nav-burger-menu-links-section logout">
-							<Link to="/" onClick={handleLogout}>
+						<li className="nav-burger-menu-links-section">
+							<div className="nav-burger-menu-links-section-title mobile">
+								{" "}
+								<Settings className={`nav-link-container-dropdown-title-config settings mobile`} />
+							</div>
+
+							{/* <div className="nav-link-container-dropdown-link"> */}
+							{languages.map((language) => (
+								<Link className={localStorage.getItem("i18nextLng") === language.code ? "nav-bar-link-disabled" : ""} onClick={() => i18n.changeLanguage(language.code)} key={language.code}>
+									{language.name}
+								</Link>
+							))}
+
+							{/* <li > */}
+							<Link className="nav-burger-menu-links-section logout" onClick={handleLogout}>
 								Log Out
 							</Link>
+							{/* </li> */}
 						</li>
 					</ul>
 				</div>

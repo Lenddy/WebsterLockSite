@@ -1,4 +1,21 @@
 {
-	"welcome": "Bienvenido",
-	"left": "Izquierda"
+	"welcome": "",
+	"left": "",
+	"right": "",
+	"user-is-log-in": "ha iniciado sesión / volver a inicio?",
+	"home": "Inicio",
+	"log-in": "Iniciar sesión",
+	"password": "Contraseña",
+	"logging-in": "Iniciado sesión...",
+	"Users": "Usuarios",
+	"view-all": "Ver todos",
+	"register-users": "Registrar Usuarios",
+	"update-users": "Actualizar Usuarios",
+	"update-profile": "Actualizar Perfil",
+	"material-requests": "Solicitudes de Materiales",
+	"request-material": "Solicitar Material",
+	"items": "Artículos",
+	"add-items": "Agregar Artículos",
+	"update-items": "Actualizar Artículos",
+	"items-usage": "Uso de Artículos"
 }

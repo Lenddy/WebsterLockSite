@@ -1,4 +1,21 @@
 {
-	"welcome": "Welcome",
-	"left": "Left"
+	"welcome": "",
+	"left": "",
+	"right": "",
+	"user-is-log-in": "is logged in / go back to home?",
+	"home": "Home",
+	"log-in": " LogIn",
+	"password": "password",
+	"logging-in": "Logging In...",
+	"Users": "Users",
+	"view-all": "View All",
+	"register-users": "Register Users",
+	"update-users": "Update Users",
+	"update-profile": "Update Profile",
+	"material-requests": "Material Requests",
+	"request-material": "Request Material",
+	"items": "Items",
+	"add-items": "Add Items",
+	"update-items": "Update Items",
+	"items-usage": "Items-Usage"
 }

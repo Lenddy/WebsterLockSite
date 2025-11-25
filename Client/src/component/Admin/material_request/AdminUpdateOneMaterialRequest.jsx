@@ -13,12 +13,14 @@ import { useAuth } from "../../../context/AuthContext";
 import client from "../../../../graphQL/apolloClient";
 import { List, useDynamicRowHeight } from "react-window";
 import { useDebounce } from "use-debounce";
+import { useTranslation } from "react-i18next";
 
 function AdminUpdateOneMaterialRequest() {
 	const { userToken, loading: authLoading } = useAuth();
 	const { requestId } = useParams();
 	const navigate = useNavigate();
 	const skipNextSubAlert = useRef(false);
+	const { t } = useTranslation();
 
 	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
 	const [isOpen, setIsOpen] = useState(false);
@@ -89,9 +91,6 @@ function AdminUpdateOneMaterialRequest() {
 	);
 
 	function VirtualizedMenuList({ options, children, maxHeight }) {
-		// console.log("maxHeight", maxHeight);
-		// console.log("children", children);
-		// console.log("children data", children[0]?.props?.data);
 		// // console.log("children data", children[0].props.data);
 		// console.log("options", options);
 		const childrenArray = React.Children.toArray(children || []);
@@ -159,18 +158,6 @@ function AdminUpdateOneMaterialRequest() {
 		}
 	}, [allItems, debouncedSearch]);
 
-	// const filteredAllItems = useMemo(() => {
-	// 	if (!debouncedSearch) return allItems;
-
-	// 	const fuse = new Fuse(allItems, {
-	// 		keys: ["label", "brand"],
-	// 		threshold: 0.4,
-	// 		ignoreLocation: true,
-	// 	});
-
-	// 	return fuse.search(debouncedSearch).map((r) => r.item);
-	// }, [allItems, debouncedSearch]);
-
 	// ----- Load item groups -----
 	useEffect(() => {
 		if (iGData?.getAllItemGroups) {
@@ -189,25 +176,6 @@ function AdminUpdateOneMaterialRequest() {
 
 			// Only set rows if not already prefilled
 			if (rows.length === 1 && !rows[0].id && allItems.length > 0) {
-				// setRows(
-				// 	req.items.map((item) => {
-				// 		const matchedItem = allItems.find((i) => i.value === item.itemName);
-				// 		const matchedColor = colorOptions.find((i) => i.value === item.color);
-				// 		const matchedSide = sideOptions.find((i) => i.value === item.side);
-				// 		const matchedSize = sizeOptions.find((i) => i.value === item.size);
-
-				// 		return {
-				// 			id: item.id,
-				// 			quantity: item.quantity,
-				// 			item: matchedItem || { label: item.itemName, value: item.itemName },
-				// 			itemDescription: item.itemDescription || "",
-				// 			color: matchedColor || { label: item.color, value: item.color },
-				// 			side: matchedSide || { label: item.side, value: item.side },
-				// 			size: matchedSize || { label: item.size, value: item.size },
-				// 		};
-				// 	})
-				// );
-
 				setRows(
 					req.items.map((item) => {
 						const matchedItem = allItems.find((i) => i.value === item.itemName);
@@ -252,7 +220,7 @@ function AdminUpdateOneMaterialRequest() {
 
 			if (Changes?.id === requestId) {
 				if (eventType === "updated" && Array.isArray(Changes.items)) {
-					alert("The material request has been updated");
+					alert(t("material-request-updated")); //"The material request has been updated"
 					setRows(() => {
 						//  Map updated items into the same format as the initial useEffect
 						return Changes.items.map((item) => {
@@ -275,7 +243,7 @@ function AdminUpdateOneMaterialRequest() {
 				}
 
 				if (eventType === "deleted") {
-					alert("The material request has been deleted. You will be redirected to view all material requests.");
+					alert(t("material-request-deleted")); //"The material request has been deleted. You will be redirected to view all material requests."
 					navigate("/material/request/all");
 				}
 			}
@@ -346,7 +314,7 @@ function AdminUpdateOneMaterialRequest() {
 	const submit = async (e) => {
 		e.preventDefault();
 		skipNextSubAlert.current = true;
-		if (!userToken) return alert("Please log in first.");
+		if (!userToken) return alert(t("please-login")); //"Please log in first.");
 		client.clearStore();
 		try {
 			const decoded = jwtDecode(userToken);
@@ -397,7 +365,7 @@ function AdminUpdateOneMaterialRequest() {
 
 	const openModal = () => {
 		if (!mRequest) {
-			alert("Loading request data, please wait...");
+			alert(t("request-loading-data")); //"Loading request data, please wait...");
 			return;
 		}
 		setIsOpen(true);
@@ -420,7 +388,8 @@ function AdminUpdateOneMaterialRequest() {
 			<h1> {requestId} </h1> */}
 
 			<form className="update-form" onSubmit={submit}>
-				<h1 className="update-form-title"> Update </h1>
+				<h1 className="update-form-title">{t("request-update")}</h1>
+				{/* Update */}
 				{/* Dynamic rows */}
 				<div className="update-form-wrapper">
 					{rows?.map((row, idx) => {
@@ -428,22 +397,26 @@ function AdminUpdateOneMaterialRequest() {
 						// - If brand is selected → filter down to that brand
 						// - If no brand is selected → show ALL items
 
-						// const filteredItems = row.brand?.value ? allItems?.filter((i) => i?.brand === row.brand.value) : allItems;
 						const filteredItems = row.brand?.value ? filteredAllItems.filter((i) => i.brand === row.brand.value) : filteredAllItems;
 
 						return (
 							<div className={`update-form-row`} key={idx}>
 								{/* Brand select */}
-								<h3 className="form-row-count">Material Request Row {idx + 1}</h3>
+								<h3 className="form-row-count">
+									{" "}
+									{t("request-row")} {idx + 1}
+								</h3>
+								{/* Material Request Row */}
 								<div className={`form-row-material-request-item-filter ${row?.action?.toBeDeleted ? "disabled" : ""}`}>
-									<label htmlFor=""> Filter By Brand</label>
+									<label htmlFor="">{t("filter-brand")}</label>
+									{/* Filter By Brand */}
 									<Select
 										// className="form-row-top-select"
 										classNamePrefix={"update-form-row-select"}
 										options={brands}
 										value={row.brand}
 										onChange={(val) => handleRowChange(idx, "brand", val)}
-										placeholder="Filter By Brand"
+										placeholder={t("filter-brand")}
 										isClearable
 										isSearchable
 										isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
@@ -468,36 +441,14 @@ function AdminUpdateOneMaterialRequest() {
 								<div className={`form-row-top-container material-request ${row?.action?.toBeDeleted ? "disabled" : ""}`}>
 									<div className="form-row-top-left material-request">
 										{/* Quantity input */}
-										<label htmlFor="">Quantity</label>
-										<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} min={1} placeholder={mRLoading ? "loading" : "Qty"} disabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
+										<label htmlFor="">{t("quantity")}</label>
+										<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} min={1} placeholder={mRLoading ? t("loading") : t("qty")} disabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
 									</div>
 
 									<div className="form-row-top-right  material-request">
-										<label htmlFor="">Item</label>
+										<label htmlFor="">{t("item")} </label>
+										{/* Item */}
 										{/* Item select */}
-										{/* <Select
-											className="form-row-top-select"
-											options={filteredItems}
-											value={row.item}
-											onChange={(val) => handleRowChange(idx, "item", val)}
-											placeholder={mRLoading ? "loading" : "Select Item"}
-											isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
-											filterOption={customFilter}
-											isClearable
-											isSearchable
-											styles={{
-												control: (base) => ({
-													...base,
-													borderRadius: "12px",
-													borderColor: "blue",
-												}),
-												option: (base, state) => ({
-													...base,
-													backgroundColor: state.isFocused ? "lightblue" : "white",
-													color: "black",
-												}),
-											}}
-										/> */}
 
 										<Select
 											className="form-row-top-select"
@@ -505,7 +456,7 @@ function AdminUpdateOneMaterialRequest() {
 											// options={allItems}
 											value={row.item}
 											onChange={(val) => handleRowChange(idx, "item", val)}
-											placeholder={isItemsReady ? "Select Item" : "Loading items..."}
+											placeholder={isItemsReady ? t("select-item") : t("loading-items")}
 											isDisabled={!isItemsReady}
 											onInputChange={(val, meta) => {
 												// console.log("InputChange value:", val, "action:", meta.action);
@@ -550,7 +501,7 @@ function AdminUpdateOneMaterialRequest() {
 														value={row.color}
 														// onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
 														onChange={(val) => handleRowChange(idx, "color", val)}
-														placeholder={mRLoading ? "loading" : "Color"}
+														placeholder={mRLoading ? t("loading") : "Color"}
 														isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
 														isClearable
 														isSearchable
@@ -588,7 +539,7 @@ function AdminUpdateOneMaterialRequest() {
 
 											<div className="form-row-center-container-material-request-wrapper-center">
 												<div>
-													<label htmlFor="">side/hand</label>
+													<label htmlFor="">{t("side")} </label>
 
 													<Select
 														className="form-row-top-select"
@@ -597,7 +548,7 @@ function AdminUpdateOneMaterialRequest() {
 														value={row.side}
 														// onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
 														onChange={(val) => handleRowChange(idx, "side", val)}
-														placeholder={mRLoading ? "loading" : "Side/Hand"}
+														placeholder={mRLoading ? t("loading") : t("side")}
 														isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
 														filterOption={customFilter}
 														isClearable
@@ -620,7 +571,7 @@ function AdminUpdateOneMaterialRequest() {
 												</div>
 
 												<div>
-													<label htmlFor=""> Size</label>
+													<label htmlFor="">{t("size")}</label>
 
 													<Select
 														className="form-row-top-select"
@@ -629,7 +580,7 @@ function AdminUpdateOneMaterialRequest() {
 														value={row.size}
 														// onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
 														onChange={(val) => handleRowChange(idx, "size", val)}
-														placeholder={mRLoading ? "loading" : "Size"}
+														placeholder={mRLoading ? t("loading") : t("size")}
 														isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
 														filterOption={customFilter}
 														isClearable
@@ -656,9 +607,9 @@ function AdminUpdateOneMaterialRequest() {
 
 									{row.showDescription && (
 										<div className="form-row-center-container-material-request-wrapper-bottom">
-											<label htmlFor=""> description</label>
+											<label htmlFor="">{t("description")}</label>
 
-											<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder={mRLoading ? "loading" : "description for the item"} disabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
+											<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder={mRLoading ? t("loading") : t("item-description")} disabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
 										</div>
 									)}
 
@@ -670,7 +621,7 @@ function AdminUpdateOneMaterialRequest() {
 											onClick={() => {
 												toggleItemField(idx, "showOptional");
 											}}>
-											{row.showOptional ? "Hide Optional Fields" : "Show Optional Fields"}
+											{row.showOptional ? t("hide-optional-fields") : t("show-optional-fields")}
 										</span>
 										{/* here for update */}
 										<span
@@ -679,16 +630,16 @@ function AdminUpdateOneMaterialRequest() {
 											onClick={() => {
 												toggleItemField(idx, "showDescription");
 											}}>
-											{row.showDescription ? "Hide Description" : "Show Description"}
+											{row.showDescription ? t("hide-description") : t("show-description")}
 										</span>
 									</div>
 								</div>
 
-								{row?.action?.toBeDeleted && <p style={{ color: "red" }}> This item is flagged for deletion</p>}
+								{row?.action?.toBeDeleted && <p style={{ color: "red" }}> {t("flag-for-deletion")}</p>}
 								{rows.length > 1 && (
 									<div className="form-row-remove-btn-container">
 										<span className="remove-row-btn" type="button" onClick={() => removeRow(idx)}>
-											{row?.action?.toBeDeleted ? "Undo Remove" : "Remove"}
+											{row?.action?.toBeDeleted ? t("undo-remove") : t("remove")}
 										</span>
 									</div>
 								)}
@@ -700,7 +651,7 @@ function AdminUpdateOneMaterialRequest() {
 				{/* Action buttons */}
 				<div className="form-action-btn">
 					<span className="form-add-row-btn" onClick={addRow}>
-						+ Add Item
+						{t("add-item")}
 					</span>
 					{/*
 					<div >
@@ -726,7 +677,8 @@ function AdminUpdateOneMaterialRequest() {
 				</div>
 				{!isFormValid && (
 					<p className="form-error" style={{ color: "red" }}>
-						Please fill out all required fields (Item & Quantity).
+						{t("please-fill-out-all-required-fields")}
+						{/* (Item & Quantity). */}
 					</p>
 				)}
 				<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} onConFirm={submit} data={{ mRequest, rows }} loading={loading} />

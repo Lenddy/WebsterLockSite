@@ -1,7 +1,11 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 
-function RefetchButton({ refetch, label = "🔄 Refetch Data" }) {
+function RefetchButton({ refetch, label }) {
 	const [status, setStatus] = useState("idle"); // idle | fetching | updated | error
+	const { t } = useTranslation();
+	label = t("refetch-data");
+	t();
 
 	const handleRefetch = async () => {
 		if (typeof refetch !== "function") {
@@ -28,11 +32,11 @@ function RefetchButton({ refetch, label = "🔄 Refetch Data" }) {
 	const renderLabel = () => {
 		switch (status) {
 			case "fetching":
-				return "⏳ Fetching data...";
+				return t("fetching-data"); //"⏳ Fetching data..."
 			case "updated":
-				return "✅ Data up to date";
+				return t("data-up-to-date"); //"✅ Data up to date";
 			case "error":
-				return "⚠️ Failed to refresh";
+				return t("failed-to-refresh"); //"⚠️ Failed to refresh";
 			default:
 				return label;
 		}

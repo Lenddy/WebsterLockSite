@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Eye from "../../assets/eye.svg?react";
 import CloseEye from "../../assets/closeEye.svg?react";
+import { useTranslation } from "react-i18next";
 
 export default function RegisterUser() {
 	const [info, setInfo] = useState({});
@@ -12,6 +13,7 @@ export default function RegisterUser() {
 	const navigate = useNavigate();
 	const [registerUser, { data, loading, error }] = useMutation(register_User);
 	const [show, setShow] = useState(false);
+	const t = useTranslation();
 
 	// Function to handle input changes and update state accordingly
 	const SubmissionInfo = (e) => {
@@ -81,25 +83,25 @@ export default function RegisterUser() {
 		<div className="register-container">
 			<form className="register-form" onSubmit={submit}>
 				<div className="register-form-title">
-					<h1>Register </h1>
+					<h1>{t("Register")}</h1>
 				</div>
 
 				<div className="register-form-wrapper">
 					<div className="register-form-row">
 						<div className="form-row-top-container">
 							<div className="form-row-top-left">
-								<label htmlFor="employeeNun">Employee Number:</label>
-								<input type="text" name="employeeNum" onChange={(e) => SubmissionInfo(e)} placeholder="Employee Number" />
+								<label htmlFor="employeeNun">{t("employee-number")}</label>
+								<input type="text" name="employeeNum" onChange={(e) => SubmissionInfo(e)} placeholder={t("employee-number")} />
 							</div>
 
 							<div className="form-row-top-right">
-								<label htmlFor="department">Department:</label>
-								<input type="text" name="department" onChange={(e) => SubmissionInfo(e)} placeholder="Department" />
+								<label htmlFor="department">{t("Department")}</label>
+								<input type="text" name="department" onChange={(e) => SubmissionInfo(e)} placeholder={t("department")} />
 							</div>
 
 							<div className="form-row-top-left">
-								<label htmlFor="name">Name:</label>
-								<input type="text" name="name" onChange={(e) => SubmissionInfo(e)} placeholder="Name" />
+								<label htmlFor="name">{t("name")}</label>
+								<input type="text" name="name" onChange={(e) => SubmissionInfo(e)} placeholder={t("name")} />
 							</div>
 
 							<div className="form-row-top-right">
@@ -112,9 +114,9 @@ export default function RegisterUser() {
 							<div className="form-row-center-left">
 								<div className="form-row-center-left-wrapper">
 									<div>
-										<label htmlFor="password">Password:</label>
+										<label htmlFor="password">{t("password")}</label>
 										<div className="update-form-input">
-											<input type={show === true ? "text" : "password"} name="password" onChange={(e) => SubmissionInfo(e)} placeholder="Password" />
+											<input type={show === true ? "text" : "password"} name="password" onChange={(e) => SubmissionInfo(e)} placeholder={t("password")} />
 											<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
 												{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 											</span>
@@ -122,9 +124,9 @@ export default function RegisterUser() {
 									</div>
 
 									<div>
-										<label htmlFor="confirmPassword">Confirm Password:</label>
+										<label htmlFor="confirmPassword">{t("confirm-assword")}</label>
 										<div className="update-form-input">
-											<input type={show === true ? "text" : "password"} name="confirmPassword" onChange={(e) => SubmissionInfo(e)} placeholder="Confirm Password" />
+											<input type={show === true ? "text" : "password"} name="confirmPassword" onChange={(e) => SubmissionInfo(e)} placeholder={t("confirm-password")} />
 
 											<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
 												{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
@@ -139,22 +141,22 @@ export default function RegisterUser() {
 									<div>
 										{/* <label htmlFor="job">Name:</label> */}
 
-										<label htmlFor="title">job title:</label>
-										<input type="text" name="title" onChange={(e) => jobInfo(e)} placeholder="Job Title" />
+										<label htmlFor="title">{t("job-title")}</label>
+										<input type="text" name="title" onChange={(e) => jobInfo(e)} placeholder={t("job-title")} />
 									</div>
 
 									<div>
-										<label htmlFor="description">job description:</label>
-										<textarea type="text" name="description" onChange={(e) => jobInfo(e)} placeholder="Job Description" />
+										<label htmlFor="description">{t("job-description")}</label>
+										<textarea type="text" name="description" onChange={(e) => jobInfo(e)} placeholder={t("job-description")} />
 									</div>
 
 									<div>
-										<label htmlFor="role">role:</label>
+										<label htmlFor="role">{t("role")}</label>
 										{/* <input type="text" name="role" onChange={(e) => SubmissionInfo(e)} /> */}
 
 										<select name="role" id="" onChange={(e) => SubmissionInfo(e)}>
 											<option value="" selected disabled>
-												Select Role
+												{t("select-role")}
 											</option>
 											<option value="admin">Admin</option>
 											<option value="subAdmin">Sub Admin</option>
@@ -169,28 +171,28 @@ export default function RegisterUser() {
 
 						<div className="form-row-center-bottom">
 							<div>
-								<label htmlFor="permissions">Permissions:</label>
+								<label htmlFor="permissions">{t("permissions")}</label>
 
 								<div className="permissions-grid">
 									<div>
 										<ul className="permissions-list">
 											<li>
-												<label htmlFor="canViewAllUsers">Can View All Users</label>
+												<label htmlFor="canViewAllUsers">t(can-view-all-users)</label>
 												<input type="checkbox" name="canViewAllUsers" id="" onChange={(e) => permissionsInfo(e)} />
 											</li>
 
 											<li>
-												<label htmlFor="canEditUsers">Can Edit Users </label>
+												<label htmlFor="canEditUsers">{t("can-edit-users")} </label>
 												<input type="checkbox" name="canEditUsers" id="" onChange={(e) => permissionsInfo(e)} />
 											</li>
 
 											<li>
-												<label htmlFor="canDeleteUsers">Can Delete Users</label>
+												<label htmlFor="canDeleteUsers">{t("can-delete-users")}</label>
 												<input type="checkbox" name="canDeleteUsers" id="" onChange={(e) => permissionsInfo(e)} />
 											</li>
 
 											<li>
-												<label htmlFor="canChangeRole">Can Change Role</label>
+												<label htmlFor="canChangeRole">{t("can-change-role")}</label>
 												<input type="checkbox" name="canChangeRole" id="" onChange={(e) => permissionsInfo(e)} />
 											</li>
 										</ul>
@@ -199,17 +201,17 @@ export default function RegisterUser() {
 									<div>
 										<ul className="permissions-list">
 											<li>
-												<label htmlFor="canEditSelf">Can Edit Self</label>
+												<label htmlFor="canEditSelf">{t("can-edit-self")}</label>
 												<input type="checkbox" name="canEditSelf" id="" onChange={(e) => permissionsInfo(e)} />
 											</li>
 
 											<li>
-												<label htmlFor="canViewSelf">Can View Self</label>
+												<label htmlFor="canViewSelf">{t("can-view-self")}</label>
 												<input type="checkbox" name="canViewSelf" id="" onChange={(e) => permissionsInfo(e)} />
 											</li>
 
 											<li>
-												<label htmlFor="canEditSelf">Can Delete Self</label>
+												<label htmlFor="canEditSelf">{t("can-delete-self")}</label>
 												<input type="checkbox" name="canEditSelf" id="" onChange={(e) => permissionsInfo(e)} />
 											</li>
 										</ul>
@@ -224,7 +226,7 @@ export default function RegisterUser() {
 
 				<div className="form-action-btn">
 					<button className="form-submit-btn" type="submit" disabled={loading}>
-						{loading ? "Registering  ..." : "Register User"}
+						{loading ? t("registering") : t("register-user")}
 					</button>
 				</div>
 

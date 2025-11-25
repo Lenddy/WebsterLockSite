@@ -6,6 +6,7 @@ import CloseEye from "../../assets/closeEye.svg?react";
 import { useAuth } from "../../context/AuthContext";
 import { jwtDecode } from "jwt-decode";
 import { useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function UpdateOneUser() {
 	// user
@@ -41,7 +42,7 @@ export default function UpdateOneUser() {
 		description: decodedUser?.job?.description || "",
 		// newPermissions: { ... }
 	});
-
+	const { t } = useTranslation();
 	const [updateUserProfile, { loading: updateLoading, error: updateError }] = useMutation(update_One_user);
 
 	// Keep track of the last decoded user so we only react to actual changes
@@ -116,7 +117,7 @@ export default function UpdateOneUser() {
 					},
 				},
 				onCompleted: () => {
-					alert(" User updated successfully!");
+					alert(t("user-updated-successfully"));
 				},
 			});
 		} catch (err) {
@@ -127,29 +128,29 @@ export default function UpdateOneUser() {
 	return (
 		<div className="update-container">
 			<form className="update-form" onSubmit={submit}>
-				<h1 className="update-form-title">Update Profile</h1>
+				<h1 className="update-form-title">{t("update-profile")}</h1>
 
 				<div className="update-form-wrapper">
 					<div className="update-form-row">
 						{/* Top Section */}
 						<div className="form-row-top-container">
 							<div className="form-row-top-left">
-								<label htmlFor="name">Previous Name</label>
+								<label htmlFor="name">{t("previous-name")}</label>
 								<input type="text" placeholder={decodedUser?.name} name="previousName" disabled />
 							</div>
 
 							<div className="form-row-top-right">
-								<label htmlFor="previousEmail">Previous Email</label>
+								<label htmlFor="previousEmail">{t("previous-email")}</label>
 								<input type="text" name="previousEmail" placeholder={decodedUser?.email} disabled />
 							</div>
 
 							<div className="form-row-top-left">
-								<label htmlFor="employeeNum">Employee Number</label>
+								<label htmlFor="employeeNum">{t("employee-number")}</label>
 								<input type="text" name="employeeNum" value={info.employeeNum} onChange={SubmissionInfo} />
 							</div>
 
 							<div className="form-row-top-right">
-								<label htmlFor="department">Department</label>
+								<label htmlFor="department">{t("department")}</label>
 								<input type="text" name="department" value={info.department} onChange={SubmissionInfo} />
 							</div>
 						</div>
@@ -159,19 +160,19 @@ export default function UpdateOneUser() {
 							<div className="form-row-center-left">
 								<div className="form-row-center-left-wrapper">
 									<div>
-										<label htmlFor="name">New Name:</label>
+										<label htmlFor="name">{t("new-name")}</label>
 										<input type="text" name="name" value={info.name} onChange={SubmissionInfo} />
 									</div>
 
 									<div>
-										<label htmlFor="newEmail">New Email:</label>
+										<label htmlFor="newEmail">{t("new-email")}</label>
 										<input type="text" name="newEmail" value={info.newEmail} onChange={SubmissionInfo} />
 									</div>
 
 									<div>
-										<label>Previous Password:</label>
+										<label>{t("previous-password")}</label>
 										<div className="update-form-input">
-											<input type={show ? "text" : "password"} name="previousPassword" value={info.previousPassword} onChange={SubmissionInfo} placeholder="Previous password" />
+											<input type={show ? "text" : "password"} name="previousPassword" value={info.previousPassword} onChange={SubmissionInfo} placeholder={t("previous-password")} />
 											<span className="update-form-show-hide" onClick={() => setShow(!show)}>
 												{show ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 											</span>
@@ -179,7 +180,7 @@ export default function UpdateOneUser() {
 									</div>
 
 									<div>
-										<label>New Password:</label>
+										<label>{t("new-password")}</label>
 										<div className="update-form-input">
 											<input type={show ? "text" : "password"} name="newPassword" value={info.newPassword} onChange={SubmissionInfo} />
 											<span className="update-form-show-hide" onClick={() => setShow(!show)}>
@@ -189,7 +190,7 @@ export default function UpdateOneUser() {
 									</div>
 
 									<div>
-										<label>Confirm Password:</label>
+										<label>{t("confirm-password")}</label>
 										<div className="update-form-input">
 											<input type={show ? "text" : "password"} name="confirmNewPassword" value={info.confirmNewPassword} onChange={SubmissionInfo} />
 											<span className="update-form-show-hide" onClick={() => setShow(!show)}>
@@ -203,13 +204,13 @@ export default function UpdateOneUser() {
 							<div className="form-row-center-right">
 								<div className="form-row-center-right-wrapper">
 									<div>
-										<label htmlFor="title">Job Title:</label>
+										<label htmlFor="title">{t("job-title")}</label>
 										<input type="text" name="title" value={info.title} onChange={SubmissionInfo} placeholder={decodedUser?.job?.title} />
 									</div>
 
 									<div>
-										<label>New Job Description:</label>
-										<textarea name="description" value={info.description} onChange={SubmissionInfo} placeholder="New Job Description"></textarea>
+										<label>{t("new-job-description")}</label>
+										<textarea name="description" value={info.description} onChange={SubmissionInfo} placeholder={t("new-job-description")}></textarea>
 									</div>
 
 									{/* <div>
@@ -277,7 +278,7 @@ export default function UpdateOneUser() {
 				<div className="form-action-btn">
 					<button className="form-submit-btn" type="submit" disabled={updateLoading}>
 						{/* || isFormInvalid */}
-						{updateLoading ? "Updating..." : "Update Users"}
+						{updateLoading ? t("updating") : t("update-users")}
 					</button>
 				</div>
 

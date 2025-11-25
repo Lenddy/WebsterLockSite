@@ -16,3 +16,18 @@ export default function ProtectedRoutes({ screenWidth }) {
 		<Navigate to="/" replace />
 	);
 }
+
+// export default function ProtectedRoutes({ screenWidth }) {
+// 	const { userToken, loading } = useAuth();
+
+// 	if (loading) return <div>Loading...</div>;
+
+// 	if (!userToken) return <Navigate to="/" replace />;
+
+// 	return (
+// 		<>
+// 			<NavBar screenWidth={screenWidth} />
+// 			<Outlet />
+// 		</>
+// 	);
+// }

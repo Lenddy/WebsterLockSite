@@ -11,6 +11,7 @@ import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 import { List, useDynamicRowHeight } from "react-window";
 import { useDebounce } from "use-debounce";
+import { useTranslation } from "react-i18next";
 
 export default function AdminCreateMultipleMaterialRequests() {
 	const [users, setUsers] = useState([]);
@@ -63,6 +64,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 	const [isItemsReady, setIsItemsReady] = useState(false);
 
 	const navigate = useNavigate();
+	const { t } = useTranslation();
 
 	useEffect(() => {
 		// setLogUser(jwtDecode(localStorage.getItem("UserToken")));
@@ -292,7 +294,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 				onCompleted: (res) => {
 					// console.log("Mutation success on the create multiple:", res.createMultipleMaterialRequests);
 					// newMr =
-					alert("Material requests have been requested successfully!");
+					alert(t("material-requests-have-been-requested-successfully"));
 					navigate(`/material/request/all`);
 				},
 				onError: (err) => {
@@ -399,13 +401,16 @@ export default function AdminCreateMultipleMaterialRequests() {
 				{/* Dynamic rows */}
 				{requests.map((req, reqIdx) => (
 					<div key={reqIdx} className="request-block">
-						<h3>Request {reqIdx + 1}</h3>
+						<h3>
+							{" "}
+							{t("request")} {reqIdx + 1}
+						</h3>
 						{/* Inside your Select:*/}
 
 						<div className="update-form-wrapper">
 							<div className="form-row-top-container material-request ">
 								<div className="form-row-top-right material-request">
-									<label htmlFor="">User</label>
+									<label htmlFor="">{t("user")}</label>
 									<Select
 										className="form-row-top-select"
 										options={userOptions}
@@ -418,7 +423,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 											)
 										}
 										filterOption={customUserFilter}
-										placeholder="Select Requester"
+										placeholder={t("select-requester")}
 										isClearable
 										isSearchable
 										styles={{
@@ -439,7 +444,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 								</div>
 
 								<div className="form-row-top-left material-request">
-									<label htmlFor="">Date</label>
+									<label htmlFor="">{t("date")}</label>
 									{/* Request-level fields */}
 									<input
 										className="date-input"
@@ -460,14 +465,16 @@ export default function AdminCreateMultipleMaterialRequests() {
 								return (
 									<div key={rowIdx} className="update-form-row">
 										{/* Brand select */}
-										<h3 className="form-row-count">Material Request Row {rowIdx + 1}</h3>
+										<h3 className="form-row-count">
+											{t("material-request-row")} {rowIdx + 1}
+										</h3>
 
 										<div className="form-row-material-request-item-filter">
 											<Select
 												options={brands}
 												value={row.brand}
 												onChange={(val) => handleItemChange(reqIdx, rowIdx, "brand", val)}
-												placeholder="Select Brand"
+												placeholder={t("select-brand")}
 												isClearable
 												isSearchable
 												styles={{
@@ -489,38 +496,13 @@ export default function AdminCreateMultipleMaterialRequests() {
 
 										<div className="form-row-top-container material-request">
 											<div className="form-row-top-left material-request">
-												<label htmlFor=""> Quantity</label>
+												<label htmlFor="">{t("quantity")}</label>
 												{/* Quantity */}
-												<input type="number" value={row.quantity} onChange={(e) => handleItemChange(reqIdx, rowIdx, "quantity", e.target.value)} placeholder="Qty" min={0} />
+												<input type="number" value={row.quantity} onChange={(e) => handleItemChange(reqIdx, rowIdx, "quantity", e.target.value)} placeholder={t("qty")} min={0} />
 											</div>
 
 											<div className="form-row-top-right material-request">
-												<label htmlFor="">Item</label>
-												{/* Item select */}
-												{/* <Select
-													className="form-row-top-select"
-													options={filteredItems}
-													value={row.item}
-													onChange={(val) => handleItemChange(reqIdx, rowIdx, "item", val)}
-													placeholder="Select Item"
-													filterOption={customFilter}
-													isClearable
-													isSearchable
-													styles={{
-														control: (base) => ({
-															...base,
-															borderRadius: "12px",
-															borderColor: "blue",
-															// width: "200px",
-															// height: "50px",
-														}),
-														option: (base, state) => ({
-															...base,
-															backgroundColor: state.isFocused ? "lightblue" : "white",
-															color: "black",
-														}),
-													}}
-												/> */}
+												<label htmlFor="">{t("item")}</label>
 
 												<Select
 													className="form-row-top-select"
@@ -528,7 +510,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 													// options={allItems}
 													value={row.item}
 													onChange={(val) => handleItemChange(reqIdx, rowIdx, "item", val)}
-													placeholder={isItemsReady ? "Select Item" : "Loading items..."}
+													placeholder={isItemsReady ? t("select-item") : t("loading-items")}
 													isDisabled={!isItemsReady}
 													onInputChange={(val, meta) => {
 														// console.log("InputChange value:", val, "action:", meta.action);
@@ -573,7 +555,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 																options={colorOptions}
 																value={colorOptions.find((opt) => opt.value === row.color)}
 																onChange={(val) => handleItemChange(reqIdx, rowIdx, "color", val?.value || null)}
-																placeholder="Select Color"
+																placeholder={t("select-color")}
 																styles={{
 																	control: (base) => ({
 																		...base,
@@ -598,14 +580,14 @@ export default function AdminCreateMultipleMaterialRequests() {
 
 													<div className="form-row-center-container-material-request-wrapper-center">
 														<div>
-															<label htmlFor="">side/hand</label>
+															<label htmlFor="">{t("side")}</label>
 															{/* Side select */}
 															<Select
 																className="form-row-top-select"
 																options={sideOptions}
 																value={sideOptions.find((opt) => opt.value === row.side)}
 																onChange={(val) => handleItemChange(reqIdx, rowIdx, "side", val?.value || null)}
-																placeholder="Select Side/Hand"
+																placeholder={t("select-side")}
 																filterOption={customFilter}
 																isClearable
 																isSearchable
@@ -627,14 +609,14 @@ export default function AdminCreateMultipleMaterialRequests() {
 														</div>
 
 														<div>
-															<label htmlFor=""> Size</label>
+															<label htmlFor="">{t("size")}</label>
 															{/* Size select */}
 															<Select
 																className="form-row-top-select"
 																options={sizeOptions}
 																value={sizeOptions.find((opt) => opt.value === row.size)}
 																onChange={(val) => handleItemChange(reqIdx, rowIdx, "size", val?.value || null)}
-																placeholder="Select Size"
+																placeholder={t("select-size")}
 																filterOption={customFilter}
 																isClearable
 																isSearchable
@@ -661,30 +643,20 @@ export default function AdminCreateMultipleMaterialRequests() {
 
 											{row.showDescription && (
 												<div className="form-row-center-container-material-request-wrapper-bottom">
-													<label htmlFor="">Description</label>
+													<label htmlFor="">{t("description")}</label>
 
 													{/* Item description */}
-													<textarea type="text" value={row.itemDescription} onChange={(e) => handleItemChange(reqIdx, rowIdx, "itemDescription", e.target.value)} placeholder="description for the item" cols={40} rows={10} />
+													<textarea type="text" value={row.itemDescription} onChange={(e) => handleItemChange(reqIdx, rowIdx, "itemDescription", e.target.value)} placeholder={t("description-for-the-item")} cols={40} rows={10} />
 												</div>
 											)}
 
 											<div className="form-action-hidden-fields">
 												<span className="show-fields-btn" type="button" onClick={() => toggleItemField(reqIdx, rowIdx, "showOptional")}>
-													{row.showOptional ? "Hide" : "Show"} optional fields
+													{row.showOptional ? t("hide-optional-fields") : t("show-optional-fields")}
 												</span>
 
 												<span className="show-fields-btn" type="button" onClick={() => toggleItemField(reqIdx, rowIdx, "showDescription")}>
-													{row.showDescription ? "Hide Description" : "Show Description"}
-
-													{/* {
-													!row.itemDescription
-													? isEditingDescription
-														? "Cancel"
-														: "Add description"
-													: row.showDescription
-													? "Hide description"
-													: "Show description"
-													} */}
+													{row.showDescription ? t("hide-description") : t("show-description")}
 												</span>
 											</div>
 										</div>
@@ -693,7 +665,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 										{req.items.length > 1 && (
 											<div className="form-row-remove-btn-container">
 												<span className="remove-row-btn" onClick={() => removeItemRow(reqIdx, rowIdx)}>
-													Remove
+													{t("remove")}
 												</span>
 											</div>
 										)}
@@ -706,7 +678,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 							<div className="form-row-remove-btn-container">
 								{/* Item-level add button */}
 								<span className="form-add-row-btn" onClick={() => addItemRow(reqIdx)} disabled={!canAddMore}>
-									+ Add Item
+									{t("add-item")}
 								</span>
 							</div>
 
@@ -714,7 +686,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 							{requests.length > 1 && (
 								<div className="form-row-remove-btn-container">
 									<span className="remove-row-btn" type="button" onClick={() => removeRequest(reqIdx)}>
-										Remove Request
+										{t("remove-request")}
 									</span>
 								</div>
 							)}
@@ -725,20 +697,19 @@ export default function AdminCreateMultipleMaterialRequests() {
 				<div className="form-action-btn">
 					{/* Add a whole new request */}
 					<span className="form-add-row-btn" onClick={addRequest} disabled={!canAddMore}>
-						+ Add Request
+						{t("add-request")}
 					</span>
 
 					<div>
 						<button className="form-submit-btn" type="submit" onClick={submit} disabled={!canSubmit}>
-							Request Material
+							{t("request-material")}
 						</button>
 					</div>
 				</div>
 
 				{!canAddMore && (
 					<p className="form-error" style={{ color: "red" }}>
-						{" "}
-						All required fields must be filled.
+						{t("all-required-fields-must-be-filled")}
 					</p>
 				)}
 			</form>

@@ -1,9 +1,10 @@
-import i18n, { reloadResources } from "i18next";
+import i18n from "i18next"; //, { reloadResources }
 import { initReactI18next, Translation } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 // import HttpApi from "i18next-http-backend";
 import HttpBackend from "i18next-http-backend";
-// import en from "./i18n/en/translation.json";
+// import en from "../Server/locales/en/translation.json";
+// import es from "../Server/locales/es/translation.json";
 // import es from "./i18n/es/translation.json";
 
 //! old way  does it still works ?
@@ -26,8 +27,8 @@ import HttpBackend from "i18next-http-backend";
 // 	});
 
 i18n.use(initReactI18next) // passes i18n down to react-i18next
-	.use(HttpBackend)
 	.use(LanguageDetector)
+	.use(HttpBackend)
 	.init({
 		debug: true,
 		fallbackLng: "en",
@@ -44,9 +45,6 @@ i18n.use(initReactI18next) // passes i18n down to react-i18next
 		// 	},
 		// },
 		backend: {
-			// components/
-			// loadPath: "/languages/{{lng}}/translation.json",
-			// es/translation.json
 			loadPath: "http://localhost:3005/locales/{{lng}}/{{ns}}.json",
 		},
 	});

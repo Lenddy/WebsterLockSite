@@ -13,6 +13,7 @@ import Fuse from "fuse.js";
 import dayjs from "dayjs";
 
 import { get_all_item_groups } from "../../../graphQL/queries/queries";
+import { useTranslation } from "react-i18next";
 
 export default function CreateOneMaterialRequest() {
 	const [info, setInfo] = useState({});
@@ -28,6 +29,8 @@ export default function CreateOneMaterialRequest() {
 	const [rows, setRows] = useState([
 		{ brand: null, item: null }, // start with one row
 	]);
+
+	const t = useTranslation();
 
 	useEffect(() => {
 		if (iGLoading) {
@@ -137,16 +140,16 @@ export default function CreateOneMaterialRequest() {
 	return (
 		<>
 			{/* {logUser?.name} */}
-			<h1>Material Request </h1>
+			<h1>t() Material Request </h1>
 
 			<div>
 				<Link to={"/"} onClick={() => localStorage.removeItem("UserToken")}>
-					Log out
+					t() Log out
 				</Link>
 			</div>
 
 			<div>
-				<Link to={"/user/all"}>all users</Link>
+				<Link to={"/user/all"}>t() all users</Link>
 			</div>
 			<div>
 				<Link to={""}>blank</Link>

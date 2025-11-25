@@ -51,11 +51,11 @@ export default function NavBar({ children, screenWidth }) {
 
 	// Close on outside click
 	useEffect(() => {
-		const handleClickOutside = (e) => {
+		function handleClickOutside(e) {
 			if (containerRef.current && !containerRef.current.contains(e.target)) {
-				setConfigOpen(false);
+				setConfigOpen(false); // CLOSE ONLY if clicked outside
 			}
-		};
+		}
 
 		document.addEventListener("mousedown", handleClickOutside);
 		return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -128,14 +128,14 @@ export default function NavBar({ children, screenWidth }) {
 				  ]
 				: [
 						{
-							title: "Users",
-							links: [{ name: "Update Profile", path: `/user/${decodedUser?.userId}/update` }],
+							title: t("Users"),
+							links: [{ name: t("update-profile"), path: `/user/${decodedUser?.userId}/update` }],
 						},
 						{
-							title: "Material Requests",
+							title: t("material-requests"),
 							links: [
-								{ name: "View All", path: "/material/request/all" },
-								{ name: "Request Material", path: "/material/request/request" },
+								{ name: t("view-all"), path: "/material/request/all" },
+								{ name: t("request-material"), path: "/material/request/request" },
 							],
 						},
 						// {
@@ -143,7 +143,7 @@ export default function NavBar({ children, screenWidth }) {
 						// 	links: [{ name: "English" }, { name: "Español" }],
 						// },
 				  ],
-		[isAdmin, decodedUser?.userId]
+		[isAdmin, decodedUser?.userId, t] //, i18n.language
 	);
 
 	const closeMenu = () => setMobileOpen(false);
@@ -183,8 +183,6 @@ export default function NavBar({ children, screenWidth }) {
 
 	return (
 		<div className="content-container">
-			{/* <img src{Settings} alt="" /> */}
-			{/* < className="nav-link-container-dropdown-title-config settings" /> */}
 			<div className="nav-container">
 				<div className="nav-logo">
 					<Link to={isAdmin ? menuItems[1]?.links[0]?.path : menuItems[1]?.links[1]?.path}>
@@ -210,33 +208,31 @@ export default function NavBar({ children, screenWidth }) {
 						</ul>
 
 						<div className="desktop-logout">
-							{/* <Link to="/" onClick={handleLogout}>
-								Log Out
-							</Link> */}
-
-							<ul ref={containerRef} className="nav-link-container-config desktop">
-								<li className={`nav-link-container-dropdown-config ${configOpen ? "active" : ""}`} onClick={() => setConfigOpen(!configOpen)}>
-									{/* <div className="nav-burger-menu-links-section-title"> Config</div> */}
+							<ul className="nav-link-container-config desktop">
+								<li
+									className={`nav-link-container-dropdown-config ${configOpen ? "active" : ""}`}
+									onClick={() => setConfigOpen(!configOpen)} // toggle only when clicking header
+									ref={containerRef}>
 									<span className="nav-link-container-dropdown-title-config">
-										<Settings className={`nav-link-container-dropdown-title-config settings ${configOpen ? "active" : ""}`} />▾
+										<Settings className={`settings ${configOpen ? "active" : ""}`} />▾
 									</span>
-									<div className="nav-link-container-dropdown-link-config">
+
+									<div className="nav-link-container-dropdown-link-config" onClick={(e) => e.stopPropagation()}>
 										{languages.map((language) => (
 											<Link onClick={() => i18n.changeLanguage(language.code)} key={language.code} className={localStorage.getItem("i18nextLng") === language.code ? "nav-bar-link-disabled" : ""}>
 												{language.name}
 											</Link>
 										))}
+
+										<Link to={`/user/${decodedUser?.userId}/update`} onClick={() => setConfigOpen(!configOpen)}>
+											{t("update-profile")}
+										</Link>
+
 										<Link onClick={handleLogout} className="Log-out">
-											Log Out
+											{t("log-out")}
 										</Link>
 									</div>
 								</li>
-
-								{/* <li className="nav-burger-menu-links-section logout">
-									<Link to="/" onClick={handleLogout}>
-										Log Out
-									</Link>
-								</li> */}
 							</ul>
 						</div>
 					</>
@@ -276,11 +272,13 @@ export default function NavBar({ children, screenWidth }) {
 								</Link>
 							))}
 
-							{/* <li > */}
-							<Link className="nav-burger-menu-links-section logout" onClick={handleLogout}>
-								Log Out
+							<Link to={`/user/${decodedUser?.userId}/update`} className="nav-burger-menu-links-section logout" onClick={closeMenu}>
+								{t("update-profile")}
 							</Link>
-							{/* </li> */}
+
+							<Link className="nav-burger-menu-links-section logout" onClick={handleLogout}>
+								{t("log-out")}
+							</Link>
 						</li>
 					</ul>
 				</div>

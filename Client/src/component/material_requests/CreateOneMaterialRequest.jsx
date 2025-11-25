@@ -13,6 +13,7 @@ import Modal from "../Modal";
 import { useAuth } from "../../context/AuthContext"; //  use context
 import { List, useDynamicRowHeight } from "react-window";
 import { useDebounce } from "use-debounce";
+import { useTranslation } from "react-i18next";
 // import FixedSizeList from "react-window";
 
 // import {FixedSizeList} from "react-window"
@@ -33,6 +34,7 @@ export default function CreateOneMaterialRequest() {
 	const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
 
 	const [isItemsReady, setIsItemsReady] = useState(false);
+	const { t } = useTranslation();
 
 	// const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms delay
 
@@ -141,7 +143,7 @@ export default function CreateOneMaterialRequest() {
 				variables: { input },
 				onCompleted: (res) => {
 					// console.log("Mutation success:", res?.createOneMaterialRequest);
-					alert("Material has been requested successfully!");
+					alert(t("Material-has-been-requested-successfully"));
 					navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
 				},
 			});
@@ -204,15 +206,6 @@ export default function CreateOneMaterialRequest() {
 		return fuse.search(inputValue).some((r) => r.item.value === option.value);
 	};
 
-	// const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
-	// const filteredAllItems = useMemo(() => {
-	// 	if (!debouncedSearch) return allItems;
-
-	// 	const fuse = new Fuse(allItems, { keys: ["label"], threshold: 0.4 });
-	// 	const results = fuse.search(debouncedSearch);
-	// 	return results.map((r) => r.item);
-	// }, [allItems, debouncedSearch]);
-
 	const filteredAllItems = useMemo(() => {
 		console.log("🔍 debouncedSearch:", debouncedSearch);
 		console.log("📦 allItems:", allItems);
@@ -246,46 +239,31 @@ export default function CreateOneMaterialRequest() {
 		}
 	}, [allItems, debouncedSearch]);
 
-	// const filteredAllItems = useMemo(() => {
-	// 	if (!debouncedSearch) return allItems;
-
-	// 	const fuse = new Fuse(allItems, {
-	// 		keys: ["label", "brand"],
-	// 		threshold: 0.4,
-	// 		ignoreLocation: true,
-	// 	});
-
-	// 	return fuse.search(debouncedSearch).map((r) => r.item);
-	// }, [allItems, debouncedSearch]);
-
 	//  Handle loading state cleanly
 	if (authLoading || iGLoading) return <h1>Loading...</h1>;
 
 	return (
 		<div className="update-container">
 			<form className="update-form" onSubmit={submit}>
-				<h1 className="update-form-title">Request Material</h1>
+				<h1 className="update-form-title">{t("request-material")}</h1>
 
 				<div className="update-form-wrapper">
 					{rows?.map((row, idx) => {
-						// const filteredItems = row.brand?.value ? allItems?.filter((i) => i.brand === row.brand.value) : allItems;
-						// const filteredItems = row.brand?.value ? allItems?.filter((i) => i.brand === row.brand.value) : allItems;
-
-						// const filteredItems = row.brand?.value ? filteredAllItems.filter((i) => i.brand === row.brand.value) : filteredAllItems;
-
 						const filteredItems = row.brand?.value ? filteredAllItems.filter((i) => i.brand === row.brand.value) : filteredAllItems;
 
 						return (
 							<div key={idx} className="update-form-row">
-								<h3 className="form-row-count">Material Request Row {idx + 1}</h3>
+								<h3 className="form-row-count">
+									{t("material-request-row")} {idx + 1}
+								</h3>
 
 								<div className="form-row-material-request-item-filter">
-									<label>Filter By Brand</label>
+									<label> {t("filter-by-brand")}</label>
 									<Select
 										options={brands}
 										value={row.brand}
 										onChange={(val) => handleRowChange(idx, "brand", val)}
-										placeholder="Select Brand"
+										placeholder={t("select-brand")}
 										isClearable
 										isSearchable
 										styles={{
@@ -307,41 +285,19 @@ export default function CreateOneMaterialRequest() {
 
 								<div className="form-row-top-container material-request">
 									<div className="form-row-top-left material-request">
-										<label>Quantity</label>
-										<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} placeholder="Qty" />
+										<label>{t("quantity")}</label>
+										<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} placeholder={t("qty")} />
 									</div>
 
 									<div className="form-row-top-right material-request">
-										<label>Item</label>
-										{/* <Select
-											className="form-row-top-select"
-											options={filteredItems}
-											value={row.item}
-											onChange={(val) => handleRowChange(idx, "item", val)}
-											placeholder="Select Item"
-											filterOption={customFilter}
-											isClearable
-											isSearchable
-											styles={{
-												control: (base) => ({
-													...base,
-													borderRadius: "12px",
-													borderColor: "blue",
-												}),
-												option: (base, state) => ({
-													...base,
-													backgroundColor: state.isFocused ? "lightblue" : "white",
-													color: "black",
-												}),
-											}}
-										/> */}
+										<label>{t("item")}</label>
 										<Select
 											className="form-row-top-select"
 											options={filteredItems}
 											// options={allItems}
 											value={row.item}
 											onChange={(val) => handleRowChange(idx, "item", val)}
-											placeholder={isItemsReady ? "Select Item" : "Loading items..."}
+											placeholder={isItemsReady ? t("select-item") : t("loading-items")}
 											isDisabled={!isItemsReady}
 											onInputChange={(val, meta) => {
 												// console.log("InputChange value:", val, "action:", meta.action);
@@ -382,7 +338,7 @@ export default function CreateOneMaterialRequest() {
 														options={colorOptions}
 														value={colorOptions.find((opt) => opt.value === row.color)}
 														onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
-														placeholder="Select Color"
+														placeholder={t("select-color")}
 														isClearable
 														isSearchable
 														formatOptionLabel={(option) => (
@@ -409,7 +365,7 @@ export default function CreateOneMaterialRequest() {
 
 											<div className="form-row-center-container-material-request-wrapper-center">
 												<div>
-													<label>Side/Hand</label>
+													<label>{t("side")}</label>
 													<Select
 														className="form-row-top-select"
 														options={sideOptions}
@@ -417,7 +373,7 @@ export default function CreateOneMaterialRequest() {
 														onChange={(val) => {
 															handleRowChange(idx, "side", val?.value || null), setShowDoorHanding(true);
 														}}
-														placeholder="Select Side/Hand"
+														placeholder={t("select-side")}
 														isClearable
 														isSearchable
 														styles={{
@@ -436,13 +392,13 @@ export default function CreateOneMaterialRequest() {
 												</div>
 
 												<div>
-													<label>Size</label>
+													<label>{t("size")}</label>
 													<Select
 														className="form-row-top-select"
 														options={sizeOptions}
 														value={sizeOptions.find((opt) => opt.value === row.size)}
 														onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
-														placeholder="Select Size"
+														placeholder={t("select-size")}
 														isClearable
 														isSearchable
 														styles={{
@@ -465,18 +421,18 @@ export default function CreateOneMaterialRequest() {
 
 									{row.showDescription && (
 										<div className="form-row-center-container-material-request-wrapper-bottom">
-											<label>Description</label>
-											<textarea value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder="Description for the item" cols={40} rows={10} />
+											<label>{t("description")}</label>
+											<textarea value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder={t("description-for-the-item")} cols={40} rows={10} />
 										</div>
 									)}
 
 									<div className="form-action-hidden-fields">
 										<span className="show-fields-btn" type="button" onClick={() => toggleItemField(idx, "showOptional")}>
-											{row.showOptional ? "Hide" : "Show"} optional fields
+											{row.showOptional ? t("hide-optional-fields") : t("show-optional-fields")}
 										</span>
 
 										<span className="show-fields-btn" type="button" onClick={() => toggleItemField(idx, "showDescription")}>
-											{row.itemDescription ? (row.showDescription ? "Hide description" : "Show description") : "Add description"}
+											{row.itemDescription ? (row.showDescription ? t("hide-description") : t("show-description")) : t("add description")}
 										</span>
 									</div>
 								</div>
@@ -484,7 +440,7 @@ export default function CreateOneMaterialRequest() {
 								{rows.length > 1 && (
 									<div className="form-row-remove-btn-container">
 										<span className="remove-row-btn" onClick={() => removeRow(idx)}>
-											Remove
+											{t("remove")}
 										</span>
 									</div>
 								)}
@@ -495,11 +451,11 @@ export default function CreateOneMaterialRequest() {
 
 				<div className="form-action-btn">
 					<span className="form-add-row-btn" onClick={addRow}>
-						+ Add Item
+						{t("add-item")}
 					</span>
 					<div>
 						<button className="form-submit-btn" type="button" disabled={!isFormValid} onClick={() => setIsOpen(true)}>
-							Request Material
+							{t("request-material")}
 						</button>
 					</div>
 				</div>

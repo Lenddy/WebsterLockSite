@@ -1,10 +1,13 @@
 import React from "react";
 import { delete_one_user } from "../../../graphQL/mutations/mutations";
 import { useMutation } from "@apollo/client";
-import { Await, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function DeleteOneUser({ userId, btnActive }) {
 	const [deleteOneUser, { data: UpdateData, loading: updateLoading, error: updateError }] = useMutation(delete_one_user);
+
+	const { t } = useTranslation();
 
 	const navigate = useNavigate();
 	const submit = async () => {
@@ -16,7 +19,7 @@ export default function DeleteOneUser({ userId, btnActive }) {
 				onCompleted: (result) => {
 					// console.log("admin updateMutation success:", result);
 					// console.log;
-					alert("User deleted successfully!");
+					alert(t("user-deleted-successfully"));
 				},
 			});
 
@@ -30,7 +33,7 @@ export default function DeleteOneUser({ userId, btnActive }) {
 	return (
 		<span onClick={submit} className={`${btnActive === true ? "model-bottom" : ""}`}>
 			{" "}
-			Delete
+			{t("delete")}
 		</span>
 	);
 }

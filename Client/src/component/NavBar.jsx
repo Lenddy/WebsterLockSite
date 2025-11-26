@@ -101,7 +101,7 @@ export default function NavBar({ children, screenWidth }) {
 								{ name: t("view-all"), path: "/user/all" },
 								{ name: t("register-users"), path: "/admin/user/register" },
 								{ name: t("update-users"), path: "/admin/user/update" },
-								{ name: t("update-profile"), path: `/user/${decodedUser?.userId}/update` },
+								// { name: t("update-profile"), path: `/user/${decodedUser?.userId}/update` },
 							],
 						},
 						{
@@ -127,10 +127,10 @@ export default function NavBar({ children, screenWidth }) {
 						// },
 				  ]
 				: [
-						{
-							title: t("Users"),
-							links: [{ name: t("update-profile"), path: `/user/${decodedUser?.userId}/update` }],
-						},
+						// {
+						// 	title: t("Users"),
+						// 	links: [{ name: t("update-profile"), path: `/user/${decodedUser?.userId}/update` }],
+						// },
 						{
 							title: t("material-requests"),
 							links: [
@@ -185,7 +185,7 @@ export default function NavBar({ children, screenWidth }) {
 		<div className="content-container">
 			<div className="nav-container">
 				<div className="nav-logo">
-					<Link to={isAdmin ? menuItems[1]?.links[0]?.path : menuItems[1]?.links[1]?.path}>
+					<Link to={isAdmin ? menuItems[1]?.links[0]?.path : menuItems[0]?.links[1]?.path}>
 						<img src={Logo} alt="logo" />
 					</Link>
 				</div>
@@ -224,7 +224,7 @@ export default function NavBar({ children, screenWidth }) {
 											</Link>
 										))}
 
-										<Link to={`/user/${decodedUser?.userId}/update`} onClick={() => setConfigOpen(!configOpen)}>
+										<Link to={`/user/${decodedUser?.userId}/update`} onClick={() => setConfigOpen(!configOpen)} className={location.pathname === `/user/${decodedUser?.userId}/update` ? "nav-bar-link-disabled" : ""}>
 											{t("update-profile")}
 										</Link>
 
@@ -272,7 +272,7 @@ export default function NavBar({ children, screenWidth }) {
 								</Link>
 							))}
 
-							<Link to={`/user/${decodedUser?.userId}/update`} className="nav-burger-menu-links-section logout" onClick={closeMenu}>
+							<Link to={`/user/${decodedUser?.userId}/update`} className={`nav-burger-menu-links-section logout  ${location.pathname === `/user/${decodedUser?.userId}/update` ? "nav-bar-link-disabled" : ""}`} onClick={closeMenu}>
 								{t("update-profile")}
 							</Link>
 

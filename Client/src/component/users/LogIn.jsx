@@ -60,7 +60,7 @@ export default function LogIn({ screenWidth }) {
 					setUserToken(null); // reset context
 
 					// Notify user
-					alert("Previous session was logged out to allow this login.");
+					alert(t("previous-session-was-logged-out-to-allow-this-login"));
 				}
 
 				// Save new token

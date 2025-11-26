@@ -83,7 +83,7 @@ export default function RegisterUser() {
 		<div className="register-container">
 			<form className="register-form" onSubmit={submit}>
 				<div className="register-form-title">
-					<h1>{t("Register")}</h1>
+					<h1>{t("register")}</h1>
 				</div>
 
 				<div className="register-form-wrapper">
@@ -124,7 +124,7 @@ export default function RegisterUser() {
 									</div>
 
 									<div>
-										<label htmlFor="confirmPassword">{t("confirm-assword")}</label>
+										<label htmlFor="confirmPassword">{t("confirm-password")}</label>
 										<div className="update-form-input">
 											<input type={show === true ? "text" : "password"} name="confirmPassword" onChange={(e) => SubmissionInfo(e)} placeholder={t("confirm-password")} />
 
@@ -177,7 +177,7 @@ export default function RegisterUser() {
 									<div>
 										<ul className="permissions-list">
 											<li>
-												<label htmlFor="canViewAllUsers">t(can-view-all-users)</label>
+												<label htmlFor="canViewAllUsers">{t("can-view-all-users")}</label>
 												<input type="checkbox" name="canViewAllUsers" id="" onChange={(e) => permissionsInfo(e)} />
 											</li>
 

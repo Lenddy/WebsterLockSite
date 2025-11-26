@@ -8,6 +8,7 @@ import Modal from "../Modal";
 import DeleteOneUser from "./DeleteOneUser";
 import { useAuth } from "../../context/AuthContext"; // <-- use context
 import { jwtDecode } from "jwt-decode";
+import { useTranslation } from "react-i18next";
 
 export default function GetOneUser() {
 	const { userId } = useParams();
@@ -21,6 +22,8 @@ export default function GetOneUser() {
 	const [isOpen, setIsOpen] = useState(false);
 	const [selectedUser, setSelectedUser] = useState(null);
 	const [btnActive, setBtnActive] = useState(false);
+
+	const { t } = useTranslation();
 
 	const { error, loading, data, refetch } = useQuery(get_one_user, {
 		variables: { id: userId },
@@ -78,14 +81,14 @@ export default function GetOneUser() {
 							...targetChange,
 						}));
 						if (currentRoutePath === `/user/${userId}`) {
-							alert("User has been updated.");
+							alert(t("user-has-been-updated"));
 						}
 					}
 
 					if (eventType === "deleted") {
 						// const isAmin = ["headAdmin","admin","subAdmin"]
 						//  jwtDecode(userToken)?.role?.includes(isAmin)?
-						alert("User has been deleted. You will be redirected to see all User.");
+						alert(t("user-has-been-deleted-you-will-be-redirected-to-see-all-user"));
 						navigate("/user/all");
 					}
 				}
@@ -199,10 +202,16 @@ export default function GetOneUser() {
 				<div className="get-one-content-wrapper">
 					{/* Top */}
 					<div className="get-one-content-wrapper-top">
-						<h1>Num: {user.employeeNum}</h1>
-						<h1>Name: {user.name}</h1>
-						<h1>Email: {user.email}</h1>
-						<h1>Dep: {user.department}</h1>
+						<h1>#: {user.employeeNum}</h1>
+						<h1>
+							{t("name")}: {user.name}
+						</h1>
+						<h1>
+							{t("email")}: {user.email}
+						</h1>
+						<h1>
+							{t("dep")}: {user.department}
+						</h1>
 					</div>
 
 					{/* Middle */}
@@ -211,15 +220,17 @@ export default function GetOneUser() {
 						<div className="get-one-content-wrapper-middle-left">
 							<div className="get-one-content-wrapper-middle-left-top">
 								<div className="get-one-content-wrapper-middle-left-top-wrapper">
-									<h2>Role: {user.role}</h2>
+									<h2>
+										{t("role")}: {user.role}
+									</h2>
 								</div>
 							</div>
 
 							<div className="get-one-content-wrapper-middle-left-bottom">
-								<h2>Permissions:</h2>
+								<h2>{t("permissions")}:</h2>
 								<div className="get-one-content-wrapper-middle-left-bottom-wrapper">
 									<div>
-										<h3>User Actions:</h3>
+										<h3>{t("user-actions")}:</h3>
 										<ul>
 											{Object.entries(user?.permissions || {})
 												.filter(([k, v]) => k !== "__typename" && v === true && k.includes("Users"))
@@ -230,7 +241,7 @@ export default function GetOneUser() {
 									</div>
 
 									<div>
-										<h3>Self Actions:</h3>
+										<h3>{t("self-actions")}:</h3>
 										<ul>
 											{Object.entries(user?.permissions || {})
 												.filter(([k, v]) => k !== "__typename" && v === true && k.includes("Self"))
@@ -246,10 +257,14 @@ export default function GetOneUser() {
 						{/* Right */}
 						<div className="get-one-content-wrapper-middle-right">
 							<div className="get-one-content-wrapper-middle-right-top">
-								<h2>Job Title: {user?.job?.title || "N/A"}</h2>
+								<h2>
+									{t("job-title")}: {user?.job?.title || "N/A"}
+								</h2>
 							</div>
 							<div className="get-one-content-wrapper-middle-right-bottom">
-								<h2>Job Description: {user?.job?.description || "N/A"}</h2>
+								<h2>
+									{t("job-description")}: {user?.job?.description || "N/A"}
+								</h2>
 							</div>
 						</div>
 					</div>
@@ -257,7 +272,7 @@ export default function GetOneUser() {
 					{/* Bottom actions */}
 					<div className="get-one-content-wrapper-bottom">
 						<Link to={getUpdateRoute()}>
-							<span>Update</span>
+							<span>{t("update")}</span>
 						</Link>
 						<span
 							className="table-action last"
@@ -266,7 +281,7 @@ export default function GetOneUser() {
 								setIsOpen(true);
 								setBtnActive(true);
 							}}>
-							Delete
+							{t("delete")}
 						</span>
 					</div>
 

@@ -5,6 +5,7 @@ import { register_multiple_Users } from "../../../../graphQL/mutations/mutations
 import { jwtDecode } from "jwt-decode";
 import Eye from "../../../assets/eye.svg?react";
 import CloseEye from "../../../assets/closeEye.svg?react";
+import { useTranslation } from "react-i18next";
 
 export default function AdminRegisterMultipleUsers() {
 	const { userToken } = useAuth(); // get token from context
@@ -12,6 +13,8 @@ export default function AdminRegisterMultipleUsers() {
 	const [success, setSuccess] = useState(false);
 
 	const lastRowRef = useRef(null);
+
+	const { t } = useTranslation();
 
 	const [rows, setRows] = useState([
 		{
@@ -130,6 +133,7 @@ export default function AdminRegisterMultipleUsers() {
 				},
 				onCompleted: (res) => {
 					console.log("Mutation success:", res?.registerMultipleUsers);
+					alert(t("users-added-successfully"));
 					setSuccess(true);
 				},
 				onError: (errRes) => {
@@ -149,12 +153,14 @@ export default function AdminRegisterMultipleUsers() {
 	return (
 		<div className="register-container">
 			<form className="register-form" onSubmit={submit}>
-				<h1 className="register-form-title">Admin register (Multiple)</h1>
+				<h1 className="register-form-title">{t("register-multiple")}</h1>
 
 				<div className="register-form-wrapper">
 					{rows.map((row, index) => (
 						<div className="register-form-row" key={index} ref={index === rows.length - 1 ? lastRowRef : null}>
-							<h3 className="form-row-count">User Row {index + 1}</h3>
+							<h3 className="form-row-count">
+								{t("user-row")} {index + 1}
+							</h3>
 
 							<div className="form-row-top-container">
 								{/* <div className="form-row-top-left">
@@ -168,23 +174,23 @@ export default function AdminRegisterMultipleUsers() {
 								</div> */}
 
 								<div className="form-row-top-left">
-									<label htmlFor="name">Name:</label>
-									<input type="text" name="name" onChange={(e) => handleRowChange(index, e)} placeholder="Name" />
+									<label htmlFor="name">{t("name")}:</label>
+									<input type="text" name="name" onChange={(e) => handleRowChange(index, e)} placeholder={t("name")} />
 								</div>
 
 								<div className="form-row-top-right">
-									<label htmlFor="email">Email:</label>
-									<input type="text" name="email" onChange={(e) => handleRowChange(index, e)} placeholder="Email" />
+									<label htmlFor="email">{t("email")}:</label>
+									<input type="text" name="email" onChange={(e) => handleRowChange(index, e)} placeholder={t("email")} />
 								</div>
 
 								<div className="form-row-top-left">
-									<label htmlFor="employeeNun">Employee Number:</label>
-									<input type="text" name="employeeNum" onChange={(e) => handleRowChange(index, e)} placeholder="Employee Number" />
+									<label htmlFor="employeeNun">{t("employee-number")}:</label>
+									<input type="text" name="employeeNum" onChange={(e) => handleRowChange(index, e)} placeholder={t("employee-number")} />
 								</div>
 
 								<div className="form-row-top-right">
-									<label htmlFor="department">Department:</label>
-									<input type="text" name="department" onChange={(e) => handleRowChange(index, e)} placeholder="Department" />
+									<label htmlFor="department">{t("department")}:</label>
+									<input type="text" name="department" onChange={(e) => handleRowChange(index, e)} placeholder={t("department")} />
 								</div>
 							</div>
 
@@ -192,9 +198,9 @@ export default function AdminRegisterMultipleUsers() {
 								<div className="form-row-center-left">
 									<div className="form-row-center-left-wrapper">
 										<div>
-											<label>Password:</label>
+											<label>{t("password")}:</label>
 											<div className="update-form-input">
-												<input type={show ? "text" : "password"} name="password" value={row.password} onChange={(e) => handleRowChange(index, e)} placeholder="Password" />
+												<input type={show ? "text" : "password"} name="password" value={row.password} onChange={(e) => handleRowChange(index, e)} placeholder={t("password")} />
 												<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
 													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 												</span>
@@ -202,9 +208,9 @@ export default function AdminRegisterMultipleUsers() {
 										</div>
 
 										<div>
-											<label>Confirm Password:</label>
+											<label>{t("confirm-password")}:</label>
 											<div className="update-form-input">
-												<input type={show ? "text" : "password"} name="confirmPassword" value={row.confirmPassword} onChange={(e) => handleRowChange(index, e)} placeholder="Confirm Password" />
+												<input type={show ? "text" : "password"} name="confirmPassword" value={row.confirmPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("confirm-password")} />
 												<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
 													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 												</span>
@@ -216,18 +222,18 @@ export default function AdminRegisterMultipleUsers() {
 								<div className="form-row-center-right">
 									<div className="form-row-center-right-wrapper">
 										<div>
-											<label>Job Title:</label>
+											<label>{t("job-title")}:</label>
 											<input type="text" name="title" value={row.title} onChange={(e) => handleRowChange(index, e)} placeholder="Job Title" />
 										</div>
 										<div>
-											<label>Job Description:</label>
-											<textarea name="description" value={row.description} onChange={(e) => handleRowChange(index, e)} placeholder="Description"></textarea>
+											<label>{t("job-description")}:</label>
+											<textarea name="description" value={row.description} onChange={(e) => handleRowChange(index, e)} placeholder={t("job-description")}></textarea>
 										</div>
 
 										{/* Only show role selection if user has permission */}
 										{decodedUser?.permissions?.canChangeRole && (
 											<div>
-												<label>Role:</label>
+												<label>{t("role")}:</label>
 												<select name="role" value={row.role} onChange={(e) => handleRowChange(index, e)}>
 													<option value="">Select Role</option>
 													{decodedUser.role === "headAdmin" && <option value="headAdmin">Head Admin</option>}
@@ -245,7 +251,7 @@ export default function AdminRegisterMultipleUsers() {
 								{/* Permissions checkboxes */}
 								{decodedUser?.permissions?.canChangeRole && (
 									<div className="form-row-center-bottom">
-										<label>Permissions:</label>
+										<label>{t("permissions")}:</label>
 										<div className="permissions-grid">
 											<div>
 												<ul className="permissions-list">
@@ -284,7 +290,7 @@ export default function AdminRegisterMultipleUsers() {
 							{rows.length > 1 && (
 								<div className="form-row-remove-btn-container">
 									<span className="remove-row-btn" type="button" onClick={() => removeRow(index)}>
-										Remove Row
+										{t("remove-row")}
 									</span>
 								</div>
 							)}
@@ -292,19 +298,19 @@ export default function AdminRegisterMultipleUsers() {
 					))}
 				</div>
 
-				{success && <p style={{ color: "green" }}>Users registered</p>}
-				{!requiredFieldsFilled && <p style={{ color: "red" }}>Please fill in all required fields.(Name, Email, Password, Confirm Password, Role, Permission)</p>}
+				{success && <p style={{ color: "green" }}>{t("users-registered")}</p>}
+				{!requiredFieldsFilled && <p style={{ color: "red" }}>{t("please-fill-in-all-required-fields-Name-email-password-confirm-Password-role-permission")}</p>}
 				{hasDuplicates && <p style={{ color: "red" }}>Duplicate emails found: {Array.from(new Set(duplicates)).join(", ")}</p>}
 				{updateError && <p style={{ color: "red" }}>{updateError.message}</p>}
 
 				<div className="form-action-btn">
 					<span className="form-add-row-btn" type="button" onClick={addRow}>
-						+ Add Row
+						{t("add-row")}
 					</span>
 
 					<div>
 						<button className="form-submit-btn" type="submit" disabled={loading || !requiredFieldsFilled || hasDuplicates}>
-							{loading ? "Registering..." : "Register Users"}
+							{loading ? t("registering") : t("register-users")}
 						</button>
 					</div>
 				</div>

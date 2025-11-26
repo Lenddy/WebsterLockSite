@@ -11,6 +11,8 @@ import { jwtDecode } from "jwt-decode";
 import Eye from "../../../assets/eye.svg?react";
 import CloseEye from "../../../assets/closeEye.svg?react";
 
+import { useTranslation } from "react-i18next";
+
 export default function AdminUpdateMultipleUsers() {
 	const [show, setShow] = useState(false);
 	const [users, setUsers] = useState([]);
@@ -21,6 +23,8 @@ export default function AdminUpdateMultipleUsers() {
 	const location = useLocation();
 
 	const { userId } = useParams();
+
+	const { t } = useTranslation();
 
 	const [rows, setRows] = useState([
 		{
@@ -255,7 +259,7 @@ export default function AdminUpdateMultipleUsers() {
 					// console.log("Mutation success:", res);
 
 					setSuccess({ success: true, update: "Update has been completed" });
-					alert("users have been Updated");
+					alert(t("users-have-been-updated"));
 				},
 				onError: (errRes) => {
 					// console.log("Mutation error:", errRes);
@@ -273,7 +277,7 @@ export default function AdminUpdateMultipleUsers() {
 			{/* form  */}
 			<form className="update-form" onSubmit={submit}>
 				{/* inside the form top title  */}
-				<h1 className="update-form-title">Admin update (Multiple)</h1>
+				<h1 className="update-form-title">{t("update-multiple")}</h1>
 
 				{/* wrapper for the  inputs and info */}
 				<div className="update-form-wrapper">
@@ -281,12 +285,14 @@ export default function AdminUpdateMultipleUsers() {
 						// container for every row that is added
 						<div className="update-form-row" key={index} ref={index === row?.length - 1 ? lastRowRef : null}>
 							{/* show the count of the row */}
-							<h3 className="form-row-count">User Row {index + 1}</h3>
+							<h3 className="form-row-count">
+								{t("user-row")} {index + 1}
+							</h3>
 							{/* container for the top information*/}
 							<div className="form-row-top-container">
 								{/* left side of the top container */}
 								<div className="form-row-top-left">
-									<label> Find User</label>
+									<label> {t("find-user")}</label>
 									<Select
 										className="form-row-top-select"
 										filterOption={customFilter}
@@ -341,7 +347,7 @@ export default function AdminUpdateMultipleUsers() {
 												return newRows;
 											});
 										}}
-										placeholder="Select user by name/email"
+										placeholder={t("Select-user-by-name-email")}
 										isClearable={!row?.locked} //  Don't allow clearing if locked
 										isSearchable={!row?.locked} //  Disable search if locked
 										isDisabled={row?.locked} //  Disable Select if locked
@@ -363,12 +369,12 @@ export default function AdminUpdateMultipleUsers() {
 
 								{/* right side of the top container */}
 								<div className="form-row-top-right">
-									<label>Previous Email:</label>
-									<input type="text" name="previousEmail" value={row?.previousEmail} onChange={(e) => handleRowChange(index, e)} disabled placeholder="Previous Email" />
+									<label>{t("previous-email")}:</label>
+									<input type="text" name="previousEmail" value={row?.previousEmail} onChange={(e) => handleRowChange(index, e)} disabled placeholder={t("Previous Email")} />
 								</div>
 
 								<div className="form-row-top-left">
-									<label htmlFor="employeeNun">Employee Number</label>
+									<label htmlFor="employeeNun">{t("employee-number")}</label>
 									<input
 										type="text"
 										name="employeeNum"
@@ -376,12 +382,12 @@ export default function AdminUpdateMultipleUsers() {
 										onChange={(e) => {
 											handleRowChange(index, e), console.log(row?.employeeNum);
 										}}
-										placeholder="Employee Number"
+										placeholder={t("employee-number")}
 									/>
 								</div>
 
 								<div className="form-row-top-right">
-									<label htmlFor="department">Department</label>
+									<label htmlFor="department">{t("department")}</label>
 									<input
 										type="text"
 										name="department"
@@ -389,7 +395,7 @@ export default function AdminUpdateMultipleUsers() {
 										onChange={(e) => {
 											handleRowChange(index, e), console.log(row?.department);
 										}}
-										placeholder="Department"
+										placeholder={t("department")}
 									/>
 								</div>
 							</div>
@@ -402,21 +408,21 @@ export default function AdminUpdateMultipleUsers() {
 									{/* center left wrapper */}
 									<div className="form-row-center-left-wrapper">
 										<div>
-											<label>New Name:</label>
-											<input type="text" name="name" value={row?.name} onChange={(e) => handleRowChange(index, e)} placeholder="New Name" />
+											<label>{t("new name")}:</label>
+											<input type="text" name="name" value={row?.name} onChange={(e) => handleRowChange(index, e)} placeholder={t("new name")} />
 										</div>
 
 										<div>
-											<label>New Email:</label>
-											<input type="email" name="newEmail" value={row?.newEmail} onChange={(e) => handleRowChange(index, e)} placeholder="New Email" />
+											<label>{t("new-email")}:</label>
+											<input type="email" name="newEmail" value={row?.newEmail} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-email")} />
 										</div>
 
 										{/* <div className="form-row-center-left-bottom"> */}
 										{logUser.role !== "headAdmin" ? (
 											<div>
-												<label>Previous Password:</label>
+												<label>{t("previous-password")}:</label>
 												<div className="update-form-input">
-													<input type={show ? "text" : "password"} name="previousPassword" value={row?.previousPassword} onChange={(e) => handleRowChange(index, e)} placeholder="Previous password" />
+													<input type={show ? "text" : "password"} name="previousPassword" value={row?.previousPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("previous-password")} />
 
 													<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
 														{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
@@ -426,9 +432,9 @@ export default function AdminUpdateMultipleUsers() {
 										) : null}
 
 										<div>
-											<label>New Password:</label>
+											<label>{t("new-password")}:</label>
 											<div className="update-form-input">
-												<input type={show ? "text" : "password"} name="newPassword" value={row?.newPassword} onChange={(e) => handleRowChange(index, e)} placeholder="New Password" />
+												<input type={show ? "text" : "password"} name="newPassword" value={row?.newPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-password")} />
 
 												<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
 													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
@@ -437,9 +443,9 @@ export default function AdminUpdateMultipleUsers() {
 										</div>
 
 										<div>
-											<label>Confirm New Password:</label>
+											<label>{t("confirm-new-password")}:</label>
 											<div className="update-form-input">
-												<input type={show ? "text" : "password"} name="confirmNewPassword" value={row?.confirmNewPassword} onChange={(e) => handleRowChange(index, e)} placeholder="Confirm New Password" />
+												<input type={show ? "text" : "password"} name="confirmNewPassword" value={row?.confirmNewPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("confirm-new-password")} />
 												<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
 													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 												</span>
@@ -452,13 +458,13 @@ export default function AdminUpdateMultipleUsers() {
 								<div className="form-row-center-right">
 									<div className="form-row-center-right-wrapper">
 										<div>
-											<label>New Job Title:</label>
-											<input type="text" name="title" value={row?.title} onChange={(e) => handleRowChange(index, e)} placeholder="New Job Title" />
+											<label>{t("new-job-title")}:</label>
+											<input type="text" name="title" value={row?.title} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-job-title")} />
 										</div>
 
 										<div>
-											<label>new Job Description:</label>
-											<textarea name="description" value={row?.description} onChange={(e) => handleRowChange(index, e)} placeholder="New Job Description"></textarea>
+											<label>{t("new-job-description")}:</label>
+											<textarea name="description" value={row?.description} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-job-description")}></textarea>
 										</div>
 										{logUser?.permissions?.canChangeRole && (
 											<div>
@@ -466,7 +472,7 @@ export default function AdminUpdateMultipleUsers() {
 												{/* here */}
 												<select name="newRole" value={row?.newRole} onChange={(e) => handleRowChange(index, e)}>
 													<option value="" disabled>
-														Select Role
+														{t("select-role")}
 													</option>
 													<option value="admin">Admin</option>
 													<option value="subAdmin">Sub Admin</option>
@@ -486,7 +492,7 @@ export default function AdminUpdateMultipleUsers() {
 											<div className="permissions-grid">
 												{/* User-related permissions */}
 												<div>
-													<label>User Permissions</label>
+													<label>{t("user-permissions")}</label>
 													<ul className="permissions-list">
 														{Object.keys(row?.newPermissions)
 															.filter((permKey) => permKey.includes("Users") || permKey.includes("Role"))
@@ -505,7 +511,7 @@ export default function AdminUpdateMultipleUsers() {
 
 												{/* Self-related permissions */}
 												<div>
-													<label>Self Permissions</label>
+													<label>{t("self-permissions")}</label>
 													<ul className="permissions-list">
 														{
 															/** make sure that the permissions works  they are not being updated when they are click */
@@ -532,7 +538,7 @@ export default function AdminUpdateMultipleUsers() {
 							{rows.length > 1 && (
 								<div className="form-row-remove-btn-container">
 									<span className="remove-row-btn" type="button" onClick={() => removeRow(index)} disabled={row.locked && index === 0}>
-										Remove Row
+										{t("remove-row")}
 									</span>
 								</div>
 							)}
@@ -542,11 +548,11 @@ export default function AdminUpdateMultipleUsers() {
 
 				<div className="form-action-btn">
 					<span className="form-add-row-btn" type="button" onClick={addRow}>
-						+ Add Row
+						{t("add-row")}
 					</span>
 
 					<button className="form-submit-btn" type="submit" disabled={updateLoading || isFormInvalid}>
-						{updateLoading ? "Updating..." : "Update Users"}
+						{updateLoading ? t("updating") : t("update-users")}
 					</button>
 				</div>
 
@@ -557,14 +563,12 @@ export default function AdminUpdateMultipleUsers() {
 				)}
 				{hasEmptyRequiredFields && (
 					<p className="form-error-message" style={{ color: "red" }}>
-						{" "}
-						All required fields must be filled.
+						{t("all-required-fields-must-be-filled")}
 					</p>
 				)}
 				{hasDuplicateEmails && (
 					<p p className="form-error-message" style={{ color: "red" }}>
-						{" "}
-						Duplicate emails found in rows.
+						{t("duplicate-emails-found-in-rows")}
 					</p>
 				)}
 				{updateError && (

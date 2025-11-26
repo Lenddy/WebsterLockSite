@@ -7,6 +7,7 @@ import Fuse from "fuse.js";
 import Modal from "../Modal";
 import { useAuth } from "../../context/AuthContext"; // <-- use context here
 import { jwtDecode } from "jwt-decode";
+import { useTranslation } from "react-i18next";
 
 export default function GetAllUsers() {
 	const { userToken, setPageLoading } = useAuth(); // Get current user token from context
@@ -20,6 +21,8 @@ export default function GetAllUsers() {
 	const [searchValue, setSearchValue] = useState("");
 	const [isOpen, setIsOpen] = useState(false);
 	const [selectedUser, setSelectedUser] = useState(null);
+
+	const { t } = useTranslation();
 
 	// Decode token once from context
 	useEffect(() => {
@@ -220,14 +223,14 @@ export default function GetAllUsers() {
 	return (
 		<>
 			{loading ? (
-				<h1>Loading...</h1>
+				<h1>{t("loading")}</h1>
 			) : (
 				<div className="list-get-all-content">
 					{/* Search */}
 
 					<div className="search-filter-wrapper">
 						<div className="search-filter-container">
-							<input type="text" className="search-filter-input" placeholder="Search users by name or email" value={searchValue} onChange={handleSearchChange} autoComplete="false" />
+							<input type="text" className="search-filter-input" placeholder={t("search-users-by-name-or-email")} value={searchValue} onChange={handleSearchChange} autoComplete="false" />
 							<button className="search-clear-btn" onClick={clearSearch} disabled={!searchValue}>
 								✕
 							</button>
@@ -236,7 +239,7 @@ export default function GetAllUsers() {
 
 					<div className="table-wrapper">
 						<div className="table-title">
-							<h2>Users</h2>
+							<h2>{t("users")}</h2>
 						</div>
 						<table>
 							<thead>
@@ -244,11 +247,11 @@ export default function GetAllUsers() {
 									{logUser?.role == "headAdmin" && <th>ID</th>}
 
 									<th>#</th>
-									<th>Name</th>
-									<th>Email</th>
-									<th>Role</th>
-									<th>Department</th>
-									<th>Action</th>
+									<th>{t("name")}</th>
+									<th>{t("email")}</th>
+									<th>{t("role")}</th>
+									<th>{t("department")}</th>
+									<th>{t("action")}</th>
 								</tr>
 							</thead>
 

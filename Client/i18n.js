@@ -45,8 +45,10 @@ i18n.use(initReactI18next) // passes i18n down to react-i18next
 		// 	},
 		// },
 		backend: {
-			loadPath: "http://localhost:3005/locales/{{lng}}/{{ns}}.json",
+			loadPath: `${import.meta.env.VITE_TRANSLATION_URL}/locales/{{lng}}/{{ns}}.json`,
 		},
 	});
+
+console.log("this is  the language route", `${import.meta.env.VITE_TRANSLATION_URL}/locales/{{lng}}/{{ns}}.json`);
 
 export default i18n;

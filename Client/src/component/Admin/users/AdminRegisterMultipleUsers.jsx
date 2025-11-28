@@ -16,6 +16,20 @@ export default function AdminRegisterMultipleUsers() {
 
 	const { t } = useTranslation();
 
+	const translatePermissionKey = (key) => {
+		const keys = {
+			canViewAllUsers: "can-view-all-users",
+			canEditUsers: "can-edit-users",
+			canDeleteUsers: "can-delete-users",
+			canChangeRole: "can-change-role",
+			canViewSelf: "can-view-self",
+			canEditSelf: "can-edit-self",
+			canDeleteSelf: "can-delete-self",
+		};
+		// Use keys[key] if exists, otherwise fallback to the original key
+		return t(keys[key] || key);
+	};
+
 	const [rows, setRows] = useState([
 		{
 			name: "",
@@ -235,13 +249,13 @@ export default function AdminRegisterMultipleUsers() {
 											<div>
 												<label>{t("role")}:</label>
 												<select name="role" value={row.role} onChange={(e) => handleRowChange(index, e)}>
-													<option value="">Select Role</option>
-													{decodedUser.role === "headAdmin" && <option value="headAdmin">Head Admin</option>}
-													<option value="admin">Admin</option>
-													<option value="subAdmin">Sub Admin</option>
-													<option value="technician">Technician</option>
-													<option value="user">User</option>
-													<option value="noRole">No Role</option>
+													<option value="">{t("select-role")}</option>
+													{decodedUser.role === "headAdmin" && <option value="headAdmin">{t("head-admin")}</option>}
+													<option value="admin">{t("admin")}</option>
+													<option value="subAdmin">{t("sub-admin")}</option>
+													<option value="technician">{t("technician")}</option>
+													<option value="user">{t("user")}</option>
+													<option value="noRole">{t("no-role")}</option>
 												</select>
 											</div>
 										)}
@@ -260,7 +274,8 @@ export default function AdminRegisterMultipleUsers() {
 														.map((permKey) => (
 															<li key={permKey}>
 																<label>
-																	{formatKey(permKey)}
+																	{/* {formatKey(permKey)} */}
+																	{translatePermissionKey(permKey)}
 																	<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
 																</label>
 															</li>
@@ -275,7 +290,8 @@ export default function AdminRegisterMultipleUsers() {
 														.map((permKey) => (
 															<li key={permKey}>
 																<label>
-																	{formatKey(permKey)}
+																	{/* {formatKey(permKey)} */}
+																	{translatePermissionKey(permKey)}
 																	<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
 																</label>
 															</li>

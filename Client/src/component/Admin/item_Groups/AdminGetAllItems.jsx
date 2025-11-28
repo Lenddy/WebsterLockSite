@@ -7,6 +7,7 @@ import { useAuth } from "../../../context/AuthContext"; // use context
 import { jwtDecode } from "jwt-decode";
 import { Link } from "react-router-dom";
 import Modal from "../../Modal";
+import { useTranslation } from "react-i18next";
 
 export default function AdminGetAllItems() {
 	const { userToken, setPageLoading } = useAuth(); // get token from context
@@ -19,6 +20,8 @@ export default function AdminGetAllItems() {
 	const [searchValue, setSearchValue] = useState("");
 	const { error, loading, data, refetch } = useQuery(get_all_item_groups, { fetchPolicy: "cache-and-network" });
 	// { fetchPolicy: "cache-and-network" }
+
+	const { t } = useTranslation();
 
 	// Decode token once when component mounts or token changes
 	useEffect(() => {
@@ -222,13 +225,13 @@ export default function AdminGetAllItems() {
 		<>
 			{loading ? (
 				<div>
-					<h1>Loading...</h1>
+					<h1>{t("Loading")}</h1>
 				</div>
 			) : (
 				<div className="list-get-all-content">
 					<div className="search-filter-wrapper">
 						<div className="search-filter-container">
-							<input type="text" className="search-filter-input" placeholder="Search Brand by Brand Name" value={searchValue} onChange={handleSearchChange} autoComplete="off" />
+							<input type="text" className="search-filter-input" placeholder={t("search-brand-by-brand-name")} value={searchValue} onChange={handleSearchChange} autoComplete="off" />
 							<button className="search-clear-btn" onClick={clearSearch} disabled={!searchValue}>
 								✕
 							</button>
@@ -237,16 +240,16 @@ export default function AdminGetAllItems() {
 
 					<div className="table-wrapper">
 						<div className="table-title">
-							<h2>Items</h2>
+							<h2>{t("items")}</h2>
 						</div>
 						<table>
 							<thead>
 								<tr>
 									<th>ID</th>
-									<th>Brand</th>
-									<th>Item amount</th>
-									<th>Some items</th>
-									<th>Action</th>
+									<th>{t("brand")}</th>
+									<th>{t("item-amount")}</th>
+									<th>{t("some-items")}</th>
+									<th>{t("action")}</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -270,7 +273,7 @@ export default function AdminGetAllItems() {
 										<td>
 											<div>
 												<Link to={`/admin/material/item/${ig?.id}/update`}>
-													<span className="table-action first">Update</span>
+													<span className="table-action first">{t("update")}</span>
 												</Link>
 												{/* Uncomment for delete modal */}
 												{/* <span className="table-action last" onClick={() => { setSelectedItem(ig); setIsOpen(true); }}>Delete</span> */}

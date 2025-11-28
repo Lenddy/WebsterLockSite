@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../context/AuthContext";
 import doorHanding from "../assets/doorHanding.jpg";
+import { useTranslation } from "react-i18next";
 
 const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 	const { userToken } = useAuth(); // get currentUser and token from context
@@ -13,6 +14,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 	// Decode token once if currentUser not available (fallback)
 	const logUser = jwtDecode(userToken);
 
+	const { t } = useTranslation();
 	// console.log("modal open");
 	// console.log("log user", logUser);
 	// console.log("is open", isOpen, "close", onClose, "data", data);
@@ -47,7 +49,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 						<div className="modal-content-header">
 							<div className="modal-content-top-info-title-wrapper">
 								<div>
-									<h4>Requested by:</h4> <p>{data?.mRequest?.requester?.name}</p>
+									<h4>{t("requested-by")}:</h4> <p>{data?.mRequest?.requester?.name}</p>
 								</div>
 							</div>
 						</div>
@@ -58,7 +60,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 						<div className="modal-content-header">
 							<div className="modal-content-top-info-title-wrapper">
 								<div>
-									<h4>Requested by:</h4> <p>{logUser.name}</p>
+									<h4>{t("requested-by")}:</h4> <p>{logUser.name}</p>
 								</div>
 							</div>
 						</div>
@@ -69,7 +71,9 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 						<div className="modal-content-header">
 							<div className="modal-content-top-info-title-wrapper">
 								<div>
-									<h4>{data.item.itemName} (will be deleted)</h4>
+									<h4>
+										{data.item.itemName} ({t("will-be-deleted")})
+									</h4>
 								</div>
 							</div>
 						</div>
@@ -80,10 +84,10 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 						<div className="modal-content-header">
 							<div className="modal-content-top-info-title-wrapper">
 								<div>
-									<h4>Name:</h4> <p>{content.value.name}</p>
+									<h4>{t("name")}:</h4> <p>{content.value.name}</p>
 								</div>
 								<div>
-									<h4>Email:</h4> <p>{content.value.email}</p>
+									<h4>{t("email")}:</h4> <p>{content.value.email}</p>
 								</div>
 							</div>
 						</div>
@@ -102,7 +106,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 							<img className="door-handing" src={doorHanding} alt="logo" />
 
 							<h1>
-								<strong> ALWAYS FROM THE OUTSIDE </strong>{" "}
+								<strong>{t("always-from-the-outside")} </strong>{" "}
 							</h1>
 						</>
 					) : null}
@@ -110,32 +114,34 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 					{(location.pathname === `/material/request/${data?.mRequest?.mrId}/update` || location.pathname === `/material/request/request`) &&
 						data?.rows?.map((row, idx) => (
 							<div className="modal-content-info-wrapper" key={idx}>
-								<p>Material Request Row {idx + 1}</p>
+								<p>
+									{t("material-request-row")} {idx + 1}
+								</p>
 								<div className="modal-content-item-info">
 									<div className="modal-content-item-info-top">
 										<div>
-											<label>Quantity</label> <p>{row?.quantity}</p>
+											<label>{t("quantity")}</label> <p>{row?.quantity}</p>
 										</div>
 										<div>
-											<label>Item</label> <p>{row?.item?.value}</p>
+											<label>{t("item")}</label> <p>{row?.item?.value}</p>
 										</div>
 									</div>
 
 									<div className="modal-content-item-info-center">
 										<div>
-											<label>Color</label> <p>{row?.color?.value || "N/A"}</p>
+											<label>{t("color")}</label> <p>{row?.color?.value || "N/A"}</p>
 										</div>
 										<div>
-											<label>Side/Hand</label> <p>{row?.side?.value || "N/A"}</p>
+											<label>{t("side")}</label> <p>{row?.side?.value || "N/A"}</p>
 										</div>
 										<div>
-											<label>Size</label> <p>{row?.size?.value || "N/A"}</p>
+											<label>{t("size")}</label> <p>{row?.size?.value || "N/A"}</p>
 										</div>
 									</div>
 
 									<div className="modal-content-item-info-bottom">
 										<div>
-											<label>Description</label> <p>{row?.itemDescription || "N/A"}</p>
+											<label>{t("description")}</label> <p>{row?.itemDescription || "N/A"}</p>
 										</div>
 									</div>
 								</div>
@@ -148,7 +154,9 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 							``
 							<div className="modal-content-info-wrapper">
 								<div className="modal-content-item-info">
-									<h4>{data.item.itemName} (will be deleted and must be re-added to use)</h4>
+									<h4>
+										{data.item.itemName} ({t("will-be-deleted-and-must-be-re-added-to-use")})
+									</h4>
 								</div>
 							</div>
 						</div>
@@ -159,13 +167,13 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 						<div className="modal-content-info">
 							{content.value.job && (
 								<div className="modal-content-middle-info">
-									<h4>Job:</h4>
+									<h4>{t("job")}:</h4>
 									<div className="modal-content-middle-info-wrapper">
 										<div>
-											<h4>Title:</h4> <p>{content.value.job.title}</p>
+											<h4>{t("title")}:</h4> <p>{content.value.job.title}</p>
 										</div>
 										<div>
-											<h4>Description:</h4> <p>{content.value.job.description}</p>
+											<h4>{t("description")}:</h4> <p>{content.value.job.description}</p>
 										</div>
 									</div>
 								</div>
@@ -173,10 +181,10 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 
 							{content.value.permissions && (
 								<div className="modal-content-bottom-info">
-									<h4>Permissions:</h4>
+									<h4>{t("permissions")}:</h4>
 									<div className="modal-content-bottom-info-wrapper">
 										<div>
-											<h4>User Actions:</h4>
+											<h4>{t("user-actions")}:</h4>
 											<ul>
 												{Object.entries(content.value.permissions)
 													.filter(([k, v]) => v === true && k.includes("Users"))
@@ -186,7 +194,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 											</ul>
 										</div>
 										<div>
-											<h4>Self Actions:</h4>
+											<h4>{t("self-actions")}:</h4>
 											<ul>
 												{Object.entries(content.value.permissions)
 													.filter(([k, v]) => v === true && k.includes("Self"))
@@ -208,10 +216,10 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 						{(location.pathname === `/material/request/${data?.mRequest?.mrId}/update` || location.pathname === `/material/request/request`) && (
 							<>
 								<div className={`model-btn-view ${loading ? "disabled" : ""}`} onClick={onConFirm}>
-									<span>Confirm</span>
+									<span>{t("confirm")}</span>
 								</div>
 								<div className={`model-btn-delete ${loading ? "disabled" : ""}`} onClick={onClose}>
-									<span>Cancel</span>
+									<span>{t("cancel")}</span>
 								</div>
 							</>
 						)}
@@ -220,15 +228,15 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 						{location.pathname.includes(`/admin/material/item`) && (
 							<>
 								<div className={`model-btn-view ${loading ? "disabled" : ""}`} onClick={onConFirm}>
-									<span>Confirm</span>
+									<span>{t("Confirm")}</span>
 								</div>
 								<div className={`model-btn-update ${loading ? "disabled" : ""}`}>
 									<Link to={`/admin/material/item/${data.brandId}/update`}>
-										<span>Update</span>
+										<span>{t("Update")}</span>
 									</Link>
 								</div>
 								<div className={`model-btn-delete ${loading ? "disabled" : ""}`} onClick={onClose}>
-									<span>Cancel</span>
+									<span>{t("cancel")}</span>
 								</div>
 							</>
 						)}
@@ -239,13 +247,13 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 								{location.pathname === "/user/all" && (
 									<div className="model-btn-view">
 										<Link to={`/user/${content?.value?.id}`}>
-											<span>View</span>
+											<span>{t("view")}</span>
 										</Link>
 									</div>
 								)}
 								<div className="model-btn-update">
 									<Link to={logUser.role === "headAdmin" || logUser.role?.role === "admin" ? `/admin/user/${content?.value?.id}/update` : `/user/${content?.value?.id}/update`}>
-										<span>Update</span>
+										<span>{t("update")}</span>
 									</Link>
 								</div>
 								<div className="model-btn-delete">

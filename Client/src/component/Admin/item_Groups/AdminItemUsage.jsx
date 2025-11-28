@@ -6,6 +6,7 @@ import { MATERIAL_REQUEST_CHANGE_SUBSCRIPTION } from "../../../../graphQL/subscr
 import Fuse from "fuse.js";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
+import { useTranslation } from "react-i18next";
 dayjs.extend(isBetween);
 
 export default function AdminItemUsage() {
@@ -16,6 +17,8 @@ export default function AdminItemUsage() {
 	const [customStart, setCustomStart] = useState(""); // YYYY-MM-DD
 	const [customEnd, setCustomEnd] = useState(""); // YYYY-MM-DD
 	const [searchValue, setSearchValue] = useState("");
+
+	const { t } = useTranslation();
 
 	useEffect(() => {
 		if (data) {
@@ -46,6 +49,18 @@ export default function AdminItemUsage() {
 			});
 		},
 	});
+
+	const translateFilterKey = (key) => {
+		const keys = {
+			All: "all",
+			Today: "today",
+			Week: "week",
+			Month: "month",
+			Year: "year",
+		};
+		// Use keys[key] if exists, otherwise fallback to the original key
+		return t(keys[key] || key);
+	};
 
 	const filteredRequests = useMemo(() => {
 		if (!mRequests?.length) return [];
@@ -169,7 +184,7 @@ export default function AdminItemUsage() {
 		<>
 			{loading ? (
 				<div>
-					<h2>Loading...</h2>
+					<h2>{t("loading")}</h2>
 				</div>
 			) : (
 				<div className="list-get-all-content item-usage-container">
@@ -178,7 +193,8 @@ export default function AdminItemUsage() {
 						<div className="filter-btn-container">
 							{["All", "Today", "Week", "Month", "Year"].map((f) => (
 								<button key={f} className={`filter-btn ${filter === f ? "selected-filter" : ""}`} disabled={filter === f} onClick={() => setFilter(f)}>
-									{f}
+									{/* {f} */}
+									{translateFilterKey(f)}
 								</button>
 							))}
 						</div>
@@ -187,7 +203,7 @@ export default function AdminItemUsage() {
 						<div className="date-custom-filter-container">
 							<div className="date-custom-filter-wrapper-top">
 								<div>
-									<label>Start:</label>
+									<label>{t("start")}:</label>
 									<input
 										type="date"
 										value={customStart}
@@ -199,7 +215,7 @@ export default function AdminItemUsage() {
 								</div>
 
 								<div>
-									<label style={{ marginLeft: "1rem" }}>End:</label>
+									<label style={{ marginLeft: "1rem" }}>{t("end")}:</label>
 									<input
 										type="date"
 										value={customEnd}
@@ -212,7 +228,7 @@ export default function AdminItemUsage() {
 							</div>
 
 							<button className="filter-data-clear-btn" onClick={clearFilters}>
-								Clear Filter
+								{t("clear-filter")}
 							</button>
 						</div>
 					</div>
@@ -220,7 +236,7 @@ export default function AdminItemUsage() {
 					{/* Search Input */}
 					<div className="search-filter-wrapper item-usage-filter">
 						<div className="search-filter-container">
-							<input type="text" className="search-filter-input" placeholder="Search Item by Name" value={searchValue} onChange={handleSearchChange} autoComplete="false" />
+							<input type="text" className="search-filter-input" placeholder={t("search-item-by-name")} value={searchValue} onChange={handleSearchChange} autoComplete="false" />
 							<button className="search-clear-btn" onClick={clearSearch} disabled={!searchValue}>
 								✕
 							</button>
@@ -232,8 +248,8 @@ export default function AdminItemUsage() {
 						<table>
 							<thead>
 								<tr>
-									<th>Item</th>
-									<th>Total Used</th>
+									<th>{t("item-name")}</th>
+									<th>{t("total-used")}</th>
 								</tr>
 							</thead>
 							<tbody>

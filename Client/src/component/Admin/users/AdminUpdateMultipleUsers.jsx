@@ -26,6 +26,20 @@ export default function AdminUpdateMultipleUsers() {
 
 	const { t } = useTranslation();
 
+	const translatePermissionKey = (key) => {
+		const keys = {
+			canViewAllUsers: "can-view-all-users",
+			canEditUsers: "can-edit-users",
+			canDeleteUsers: "can-delete-users",
+			canChangeRole: "can-change-role",
+			canViewSelf: "can-view-self",
+			canEditSelf: "can-edit-self",
+			canDeleteSelf: "can-delete-self",
+		};
+		// Use keys[key] if exists, otherwise fallback to the original key
+		return t(keys[key] || key);
+	};
+
 	const [rows, setRows] = useState([
 		{
 			id: "",
@@ -468,17 +482,17 @@ export default function AdminUpdateMultipleUsers() {
 										</div>
 										{logUser?.permissions?.canChangeRole && (
 											<div>
-												<label>New Role:</label>
+												<label>{t("new-role")}:</label>
 												{/* here */}
 												<select name="newRole" value={row?.newRole} onChange={(e) => handleRowChange(index, e)}>
 													<option value="" disabled>
 														{t("select-role")}
 													</option>
-													<option value="admin">Admin</option>
-													<option value="subAdmin">Sub Admin</option>
-													<option value="technician">Technician</option>
-													<option value="user">User</option>
-													<option value="noRole">No Role</option>
+													<option value="admin">{t("admin")}</option>
+													<option value="subAdmin">{t("sub-admin")} </option>
+													<option value="technician">{t("technician")}</option>
+													<option value="user">{t("user")} </option>
+													<option value="noRole">{t("no-role")}</option>
 												</select>
 											</div>
 										)}
@@ -499,7 +513,9 @@ export default function AdminUpdateMultipleUsers() {
 															.map((permKey) => (
 																<li key={permKey}>
 																	<label>
-																		{formatKey(permKey)}
+																		{/* {formatKey(permKey)} */}
+																		{translatePermissionKey(permKey)}
+
 																		<input onChange={(e) => handleRowChange(index, e)} type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} />
 																	</label>
 																</li>
@@ -521,13 +537,27 @@ export default function AdminUpdateMultipleUsers() {
 																	// find a way to use the whole link  as the btn no just the checkbox
 																	<li key={permKey}>
 																		<label>
-																			{formatKey(permKey)}
+																			{/* {formatKey(permKey)}*/}
+																			{translatePermissionKey(permKey)}
 																			<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
 																		</label>
 																	</li>
 																))
 														}
 													</ul>
+
+													{/* <ul className="permissions-list">
+														{Object.keys(row?.newPermissions)
+															.filter((permKey) => permKey.includes("Users") || permKey.includes("Role"))
+															.map((permKey) => (
+																<li key={permKey}>
+																	<label>
+																		{translatePermissionKey(permKey)}
+																		<input onChange={(e) => handleRowChange(index, e)} type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} />
+																	</label>
+																</li>
+															))}
+													</ul> */}
 												</div>
 											</div>
 										</div>

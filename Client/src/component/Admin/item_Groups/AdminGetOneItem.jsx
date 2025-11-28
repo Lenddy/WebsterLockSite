@@ -5,6 +5,7 @@ import { get_one_item_group } from "../../../../graphQL/queries/queries";
 import { Link, useParams } from "react-router-dom";
 import { ITEM_GROUP_CHANGE_SUBSCRIPTION } from "../../../../graphQL/subscriptions/subscriptions";
 import Fuse from "fuse.js";
+import { useTranslation } from "react-i18next";
 
 export default function AdminGetOneItem() {
 	const [itemGroup, setItemGroup] = useState(null); // the full group (brand + itemsList)
@@ -15,6 +16,8 @@ export default function AdminGetOneItem() {
 	const { error, loading, data } = useQuery(get_one_item_group, {
 		variables: { id: itemId },
 	});
+
+	const { t } = useTranslation();
 
 	// Helper function to sort items alphabetically by itemName
 	const sortByItemName = (list) => {
@@ -82,9 +85,9 @@ export default function AdminGetOneItem() {
 	};
 
 	//  Render
-	if (loading) return <h1>Loading...</h1>;
+	if (loading) return <h1>{t("loading")}</h1>;
 	if (error) return <p style={{ color: "red" }}>{error.message}</p>;
-	if (!itemGroup) return <h2>No item group found.</h2>;
+	if (!itemGroup) return <h2>{t("no-item-group-found")}</h2>;
 
 	return (
 		<div className="list-get-all-content">
@@ -92,7 +95,7 @@ export default function AdminGetOneItem() {
 
 			<div className="search-filter-wrapper">
 				<div className="search-filter-container">
-					<input type="text" className="search-filter-input" placeholder="Search items by name..." value={searchValue} onChange={handleSearchChange} autoComplete="off" />
+					<input type="text" className="search-filter-input" placeholder={t("search-items-by-name")} value={searchValue} onChange={handleSearchChange} autoComplete="off" />
 					<button className="search-clear-btn" onClick={clearSearch} disabled={!searchValue}>
 						✕
 					</button>
@@ -108,8 +111,8 @@ export default function AdminGetOneItem() {
 					<thead>
 						<tr>
 							<th>ID</th>
-							<th>Item Name</th>
-							<th>Action</th>
+							<th>{t("item-name")}</th>
+							<th>{t("action")}</th>
 						</tr>
 					</thead>
 
@@ -121,11 +124,11 @@ export default function AdminGetOneItem() {
 								<td>
 									<div className="table-action-wrapper">
 										<Link to={`/admin/material/item/${itemId}/update`}>
-											<span className="table-action first">Update</span>
+											<span className="table-action first">{t("update")}</span>
 										</Link>
 
 										<Link to={`/admin/material/item/${itemId}/update`}>
-											<span className="table-action last">Delete</span>
+											<span className="table-action last">{t("delete")}</span>
 										</Link>
 									</div>
 								</td>

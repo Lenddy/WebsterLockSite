@@ -3,6 +3,7 @@ import { useMutation } from "@apollo/client";
 import { create_multiple_itemGroups } from "../../../../graphQL/mutations/mutations";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { useTranslation } from "react-i18next";
 
 export default function AdminCreateMultipleItemsGroups() {
 	const [message, setMessage] = useState("");
@@ -16,6 +17,8 @@ export default function AdminCreateMultipleItemsGroups() {
 			],
 		},
 	]);
+
+	const { t } = useTranslation();
 
 	// const { loading, data, error, refetch } = useQuery(get_all_users);
 	// const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
@@ -92,7 +95,7 @@ export default function AdminCreateMultipleItemsGroups() {
 					// console.log("Mutation success:", res.createMultipleItemGroups);
 					// newMr =
 					// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
-					alert("Item groups added successfully!");
+					alert(t("Item-groups-added-successfully"));
 					setMessage("New Item Groups have been added");
 				},
 				onError: (err) => {
@@ -115,30 +118,32 @@ export default function AdminCreateMultipleItemsGroups() {
 						<div className="update-form-wrapper">
 							{/* Brand Section */}
 							<div className="">
-								<h3>Item Group {igIdx + 1}</h3>
+								<h3>
+									{t("item-group")} {igIdx + 1}
+								</h3>
 							</div>
 
 							{/* Items Section */}
 							<div className="update-form-row">
 								<div className="form-row-top-container material-request">
 									<div className="form-row-top-right material-request">
-										<label>Brand Name</label>
-										<input type="text" value={ig?.brand} onChange={(e) => handleItemGroupChange(igIdx, "brand", e.target.value)} />
+										<label>{t("brand-name")}</label>
+										<input type="text" value={ig?.brand} onChange={(e) => handleItemGroupChange(igIdx, "brand", e.target.value)} placeholder={t("brand-name")} />
 									</div>
 								</div>
 
 								<div className="form-row-center item-group">
-									<label>Items</label>
+									<label>{t("items")}</label>
 
 									{ig?.itemsList?.map((row, rowIdx) => (
 										<div key={rowIdx} className="form-row-item-wrapper">
 											{/* Item Name */}
-											<input type="text" value={row?.itemName} onChange={(e) => handleItemChange(igIdx, rowIdx, "itemName", e.target.value)} />
+											<input type="text" value={row?.itemName} onChange={(e) => handleItemChange(igIdx, rowIdx, "itemName", e.target.value)} placeholder={t("item-name")} />
 
 											{/* Remove item */}
 											{ig?.itemsList?.length > 1 && (
 												<span className="remove-row-btn" onClick={() => removeItemRow(igIdx, rowIdx)}>
-													Remove
+													{t("remove")}
 												</span>
 											)}
 										</div>
@@ -149,7 +154,7 @@ export default function AdminCreateMultipleItemsGroups() {
 								<div className="form-action-btn">
 									<div className="form-row-remove-btn-container">
 										<span className="form-add-row-btn" onClick={() => addItemRow(igIdx)} disabled={!canAddMore} style={{ margin: "10px 0px" }}>
-											+ Add Item
+											{t("add-item")}
 										</span>
 									</div>
 
@@ -157,7 +162,7 @@ export default function AdminCreateMultipleItemsGroups() {
 									{itemGroups.length > 1 && (
 										<div className="form-row-remove-btn-container">
 											<span className="remove-row-btn" type="button" onClick={() => removeItemGroup(igIdx)} style={{ margin: "10px 0px" }}>
-												Remove Group
+												{t("remove-group")}
 											</span>
 										</div>
 									)}
@@ -170,18 +175,18 @@ export default function AdminCreateMultipleItemsGroups() {
 				{/* Add Group & Submit Buttons */}
 				<div className="form-action-btn">
 					<span className="form-add-row-btn" type="button" onClick={addItemGroup} disabled={!canAddMore}>
-						+ Add Group
+						{t("add-group")}
 					</span>
 
 					<div>
 						<button type="submit" className="form-submit-btn" disabled={!canSubmit}>
-							Submit
+							{t("submit")}
 						</button>
 					</div>
 				</div>
 
 				{/* Validation Message */}
-				{!canAddMore && <p style={{ color: "red" }}>All required fields must be filled.</p>}
+				{!canAddMore && <p style={{ color: "red" }}>{t("all-required-fields-must-be-filled")}</p>}
 			</form>
 		</div>
 	);

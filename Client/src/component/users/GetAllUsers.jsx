@@ -280,7 +280,7 @@ export default function GetAllUsers() {
 												<div className="table-action-wrapper">
 													{canEditUser(logUser, user) && (
 														<Link to={`/admin/user/${user?.id}/update`}>
-															<span className="table-action first">Update</span>
+															<span className="table-action first">{t("update")}</span>
 														</Link>
 													)}
 													{canDeleteUser(logUser, user) && (
@@ -290,7 +290,7 @@ export default function GetAllUsers() {
 																setSelectedUser(user);
 																setIsOpen(true);
 															}}>
-															Delete
+															{t("delete")}
 														</span>
 													)}
 												</div>

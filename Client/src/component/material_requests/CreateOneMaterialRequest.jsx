@@ -299,13 +299,23 @@ export default function CreateOneMaterialRequest() {
 											onChange={(val) => handleRowChange(idx, "item", val)}
 											placeholder={isItemsReady ? t("select-item") : t("loading-items")}
 											isDisabled={!isItemsReady}
+											// onInputChange={(val, meta) => {
+											// 	// console.log("InputChange value:", val, "action:", meta.action);
+											// 	if (meta.action === "input-change") {
+											// 		setSearchValue(val);
+											// 	}
+											// }}
+											// onInputChange={(val) => setSearchValue(val)} // update debouncedSearch via useDebounce
+											inputValue={searchValue}
+											onMenuClose={() => setSearchValue("")}
 											onInputChange={(val, meta) => {
-												// console.log("InputChange value:", val, "action:", meta.action);
 												if (meta.action === "input-change") {
 													setSearchValue(val);
 												}
+												if (meta.action === "menu-close") {
+													setSearchValue("");
+												}
 											}}
-											// onInputChange={(val) => setSearchValue(val)} // update debouncedSearch via useDebounce
 											filterOption={() => true}
 											isClearable
 											isSearchable

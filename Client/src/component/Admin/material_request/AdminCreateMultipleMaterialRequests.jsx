@@ -184,7 +184,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 	};
 
 	const userOptions = users.map((user) => ({
-		label: `${user.name} (${user.email})`,
+		label: ` ${user?.employeeNum !== null ? user?.employeeNum : ""} ${user.name} (${user.email})`,
 		value: {
 			userId: user.id, //  your backend id
 			email: user.email,
@@ -241,7 +241,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 		}
 	}, [allItems]);
 
-	const customUserFilter = (option, inputValue) => {
+	const customUserFilter = (option, inputValue = "") => {
 		// If search is empty → show all
 		if (!inputValue) return true;
 
@@ -512,16 +512,29 @@ export default function AdminCreateMultipleMaterialRequests() {
 													onChange={(val) => handleItemChange(reqIdx, rowIdx, "item", val)}
 													placeholder={isItemsReady ? t("select-item") : t("loading-items")}
 													isDisabled={!isItemsReady}
-													onInputChange={(val, meta) => {
-														// console.log("InputChange value:", val, "action:", meta.action);
-														if (meta.action === "input-change") {
-															setSearchValue(val);
-														}
-													}}
+													// onInputChange={(val, meta) => {
+													// 	// console.log("InputChange value:", val, "action:", meta.action);
+													// 	if (meta.action === "input-change") {
+													// 		setSearchValue(val);
+													// 	}
+													// }}
 													// onInputChange={(val) => setSearchValue(val)} // update debouncedSearch via useDebounce
 													filterOption={() => true}
 													isClearable
 													isSearchable
+													// 													onBlur={() => setSearchValue("")}
+													// onMenuClose={() => setSearchValue("")}
+
+													inputValue={searchValue}
+													onMenuClose={() => setSearchValue("")}
+													onInputChange={(val, meta) => {
+														if (meta.action === "input-change") {
+															setSearchValue(val);
+														}
+														if (meta.action === "menu-close") {
+															setSearchValue("");
+														}
+													}}
 													components={{ MenuList: VirtualizedMenuList }}
 													styles={{
 														control: (base) => ({

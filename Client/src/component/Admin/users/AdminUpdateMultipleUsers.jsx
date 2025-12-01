@@ -118,7 +118,7 @@ export default function AdminUpdateMultipleUsers() {
 
 	// inside your component
 	const userOptions = users.map((u) => ({
-		label: `${u.name} - ${u.email}`,
+		label: `${u?.employeeNum !== null ? u?.employeeNum : ""} ${u.name} - ${u.email}`,
 		value: u.id,
 		email: u.email,
 		name: u.name,

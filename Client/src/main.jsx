@@ -7,6 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 import { ApolloProvider } from "@apollo/client";
 import client from "../graphQL/apolloClient.js"; // imported client
 import { AuthProvider } from "./context/AuthContext";
+import { UsersProvider } from "./context/UsersContext";
 import "../i18n.js";
 
 //  Render app
@@ -15,7 +16,9 @@ createRoot(document.getElementById("root")).render(
 		<BrowserRouter>
 			<StrictMode>
 				<AuthProvider AuthProvider>
-					<App client={client} />
+					<UsersProvider>
+						<App client={client} />
+					</UsersProvider>
 				</AuthProvider>
 			</StrictMode>
 		</BrowserRouter>

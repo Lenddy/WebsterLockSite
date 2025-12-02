@@ -8,15 +8,18 @@ import Modal from "../Modal";
 import { useAuth } from "../../context/AuthContext"; // <-- use context here
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
+import { useUsers } from "../../context/UsersContext";
 
 export default function GetAllUsers() {
 	const { userToken, setPageLoading } = useAuth(); // Get current user token from context
 	const [logUser, setLogUser] = useState(null);
 
-	const { error, loading, data, refetch } = useQuery(get_all_users, {
-		fetchPolicy: "cache-and-network",
-	});
-	const [users, setUsers] = useState([]);
+	const { users, loading, error } = useUsers();
+
+	// const { error, loading, data, refetch } = useQuery(get_all_users, {
+	// 	fetchPolicy: "cache-and-network",
+	// });
+	// const [users, setUsers] = useState([]);
 	const [filteredUsers, setFilteredUsers] = useState([]);
 	const [searchValue, setSearchValue] = useState("");
 	const [isOpen, setIsOpen] = useState(false);
@@ -38,125 +41,129 @@ export default function GetAllUsers() {
 	// Initialize users and filtered users
 	useEffect(() => {
 		setPageLoading(loading);
-		if (data) {
-			console.log(data.getAllUsers);
-			setUsers(data.getAllUsers);
-			setFilteredUsers(data.getAllUsers);
-		}
-	}, [data, loading, setPageLoading]);
+		setFilteredUsers(users);
+
+		// if (data) {
+		// 	console.log(data.getAllUsers);
+		// 	setUsers(data.getAllUsers);
+		// 	setFilteredUsers(data.getAllUsers);
+		// }
+
+		// data, loading, setPageLoading
+	}, [users, loading, setPageLoading]);
 
 	// Live subscription for updates
-	useSubscription(USER_CHANGE_SUBSCRIPTION, {
-		onData: ({ data: subscriptionData, client }) => {
-			console.log("📡 Subscription raw data:", subscriptionData);
+	// useSubscription(USER_CHANGE_SUBSCRIPTION, {
+	// 	onData: ({ data: subscriptionData, client }) => {
+	// 		console.log("📡 Subscription raw data:", subscriptionData);
 
-			const changeEvent = subscriptionData?.data?.onUserChange;
-			if (!changeEvent) return;
+	// 		const changeEvent = subscriptionData?.data?.onUserChange;
+	// 		if (!changeEvent) return;
 
-			const { eventType, changeType, change, changes } = changeEvent;
+	// 		const { eventType, changeType, change, changes } = changeEvent;
 
-			// Normalize into an array so downstream logic doesn’t have to care
-			const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
+	// 		// Normalize into an array so downstream logic doesn’t have to care
+	// 		const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
 
-			if (!changesArray.length) return;
+	// 		if (!changesArray.length) return;
 
-			console.log(`📡 User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+	// 		console.log(`📡 User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
 
-			// --- Update local state ---
-			setUsers((prevUsers) => {
-				let updated = [...prevUsers];
+	// 		// --- Update local state ---
+	// 		setUsers((prevUsers) => {
+	// 			let updated = [...prevUsers];
 
-				for (const Changes of changesArray) {
-					if (eventType === "created") {
-						const exists = prevUsers.some((u) => u.id === Changes.id);
-						if (!exists) updated = [...updated, Changes];
-					} else if (eventType === "updated") {
-						updated = updated.map((u) => (u.id === Changes.id ? { ...u, ...Changes } : u));
-					} else if (eventType === "deleted") {
-						updated = updated.filter((u) => u.id !== Changes.id);
-					}
-				}
+	// 			for (const Changes of changesArray) {
+	// 				if (eventType === "created") {
+	// 					const exists = prevUsers.some((u) => u.id === Changes.id);
+	// 					if (!exists) updated = [...updated, Changes];
+	// 				} else if (eventType === "updated") {
+	// 					updated = updated.map((u) => (u.id === Changes.id ? { ...u, ...Changes } : u));
+	// 				} else if (eventType === "deleted") {
+	// 					updated = updated.filter((u) => u.id !== Changes.id);
+	// 				}
+	// 			}
 
-				// Apply search/filtering
-				const sorted = updated; // optionally add a sort function if needed
-				if (searchValue) setFilteredUsers(applyFuse(sorted, searchValue));
-				else setFilteredUsers(sorted);
+	// 			// Apply search/filtering
+	// 			const sorted = updated; // optionally add a sort function if needed
+	// 			if (searchValue) setFilteredUsers(applyFuse(sorted, searchValue));
+	// 			else setFilteredUsers(sorted);
 
-				return updated;
-			});
+	// 			return updated;
+	// 		});
 
-			// !!!!!!!
+	// 		// !!!!!!!
 
-			// --- Update Apollo Cache (optional) ---
-			try {
-				client.cache.modify({
-					fields: {
-						getAllUsers(existingRefs = [], { readField }) {
-							let newRefs = [...existingRefs];
+	// 		// --- Update Apollo Cache (optional) ---
+	// 		try {
+	// 			client.cache.modify({
+	// 				fields: {
+	// 					getAllUsers(existingRefs = [], { readField }) {
+	// 						let newRefs = [...existingRefs];
 
-							for (const Changes of changesArray) {
-								if (eventType === "deleted") {
-									newRefs = newRefs.filter((ref) => readField("id", ref) !== Changes.id);
-									continue;
-								}
+	// 						for (const Changes of changesArray) {
+	// 							if (eventType === "deleted") {
+	// 								newRefs = newRefs.filter((ref) => readField("id", ref) !== Changes.id);
+	// 								continue;
+	// 							}
 
-								const existingIndex = newRefs.findIndex((ref) => readField("id", ref) === Changes.id);
+	// 							const existingIndex = newRefs.findIndex((ref) => readField("id", ref) === Changes.id);
 
-								if (existingIndex > -1 && eventType === "updated") {
-									newRefs = newRefs.map((ref) =>
-										readField("id", ref) === Changes.id
-											? client.cache.writeFragment({
-													data: Changes,
-													fragment: gql`
-														fragment UpdatedUser on User {
-															id
-															name
-															email
-															role
-															permissions
-															job
-															employeeNum
-															department
-															token
-														}
-													`,
-											  })
-											: ref
-									);
-								} else if (eventType === "created") {
-									const newRef = client.cache.writeFragment({
-										data: Changes,
-										fragment: gql`
-											fragment NewUser on User {
-												id
-												name
-												email
-												role
-												permissions
-												job
-												employeeNum
-												department
-												token
-											}
-										`,
-									});
-									newRefs = [...newRefs, newRef];
-								}
-							}
+	// 							if (existingIndex > -1 && eventType === "updated") {
+	// 								newRefs = newRefs.map((ref) =>
+	// 									readField("id", ref) === Changes.id
+	// 										? client.cache.writeFragment({
+	// 												data: Changes,
+	// 												fragment: gql`
+	// 													fragment UpdatedUser on User {
+	// 														id
+	// 														name
+	// 														email
+	// 														role
+	// 														permissions
+	// 														job
+	// 														employeeNum
+	// 														department
+	// 														token
+	// 													}
+	// 												`,
+	// 										  })
+	// 										: ref
+	// 								);
+	// 							} else if (eventType === "created") {
+	// 								const newRef = client.cache.writeFragment({
+	// 									data: Changes,
+	// 									fragment: gql`
+	// 										fragment NewUser on User {
+	// 											id
+	// 											name
+	// 											email
+	// 											role
+	// 											permissions
+	// 											job
+	// 											employeeNum
+	// 											department
+	// 											token
+	// 										}
+	// 									`,
+	// 								});
+	// 								newRefs = [...newRefs, newRef];
+	// 							}
+	// 						}
 
-							return newRefs;
-						},
-					},
-				});
-			} catch (cacheErr) {
-				console.warn("⚠️ Cache update skipped:", cacheErr.message);
-			}
-		},
+	// 						return newRefs;
+	// 					},
+	// 				},
+	// 			});
+	// 		} catch (cacheErr) {
+	// 			console.warn("⚠️ Cache update skipped:", cacheErr.message);
+	// 		}
+	// 	},
 
-		onError: (err) => {
-			console.error("🚨 Subscription error:", err);
-		},
-	});
+	// 	onError: (err) => {
+	// 		console.error("🚨 Subscription error:", err);
+	// 	},
+	// });
 
 	// Fuse.js search
 	const applyFuse = (list, search) => {

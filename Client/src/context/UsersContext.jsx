@@ -17,8 +17,10 @@ export function UsersProvider({ children }) {
 		loading: queryLoading,
 		error,
 	} = useQuery(get_all_users, {
+		// skip: !userToken, // <-- SKIP until token is ready
 		skip: authLoading || !userToken, // <-- SKIP until token is ready
-		fetchPolicy: "cache-first",
+		// fetchPolicy: "cache-first",
+		fetchPolicy: "cache-and-network",
 	});
 
 	// Initial load
@@ -32,28 +34,65 @@ export function UsersProvider({ children }) {
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
 		skip: authLoading || !userToken, // <-- skip subscription until token ready
 		onData: ({ data: subscriptionData, client }) => {
-			const evt = subscriptionData?.data?.onUserChange;
-			if (!evt) return;
+			console.log("📡 Subscription raw data:", subscriptionData);
 
-			const { eventType, changeType, change, changes } = evt;
+			const changeEvent = subscriptionData?.data?.onUserChange;
+			if (!changeEvent) return;
 
-			const items = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
+			const { eventType, changeType, change, changes } = changeEvent;
 
-			if (!items.length) return;
+			// Normalize into an array so downstream logic doesn’t have to care
+			const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
 
-			setUsers((prev) => {
-				let updated = [...prev];
-				for (const u of items) {
+			if (!changesArray.length) return;
+
+			console.log(`📡 User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+
+			// --- Update local state ---
+			setUsers((prevUsers) => {
+				let updated = [...prevUsers];
+
+				for (const Changes of changesArray) {
 					if (eventType === "created") {
-						if (!updated.some((x) => x.id === u.id)) updated.push(u);
+						const exists = prevUsers.some((u) => u.id === Changes.id);
+						if (!exists) updated = [...updated, Changes];
 					} else if (eventType === "updated") {
-						updated = updated.map((x) => (x.id === u.id ? { ...x, ...u } : x));
+						updated = updated.map((u) => (u.id === Changes.id ? { ...u, ...Changes } : u));
 					} else if (eventType === "deleted") {
-						updated = updated.filter((x) => x.id !== u.id);
+						updated = updated.filter((u) => u.id !== Changes.id);
 					}
 				}
+
+				// Apply search/filtering
+				// const sorted = updated; // optionally add a sort function if needed
+				// if (searchValue) setFilteredUsers(applyFuse(sorted, searchValue));
+				// else setFilteredUsers(sorted);
+
 				return updated;
 			});
+
+			// const evt = subscriptionData?.data?.onUserChange;
+			// if (!evt) return;
+
+			// const { eventType, changeType, change, changes } = evt;
+
+			// const items = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
+
+			// if (!items.length) return;
+
+			// setUsers((prev) => {
+			// 	let updated = [...prev];
+			// 	for (const u of items) {
+			// 		if (eventType === "created") {
+			// 			if (!updated.some((x) => x.id === u.id)) updated.push(u);
+			// 		} else if (eventType === "updated") {
+			// 			updated = updated.map((x) => (x.id === u.id ? { ...x, ...u } : x));
+			// 		} else if (eventType === "deleted") {
+			// 			updated = updated.filter((x) => x.id !== u.id);
+			// 		}
+			// 	}
+			// 	return updated;
+			// });
 
 			// Update Apollo cache
 			try {

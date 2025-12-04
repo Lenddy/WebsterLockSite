@@ -149,7 +149,7 @@ export default function NavBar({ children, screenWidth }) {
 	const closeMenu = () => setMobileOpen(false);
 
 	const handleLogout = () => {
-		const confirmLogout = window.confirm("Are you sure you want to log out?");
+		const confirmLogout = window.confirm(t("are-you-sure-you-want-to-log-out"));
 
 		if (confirmLogout) {
 			// window.location.reload();

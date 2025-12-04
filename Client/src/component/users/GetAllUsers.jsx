@@ -50,7 +50,7 @@ export default function GetAllUsers() {
 		// }
 
 		// data, loading, setPageLoading
-	}, [users, loading, setPageLoading]);
+	}, [loading, setPageLoading]);
 
 	// Live subscription for updates
 	// useSubscription(USER_CHANGE_SUBSCRIPTION, {

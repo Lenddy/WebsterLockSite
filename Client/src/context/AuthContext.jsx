@@ -4,75 +4,105 @@ import { useSubscription, gql } from "@apollo/client";
 import { jwtDecode } from "jwt-decode";
 import { USER_CHANGE_SUBSCRIPTION } from "../../graphQL/subscriptions/subscriptions"; // adjust import path
 import { useLocation } from "react-router-dom";
+// import { wsClient } from "../../graphQL/apolloClient";
+// import { wsClient } from "../../graphQL/apolloClient";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+	console.log("started auth context at", new Date());
 	const [userToken, setUserToken] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [pageLoading, setPageLoading] = useState(false);
 	const currentRoutePath = location.pathname;
 	// Load token from localStorage on mount
 	useEffect(() => {
-		const storedToken = localStorage.getItem("UserToken");
+		const storedToken = localStorage.getItem("userToken");
 		if (storedToken) {
 			setUserToken(storedToken);
+			console.log(" ", userToken);
 		}
 		setLoading(false);
 	}, []);
 
+	console.log("this is the token ", userToken);
 	// Keep localStorage synced
 	useEffect(() => {
 		if (userToken) {
-			localStorage.setItem("UserToken", userToken);
+			localStorage.setItem("userToken", userToken);
 		} else {
-			localStorage.removeItem("UserToken");
+			localStorage.removeItem("userToken");
 		}
 	}, [userToken]);
+
+	// useEffect(() => {
+	// 	if (userToken) {
+	// 		localStorage.setItem("userToken", userToken);
+
+	// 		// 🔥 Force WS reconnection with new token
+	// 		try {
+	// 			wsClient.dispose();
+	// 		} catch {}
+	// 	} else {
+	// 		localStorage.removeItem("userToken");
+	// 	}
+	// }, [userToken]);
 
 	// Decode the token to get the current user's ID
 	const currentUserId = userToken ? jwtDecode(userToken).userId : null;
 
 	// Listen for USER_CHANGE_SUBSCRIPTION (same event you use everywhere else)
-	useSubscription(USER_CHANGE_SUBSCRIPTION, {
-		onData: ({ data: subscriptionData }) => {
-			console.log("📡 [AuthContext] Subscription data:", subscriptionData);
+	// useSubscription(USER_CHANGE_SUBSCRIPTION, {
+	// 	onData: ({ data: subscriptionData }) => {
+	// 		console.log("📡 [AuthContext] Subscription data:", subscriptionData);
 
-			const changeEvent = subscriptionData?.data?.onUserChange;
-			if (!changeEvent) return;
+	// 		const changeEvent = subscriptionData?.data?.onUserChange;
+	// 		if (!changeEvent) return;
 
-			const { eventType, changeType, change, changes, updateBy } = changeEvent;
+	// 		const { eventType, changeType, change, changes, updateBy } = changeEvent;
 
-			// Normalize into array for consistency
-			const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
+	// 		// Normalize into array for consistency
+	// 		const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
 
-			if (!changesArray.length) return;
+	// 		if (!changesArray.length) return;
 
-			for (const updatedUser of changesArray) {
-				if (eventType !== "updated") continue; // only handle updates
+	// 		for (const updatedUser of changesArray) {
+	// 			if (eventType !== "updated") continue; // only handle updates
 
-				const newToken = updatedUser?.token;
-				const updatedUserId = updatedUser?.id;
+	// 			const newToken = updatedUser?.token;
+	// 			const updatedUserId = updatedUser?.id;
 
-				//  Only update if the changed user is the logged-in one
-				if (currentUserId && updatedUserId === currentUserId && newToken) {
-					console.log("🔑 [AuthContext] Token updated via PubSub — refreshing context...");
-					setUserToken(newToken);
-					console.log("updateBy", updateBy);
-					if (updateBy !== currentUserId) {
-						alert("User profile has been updated (from the context)");
-					}
+	// 			//  Only update if the changed user is the logged-in one
+	// 			if (currentUserId && updatedUserId === currentUserId && newToken) {
+	// 				console.log("🔑 [AuthContext] Token updated via PubSub — refreshing context...");
+	// 				setUserToken(newToken);
+	// 				console.log("updateBy", updateBy);
+	// 				if (updateBy !== currentUserId) {
+	// 					alert("User profile has been updated (from the context)");
+	// 				}
 
-					// Optional: toast or banner
-					// showToast("Your session was refreshed after profile update");
-				}
-			}
-		},
+	// 				// Optional: toast or banner
+	// 				// showToast("Your session was refreshed after profile update");
+	// 			}
 
-		onError: (err) => {
-			console.error("🚨 [AuthContext] Subscription error:", err);
-		},
-	});
+	// 			// if (currentUserId && updatedUserId === currentUserId && newToken) {
+	// 			// 	setUserToken(newToken);
+
+	// 			// 	// 🔥 Force WebSocket reconnection
+	// 			// 	try {
+	// 			// 		// wsLink.client?.dispose();
+	// 			// 		wsClient.dispose();
+	// 			// 	} catch (e) {
+	// 			// 		console.warn("WS reconnect error:", e);
+	// 			// 	}
+	// 			// }
+	// 		}
+	// 	},
+
+	// 	onError: (err) => {
+	// 		console.error("🚨 [AuthContext] Subscription error:", err);
+	// 	},
+	// });
 
 	return (
 		<AuthContext.Provider
@@ -92,7 +122,7 @@ export const useAuth = () => useContext(AuthContext);
 
 // previous context
 
-// // AuthContext.jsx
+// // AuthContext.jsxpp
 // import React, { createContext, useState, useEffect, useContext } from "react";
 
 // const AuthContext = createContext(null);

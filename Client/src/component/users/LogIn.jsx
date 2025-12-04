@@ -53,10 +53,11 @@ export default function LogIn({ screenWidth }) {
 			const token = data?.loginUser?.token;
 			if (token) {
 				// Check if a token already exists
-				const existingToken = localStorage.getItem("UserToken");
+				const existingToken = localStorage.getItem("userToken");
 				if (existingToken) {
+					console.log("removing old token from log in ", new Date());
 					// Automatically log out the previous user
-					localStorage.removeItem("UserToken");
+					localStorage.removeItem("userToken");
 					setUserToken(null); // reset context
 
 					// Notify user
@@ -64,7 +65,8 @@ export default function LogIn({ screenWidth }) {
 				}
 
 				// Save new token
-				localStorage.setItem("UserToken", token);
+				console.log("adding new token from log in ", new Date());
+				localStorage.setItem("userToken", token);
 				setUserToken(token);
 
 				// Decode quickly to check role
@@ -84,7 +86,7 @@ export default function LogIn({ screenWidth }) {
 
 		// 	const token = data?.loginUser?.token;
 		// 	if (token) {
-		// 		localStorage.setItem("UserToken", token);
+		// 		localStorage.setItem("userToken", token);
 
 		// 		// Decode without verifying (for quick redirect only)
 		// 		const decoded = jwtDecode(token);

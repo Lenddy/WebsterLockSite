@@ -8,18 +8,21 @@ import { jwtDecode } from "jwt-decode";
 import { Link } from "react-router-dom";
 import Modal from "../../Modal";
 import { useTranslation } from "react-i18next";
+import { useItemGroups } from "../../../context/ItemGroupContext";
 
 export default function AdminGetAllItems() {
 	const { userToken, setPageLoading } = useAuth(); // get token from context
 
-	const [items, setItems] = useState([]);
+	// const [items, setItems] = useState([]);
 	const [filteredItems, setFilteredItems] = useState([]);
 	const [logUser, setLogUser] = useState(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const [selectedItem, setSelectedItem] = useState(null);
 	const [searchValue, setSearchValue] = useState("");
-	const { error, loading, data, refetch } = useQuery(get_all_item_groups, { fetchPolicy: "cache-and-network" });
+	// const { error, loading, data, refetch } = useQuery(get_all_item_groups, { fetchPolicy: "cache-and-network" });
 	// { fetchPolicy: "cache-and-network" }
+
+	const { items, loading, error } = useItemGroups();
 
 	const { t } = useTranslation();
 
@@ -49,13 +52,23 @@ export default function AdminGetAllItems() {
 
 	// Load data when query completes
 	useEffect(() => {
-		if (data?.getAllItemGroups) {
-			const sorted = sortByBrand(data.getAllItemGroups);
-			setItems(sorted);
-			setFilteredItems(sorted);
-		}
-		if (error) console.error("Error fetching item groups:", error);
-	}, [data, error]);
+		// if (data?.getAllItemGroups) {
+		// const sorted = sortByBrand(data.getAllItemGroups);
+		// setItems(sorted);
+		setFilteredItems(items);
+		// }
+		// if (error) console.error("Error fetching item groups:", error);
+	}, [items]);
+	// }, [data, error ]);
+
+	// useEffect(() => {
+	// 	if (data?.getAllItemGroups) {
+	// 		const sorted = sortByBrand(data.getAllItemGroups);
+	// 		setItems(sorted);
+	// 		setFilteredItems(sorted);
+	// 	}
+	// 	if (error) console.error("Error fetching item groups:", error);
+	// }, [data, error]);
 
 	// Update subscription to apply sorting
 	// useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {

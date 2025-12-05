@@ -16,8 +16,8 @@ export function ItemGroupsProvider({ children }) {
 		error,
 	} = useQuery(get_all_item_groups, {
 		skip: authLoading || !userToken,
-		// fetchPolicy: "cache-first",
-		fetchPolicy: "cache-and-network",
+		fetchPolicy: "cache-first",
+		// fetchPolicy: "cache-and-network",
 	});
 
 	// Initial load

@@ -19,8 +19,8 @@ export function UsersProvider({ children }) {
 	} = useQuery(get_all_users, {
 		// skip: !userToken, // <-- SKIP until token is ready
 		skip: authLoading || !userToken, // <-- SKIP until token is ready
-		// fetchPolicy: "cache-first",
-		fetchPolicy: "cache-and-network",
+		fetchPolicy: "cache-first",
+		// fetchPolicy: "cache-and-network",
 	});
 
 	// Initial load

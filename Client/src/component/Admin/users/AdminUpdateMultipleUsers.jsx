@@ -69,7 +69,7 @@ export default function AdminUpdateMultipleUsers() {
 	// console.log(rows);
 
 	useEffect(() => {
-		setLogUser(jwtDecode(localStorage.getItem("UserToken")));
+		setLogUser(jwtDecode(localStorage.getItem("userToken")));
 		if (lastRowRef.current) {
 			lastRowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
 		}

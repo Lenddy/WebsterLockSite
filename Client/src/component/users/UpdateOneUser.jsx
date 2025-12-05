@@ -116,7 +116,10 @@ export default function UpdateOneUser() {
 						// permissions: info.newPermissions,
 					},
 				},
-				onCompleted: () => {
+				onCompleted: (data) => {
+					// console.log("this is the data on update", data);
+					// localStorage.setItem("userToken", data?.updateUserProfile?.token);
+					setUserToken(data?.updateUserProfile?.token);
 					alert(t("user-updated-successfully"));
 				},
 			});

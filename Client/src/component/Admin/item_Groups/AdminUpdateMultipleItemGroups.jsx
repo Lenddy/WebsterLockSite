@@ -6,22 +6,26 @@ import { get_all_item_groups, get_one_item_group } from "../../../../graphQL/que
 import { update_multiple_itemGroups } from "../../../../graphQL/mutations/mutations";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useItemGroups } from "../../../context/ItemGroupContext";
 
 export default function AdminUpdateMultipleItemsGroups() {
 	const [oldItemGroups, setOldItemGroups] = useState([]);
+
 	const [selectedGroups, setSelectedGroups] = useState([]);
 	const [changesMade, setChangesMade] = useState(false);
 
 	const { itemId } = useParams();
 
 	//  Two queries: one for all, one for single
-	const {
-		loading: loadingAll,
-		data: allData,
-		error: errorAll,
-	} = useQuery(get_all_item_groups, {
-		skip: !!itemId, // skip if we're fetching one
-	});
+	// const {
+	// 	loading: loadingAll,
+	// 	data: allData,
+	// 	error: errorAll,
+	// } = useQuery(get_all_item_groups, {
+	// 	skip: !!itemId, // skip if we're fetching one
+	// });
+
+	const { items: allData, loading: loadingAll, error: errorAll } = useItemGroups();
 
 	const { t } = useTranslation();
 
@@ -38,8 +42,8 @@ export default function AdminUpdateMultipleItemsGroups() {
 
 	//  Handle when all item groups are fetched (no param mode)
 	useEffect(() => {
-		if (!itemId && allData?.getAllItemGroups) {
-			setOldItemGroups(allData.getAllItemGroups);
+		if (!itemId && allData) {
+			setOldItemGroups(allData);
 			if (selectedGroups.length === 0) {
 				setSelectedGroups([{ id: null, brand: "", itemsList: [], brandAction: {} }]);
 			}
@@ -226,11 +230,11 @@ export default function AdminUpdateMultipleItemsGroups() {
 								<Select
 									options={options.filter((opt) => !selectedGroups.some((g, idx) => g.id === opt.value && idx !== gIdx))}
 									value={group.id ? options.find((opt) => opt.value === group.id) : null}
-									placeholder={t("select-item-group-to-edit")}
+									placeholder={!!itemId || loadingAll || loadingOne ? t("loading") : t("select-item-group-to-edit")}
 									filterOption={customUserFilter}
 									isSearchable
 									onChange={(selected) => handleSelectGroup(gIdx, selected)}
-									isDisabled={!!itemId} //  disable dropdown if loaded from param
+									isDisabled={!!itemId || loadingAll || loadingOne} //  disable dropdown if loaded from param
 									styles={{
 										control: (base, state) => ({
 											...base,

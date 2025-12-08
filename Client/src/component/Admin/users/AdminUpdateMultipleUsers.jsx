@@ -4,8 +4,9 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { admin_update_multiple_users } from "../../../../graphQL/mutations/mutations";
 import Select from "react-select";
 import Fuse from "fuse.js";
-import { get_all_users } from "../../../../graphQL/queries/queries";
-import { useQuery } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
+// import { get_all_users } from "../../../../graphQL/queries/queries";
+import { useUsers } from "../../../context/UsersContext";
+// import { useQuery } from "@apollo/client"; // Import useQuery hook to execute GraphQL queries
 import { jwtDecode } from "jwt-decode";
 
 import Eye from "../../../assets/eye.svg?react";
@@ -14,10 +15,12 @@ import CloseEye from "../../../assets/closeEye.svg?react";
 import { useTranslation } from "react-i18next";
 
 export default function AdminUpdateMultipleUsers() {
+	const { users, loading, error } = useUsers();
+
 	const [show, setShow] = useState(false);
-	const [users, setUsers] = useState([]);
+	// const [users, setUsers] = useState([]);
 	const [success, setSuccess] = useState();
-	const { error, loading, data, refetch } = useQuery(get_all_users);
+	// const { error, loading, data, refetch } = useQuery(get_all_users);
 	const [logUser, setLogUser] = useState({});
 	const lastRowRef = useRef(null);
 	const location = useLocation();
@@ -77,14 +80,14 @@ export default function AdminUpdateMultipleUsers() {
 		// if (loading) {
 		// 	console.log("loading");
 		// }
-		if (data) {
+		if (users) {
 			// console.log("all user on the update many", data.getAllUsers);
 			// console.log("all user on the update many", data.getAllUsers[0].employeeNum);
-			setUsers(data.getAllUsers);
+			// setUsers(data.getAllUsers);
 
 			// Auto-select user from params if found
 			if (userId) {
-				const selectedUser = data.getAllUsers.find((u) => u.id === userId);
+				const selectedUser = users?.find((u) => u?.id === userId);
 				if (selectedUser) {
 					setRows((prev) => {
 						const newRows = [...prev];
@@ -112,7 +115,8 @@ export default function AdminUpdateMultipleUsers() {
 		// if (error) {
 		// 	console.log("there was an error", error);
 		// }
-	}, [loading, data, error, userId, location]);
+		// , data,
+	}, [loading, error, userId, location, users]);
 
 	const [adminChangeMultipleUserProfiles, { loading: updateLoading, error: updateError }] = useMutation(admin_update_multiple_users);
 
@@ -361,10 +365,10 @@ export default function AdminUpdateMultipleUsers() {
 												return newRows;
 											});
 										}}
-										placeholder={t("Select-user-by-name-email")}
+										placeholder={loading ? t("loading") : t("Select-user-by-name-email")}
 										isClearable={!row?.locked} //  Don't allow clearing if locked
 										isSearchable={!row?.locked} //  Disable search if locked
-										isDisabled={row?.locked} //  Disable Select if locked
+										isDisabled={row?.locked || loading} //  Disable Select if locked
 										styles={{
 											control: (base) => ({
 												...base,

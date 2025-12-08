@@ -166,6 +166,7 @@ export default function GetAllUsers() {
 	// });
 
 	// Fuse.js search
+
 	const applyFuse = (list, search) => {
 		if (!search) return list;
 		const fuse = new Fuse(list, { keys: ["name", "email", "employeeNum", "department"], threshold: 0.4 });

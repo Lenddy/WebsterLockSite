@@ -9,12 +9,15 @@ import DeleteOneUser from "./DeleteOneUser";
 import { useAuth } from "../../context/AuthContext"; // <-- use context
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
+// import { useUsers } from "../../../context/UsersContext";
 
 export default function GetOneUser() {
 	const { userId } = useParams();
 	const location = useLocation();
 	const currentRoutePath = location.pathname;
 	const navigate = useNavigate();
+
+	// const { users, loading, error } = useUsers();
 
 	const { userToken, setPageLoading } = useAuth(); // <-- get user info from context
 	const [logUser, setLogUser] = useState();

@@ -197,11 +197,23 @@ export default function NavBar({ children, screenWidth }) {
 								<li className="nav-link-container-dropdown" key={m.title}>
 									<span className="nav-link-container-dropdown-title">{m.title} ▾</span>
 									<div className="nav-link-container-dropdown-link">
-										{m.links.map((i) => (
-											<Link key={i.path} to={i.path} className={location.pathname === i.path ? "nav-bar-link-disabled" : ""}>
-												{i.name}
-											</Link>
-										))}
+										{m.links.map((i) =>
+											role === "admin" || role === "subAdmin" ? (
+												<Link
+													key={i.path}
+													to={i.path == "/admin/material/item/create" || i.path == "/admin/material/item/update" ? "" : i.path}
+													className={
+														// location.pathname === i.path
+														i.path == "/admin/material/item/create" || i.path == "/admin/material/item/update" || location.pathname === i.path ? "nav-bar-link-disabled" : ""
+													}>
+													{i.name}
+												</Link>
+											) : (
+												<Link key={i.path} to={i.path} className={location.pathname === i.path ? "nav-bar-link-disabled" : ""}>
+													{i.name}
+												</Link>
+											)
+										)}
 									</div>
 								</li>
 							))}
@@ -251,11 +263,25 @@ export default function NavBar({ children, screenWidth }) {
 							<li className="nav-burger-menu-links-section" key={m.title}>
 								<div className="nav-burger-menu-links-section-title">{m.title}</div>
 
-								{m.links.map((i) => (
-									<Link key={i.path} to={i.path} onClick={closeMenu} className={location.pathname === i.path ? "nav-bar-link-disabled" : ""}>
-										{i.name}
-									</Link>
-								))}
+								{m.links.map((i) =>
+									role === "admin" || role === "subAdmin" ? (
+										<Link
+											key={i.path}
+											to={i.path == "/admin/material/item/create" || i.path == "/admin/material/item/update" ? "" : i.path}
+											onClick={closeMenu}
+											className={
+												i.path == "/admin/material/item/create" || i.path == "/admin/material/item/update" || location.pathname === i.path ? "nav-bar-link-disabled" : ""
+
+												// location.pathname === i.path ? "nav-bar-link-disabled" : ""
+											}>
+											{i.name}
+										</Link>
+									) : (
+										<Link key={i.path} to={i.path} onClick={closeMenu} className={location.pathname === i.path ? "nav-bar-link-disabled" : ""}>
+											{i.name}
+										</Link>
+									)
+								)}
 							</li>
 						))}
 

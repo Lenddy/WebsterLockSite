@@ -8,10 +8,12 @@ import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import { useTranslation } from "react-i18next";
 dayjs.extend(isBetween);
+import { useMaterialRequests } from "../../../context/MaterialRequestContext";
 
 export default function AdminItemUsage() {
-	const { error, loading, data } = useQuery(get_all_material_requests);
+	// const { error, loading, data } = useQuery(get_all_material_requests);
 	const [mRequests, setMRequests] = useState([]);
+	const { requests: allMRequests, loading, error } = useMaterialRequests();
 
 	const [filter, setFilter] = useState("all"); // all | day | week | month | year | custom
 	const [customStart, setCustomStart] = useState(""); // YYYY-MM-DD
@@ -21,11 +23,11 @@ export default function AdminItemUsage() {
 	const { t } = useTranslation();
 
 	useEffect(() => {
-		if (data) {
+		if (allMRequests) {
 			// console.log(data.getAllMaterialRequests);
-			setMRequests(data.getAllMaterialRequests);
+			setMRequests(allMRequests);
 		}
-	}, [data]);
+	}, [allMRequests]);
 
 	//  Live subscription updates
 	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {

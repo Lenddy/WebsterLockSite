@@ -78,7 +78,7 @@ export function ItemGroupsProvider({ children }) {
 												itemsList {
 													id
 													itemName
-													itemDescription
+													# itemDescription
 												}
 											}
 										`,
@@ -93,7 +93,7 @@ export function ItemGroupsProvider({ children }) {
 												itemsList {
 													id
 													itemName
-													itemDescription
+													# itemDescription
 												}
 											}
 										`,

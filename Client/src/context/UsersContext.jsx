@@ -100,47 +100,99 @@ export function UsersProvider({ children }) {
 					fields: {
 						getAllUsers(existingRefs = [], { readField }) {
 							let newRefs = [...existingRefs];
-							for (const u of items) {
+
+							if (changeType === "single") {
+								// Extract the single user from the subscription
+								const u = changeEvent.change;
+								if (!u) return existingRefs;
+
+								const id = u.id;
+
+								// Clone
+								let newRefs = [...existingRefs];
+
+								// Helper to write fragment
+								const writeUserFragment = (data) =>
+									client.cache.writeFragment({
+										data,
+										fragment: gql`
+											fragment UserFrag on User {
+												id
+												name
+												email
+												role
+												permissions
+												job
+												employeeNum
+												department
+												token
+											}
+										`,
+									});
+
+								// ---- DELETE (single) ----
 								if (eventType === "deleted") {
-									newRefs = newRefs.filter((ref) => readField("id", ref) !== u.id);
-									continue;
+									return newRefs.filter((ref) => readField("id", ref) !== id);
 								}
-								const idx = newRefs.findIndex((ref) => readField("id", ref) === u.id);
+
+								// ---- UPDATE (single) ----
+								const idx = newRefs.findIndex((ref) => readField("id", ref) === id);
 								if (idx > -1 && eventType === "updated") {
-									newRefs[idx] = client.cache.writeFragment({
-										data: u,
-										fragment: gql`
-											fragment UpdatedUser on User {
-												id
-												name
-												email
-												role
-												permissions
-												job
-												employeeNum
-												department
-												token
-											}
-										`,
-									});
-								} else if (eventType === "created") {
-									const newRef = client.cache.writeFragment({
-										data: u,
-										fragment: gql`
-											fragment NewUser on User {
-												id
-												name
-												email
-												role
-												permissions
-												job
-												employeeNum
-												department
-												token
-											}
-										`,
-									});
+									newRefs[idx] = writeUserFragment(u);
+									return newRefs;
+								}
+
+								// ---- CREATE (single) ----
+								if (eventType === "created") {
+									const newRef = writeUserFragment(u);
 									newRefs.push(newRef);
+									return newRefs;
+								}
+
+								return newRefs;
+							} else {
+								for (const u of changeEvent) {
+									if (eventType === "deleted") {
+										newRefs = newRefs.filter((ref) => readField("id", ref) !== u.id);
+										continue;
+									}
+									const idx = newRefs.findIndex((ref) => readField("id", ref) === u.id);
+									if (idx > -1 && eventType === "updated") {
+										newRefs[idx] = client.cache.writeFragment({
+											data: u,
+											fragment: gql`
+												fragment UpdatedUser on User {
+													id
+													name
+													email
+													role
+													permissions
+													job
+													employeeNum
+													department
+													token
+												}
+											`,
+										});
+									} else if (eventType === "created") {
+										const newRef = client.cache.writeFragment({
+											data: u,
+											fragment: gql`
+												fragment NewUser on User {
+													id
+													name
+													email
+													role
+													permissions
+													job
+													employeeNum
+													department
+													token
+												}
+											`,
+										});
+										newRefs.push(newRef);
+									}
 								}
 							}
 							return newRefs;

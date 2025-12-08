@@ -100,6 +100,8 @@ export default function ApolloWrapper({ children }) {
 						},
 					},
 
+					UserSnapshot: { keyFields: ["userId"] },
+
 					MaterialRequest: {
 						keyFields: ["id"],
 						fields: {
@@ -115,66 +117,65 @@ export default function ApolloWrapper({ children }) {
 									};
 								},
 							},
-							// items: {
-							// 	merge(existing = [], incoming = [], { readField }) {
-							// 		// If no incoming data, keep existing
-							// 		if (!incoming || incoming.length === 0) return existing;
-
-							// 		const map = new Map();
-
-							// 		existing.forEach((item) => {
-							// 			const id = readField("id", item) || item.id;
-							// 			if (id) map.set(id, item);
-							// 		});
-
-							// 		incoming.forEach((item) => {
-							// 			const id = readField("id", item) || item.id;
-							// 			if (id) map.set(id, { ...map.get(id), ...item });
-							// 		});
-
-							// 		const incomingIds = new Set(incoming.map((item) => readField("id", item) || item.id));
-							// 		for (const id of map.keys()) {
-							// 			if (!incomingIds.has(id)) map.delete(id);
-							// 		}
-
-							// 		return incoming.map((item) => {
-							// 			const id = readField("id", item) || item.id;
-							// 			return map.get(id);
-							// 		});
-							// 	},
-
-							// },
-
 							items: {
-								merge(existing = [], incoming, { readField }) {
+								merge(existing = [], incoming = [], { readField }) {
 									// If no incoming data, keep existing
 									if (!incoming || incoming.length === 0) return existing;
 
-									const mergedMap = new Map();
+									const map = new Map();
 
-									// 1️ Start by adding all existing items
-									for (const item of existing) {
+									existing.forEach((item) => {
 										const id = readField("id", item) || item.id;
-										if (id) mergedMap.set(id, item);
-									}
+										if (id) map.set(id, item);
+									});
 
-									// 2️ Merge or add incoming items
-									for (const item of incoming) {
+									incoming.forEach((item) => {
 										const id = readField("id", item) || item.id;
-										if (!id) continue; // skip items without IDs
-										mergedMap.set(id, { ...mergedMap.get(id), ...item });
-									}
+										if (id) map.set(id, { ...map.get(id), ...item });
+									});
 
-									// 3️ Remove any items not present in the incoming list
 									const incomingIds = new Set(incoming.map((item) => readField("id", item) || item.id));
-									for (const id of mergedMap.keys()) {
-										if (!incomingIds.has(id)) mergedMap.delete(id);
+									for (const id of map.keys()) {
+										if (!incomingIds.has(id)) map.delete(id);
 									}
 
-									// 4️ Return merged array (preserves order from incoming)
-									return incoming.map((item) => mergedMap.get(readField("id", item) || item.id));
+									return incoming.map((item) => {
+										const id = readField("id", item) || item.id;
+										return map.get(id);
+									});
 								},
 							},
+
+							// items: {
+							// 	merge(existing = [], incoming, { readField }) {
+							// 		// If no incoming data, keep existing
+							// 		if (!incoming || incoming.length === 0) return existing;
+
+							// 		const mergedMap = new Map();
+
+							// 		// 1️ Start by adding all existing items
+							// 		for (const item of existing) {
+							// 			const id = readField("id", item) || item.id;
+							// 			if (id) mergedMap.set(id, item);
+							// 		}
+
+							// 		// 2️ Merge or add incoming items
+							// 		for (const item of incoming) {
+							// 			const id = readField("id", item) || item.id;
+							// 			if (!id) continue; // skip items without IDs
+							// 			mergedMap.set(id, { ...mergedMap.get(id), ...item });
+							// 		}
+
+							// 		// 3️ Remove any items not present in the incoming list
+							// 		const incomingIds = new Set(incoming.map((item) => readField("id", item) || item.id));
+							// 		for (const id of mergedMap.keys()) {
+							// 			if (!incomingIds.has(id)) mergedMap.delete(id);
+							// 		}
+
+							// 		// 4️ Return merged array (preserves order from incoming)
+							// 		return incoming.map((item) => mergedMap.get(readField("id", item) || item.id));
+							// 	},
+							// },
 						},
 					},
 

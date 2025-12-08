@@ -3,7 +3,8 @@ import { useEffect, useState, useMemo } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import { get_all_item_groups } from "../../../../graphQL/queries/queries";
 import { create_multiple_material_requests } from "../../../../graphQL/mutations/mutations";
-import { get_all_users } from "../../../../graphQL/queries/queries";
+// import { get_all_users } from "../../../../graphQL/queries/queries";
+import { useUsers } from "../../../context/UsersContext";
 import Select from "react-select";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
@@ -12,10 +13,17 @@ import { jwtDecode } from "jwt-decode";
 import { List, useDynamicRowHeight } from "react-window";
 import { useDebounce } from "use-debounce";
 import { useTranslation } from "react-i18next";
+import { useItemGroups } from "../../../context/ItemGroupContext";
+// const [items, setItems] = useState([]);
 
 export default function AdminCreateMultipleMaterialRequests() {
-	const [users, setUsers] = useState([]);
-	const [itemGroups, setItemGroups] = useState([]);
+	// const [users, setUsers] = useState([]);
+	const { users, loading, error } = useUsers();
+	// const [itemGroups, setItemGroups] = useState([]);
+
+	// const [items, setItems] = useState([]);
+	const { items: itemGroups, loading: iGLoading, error: iGError } = useItemGroups();
+
 	const [requests, setRequests] = useState([
 		{
 			addedDate: "",
@@ -56,8 +64,8 @@ export default function AdminCreateMultipleMaterialRequests() {
 		},
 	]);
 
-	const { loading, data, error, refetch } = useQuery(get_all_users);
-	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
+	// const { loading, data, error, refetch } = useQuery(get_all_users);
+	// const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
 	const [createNewMaterialRequests] = useMutation(create_multiple_material_requests);
 	const [searchValue, setSearchValue] = useState("");
 	const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
@@ -66,34 +74,30 @@ export default function AdminCreateMultipleMaterialRequests() {
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 
-	useEffect(() => {
-		// setLogUser(jwtDecode(localStorage.getItem("UserToken")));
-		// if (iGLoading) console.log("loading");
-
-		// if (loading) {
-		// 	console.log("loading");
-		// }
-
-		if (data) {
-			// console.log(data.getAllUsers);
-			setUsers(data.getAllUsers);
-		}
-
-		if (iGData) {
-			// console.log("this are the itemGroups", iGData?.getAllItemGroups || []);
-			// store the fetched groups so we can build brands and items
-			setItemGroups(iGData?.getAllItemGroups || []);
-		}
-
-		// if (error) {
-		// 	// console.log("there was an error", error);
-		// }
-
-		// if (iGError) {
-		// 	console.log("there was an error", iGError);
-		// }
-		// const fetchData = async () => {
-	}, [loading, iGLoading, data, iGData]);
+	// useEffect(() => {
+	// setLogUser(jwtDecode(localStorage.getItem("UserToken")));
+	// if (iGLoading) console.log("loading");
+	// if (loading) {
+	// 	console.log("loading");
+	// }
+	// if (data) {
+	// 	// console.log(data.getAllUsers);
+	// 	setUsers(data.getAllUsers);
+	// }
+	// if (iGData) {
+	// 	// console.log("this are the itemGroups", iGData?.getAllItemGroups || []);
+	// 	// store the fetched groups so we can build brands and items
+	// 	setItemGroups(iGData?.getAllItemGroups || []);
+	// }
+	// if (error) {
+	// 	// console.log("there was an error", error);
+	// }
+	// if (iGError) {
+	// 	console.log("there was an error", iGError);
+	// }
+	// const fetchData = async () => {
+	// , data
+	// }, [loading, iGLoading, itemGroups]);
 
 	// Add a new request (with one blank row)
 	const addRequest = () => {
@@ -423,9 +427,10 @@ export default function AdminCreateMultipleMaterialRequests() {
 											)
 										}
 										filterOption={customUserFilter}
-										placeholder={t("select-requester")}
+										placeholder={loading ? t("loading") : t("select-requester")}
 										isClearable
 										isSearchable
+										isDisabled={loading}
 										styles={{
 											control: (base) => ({
 												...base,
@@ -474,9 +479,10 @@ export default function AdminCreateMultipleMaterialRequests() {
 												options={brands}
 												value={row.brand}
 												onChange={(val) => handleItemChange(reqIdx, rowIdx, "brand", val)}
-												placeholder={t("select-brand")}
+												placeholder={iGLoading ? t("loading") : t("select-brand")}
 												isClearable
 												isSearchable
+												isDisabled={iGLoading}
 												styles={{
 													control: (base) => ({
 														...base,

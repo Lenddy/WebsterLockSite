@@ -99,118 +99,118 @@ export default function AdminGetAllItems() {
 	// 	},
 	// });
 
-	useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
-		onData: ({ data: subscriptionData, client }) => {
-			console.log("📡 Subscription raw data:", subscriptionData);
+	// useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
+	// 	onData: ({ data: subscriptionData, client }) => {
+	// 		console.log("📡 Subscription raw data:", subscriptionData);
 
-			const changeEvent = subscriptionData?.data?.onItemGroupChange;
-			if (!changeEvent) return;
+	// 		const changeEvent = subscriptionData?.data?.onItemGroupChange;
+	// 		if (!changeEvent) return;
 
-			const { eventType, changeType, change, changes } = changeEvent;
+	// 		const { eventType, changeType, change, changes } = changeEvent;
 
-			// Normalize payload into a uniform array
-			const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
+	// 		// Normalize payload into a uniform array
+	// 		const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
 
-			if (!changesArray.length) return;
+	// 		if (!changesArray.length) return;
 
-			console.log(`📡 ItemGroup subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+	// 		console.log(`📡 ItemGroup subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
 
-			// --- Update local state ---
-			setItems((prevItems) => {
-				let updated = [...prevItems];
+	// 		// --- Update local state ---
+	// 		setItems((prevItems) => {
+	// 			let updated = [...prevItems];
 
-				for (const Changes of changesArray) {
-					if (eventType === "created") {
-						const exists = prevItems.some((ig) => ig.id === Changes.id);
-						if (!exists) updated = [...updated, Changes];
-					} else if (eventType === "updated") {
-						updated = updated.map((ig) => (ig.id === Changes.id ? { ...ig, ...Changes } : ig));
-					} else if (eventType === "deleted") {
-						updated = updated.filter((ig) => ig.id !== Changes.id);
-					}
-				}
+	// 			for (const Changes of changesArray) {
+	// 				if (eventType === "created") {
+	// 					const exists = prevItems.some((ig) => ig.id === Changes.id);
+	// 					if (!exists) updated = [...updated, Changes];
+	// 				} else if (eventType === "updated") {
+	// 					updated = updated.map((ig) => (ig.id === Changes.id ? { ...ig, ...Changes } : ig));
+	// 				} else if (eventType === "deleted") {
+	// 					updated = updated.filter((ig) => ig.id !== Changes.id);
+	// 				}
+	// 			}
 
-				// Apply sorting and search filtering
-				const sorted = sortByBrand(updated);
+	// 			// Apply sorting and search filtering
+	// 			const sorted = sortByBrand(updated);
 
-				if (searchValue) setFilteredItems(applyFuse(sorted, searchValue));
-				else setFilteredItems(sorted);
+	// 			if (searchValue) setFilteredItems(applyFuse(sorted, searchValue));
+	// 			else setFilteredItems(sorted);
 
-				return sorted;
-			});
+	// 			return sorted;
+	// 		});
 
-			// --- Optional: Apollo cache sync ---
-			/*
-		try {
-			client.cache.modify({
-				fields: {
-					getAllItemGroups(existingRefs = [], { readField }) {
-						let newRefs = [...existingRefs];
+	// 		// --- Optional: Apollo cache sync ---
+	// 		/*
+	// 	try {
+	// 		client.cache.modify({
+	// 			fields: {
+	// 				getAllItemGroups(existingRefs = [], { readField }) {
+	// 					let newRefs = [...existingRefs];
 
-						for (const Changes of changesArray) {
-							if (eventType === "deleted") {
-								newRefs = newRefs.filter(
-									(ref) => readField("id", ref) !== Changes.id
-								);
-								continue;
-							}
+	// 					for (const Changes of changesArray) {
+	// 						if (eventType === "deleted") {
+	// 							newRefs = newRefs.filter(
+	// 								(ref) => readField("id", ref) !== Changes.id
+	// 							);
+	// 							continue;
+	// 						}
 
-							const existingIndex = newRefs.findIndex(
-								(ref) => readField("id", ref) === Changes.id
-							);
+	// 						const existingIndex = newRefs.findIndex(
+	// 							(ref) => readField("id", ref) === Changes.id
+	// 						);
 
-							if (existingIndex > -1 && eventType === "updated") {
-								newRefs = newRefs.map((ref) =>
-									readField("id", ref) === Changes.id
-										? client.cache.writeFragment({
-												data: Changes,
-												fragment: gql`
-													fragment UpdatedItemGroup on ItemGroup {
-														id
-														brand
-														itemsList {
-															id
-															itemName
-															itemDescription
-														}
-													}
-												`,
-										  })
-										: ref
-								);
-							} else if (eventType === "created") {
-								const newRef = client.cache.writeFragment({
-									data: Changes,
-									fragment: gql`
-										fragment NewItemGroup on ItemGroup {
-											id
-											brand
-											itemsList {
-												id
-												itemName
-												itemDescription
-											}
-										}
-									`,
-								});
-								newRefs = [...newRefs, newRef];
-							}
-						}
+	// 						if (existingIndex > -1 && eventType === "updated") {
+	// 							newRefs = newRefs.map((ref) =>
+	// 								readField("id", ref) === Changes.id
+	// 									? client.cache.writeFragment({
+	// 											data: Changes,
+	// 											fragment: gql`
+	// 												fragment UpdatedItemGroup on ItemGroup {
+	// 													id
+	// 													brand
+	// 													itemsList {
+	// 														id
+	// 														itemName
+	// 														itemDescription
+	// 													}
+	// 												}
+	// 											`,
+	// 									  })
+	// 									: ref
+	// 							);
+	// 						} else if (eventType === "created") {
+	// 							const newRef = client.cache.writeFragment({
+	// 								data: Changes,
+	// 								fragment: gql`
+	// 									fragment NewItemGroup on ItemGroup {
+	// 										id
+	// 										brand
+	// 										itemsList {
+	// 											id
+	// 											itemName
+	// 											itemDescription
+	// 										}
+	// 									}
+	// 								`,
+	// 							});
+	// 							newRefs = [...newRefs, newRef];
+	// 						}
+	// 					}
 
-						return newRefs;
-					},
-				},
-			});
-		} catch (cacheErr) {
-			console.warn("⚠️ Cache update skipped:", cacheErr.message);
-		}
-		*/
-		},
+	// 					return newRefs;
+	// 				},
+	// 			},
+	// 		});
+	// 	} catch (cacheErr) {
+	// 		console.warn("⚠️ Cache update skipped:", cacheErr.message);
+	// 	}
+	// 	*/
+	// 	},
 
-		onError: (err) => {
-			console.error("🚨 Subscription error:", err);
-		},
-	});
+	// 	onError: (err) => {
+	// 		console.error("🚨 Subscription error:", err);
+	// 	},
+	// });
 
 	// Fuse.js search function
 	const applyFuse = (list, search) => {

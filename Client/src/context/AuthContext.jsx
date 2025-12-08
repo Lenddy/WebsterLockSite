@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
 	// }, [userToken]);
 
 	// Decode the token to get the current user's ID
-	const currentUserId = userToken ? jwtDecode(userToken).userId : null;
+	// const currentUserId = userToken ? jwtDecode(userToken).userId : null;
 
 	// Listen for USER_CHANGE_SUBSCRIPTION (same event you use everywhere else)
 	// useSubscription(USER_CHANGE_SUBSCRIPTION, {

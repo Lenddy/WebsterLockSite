@@ -317,7 +317,8 @@ function AdminUpdateOneMaterialRequest() {
 		e.preventDefault();
 		skipNextSubAlert.current = true;
 		if (!userToken) return alert(t("please-login")); //"Please log in first.");
-		client.clearStore();
+		// client.clearStore();
+		// await client.cache.reset();
 		try {
 			const decoded = jwtDecode(userToken);
 			const requestersID = mRequest?.requester?.userId;

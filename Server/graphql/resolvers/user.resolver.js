@@ -468,8 +468,8 @@ const userResolver = {
 					throw new ApolloError("Unauthorized: Your role cannot update users.");
 				}
 
-				const hasAllRequiredPerms = perms.canEditUsers === true && perms.canViewUsers === true && perms.canViewAllUsers === true;
-
+				const hasAllRequiredPerms = perms.canEditUsers === true && perms.canViewAllUsers === true;
+				// && perms.canViewUsers === true
 				if (!hasAllRequiredPerms) {
 					throw new ApolloError("Unauthorized: You lack required permissions.");
 				}

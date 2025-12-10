@@ -16,8 +16,8 @@ export function MaterialRequestsProvider({ children }) {
 		error,
 	} = useQuery(get_all_material_requests, {
 		skip: authLoading || !userToken, // don't query until token is ready
-		fetchPolicy: "cache-first",
-		// fetchPolicy: "cache-and-network",
+		// fetchPolicy: "cache-first",
+		fetchPolicy: "cache-and-network",
 	});
 
 	// Initial load

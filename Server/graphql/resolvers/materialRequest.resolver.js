@@ -260,7 +260,7 @@ const materialRequestResolvers = {
 					target.approvalStatus.approvedBy.email = user.email;
 					target.approvalStatus.approvedBy.employeeNum = user.employeeNum;
 					target.approvalStatus.approvedBy.department = user.department;
-					target.approvalStatus.approvedAt = target.approvalStatus.approvedAt ? target.approvalStatus.approvedAt : dayjs(addedDate).toISOString();
+					target.approvalStatus.approvedAt = target.approvalStatus.approvedAt ? target.approvalStatus.approvedAt : dayjs().toISOString();
 					target.approvalStatus.isApproved = approvalStatus.isApproved;
 					shouldSave = true;
 				}

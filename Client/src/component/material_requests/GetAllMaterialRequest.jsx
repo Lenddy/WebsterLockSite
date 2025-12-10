@@ -267,10 +267,11 @@ export default function GetAllMaterialRequest() {
 
 	console.log("role", jwtDecode(userToken)?.role == "headAdmin");
 
-	// const parsedDate = request?.addedDate
-	//   ? dayjs(isNaN(Number(request.addedDate)) ? request.addedDate : Number(request.addedDate))
-	//   : null;
-	// <td>{parsedDate ? parsedDate.format("YYYY-MM-DD") : "N/A"}</td>
+	const formatDate = (date) => {
+		if (!date) return "N/A";
+		const parsedDate = isNaN(Number(date)) ? dayjs(date) : dayjs(Number(date));
+		return parsedDate.isValid() ? parsedDate.format("YYYY-MM-DD") : "N/A";
+	};
 
 	return (
 		<>
@@ -329,7 +330,11 @@ export default function GetAllMaterialRequest() {
 											<td>
 												<p className={`${request?.approvalStatus?.isApproved ? "approved" : "waiting-approval"}`}>{request?.approvalStatus?.isApproved ? t("Approved") : t("waiting-for-approval")}</p>
 											</td>
-											<td>{dayjs(Number(request?.addedDate)).format("YYYY-MM-DD")}</td>
+
+											{/* <td>{dayjs(Number(request?.addedDate)).format("YYYY-MM-DD")}</td> */}
+
+											<td>{formatDate(request?.addedDate)}</td>
+
 											<td>{request?.items?.length}</td>
 											<td>
 												<div className="table-action-wrapper">

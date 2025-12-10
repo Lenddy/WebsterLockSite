@@ -267,6 +267,11 @@ export default function GetAllMaterialRequest() {
 
 	console.log("role", jwtDecode(userToken)?.role == "headAdmin");
 
+	// const parsedDate = request?.addedDate
+	//   ? dayjs(isNaN(Number(request.addedDate)) ? request.addedDate : Number(request.addedDate))
+	//   : null;
+	// <td>{parsedDate ? parsedDate.format("YYYY-MM-DD") : "N/A"}</td>
+
 	return (
 		<>
 			{loading ? (

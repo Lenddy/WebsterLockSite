@@ -54,17 +54,17 @@
 
 // 	[publisher, subscriber].forEach((c, i) => {
 // 		const label = i === 0 ? "Publisher" : "Subscriber";
-// 		c.on("connect", () => console.log(`✅ ${label} connected to Redis`));
-// 		c.on("ready", () => console.log(`🚀 ${label} ready`));
-// 		c.on("error", (err) => console.error(`❌ ${label} Redis error:`, err.message));
+// 		c.on("connect", () => console.log(` ${label} connected to Redis`));
+// 		c.on("ready", () => console.log(` ${label} ready`));
+// 		c.on("error", (err) => console.error(` ${label} Redis error:`, err.message));
 // 	});
 
 // 	const redisPubsub = new RedisPubSub({ publisher, subscriber });
 // 	pubsub = makeCompat(redisPubsub);
-// 	console.log("✅ Using RedisPubSub (Upstash)");
+// 	console.log(" Using RedisPubSub (Upstash)");
 // } else {
 // 	// in-memory fallback
-// 	console.warn("⚠️ Using in-memory PubSub fallback");
+// 	console.warn(" Using in-memory PubSub fallback");
 // 	const localPubSub = new PubSub();
 
 // 	// wrap
@@ -72,7 +72,7 @@
 
 // 	// helpful debug logs
 // 	if (process.env.NODE_ENV !== "production") {
-// 		console.log("ℹ️ In-memory PubSub ready (compat wrapper)");
+// 		console.log("ℹ In-memory PubSub ready (compat wrapper)");
 // 	}
 // }
 

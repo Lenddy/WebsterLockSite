@@ -186,7 +186,8 @@ const materialRequestResolvers = {
 						reviewers: [],
 						description,
 						items: normalizedItems,
-						addedDate: addedDate ? new Date(addedDate).toISOString() : new Date().toISOString(),
+						// addedDate: addedDate ? new Date(addedDate)?.toISOString() : Date?.toISOString(),
+						addedDate: dayjs(addedDate || undefined).toISOString(),
 					};
 				});
 
@@ -259,7 +260,7 @@ const materialRequestResolvers = {
 					target.approvalStatus.approvedBy.email = user.email;
 					target.approvalStatus.approvedBy.employeeNum = user.employeeNum;
 					target.approvalStatus.approvedBy.department = user.department;
-					target.approvalStatus.approvedAt = target.approvalStatus.approvedAt ? target.approvalStatus.approvedAt : Date.now();
+					target.approvalStatus.approvedAt = target.approvalStatus.approvedAt ? target.approvalStatus.approvedAt : dayjs(addedDate).toISOString();
 					target.approvalStatus.isApproved = approvalStatus.isApproved;
 					shouldSave = true;
 				}
@@ -368,6 +369,8 @@ const materialRequestResolvers = {
 		},
 
 		updateMultipleMaterialRequests: async (_, { inputs }, { user, pubsub }) => {
+			// !!!!!!!! use dayjs  for dates
+
 			if (!user) throw new ApolloError("Unauthorized: No user context.");
 
 			if (!Array.isArray(inputs) || inputs.length === 0) {

@@ -108,13 +108,13 @@ export default function LogIn({ screenWidth }) {
 
 	return (
 		<div>
-			<div>
+			<div className="language-btn-container">
 				{/* <h1>{t("welcome")}</h1>
 				<h1>{t("left")}</h1>
 				<h1>{t("right")}</h1> */}
 
 				{languages.map((language) => (
-					<button onClick={() => i18n.changeLanguage(language.code)} key={language.code}>
+					<button className="language-btn" onClick={() => i18n.changeLanguage(language.code)} key={language.code}>
 						{language.name}
 					</button>
 				))}
@@ -128,7 +128,7 @@ export default function LogIn({ screenWidth }) {
 						</p>
 
 						<Link to={`${["headAdmin", "admin", "subAdmin"].includes(jwtDecode(userToken).role) ? "/material/request/all" : "/material/request/request"}`}>
-							<button>
+							<button className="">
 								{" "}
 								{t("home")} {"->"}
 							</button>

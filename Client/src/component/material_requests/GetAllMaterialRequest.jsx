@@ -13,8 +13,8 @@ import { useMaterialRequests } from "../../../src/context/MaterialRequestContext
 export default function GetAllMaterialRequest() {
 	const { userToken, setPageLoading } = useAuth();
 	// const { error, loading, data } = useQuery(get_all_material_requests, {
-	// 	fetchPolicy: "cache",
-	// 	// fetchPolicy: "cache-and-network",
+	// 	// fetchPolicy: "cache",
+	// 	fetchPolicy: "cache-and-network",
 	// });
 
 	const { requests: mRequests, loading, error } = useMaterialRequests();
@@ -29,8 +29,8 @@ export default function GetAllMaterialRequest() {
 		setPageLoading(loading);
 
 		// if (data?.getAllMaterialRequests) {
-		// console.log("requests", data?.getAllMaterialRequests);
-		// setMRequests(data.getAllMaterialRequests);
+		// 	console.log("requests", data?.getAllMaterialRequests);
+		// 	setMRequests(data.getAllMaterialRequests);
 		// }
 	}, [loading, setPageLoading]);
 	// }, [data, loading, setPageLoading]);
@@ -265,7 +265,7 @@ export default function GetAllMaterialRequest() {
 		return ["headAdmin", "admin", "subAdmin"].includes(role);
 	};
 
-	console.log("role", jwtDecode(userToken)?.role == "headAdmin");
+	// console.log("role", jwtDecode(userToken)?.role == "headAdmin");
 
 	const formatDate = (date) => {
 		if (!date) return "N/A";

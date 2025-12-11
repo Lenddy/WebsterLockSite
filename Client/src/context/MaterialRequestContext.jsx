@@ -44,9 +44,24 @@ export function MaterialRequestsProvider({ children }) {
 
 				for (const item of changesArray) {
 					if (eventType === "created") {
-						if (!prev.some((r) => r.id === item.id)) updated.push(item);
+						// if (!prev.some((r) => r.id === item.id)) updated.push(item);
+						if (!prev.some((r) => r.id === item.id)) updated = [...updated, item];
 					} else if (eventType === "updated") {
-						updated = updated.map((r) => (r.id === item.id ? { ...r, ...item } : r));
+						// updated = updated.map((r) => (r.id === item.id ? { ...r, ...item } : r));
+						updated = updated.map((req) => {
+							if (req.id !== item.id) return req;
+
+							const existingItems = req.items || [];
+							const updatedItems = (item.items || []).map((newItem) => {
+								const index = existingItems.findIndex((i) => i.id === newItem.id);
+								if (index > -1) return { ...existingItems[index], ...newItem };
+								return newItem;
+							});
+
+							const remainingItems = existingItems.filter((i) => !updatedItems.some((u) => u.id === i.id));
+
+							return { ...req, items: [...remainingItems, ...updatedItems], ...item };
+						});
 					} else if (eventType === "deleted") {
 						updated = updated.filter((r) => r.id !== item.id);
 					}
@@ -65,30 +80,72 @@ export function MaterialRequestsProvider({ children }) {
 									newRefs = newRefs.filter((ref) => readField("id", ref) !== item.id);
 									continue;
 								}
+
 								const idx = newRefs.findIndex((ref) => readField("id", ref) === item.id);
 								if (idx > -1 && eventType === "updated") {
-									newRefs[idx] = client.cache.writeFragment({
-										data: item,
-										fragment: gql`
-											fragment UpdatedRequest on MaterialRequest {
-												id
-												items {
-													id
-													itemName
-													quantity
-												}
-												requester {
-													userId
-													name
-												}
-												approvalStatus {
-													isApproved
-												}
-											}
-										`,
-									});
+									// newRefs[idx] = client.cache.writeFragment({
+									// 	data: item,
+									// 	fragment: gql`
+									// 		fragment UpdatedRequest on MaterialRequest {
+									// 			id
+									// 			items {
+									// 				id
+									// 				itemName
+									// 				quantity
+									// 			}
+									// 			requester {
+									// 				userId
+									// 				name
+									// 			}
+									// 			approvalStatus {
+									// 				isApproved
+									// 			}
+									// 		}
+									// 	`,
+									// });
+
+									newRefs = newRefs.map((ref) =>
+										readField("id", ref) === item.id
+											? client.cache.writeFragment({
+													data: item,
+													fragment: gql`
+														fragment UpdatedMaterialRequest on MaterialRequest {
+															id
+															items {
+																id
+																itemName
+																quantity
+																itemDescription
+																color
+																side
+																size
+															}
+															requester {
+																userId
+																name
+																email
+															}
+															reviewers {
+																userId
+																email
+																name
+																comment
+																reviewedAt
+															}
+															approvalStatus {
+																approvedBy {
+																	userId
+																	name
+																	email
+																}
+															}
+														}
+													`,
+											  })
+											: ref
+									);
 								} else if (eventType === "created") {
-									const newRef = client.cache.writeFragment({
+									const newRefFragment = client.cache.writeFragment({
 										data: item,
 										fragment: gql`
 											fragment NewRequest on MaterialRequest {
@@ -97,18 +154,35 @@ export function MaterialRequestsProvider({ children }) {
 													id
 													itemName
 													quantity
+													itemDescription
+													color
+													side
+													size
 												}
 												requester {
 													userId
 													name
+													email
+												}
+												reviewers {
+													userId
+													email
+													name
+													comment
+													reviewedAt
 												}
 												approvalStatus {
-													isApproved
+													approvedBy {
+														userId
+														name
+														email
+													}
 												}
 											}
 										`,
 									});
-									newRefs.push(newRef);
+									// newRefs.push(newRef);
+									newRefs = [...newRefs, newRefFragment];
 								}
 							}
 							return newRefs;

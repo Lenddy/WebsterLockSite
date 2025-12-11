@@ -3,6 +3,7 @@ import { useQuery, useSubscription, gql } from "@apollo/client";
 import { get_all_users } from "../../graphQL/queries/queries";
 import { USER_CHANGE_SUBSCRIPTION } from "../../graphQL/subscriptions/subscriptions";
 import { useAuth } from "./AuthContext"; // <-- import your auth context
+import { jwtDecode } from "jwt-decode";
 
 const UsersContext = createContext();
 
@@ -11,6 +12,29 @@ export function UsersProvider({ children }) {
 
 	const [users, setUsers] = useState([]);
 
+	// const canReview = () => {
+	// 	const token = jwtDecode(userToken);
+	// 	const role = typeof token?.role === "string" ? token?.role : token?.role?.role;
+	// 	return ["headAdmin", "admin", "subAdmin"].includes(role);
+	// };
+
+	const canReview = () => {
+		if (!userToken) return false;
+
+		const token = jwtDecode(userToken);
+
+		// Extract role safely whether it's: "admin" OR { role: "admin" }
+		const role = typeof token?.role === "string" ? token.role : token?.role?.role;
+
+		const hasReviewRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+
+		const hasPermission = token?.permissions?.canViewAllUsers === true;
+		// canViewAllUsers
+		return hasReviewRole && hasPermission;
+	};
+
+	// if(canReview) {return}
+
 	// Only run query when AuthContext is loaded and token exists
 	const {
 		data,
@@ -18,9 +42,9 @@ export function UsersProvider({ children }) {
 		error,
 	} = useQuery(get_all_users, {
 		// skip: !userToken, // <-- SKIP until token is ready
-		skip: authLoading || !userToken, // <-- SKIP until token is ready
-		fetchPolicy: "cache-first",
-		// fetchPolicy: "cache-and-network",
+		skip: authLoading || !userToken || !canReview(), // <-- SKIP until token is ready
+		// fetchPolicy: "cache-first",
+		fetchPolicy: "cache-and-network",
 	});
 
 	// Initial load
@@ -32,7 +56,7 @@ export function UsersProvider({ children }) {
 
 	// Live subscription
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
-		skip: authLoading || !userToken, // <-- skip subscription until token ready
+		skip: authLoading || !userToken || !canReview(), // <-- skip subscription until token ready
 		onData: ({ data: subscriptionData, client }) => {
 			console.log("📡 Subscription raw data:", subscriptionData);
 

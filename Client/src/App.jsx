@@ -45,6 +45,7 @@ function App() {
 		<div className="app">
 			<Routes>
 				<Route index element={<LogIn screenWidth={screenWidth} />} />
+				<Route path="/test" element={<Test screenWidth={screenWidth} />} />
 
 				<Route element={<ProtectedRoute screenWidth={screenWidth} />}>
 					{/* Admin User routes */}

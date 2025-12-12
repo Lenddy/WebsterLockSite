@@ -53,7 +53,8 @@ export default defineConfig({
 				runtimeCaching: [
 					{
 						// dynamically match your API endpoint
-						urlPattern: ({ url }) => url.origin === import.meta.env.VITE_API_URL.replace(/\/graphql$/, ""),
+						// urlPattern: ({ url }) => url.origin === import.meta.env.VITE_API_URL.replace(/\/graphql$/, ""),
+						urlPattern: "https://webster-lock-services-test.onrender.com",
 						handler: "NetworkFirst",
 						options: {
 							cacheName: "graphql-api-cache",

@@ -15,6 +15,11 @@ import { ItemGroupsProvider } from "./context/ItemGroupContext";
 import { MaterialRequestsProvider } from "./context/MaterialRequestContext.jsx";
 import "../i18n.js";
 
+const isBrave = (navigator.brave && navigator.brave.isBrave()) || false;
+if (isBrave) {
+	alert("Brave browser detected. Please disable Shields by clicking the lion icon  and reload the page or you wont be able to get live data (latest data automatically) .");
+}
+
 //  Render app
 createRoot(document.getElementById("root")).render(
 	// <ApolloProvider client={client}>

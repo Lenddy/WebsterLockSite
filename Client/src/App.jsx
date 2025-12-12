@@ -2,6 +2,8 @@ import "./App.css";
 import { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import Test from "./component/Test";
+import { usePrivacyGuard } from "./context/privacyGuard";
+
 import ProtectedRoute from "./component/ProtectedRoutes";
 import LogIn from "./component/users/LogIn";
 
@@ -34,6 +36,11 @@ import NotFound from "./component/NotFound";
 function App() {
 	const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
+	// const { anyPrivacyBlocker, shieldsActive, brave, checked, recheck, test } = usePrivacyGuard();
+
+	// console.log("anyPrivacyBlocker:", anyPrivacyBlocker, "\n", "\n", "brave:", brave, "\n", "checked:", checked, "\n", "recheck:", recheck);
+	// // "shieldsActive:", shieldsActive
+
 	useEffect(() => {
 		const handleResize = () => setScreenWidth(window.innerWidth);
 		window.addEventListener("resize", handleResize);
@@ -41,8 +48,55 @@ function App() {
 		return () => window.removeEventListener("resize", handleResize);
 	}, []);
 
+	// useEffect(() => {
+	// 	if (checked && anyPrivacyBlocker) {
+	// 		// 	// Disable all clicking on page
+	// 		// 	document.body.style.pointerEvents = "none";
+	// 		// }
+	// 		// if (checked && anyPrivacyBlocker) {
+	// 		// if ((test, brave)) {
+	// 		// Disable all clicking on page
+	// 		document.body.style.pointerEvents = "none";
+	// 	}
+	// }, [checked, anyPrivacyBlocker, test, brave]);
+
+	// if (!checked) return null; // or a loader
+
+	// document.body.style.pointerEvents = "none";
+
 	return (
 		<div className="app">
+			{/* {test && brave && ( */}
+			{/* {anyPrivacyBlocker && (
+				<div
+					style={{
+						background: "red",
+						color: "white",
+						padding: "20px",
+						textAlign: "center",
+						position: "fixed",
+						top: 0,
+						width: "100%",
+						zIndex: 9999,
+					}}>
+					<h3>⚠ Privacy Blocking Detected</h3>
+
+					{brave && shieldsActive && <p>Brave Shields are blocking WebSockets. Disable Shields and reload.</p>}
+
+					{!brave && shieldsActive && <p>Your privacy settings are blocking WebSockets. Please disable tracker-blocking for this site and reload.</p>}
+
+					<p> you wont be able to access anything until you do </p>
+
+					<button
+						onClick={() => {
+							console.log("privacy click"), recheck();
+						}}
+						style={{ padding: "10px 20px", pointerEvents: "all", cursor: "pointer" }}>
+						Recheck
+					</button>
+				</div>
+			)} */}
+
 			<Routes>
 				<Route index element={<LogIn screenWidth={screenWidth} />} />
 				<Route path="/test" element={<Test screenWidth={screenWidth} />} />

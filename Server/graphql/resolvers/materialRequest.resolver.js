@@ -616,6 +616,7 @@ const materialRequestResolvers = {
 		onMaterialRequestChange: {
 			subscribe: withFilter(
 				//  pubsub.asyncIterator
+				// pubsub.asyncIterableIterator
 				() => pubsub.asyncIterableIterator(["MATERIAL_REQUEST_ADDED", "MATERIAL_REQUEST_UPDATED", "MATERIAL_REQUEST_DELETED"]),
 				(payload, variables, context) => {
 					const { user } = context;

@@ -806,6 +806,8 @@ const userResolver = {
 	Subscription: {
 		// Subscription resolver for user changes
 		onUserChange: {
+			// pubsub.asyncIterator
+			// pubsub.asyncIterableIterator
 			subscribe: () => pubsub.asyncIterableIterator(["USER_ADDED", "USER_UPDATED", "USER_DELETED"]), // Subscribe to events
 		},
 	},

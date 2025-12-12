@@ -46,7 +46,15 @@ const startServer = async () => {
 	// 1) CORS middleware
 	app.use(
 		cors({
-			origin: ["https://webster-lock-material-requests.onrender.com", "https://webster-lock-material-requests-test.onrender.com", "http://localhost:5173", "http://localhost:3000"],
+			origin: [
+				"https://webster-lock-material-requests.onrender.com",
+				"https://webster-lock-material-requests-test.onrender.com",
+				"http://localhost:5173",
+				"http://localhost:3000",
+				// "https://privacy-test-pages.glitch.me/tracking/trackers.js"
+				// "https://cors-test.codehappy.dev/ok.txt",
+				,
+			],
 			credentials: true,
 		})
 	);

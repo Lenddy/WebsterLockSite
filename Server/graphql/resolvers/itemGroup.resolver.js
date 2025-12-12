@@ -488,6 +488,8 @@ const itemGroupResolver = {
 	Subscription: {
 		// Subscription resolver for user changes
 		onItemGroupChange: {
+			// pubsub.asyncIterator
+			// pubsub.asyncIterableIterator
 			subscribe: () => pubsub.asyncIterableIterator(["ITEMGROUP_ADDED", "ITEMGROUP_UPDATED", "ITEMGROUP_DELETED"]), // Subscribe to events
 		},
 	},

@@ -3,6 +3,7 @@ import { useQuery, useSubscription, gql } from "@apollo/client";
 import { get_all_item_groups } from "../../graphQL/queries/queries";
 import { ITEM_GROUP_CHANGE_SUBSCRIPTION } from "../../graphQL/subscriptions/subscriptions";
 import { useAuth } from "./AuthContext";
+import { jwtDecode } from "jwt-decode";
 
 const ItemGroupsContext = createContext();
 
@@ -10,12 +11,27 @@ export function ItemGroupsProvider({ children }) {
 	const { loading: authLoading, userToken } = useAuth(); // wait for token
 	const [items, setItems] = useState([]);
 
+	const canReview = () => {
+		if (!userToken) return false;
+
+		const token = jwtDecode(userToken);
+
+		// Extract role safely whether it's: "admin" OR { role: "admin" }
+		const role = typeof token?.role === "string" ? token.role : token?.role?.role;
+
+		const hasReviewRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+
+		const hasPermission = token?.permissions?.canViewAllUsers === true;
+		// canViewAllUsers
+		return hasReviewRole && hasPermission;
+	};
+
 	const {
 		data,
 		loading: queryLoading,
 		error,
 	} = useQuery(get_all_item_groups, {
-		skip: authLoading || !userToken,
+		skip: authLoading || !userToken || !canReview(),
 		fetchPolicy: "cache-first",
 		// fetchPolicy: "cache-and-network",
 	});
@@ -33,7 +49,7 @@ export function ItemGroupsProvider({ children }) {
 
 	// Subscription
 	useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
-		skip: authLoading || !userToken,
+		skip: authLoading || !userToken || !canReview(),
 		onData: ({ data: subscriptionData, client }) => {
 			const changeEvent = subscriptionData?.data?.onItemGroupChange;
 			if (!changeEvent) return;

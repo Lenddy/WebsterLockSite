@@ -135,9 +135,13 @@ if (!pubsub) {
 
 		// --- Subscriber counter wrapper for asyncIterator
 		let subscriberCount = 0;
-		const originalAsyncIterator = redisPubsub.asyncIterator.bind(redisPubsub);
+		// const originalAsyncIterator = redisPubsub.asyncIterator.bind(redisPubsub);
+		const originalAsyncIterator = redisPubsub.asyncIterableIterator.bind(redisPubsub);
 
-		redisPubsub.asyncIterator = (trigger) => {
+		// redisPubsub.
+
+		redisPubsub.asyncIterableIterator = (trigger) => {
+			// redisPubsub.asyncIterator = (trigger) => {
 			subscriberCount++;
 			console.log(`📡 Subscriber connected → total: ${subscriberCount} (channel: ${trigger})`);
 
@@ -151,9 +155,23 @@ if (!pubsub) {
 
 				return origReturn ? origReturn(...args) : Promise.resolve({ value: undefined, done: true });
 			};
-
+			// console.log(`📡 Subscriber connected → total: ${subscriberCount} (channel: ${trigger})`);
 			return asyncIter;
 		};
+
+		// TEMP TEST (forces an iterator so we know logging works)
+		// if (redisPubsub.__testLogged !== true) {
+		// 	redisPubsub.__testLogged = true;
+
+		// 	const test = redisPubsub.asyncIterator("TEST_CHANNEL");
+		// 	console.log("🧪 Test asyncIterator created");
+
+		// 	// Clean up test actor after 2 seconds
+		// 	setTimeout(() => {
+		// 		if (test.return) test.return();
+		// 		console.log("🧪 Test iterator closed");
+		// 	}, 2000);
+		// }
 
 		// --- expose a getter for monitoring if you want
 		redisPubsub.__getSubscriberCount = () => subscriberCount;

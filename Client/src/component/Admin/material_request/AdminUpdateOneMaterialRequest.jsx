@@ -685,7 +685,7 @@ function AdminUpdateOneMaterialRequest() {
 								// 	setIsOpen(true);
 								// }
 							}>
-							{canReview() ? "Approve" : "Update"}
+							{canReview() ? t("Approve") : t("update-request")}
 						</button>
 					</div>
 				</div>

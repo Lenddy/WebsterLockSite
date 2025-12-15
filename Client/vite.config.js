@@ -3,22 +3,37 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import svgr from "vite-plugin-svgr";
 import { VitePWA } from "vite-plugin-pwa";
+import { GRAPHQL_URL } from "./src/config/api";
 // #b5a642
+
+// export com";
+
+// export const GRAPHQL_URL = `${API_ORIGIN}/graphql`;
 
 // Export a function instead of an object to access the mode and command
 export default ({ mode }) => {
 	// Load environment variables based on the current mode (e.g., 'development', 'production')
 	// The third argument '' ensures all env vars are loaded, not just those starting with VITE_
-	const env = loadEnv(mode, process.cwd(), "");
+	// console.log("API URL as normal import :", import.meta.env.VITE_API_URL);
+	// const env = loadEnv(mode, process.cwd(), "");
 
-	const API_ORIGIN = new URL(env.VITE_API_URL).origin;
+	// const API_ORIGIN = new URL(env.VITE_API_URL).origin;
 
 	console.log("from the vite config ");
-	// console.log("API URL as normal import :", import.meta.env.VITE_API_URL);
-	console.log("API URL:", env.VITE_API_URL);
-	console.log("API URL ori :", API_ORIGIN);
+	// console.log("API URL:", env.VITE_API_URL);
+	// console.log("API URL ori :", API_ORIGIN);
 
+	// const API_ORIGIN = location.hostname.includes("localhost") ? "http://localhost:8080" : location.hostname.includes("test") ? "https://webster-lock-services-test.onrender.com" : "https://webster-lock-services.onrender.";
+
+	// console.log("API URL ori :", API_ORIGIN);
+	console.log("API URL ori :", GRAPHQL_URL);
 	return defineConfig({
+		// 		define: {
+		//     __API_ORIGIN__: JSON.stringify(
+		// 		env.VITE_API_URL.replace(/\/graphql$/, "")
+		//     //   "https://webster-lock-services-test.onrender.com"
+		//     ),
+		//   },
 		plugins: [
 			react(),
 			svgr(),
@@ -73,8 +88,10 @@ export default ({ mode }) => {
 							// ({ url }) => url.origin === import.meta.env.VITE_API_URL.replace(/\/graphql$/, "")
 							// urlPattern: env.VITE_BASE_PATH
 							// urlPattern: ({ url }) => url.origin === env.VITE_API_URL.replace(/\/graphql$/, ""),
-							urlPattern: ({ url }) => url.origin === API_ORIGIN,
-
+							urlPattern: ({ url }) => url.origin === GRAPHQL_URL.replace(/\/graphql$/, ""),
+							// urlPattern: "https://webster-lock-services-test.onrender.com",
+							// urlPattern: API_ORIGIN,
+							// __API_ORIGIN__ intellisense says that is not define
 							handler: "NetworkFirst",
 							options: {
 								cacheName: "graphql-api-cache",

@@ -11,9 +11,12 @@ export default ({ mode }) => {
 	// The third argument '' ensures all env vars are loaded, not just those starting with VITE_
 	const env = loadEnv(mode, process.cwd(), "");
 
+	const API_ORIGIN = new URL(env.VITE_API_URL).origin;
+
 	console.log("from the vite config ");
 	// console.log("API URL as normal import :", import.meta.env.VITE_API_URL);
 	console.log("API URL:", env.VITE_API_URL);
+	console.log("API URL ori :", API_ORIGIN);
 
 	return defineConfig({
 		plugins: [
@@ -69,7 +72,8 @@ export default ({ mode }) => {
 
 							// ({ url }) => url.origin === import.meta.env.VITE_API_URL.replace(/\/graphql$/, "")
 							// urlPattern: env.VITE_BASE_PATH
-							urlPattern: ({ url }) => url.origin === env.VITE_API_URL.replace(/\/graphql$/, ""),
+							// urlPattern: ({ url }) => url.origin === env.VITE_API_URL.replace(/\/graphql$/, ""),
+							urlPattern: ({ url }) => url.origin === API_ORIGIN,
 
 							handler: "NetworkFirst",
 							options: {

@@ -11,6 +11,8 @@ import { GRAPHQL_URL } from "./src/config/api";
 // export const GRAPHQL_URL = `${API_ORIGIN}/graphql`;
 
 // Export a function instead of an object to access the mode and command
+//  "https://webster-lock-services-test.onrender.com"
+// "https://webster-lock-services.onrender.com";
 export default ({ mode }) => {
 	// Load environment variables based on the current mode (e.g., 'development', 'production')
 	// The third argument '' ensures all env vars are loaded, not just those starting with VITE_
@@ -26,7 +28,7 @@ export default ({ mode }) => {
 	// const API_ORIGIN = location.hostname.includes("localhost") ? "http://localhost:8080" : location.hostname.includes("test") ? "https://webster-lock-services-test.onrender.com" : "https://webster-lock-services.onrender.";
 
 	// console.log("API URL ori :", API_ORIGIN);
-	console.log("API URL ori :", GRAPHQL_URL);
+	// console.log("API URL ori :", GRAPHQL_URL);
 	return defineConfig({
 		// 		define: {
 		//     __API_ORIGIN__: JSON.stringify(
@@ -88,10 +90,9 @@ export default ({ mode }) => {
 							// ({ url }) => url.origin === import.meta.env.VITE_API_URL.replace(/\/graphql$/, "")
 							// urlPattern: env.VITE_BASE_PATH
 							// urlPattern: ({ url }) => url.origin === env.VITE_API_URL.replace(/\/graphql$/, ""),
-							urlPattern: ({ url }) => url.origin === GRAPHQL_URL.replace(/\/graphql$/, ""),
+							// urlPattern: ({ url }) => url.origin === GRAPHQL_URL.replace(/\/graphql$/, ""),
 							// urlPattern: "https://webster-lock-services-test.onrender.com",
-							// urlPattern: API_ORIGIN,
-							// __API_ORIGIN__ intellisense says that is not define
+							urlPattern: "https://webster-lock-services-test.onrender.com",
 							handler: "NetworkFirst",
 							options: {
 								cacheName: "graphql-api-cache",

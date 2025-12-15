@@ -92,7 +92,7 @@ export default ({ mode }) => {
 							// urlPattern: ({ url }) => url.origin === env.VITE_API_URL.replace(/\/graphql$/, ""),
 							// urlPattern: ({ url }) => url.origin === GRAPHQL_URL.replace(/\/graphql$/, ""),
 							// urlPattern: "https://webster-lock-services-test.onrender.com",
-							urlPattern: "https://webster-lock-services-test.onrender.com",
+							urlPattern: "https://webster-lock-services.onrender.com",
 							handler: "NetworkFirst",
 							options: {
 								cacheName: "graphql-api-cache",

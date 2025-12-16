@@ -49,7 +49,25 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 						<div className="modal-content-header">
 							<div className="modal-content-top-info-title-wrapper">
 								<div>
-									<h4>{t("requested-by")}:</h4> <p>{data?.mRequest?.requester?.name}</p>
+									{data?.deleting ? (
+										<h4>{t("material-request-will-be-deleted")}:</h4>
+									) : data?.approved === true ? (
+										<>
+											<h4>{t("requested-by")}:</h4>{" "}
+											<p>
+												{data?.mRequest?.requester?.name} {t("will-be-approve")}{" "}
+											</p>
+											{/* <br /> <p>will be approved</p> */}
+										</>
+									) : (
+										<>
+											<h4>{t("requested-by")}:</h4>{" "}
+											<p>
+												{data?.mRequest?.requester?.name} {t("will-be-deny")}{" "}
+											</p>
+											{/* <br /> <p>will be approved</p> */}
+										</>
+									)}
 								</div>
 							</div>
 						</div>

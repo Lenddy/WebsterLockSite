@@ -4,6 +4,7 @@ import { useMutation, useQuery, useSubscription } from "@apollo/client";
 import { get_all_item_groups, get_one_material_request } from "../../../../graphQL/queries/queries";
 import { update_One_Material_Request } from "../../../../graphQL/mutations/mutations";
 import { MATERIAL_REQUEST_CHANGE_SUBSCRIPTION } from "../../../../graphQL/subscriptions/subscriptions";
+import { delete_one_material_request } from "../../../../graphQL/mutations/mutations";
 import { useParams, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Select from "react-select";
@@ -16,6 +17,7 @@ import client from "../../../context/ApolloWrapper";
 import { List, useDynamicRowHeight } from "react-window";
 import { useDebounce } from "use-debounce";
 import { useTranslation } from "react-i18next";
+import dayjs from "dayjs";
 
 function AdminUpdateOneMaterialRequest() {
 	const { userToken, loading: authLoading } = useAuth();
@@ -32,12 +34,15 @@ function AdminUpdateOneMaterialRequest() {
 	const [searchValue, setSearchValue] = useState("");
 	const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
 	const [isItemsReady, setIsItemsReady] = useState(false);
+	const [deletion, setDeletion] = useState(false);
+	const [approval, setApproval] = useState(false);
 
 	const { data: iGData } = useQuery(get_all_item_groups);
 	const { data: mRData, loading: mRLoading } = useQuery(get_one_material_request, {
 		variables: { id: requestId },
 	});
 	const [updatedMaterialRequest, { loading }] = useMutation(update_One_Material_Request);
+	const [deletedMaterialRequest, { loading: deletedLoading }] = useMutation(delete_one_material_request, { variables: { id: requestId } });
 
 	// ----- Color / Side / Size options -----
 	const colorOptions = [
@@ -342,7 +347,7 @@ function AdminUpdateOneMaterialRequest() {
 						employeeNum: decoded.employeeNum,
 						department: decoded.department,
 					},
-					...(jwtDecode(userToken).userId !== requestersID && { isApproved: true, approvedAt: new Date() }),
+					...(jwtDecode(userToken).userId !== requestersID && { isApproved: approval, approvedAt: dayjs().toISOString() }),
 				},
 				requesterId: requestersID,
 			};
@@ -355,6 +360,34 @@ function AdminUpdateOneMaterialRequest() {
 					// console.log("this is the client / caches", client.cache.extract());
 					// alert("Material requests have been updated successfully!");
 					navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
+				},
+			});
+		} catch (err) {
+			console.error("Submit error:", err);
+		}
+	};
+
+	const deleteRequest = async (e) => {
+		// console.log("deleting request");
+		// console.log(e);
+		// e.preventDefault();
+
+		// e.preventDefault();
+		skipNextSubAlert.current = true;
+		if (!userToken) return alert(t("please-login")); //"Please log in first.");
+		// client.clearStore();
+		// await client.cache.reset();
+		try {
+			const decoded = jwtDecode(userToken);
+
+			await deletedMaterialRequest({
+				variables: { id: requestId },
+				onCompleted: (res) => {
+					// console.log("user update ", jwtDecode(userToken).userId == requestersID);
+					// console.log("Mutation success:", res?.updateOneMaterialRequest);
+					// console.log("this is the client / caches", client.cache.extract());
+					// alert("Material request has been deleted successfully!");
+					navigate(`/material/request/all`);
 				},
 			});
 		} catch (err) {
@@ -677,14 +710,29 @@ function AdminUpdateOneMaterialRequest() {
 							className="form-submit-btn"
 							type="button"
 							// type="submit"
-							disabled={loading || mRLoading || !isFormValid}
-							onClick={
-								openModal
+							disabled={loading || deletedLoading || mRLoading || !isFormValid}
+							onClick={() => {
+								{
+									canReview() ? setApproval(false) : setDeletion(true);
+								}
 
-								// 	() => {
-								// 	setIsOpen(true);
-								// }
-							}>
+								openModal();
+							}}
+							style={{ backgroundColor: "red" }}>
+							{canReview() ? t("deny") : t("delete")}
+						</button>
+					</div>
+
+					<div>
+						<button
+							className="form-submit-btn"
+							type="button"
+							// type="submit"
+							disabled={loading || mRLoading || !isFormValid}
+							onClick={() => {
+								setApproval(true);
+								openModal();
+							}}>
 							{canReview() ? t("Approve") : t("update-request")}
 						</button>
 					</div>
@@ -695,7 +743,17 @@ function AdminUpdateOneMaterialRequest() {
 						{/* (Item & Quantity). */}
 					</p>
 				)}
-				<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} onConFirm={submit} data={{ mRequest, rows }} loading={loading} />
+				<Modal
+					isOpen={isOpen}
+					onClose={() => {
+						setIsOpen(false);
+						setDeletion(false);
+						// setApproval(false);
+					}}
+					onConFirm={deletion === true ? deleteRequest : submit}
+					data={{ mRequest, rows, deleting: deletion, approval }}
+					loading={loading}
+				/>
 			</form>
 		</div>
 	);

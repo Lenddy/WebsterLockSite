@@ -189,5 +189,10 @@
 	"month": "Month",
 	"year": "Year",
 	"are-you-sure-you-want-to-log-out": "Are you sure you want to log out ?",
-	"Approve": "Approve"
+	"Approve": "Approve",
+	"deny": "Deny",
+	"Denied": "Denied",
+	"material-request-will-be-deleted": "Material request will be deleted",
+	"will-be-approve": "Will be approve",
+	"will-be-deny": "Will be deny"
 }

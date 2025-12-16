@@ -277,6 +277,56 @@ export const update_One_Material_Request = gql`
 	}
 `;
 
+export const delete_one_material_request = gql`
+	mutation deleteOneMaterialRequest($id: ID!) {
+		deleteOneMaterialRequest(id: $id) {
+			id
+			description
+			items {
+				id
+				itemName
+				quantity
+				itemDescription
+				color
+				side
+				size
+			}
+
+			requester {
+				userId
+				name
+				email
+				employeeNum
+				department
+			}
+
+			reviewers {
+				userId
+				email
+				name
+				comment
+				reviewedAt
+				employeeNum
+				department
+			}
+
+			approvalStatus {
+				approvedBy {
+					userId
+					name
+					email
+					employeeNum
+					department
+				}
+				isApproved
+				approvedAt
+			}
+
+			addedDate
+		}
+	}
+`;
+
 export const create_multiple_itemGroups = gql`
 	mutation createMultipleItemGroups($input: [CreateOneItemGroupInput!]!) {
 		createMultipleItemGroups(input: $input) {

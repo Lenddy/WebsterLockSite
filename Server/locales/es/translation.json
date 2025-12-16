@@ -189,5 +189,10 @@
 	"month": "Mes",
 	"year": "Año",
 	"are-you-sure-you-want-to-log-out": "¿Estás seguro de que quieres cerrar sesión?",
-	"Approve": "Aprobar"
+	"Approve": "Aprobar",
+	"deny": "Negar",
+	"Denied": "Negada",
+	"material-request-will-be-deleted": "Solicitud del material va hacer borrada",
+	"will-be-approve": "Sera aprobada",
+	"will-be-deny": "Sera negada"
 }

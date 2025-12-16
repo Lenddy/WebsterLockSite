@@ -328,7 +328,7 @@ export default function GetAllMaterialRequest() {
 											</td>
 											<td>{request?.description}</td>
 											<td>
-												<p className={`${request?.approvalStatus?.isApproved ? "approved" : "waiting-approval"}`}>{request?.approvalStatus?.isApproved ? t("Approved") : t("waiting-for-approval")}</p>
+												<p className={`${request?.approvalStatus?.isApproved === null ? "waiting-approval" : request?.approvalStatus?.isApproved === true ? "approved" : "denied"}`}>{request?.approvalStatus?.isApproved === null ? t("waiting-for-approval") : request?.approvalStatus?.isApproved === true ? t("Approved") : t("Denied")}</p>
 											</td>
 
 											{/* <td>{dayjs(Number(request?.addedDate)).format("YYYY-MM-DD")}</td> */}

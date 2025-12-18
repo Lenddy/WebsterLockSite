@@ -194,5 +194,6 @@
 	"Denied": "Denied",
 	"material-request-will-be-deleted": "Material request will be deleted",
 	"will-be-approve": "Will be approve",
-	"will-be-deny": "Will be deny"
+	"will-be-deny": "Will be deny",
+	"request-already-reviewed": "You cant edit this request anymore, it has already been reviewed"
 }

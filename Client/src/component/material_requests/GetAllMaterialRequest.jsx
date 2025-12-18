@@ -342,7 +342,7 @@ export default function GetAllMaterialRequest() {
 														<Link to={`/material/request/${request?.id}/update`}>
 															<span className="table-action first">{t("review")}</span>
 														</Link>
-													) : !request?.approvalStatus?.isApproved ? (
+													) : request?.approvalStatus?.isApproved === null ? (
 														<Link to={`/material/request/${request?.id}/update`}>
 															<span className="table-action first">{t("update request")}</span>
 														</Link>

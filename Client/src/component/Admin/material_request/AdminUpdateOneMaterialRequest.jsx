@@ -165,6 +165,15 @@ function AdminUpdateOneMaterialRequest() {
 		}
 	}, [allItems, debouncedSearch]);
 
+	const canReview = () => {
+		const token = jwtDecode(userToken);
+		const role = typeof token?.role === "string" ? token?.role : token?.role?.role;
+
+		return ["headAdmin", "admin", "subAdmin"].includes(role);
+	};
+
+	// console.log("this are the items on the material request rows ,", rows);
+
 	// ----- Load item groups -----
 	useEffect(() => {
 		if (iGData?.getAllItemGroups) {
@@ -175,6 +184,12 @@ function AdminUpdateOneMaterialRequest() {
 	useEffect(() => {
 		if (mRData?.getOneMaterialRequest) {
 			const req = mRData.getOneMaterialRequest;
+
+			if (canReview() === false && req?.approvalStatus?.isApproved !== null) {
+				navigate("/material/request/all");
+				skipNextSubAlert.current = true;
+				alert(t("request-already-reviewed"));
+			}
 
 			setMRequest({
 				mrId: req.id,
@@ -408,15 +423,6 @@ function AdminUpdateOneMaterialRequest() {
 	};
 
 	// console.log("request", mRequest?.requester?.userId);
-
-	const canReview = () => {
-		const token = jwtDecode(userToken);
-		const role = typeof token?.role === "string" ? token?.role : token?.role?.role;
-
-		return ["headAdmin", "admin", "subAdmin"].includes(role);
-	};
-
-	console.log("this are the items on the material request rows ,", rows);
 
 	return (
 		<div className="update-container">
@@ -730,7 +736,8 @@ function AdminUpdateOneMaterialRequest() {
 							// type="submit"
 							disabled={loading || mRLoading || !isFormValid}
 							onClick={() => {
-								setApproval(true);
+								canReview() ? setApproval(true) : null;
+
 								openModal();
 							}}>
 							{canReview() ? t("Approve") : t("update-request")}

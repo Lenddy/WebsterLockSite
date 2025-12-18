@@ -194,5 +194,6 @@
 	"Denied": "Negada",
 	"material-request-will-be-deleted": "Solicitud del material va hacer borrada",
 	"will-be-approve": "Sera aprobada",
-	"will-be-deny": "Sera negada"
+	"will-be-deny": "Sera negada",
+	"request-already-reviewed": "No puedes editar esta solicitud, ya a sido revisada"
 }

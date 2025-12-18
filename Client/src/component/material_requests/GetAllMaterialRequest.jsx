@@ -97,7 +97,6 @@ export default function GetAllMaterialRequest() {
 	// Memoized sorted + filtered list
 	const filteredMRequests = React.useMemo(() => searchAndSort(mRequests, searchValue), [mRequests, searchValue]);
 
-	// useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
 	// 	onData: ({ data: subscriptionData, client }) => {
 	// 		console.log("📡 Subscription raw data:", subscriptionData);
 

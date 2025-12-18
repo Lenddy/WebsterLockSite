@@ -35,28 +35,45 @@ export default function GetAllMaterialRequest() {
 	}, [loading, setPageLoading]);
 	// }, [data, loading, setPageLoading]);
 
-	//  New improved sorting function
-	const sortRequests = (arr) => {
-		const today = dayjs().startOf("day");
+	// const sortRequests = (arr) => {
+	// 	const today = dayjs().startOf("day");
 
+	// 	return [...arr].sort((a, b) => {
+	// 		const aStatus = a?.approvalStatus?.isApproved;
+	// 		const bStatus = b?.approvalStatus?.isApproved;
+
+	// 		const aDate = dayjs(a?.addedDate);
+	// 		const bDate = dayjs(b?.addedDate);
+
+	// 		const aIsFutureOrToday = aDate.isSame(today, "day") || aDate.isAfter(today);
+	// 		const bIsFutureOrToday = bDate.isSame(today, "day") || bDate.isAfter(today);
+
+	// 		// 1️ Date ≥ today should come first
+	// 		if (aIsFutureOrToday && !bIsFutureOrToday) return -1;
+	// 		if (!aIsFutureOrToday && bIsFutureOrToday) return 1;
+
+	// 		// 2️ Null approvalStatus goes to the top
+	// 		if (aStatus === null && bStatus !== null) return -1;
+	// 		if (aStatus !== null && bStatus === null) return 1;
+
+	// 		// 3️ For both null OR both non-null → sort by newest date
+	// 		return bDate.valueOf() - aDate.valueOf();
+	// 	});
+	// };
+
+	const sortRequests = (arr) => {
 		return [...arr].sort((a, b) => {
-			const aApproved = a?.approvalStatus?.isApproved ? 1 : 0;
-			const bApproved = b?.approvalStatus?.isApproved ? 1 : 0;
+			const aStatus = a?.approvalStatus?.isApproved;
+			const bStatus = b?.approvalStatus?.isApproved;
 
 			const aDate = dayjs(a?.addedDate);
 			const bDate = dayjs(b?.addedDate);
 
-			const aIsFutureOrToday = aDate.isSame(today, "day") || aDate.isAfter(today);
-			const bIsFutureOrToday = bDate.isSame(today, "day") || bDate.isAfter(today);
+			// 1️ Null approvalStatus goes to the top
+			if (aStatus === null && bStatus !== null) return -1;
+			if (aStatus !== null && bStatus === null) return 1;
 
-			// 1️ Date ≥ today should come first
-			if (aIsFutureOrToday && !bIsFutureOrToday) return -1;
-			if (!aIsFutureOrToday && bIsFutureOrToday) return 1;
-
-			// 2️ Waiting (unapproved) should come before approved
-			if (aApproved !== bApproved) return aApproved - bApproved;
-
-			// 3️ Sort by newest date first
+			// 2️ Same group → sort by newest date first
 			return bDate.valueOf() - aDate.valueOf();
 		});
 	};

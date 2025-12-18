@@ -253,8 +253,8 @@ const materialRequestResolvers = {
 					shouldSave = true;
 				}
 
-				if (approvalStatus?.isApproved === true) {
-					console.log("request was approved?", approvalStatus?.isApproved);
+				if ((approvalStatus?.isApproved !== null && approvalStatus?.isApproved === false) || approvalStatus?.isApproved === true) {
+					console.log(`request was ${approvalStatus?.isApproved === false ? "Denied" : "Approved"} `, approvalStatus?.isApproved);
 					target.approvalStatus.approvedBy.userId = user.userId;
 					target.approvalStatus.approvedBy.name = user.name;
 					target.approvalStatus.approvedBy.email = user.email;
@@ -396,8 +396,12 @@ const materialRequestResolvers = {
 				if (description) updateSet.description = description;
 
 				// Approval update
-				if (approvalStatus?.isApproved) {
-					updateSet.approvalStatus.isApproved = true;
+
+				if ((approvalStatus.isApproved !== null && approvalStatus.isApproved === false) || approvalStatus.isApproved === true) {
+					console.log(`request was ${approvalStatus?.isApproved === false ? "Denied" : "Approved"} `, approvalStatus?.isApproved);
+
+					// if (approvalStatus?.isApproved) {
+					updateSet.approvalStatus.isApproved = approvalStatus?.isApproved;
 					updateSet.approvalStatus.approvedBy.userId = user.userId;
 					updateSet.approvalStatus.approvedBy.name = user.name;
 					updateSet.approvalStatus.approvedBy.email = user.email;

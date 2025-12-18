@@ -188,5 +188,12 @@
 	"week": "Week",
 	"month": "Month",
 	"year": "Year",
-	"are-you-sure-you-want-to-log-out": "Are you sure you want to log out ?"
+	"are-you-sure-you-want-to-log-out": "Are you sure you want to log out ?",
+	"Approve": "Approve",
+	"deny": "Deny",
+	"Denied": "Denied",
+	"material-request-will-be-deleted": "Material request will be deleted",
+	"will-be-approve": "Will be approve",
+	"will-be-deny": "Will be deny",
+	"request-already-reviewed": "You cant edit this request anymore, it has already been reviewed"
 }

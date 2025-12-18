@@ -6,13 +6,15 @@ import { Link, useParams } from "react-router-dom";
 import { ITEM_GROUP_CHANGE_SUBSCRIPTION } from "../../../../graphQL/subscriptions/subscriptions";
 import Fuse from "fuse.js";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../../context/AuthContext"; // use context
 
 export default function AdminGetOneItem() {
+	const { userToken, setPageLoading } = useAuth(); // get token from context
 	const [itemGroup, setItemGroup] = useState(null); // the full group (brand + itemsList)
 	const [filteredItems, setFilteredItems] = useState([]); // only items
 	const [searchValue, setSearchValue] = useState("");
 	const { itemId } = useParams();
-
+	const [logUser, setLogUser] = useState(null);
 	const { error, loading, data } = useQuery(get_one_item_group, {
 		variables: { id: itemId },
 	});
@@ -37,6 +39,19 @@ export default function AdminGetOneItem() {
 			setFilteredItems(sortByItemName(group.itemsList || []));
 		}
 	}, [data]);
+
+	// Decode token once when component mounts or token changes
+	useEffect(() => {
+		setPageLoading(loading);
+		if (userToken) {
+			try {
+				const decoded = jwtDecode(userToken);
+				setLogUser(decoded);
+			} catch (err) {
+				console.error("Failed to decode token:", err.message);
+			}
+		}
+	}, [userToken, setPageLoading, loading]);
 
 	// Update subscription to sort live updates
 	useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
@@ -110,7 +125,7 @@ export default function AdminGetOneItem() {
 				<table>
 					<thead>
 						<tr>
-							<th>ID</th>
+							{logUser?.role == "headAdmin" && <th>ID</th>}
 							<th>{t("item-name")}</th>
 							<th>{t("action")}</th>
 						</tr>
@@ -119,7 +134,8 @@ export default function AdminGetOneItem() {
 					<tbody>
 						{filteredItems.map((it) => (
 							<tr key={it.id}>
-								<td>{it.id}</td>
+								{logUser?.role == "headAdmin" && <td>{it.id}</td>}
+
 								<td>{it.itemName}</td>
 								<td>
 									<div className="table-action-wrapper">

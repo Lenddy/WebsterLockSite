@@ -675,6 +675,14 @@
 	/* padding: 0px 5px; */
 }
 
+.denied {
+	/* color: var(--dark-green); */
+	background-color: var(--dark-red);
+	border: solid 1px var(--dark-red);
+	border-radius: 5px;
+	/* padding: 0px 5px; */
+}
+
 .waiting-approval {
 	/* color: var(--dark-green); */
 	background-color: var(--brass);

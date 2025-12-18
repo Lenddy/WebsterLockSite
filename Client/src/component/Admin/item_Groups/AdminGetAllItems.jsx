@@ -258,7 +258,7 @@ export default function AdminGetAllItems() {
 						<table>
 							<thead>
 								<tr>
-									<th>ID</th>
+									{logUser?.role == "headAdmin" && <th>ID</th>}
 									<th>{t("brand")}</th>
 									<th>{t("item-amount")}</th>
 									<th>{t("some-items")}</th>
@@ -268,9 +268,11 @@ export default function AdminGetAllItems() {
 							<tbody>
 								{filteredItems.map((ig) => (
 									<tr key={ig.id}>
-										<td>
-											<Link to={`/admin/material/item/${ig?.id}`}>{ig?.id}</Link>
-										</td>
+										{logUser?.role == "headAdmin" && (
+											<td>
+												<Link to={`/admin/material/item/${ig?.id}`}>{ig?.id}</Link>
+											</td>
+										)}
 										<td>
 											<Link to={`/admin/material/item/${ig?.id}`}>{ig?.brand}</Link>
 										</td>

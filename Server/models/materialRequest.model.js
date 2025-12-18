@@ -113,7 +113,7 @@ const MaterialRequestSchema = new Schema(
 				type: Date,
 				// default: dayjs().toISOString(),
 			},
-			isApproved: { type: Boolean, default: false },
+			isApproved: { type: Boolean, default: null },
 		},
 
 		description: { type: String },

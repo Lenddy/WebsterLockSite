@@ -297,7 +297,8 @@ export default function GetOneMaterialRequest() {
 						</div>
 
 						<div className="form-action-btn">
-							{canReview() ? (
+							{/* not showing even tho it has not been re */}
+							{canReview() === false && mRequest?.approvalStatus?.isApproved !== null ? null : canReview() === true && mRequest?.approvalStatus?.isApproved === null ? (
 								<Link to={`/material/request/${requestId}/update`}>
 									<button className="form-submit-btn" type="button">
 										{t("review")}

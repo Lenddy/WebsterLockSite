@@ -1,7 +1,8 @@
+import React from "react";
 import { useEffect, useState, useMemo } from "react";
 import { useQuery, useSubscription } from "@apollo/client";
 import { get_all_material_requests } from "../../../../graphQL/queries/queries";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { MATERIAL_REQUEST_CHANGE_SUBSCRIPTION } from "../../../../graphQL/subscriptions/subscriptions";
 import Fuse from "fuse.js";
 import dayjs from "dayjs";
@@ -10,7 +11,12 @@ import { useTranslation } from "react-i18next";
 dayjs.extend(isBetween);
 import { useMaterialRequests } from "../../../context/MaterialRequestContext";
 
-export default function AdminItemUsage() {
+function GetOneItemUsage() {
+	// const { name } = useParams();
+	const { name: itemName } = useParams(); // item name from route
+	const decodedURl = decodeURIComponent(itemName);
+	console.log("url:", itemName);
+	console.log("decodedURl:", decodedURl);
 	// const { error, loading, data } = useQuery(get_all_material_requests);
 	const [mRequests, setMRequests] = useState([]);
 	const { requests: allMRequests, loading, error } = useMaterialRequests();
@@ -121,27 +127,6 @@ export default function AdminItemUsage() {
 		});
 	}, [mRequests, filter, customStart, customEnd]);
 
-	//  Fuse.js searches
-	const applyFuse = (list, search) => {
-		if (!search) return list;
-
-		// Flatten items for searching by item name
-		const flatList = list.flatMap((req) =>
-			req.items.map((item) => ({
-				...item,
-				requestId: req.id,
-				addedDate: req.addedDate,
-			}))
-		);
-
-		const fuse = new Fuse(flatList, {
-			keys: ["itemName"],
-			threshold: 0.4,
-		});
-
-		return fuse.search(search).map((r) => r.item);
-	};
-
 	const handleSearchChange = (e) => {
 		const val = e.target.value;
 		setSearchValue(val);
@@ -151,31 +136,55 @@ export default function AdminItemUsage() {
 		setSearchValue("");
 	};
 
-	// Combine filters and search
+	//  Clear filters
+
+	const applyFuse = (list, search) => {
+		if (!search) return list;
+
+		const fuse = new Fuse(list, {
+			keys: ["requesterName", "employeeNum"],
+			threshold: 0.3,
+			ignoreLocation: true,
+		});
+
+		return fuse.search(search).map((r) => r.item);
+	};
+
 	const finalUsage = useMemo(() => {
-		let baseList = filteredRequests;
-
-		// If search term exists → apply Fuse
-		if (searchValue) {
-			const searchedItems = applyFuse(filteredRequests, searchValue);
-			const totals = {};
-			searchedItems.forEach((item) => {
-				totals[item.itemName] = (totals[item.itemName] || 0) + item.quantity;
-			});
-			return totals;
-		}
-
-		// Otherwise, aggregate normally
 		const totals = {};
-		baseList.forEach((req) => {
+
+		// 1️ Only requests that include THIS item
+		const relevantRequests = filteredRequests.filter((req) => req.items?.some((item) => item.itemName === decodedURl));
+
+		// 2️ Build requester list
+		let requesterItems = [];
+
+		relevantRequests.forEach((req) => {
 			req.items.forEach((item) => {
-				totals[item.itemName] = (totals[item.itemName] || 0) + item.quantity;
+				if (item.itemName === decodedURl) {
+					requesterItems.push({
+						requesterName: req.requester?.name,
+						employeeNum: req.requester?.employeeNum,
+						quantity: item.quantity,
+					});
+				}
 			});
 		});
-		return totals;
-	}, [filteredRequests, searchValue]);
 
-	//  Clear filters
+		// 3️ Search ONLY requester info
+		if (searchValue) {
+			requesterItems = applyFuse(requesterItems, searchValue);
+		}
+
+		// 4️ Aggregate quantity per requester
+		requesterItems.forEach(({ requesterName, quantity }) => {
+			if (!requesterName) return;
+			totals[requesterName] = (totals[requesterName] || 0) + quantity;
+		});
+
+		return totals;
+	}, [filteredRequests, searchValue, decodedURl]);
+
 	const clearFilters = () => {
 		setCustomStart("");
 		setCustomEnd("");
@@ -183,6 +192,14 @@ export default function AdminItemUsage() {
 	};
 
 	return (
+		// <div>
+		// 	<h1>getOneItemUsage</h1>
+		// 	<h1>item name {name}</h1>
+		// 	<Link to={"/admin/material/item/usage"}>
+		// 		<button> return to usage </button>
+		// 	</Link>
+		// </div>
+
 		<>
 			{loading ? (
 				<div>
@@ -260,7 +277,7 @@ export default function AdminItemUsage() {
 										<td>
 											{/* on click make this go to a page that show  the users that have requested this material and also  allow them to bi filter by name and by date */}
 											{/* /material/item/${name} */}
-											<Link to={`/admin/material/item/usage/${encodeURIComponent(name)}`} onClick={() => console.log(name)}>
+											<Link to={`/admin/material/item/usage/${name}`} onClick={() => console.log(name)}>
 												{name}
 											</Link>
 										</td>
@@ -277,3 +294,5 @@ export default function AdminItemUsage() {
 		</>
 	);
 }
+
+export default GetOneItemUsage;

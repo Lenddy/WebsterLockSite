@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
 	const [loading, setLoading] = useState(true);
 	const [pageLoading, setPageLoading] = useState(false);
 	const currentRoutePath = location.pathname;
+
 	// Load token from localStorage on mount
 	useEffect(() => {
 		const storedToken = localStorage.getItem("userToken");
@@ -35,18 +36,18 @@ export const AuthProvider = ({ children }) => {
 		}
 	}, [userToken]);
 
-	// useEffect(() => {
-	// 	if (userToken) {
-	// 		localStorage.setItem("userToken", userToken);
+	useEffect(() => {
+		if (userToken) {
+			localStorage.setItem("userToken", userToken);
 
-	// 		// 🔥 Force WS reconnection with new token
-	// 		try {
-	// 			wsClient.dispose();
-	// 		} catch {}
-	// 	} else {
-	// 		localStorage.removeItem("userToken");
-	// 	}
-	// }, [userToken]);
+			// 🔥 Force WS reconnection with new token
+			// try {
+			// 	wsClient.dispose();
+			// } catch {}
+		} else {
+			localStorage.removeItem("userToken");
+		}
+	}, [userToken]);
 
 	// Decode the token to get the current user's ID
 	// const currentUserId = userToken ? jwtDecode(userToken).userId : null;

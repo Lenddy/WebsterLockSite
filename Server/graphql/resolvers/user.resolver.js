@@ -458,6 +458,7 @@ const userResolver = {
 			{ user, pubsub }
 		) => {
 			try {
+				console.log("users", user);
 				if (!user) throw new ApolloError("Unauthorized: No user context.");
 
 				const requesterRole = user.role;

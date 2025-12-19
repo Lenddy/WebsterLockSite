@@ -20,6 +20,7 @@ import AdminGetOneItem from "./component/Admin/item_Groups/AdminGetOneItem";
 import AdminCreateMultipleItemsGroups from "./component/Admin/item_Groups/AdminCreateMultipleItemGroups";
 import AdminUpdateMultipleItemsGroups from "./component/Admin/item_Groups/AdminUpdateMultipleItemGroups";
 import AdminItemUsage from "./component/Admin/item_Groups/AdminItemUsage";
+import GetOneItemUsage from "./component/Admin/item_Groups/GetOneItemUsage";
 
 // regular
 import RegisterUser from "./component/users/RegisterUser";
@@ -125,7 +126,10 @@ function App() {
 					{/* Material request routes */}
 					<Route path="/material/request/all" element={<GetAllMaterialRequest />} />
 					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest />} />
+
 					<Route path="/material/request/request" element={<CreateOneMaterialRequest />} />
+
+					<Route path="/admin/material/item/usage/:name" element={<GetOneItemUsage />} />
 					{/* <Route path="/test" element={<Test />} /> */}
 
 					<Route path="*" element={<NotFound to="/404" replace />} />

@@ -286,9 +286,14 @@ export default function AdminUpdateMultipleUsers() {
 					alert(t("users-have-been-updated"));
 					//ANCHOR - try to update the  users token  here if they match the id  start hare adminChangeMultipleUserProfiles.id and token
 					//TODO yo need to find a new way to update the users toke like using the subs to trigger  like you did before the auth update
-					if (res?.adminChangeMultipleUserProfiles?.id === logUser.id) {
-						localStorage.setItem("userToken", res?.adminChangeMultipleUserProfiles?.token);
-					}
+					console.log(res?.adminChangeMultipleUserProfiles?.id === logUser.id);
+					console.log("updated token", res?.adminChangeMultipleUserProfiles?.token);
+
+					// if (res?.adminChangeMultipleUserProfiles?.id === logUser.id) {
+
+					res?.adminChangeMultipleUserProfiles.map((u) => (u.id === logUser.id ? localStorage.setItem("userToken", u.token) : null));
+
+					// }
 				},
 				onError: (errRes) => {
 					// console.log("Mutation error:", errRes);

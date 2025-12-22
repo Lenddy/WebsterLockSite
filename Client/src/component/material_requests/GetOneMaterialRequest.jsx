@@ -166,6 +166,8 @@ export default function GetOneMaterialRequest() {
 		return ["headAdmin", "admin", "subAdmin"].includes(role);
 	};
 
+	console.log("what approval status is ", data?.getOneMaterialRequest?.approvalStatus?.isApproved);
+
 	if (authLoading || loading) return <h1>Loading...</h1>;
 
 	return (
@@ -297,20 +299,20 @@ export default function GetOneMaterialRequest() {
 						</div>
 
 						<div className="form-action-btn">
-							{/* not showing even tho it has not been re */}
-							{canReview() === false && mRequest?.approvalStatus?.isApproved !== null ? null : canReview() === true && mRequest?.approvalStatus?.isApproved === null ? (
+							{canReview() === true ? (
 								<Link to={`/material/request/${requestId}/update`}>
 									<button className="form-submit-btn" type="button">
 										{t("review")}
 									</button>
 								</Link>
-							) : !data?.getOneMaterialRequest?.approvalStatus?.isApproved ? (
+							) : canReview() === false && data?.getOneMaterialRequest?.approvalStatus?.isApproved === null ? (
 								<Link to={`/material/request/${requestId}/update`}>
 									<button className="form-submit-btn" type="button">
 										{t("update-request")}
 									</button>
 								</Link>
 							) : null}
+							{/* !canReview() === true && data?.getOneMaterialRequest?.approvalStatus?.isApproved !== null ? null : null} */}
 						</div>
 					</div>
 				</div>

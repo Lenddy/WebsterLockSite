@@ -14,6 +14,7 @@ import { UsersProvider } from "./context/UsersContext";
 import { ItemGroupsProvider } from "./context/ItemGroupContext";
 import { MaterialRequestsProvider } from "./context/MaterialRequestContext.jsx";
 import "../i18n.js";
+import AuthSubscriptionBridge from "./context/AuthSubscriptionBridge.jsx";
 
 const isBrave = (navigator.brave && navigator.brave.isBrave()) || false;
 if (isBrave) {
@@ -26,6 +27,7 @@ createRoot(document.getElementById("root")).render(
 	<AuthProvider>
 		<BrowserRouter>
 			<ApolloWrapper>
+				<AuthSubscriptionBridge />
 				<StrictMode>
 					<UsersProvider>
 						<ItemGroupsProvider>

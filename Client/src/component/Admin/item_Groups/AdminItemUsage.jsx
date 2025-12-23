@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useQuery, useSubscription } from "@apollo/client";
 import { get_all_material_requests } from "../../../../graphQL/queries/queries";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MATERIAL_REQUEST_CHANGE_SUBSCRIPTION } from "../../../../graphQL/subscriptions/subscriptions";
 import Fuse from "fuse.js";
 import dayjs from "dayjs";
@@ -9,8 +9,10 @@ import isBetween from "dayjs/plugin/isBetween";
 import { useTranslation } from "react-i18next";
 dayjs.extend(isBetween);
 import { useMaterialRequests } from "../../../context/MaterialRequestContext";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function AdminItemUsage() {
+	const { userToken, setPageLoading } = useAuth(); // get token from context
 	// const { error, loading, data } = useQuery(get_all_material_requests);
 	const [mRequests, setMRequests] = useState([]);
 	const { requests: allMRequests, loading, error } = useMaterialRequests();
@@ -21,6 +23,34 @@ export default function AdminItemUsage() {
 	const [searchValue, setSearchValue] = useState("");
 
 	const { t } = useTranslation();
+	const navigate = useNavigate();
+
+	const decodedUser = useMemo(() => {
+		if (!userToken) return null;
+		try {
+			return JSON.parse(atob(userToken.split(".")[1])); // simple JWT decode
+		} catch (err) {
+			console.error("Invalid token", err);
+			return null;
+		}
+	}, [userToken]);
+
+	const canUserReview = useMemo(() => {
+		if (!decodedUser) return false;
+
+		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+
+		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const isOwner = decodedUser.userId === userId;
+
+		return hasRole;
+	}, [decodedUser]);
+
+	useEffect(() => {
+		if (!canUserReview) {
+			navigate("/material/request/all", { replace: true });
+		}
+	}, [canUserReview, navigate]);
 
 	useEffect(() => {
 		if (allMRequests) {

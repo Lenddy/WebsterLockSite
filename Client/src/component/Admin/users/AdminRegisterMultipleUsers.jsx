@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useMutation } from "@apollo/client";
 import { useAuth } from "../../../context/AuthContext"; // use context
 import { register_multiple_Users } from "../../../../graphQL/mutations/mutations";
@@ -6,15 +6,43 @@ import { jwtDecode } from "jwt-decode";
 import Eye from "../../../assets/eye.svg?react";
 import CloseEye from "../../../assets/closeEye.svg?react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminRegisterMultipleUsers() {
 	const { userToken } = useAuth(); // get token from context
 	const [show, setShow] = useState(false);
 	const [success, setSuccess] = useState(false);
-
+	const navigate = useNavigate();
 	const lastRowRef = useRef(null);
 
 	const { t } = useTranslation();
+
+	const decodedUserCanView = useMemo(() => {
+		if (!userToken) return null;
+		try {
+			return JSON.parse(atob(userToken.split(".")[1])); // simple JWT decode
+		} catch (err) {
+			console.error("Invalid token", err);
+			return null;
+		}
+	}, [userToken]);
+
+	const canUserReview = useMemo(() => {
+		if (!decodedUserCanView) return false;
+
+		const role = typeof decodedUserCanView.role === "string" ? decodedUserCanView.role : decodedUserCanView.role?.role;
+
+		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const isOwner = decodedUserCanView.userId === userId;
+
+		return hasRole;
+	}, [decodedUserCanView]);
+
+	useEffect(() => {
+		if (!canUserReview) {
+			navigate("/material/request/all", { replace: true });
+		}
+	}, [canUserReview, navigate]);
 
 	const translatePermissionKey = (key) => {
 		const keys = {

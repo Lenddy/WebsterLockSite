@@ -1,19 +1,49 @@
 import { register_User } from "../../../graphQL/mutations/mutations";
 import { useMutation } from "@apollo/client";
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Eye from "../../assets/eye.svg?react";
 import CloseEye from "../../assets/closeEye.svg?react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../context/AuthContext";
 
 export default function RegisterUser() {
+	const { userToken, setPageLoading } = useAuth(); // Get current user token from context
+
 	const [info, setInfo] = useState({});
 	const [permission, setPermission] = useState({});
 	const [job, setJob] = useState({});
 	const navigate = useNavigate();
 	const [registerUser, { data, loading, error }] = useMutation(register_User);
 	const [show, setShow] = useState(false);
-	const t = useTranslation();
+	const { t } = useTranslation();
+
+	const decodedUser = useMemo(() => {
+		if (!userToken) return null;
+		try {
+			return JSON.parse(atob(userToken.split(".")[1])); // simple JWT decode
+		} catch (err) {
+			console.error("Invalid token", err);
+			return null;
+		}
+	}, [userToken]);
+
+	const canUserReview = useMemo(() => {
+		if (!decodedUser) return false;
+
+		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+
+		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const isOwner = decodedUser.userId === userId;
+
+		return hasRole;
+	}, [decodedUser]);
+
+	useEffect(() => {
+		if (!canUserReview) {
+			navigate("/material/request/all", { replace: true });
+		}
+	}, [canUserReview, navigate]);
 
 	// Function to handle input changes and update state accordingly
 	const SubmissionInfo = (e) => {

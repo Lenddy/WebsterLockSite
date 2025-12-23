@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useMutation } from "@apollo/client";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { admin_update_multiple_users } from "../../../../graphQL/mutations/mutations";
 import Select from "react-select";
 import Fuse from "fuse.js";
@@ -30,6 +30,34 @@ export default function AdminUpdateMultipleUsers() {
 	const { userId } = useParams();
 
 	const { t } = useTranslation();
+	const navigate = useNavigate();
+
+	const decodedUser = useMemo(() => {
+		if (!userToken) return null;
+		try {
+			return JSON.parse(atob(userToken.split(".")[1])); // simple JWT decode
+		} catch (err) {
+			console.error("Invalid token", err);
+			return null;
+		}
+	}, [userToken]);
+
+	const canUserReview = useMemo(() => {
+		if (!decodedUser) return false;
+
+		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+
+		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const isOwner = decodedUser.userId === userId;
+
+		return hasRole;
+	}, [decodedUser]);
+
+	useEffect(() => {
+		if (!canUserReview) {
+			navigate("/material/request/all", { replace: true });
+		}
+	}, [canUserReview, navigate]);
 
 	const translatePermissionKey = (key) => {
 		const keys = {

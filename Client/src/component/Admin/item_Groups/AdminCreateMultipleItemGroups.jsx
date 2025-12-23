@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useMutation } from "@apollo/client";
 import { create_multiple_itemGroups } from "../../../../graphQL/mutations/mutations";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function AdminCreateMultipleItemsGroups() {
+	const { userToken, setPageLoading } = useAuth(); // get token from context
+
 	const [message, setMessage] = useState("");
 	const [itemGroups, setItemGroups] = useState([
 		{
@@ -18,13 +21,39 @@ export default function AdminCreateMultipleItemsGroups() {
 		},
 	]);
 
+	const navigate = useNavigate();
 	const { t } = useTranslation();
+
+	const decodedUser = useMemo(() => {
+		if (!userToken) return null;
+		try {
+			return JSON.parse(atob(userToken.split(".")[1])); // simple JWT decode
+		} catch (err) {
+			console.error("Invalid token", err);
+			return null;
+		}
+	}, [userToken]);
+
+	const canUserReview = useMemo(() => {
+		if (!decodedUser) return false;
+
+		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+
+		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const isOwner = decodedUser.userId === userId;
+
+		return hasRole;
+	}, [decodedUser]);
+
+	useEffect(() => {
+		if (!canUserReview) {
+			navigate("/material/request/all", { replace: true });
+		}
+	}, [canUserReview, navigate]);
 
 	// const { loading, data, error, refetch } = useQuery(get_all_users);
 	// const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
 	const [createNewItemGroups] = useMutation(create_multiple_itemGroups);
-
-	const navigate = useNavigate();
 
 	// Add a new request (with one blank row)
 	const addItemGroup = () => {

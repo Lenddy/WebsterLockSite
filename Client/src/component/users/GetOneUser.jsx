@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery, useSubscription, gql } from "@apollo/client";
 import { get_one_user } from "../../../graphQL/queries/queries";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
@@ -27,6 +27,46 @@ export default function GetOneUser() {
 	const [btnActive, setBtnActive] = useState(false);
 
 	const { t } = useTranslation();
+
+	//REVIEW - you get a lot of alerts and also  a warning that the navigate  should be put inside of a use effect  find a way to  prevent this errors or just simply redirect  with out alert
+
+	const decodedUser = useMemo(() => {
+		if (!userToken) return null;
+		try {
+			return JSON.parse(atob(userToken.split(".")[1])); // simple JWT decode
+		} catch (err) {
+			console.error("Invalid token", err);
+			return null;
+		}
+	}, [userToken]);
+
+	const canUserReview = useMemo(() => {
+		if (!decodedUser || !userId) return false;
+
+		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+
+		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		const isOwner = decodedUser.userId === userId;
+
+		return hasRole || isOwner;
+	}, [decodedUser, userId]);
+
+	useEffect(() => {
+		if (!canUserReview) {
+			navigate("/material/request/all", { replace: true });
+		}
+	}, [canUserReview, navigate]);
+
+	// const canReview = () => {
+	// 	const token = decodedUser;
+	// 	const role = typeof token?.role === "string" ? token?.role : token?.role?.role;
+	// 	return ["headAdmin", "admin", "subAdmin"].includes(role);
+	// };
+
+	// if (canReview() !== true || jwtDecode(userToken).userId !== userId) {
+	// 	navigate("/material/request/all");
+	// 	alert("you dont have permission to be able to see this page");
+	// }
 
 	const { error, loading, data, refetch } = useQuery(get_one_user, {
 		variables: { id: userId },

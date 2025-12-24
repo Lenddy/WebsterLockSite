@@ -24,9 +24,12 @@ export default function GetOneMaterialRequest() {
 	const { t } = useTranslation();
 
 	const { data, loading, error } = useQuery(get_one_material_request, { variables: { id: requestId } });
+	// console.log("material data", data);
+
 	const { data: iGData } = useQuery(get_all_item_groups);
 
-	// decode token safely
+	// const canEdit = decodedUser?.permissions?.canEditUsers;
+
 	const decodedUser = useMemo(() => {
 		if (!userToken) return null;
 		try {
@@ -37,7 +40,22 @@ export default function GetOneMaterialRequest() {
 		}
 	}, [userToken]);
 
-	const canEdit = decodedUser?.permissions?.canEditUsers;
+	// const canUserReview = useMemo(() => {
+	// 	if (!decodedUser || !data?.requester?.userId) return false;
+
+	// 	const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+
+	// 	const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+	// 	const isOwner = decodedUser.userId === data.requester.userId;
+
+	// 	return hasRole || isOwner;
+	// }, [decodedUser, data?.requester?.userId]);
+
+	// useEffect(() => {
+	// 	if (!canUserReview) {
+	// 		navigate("/material/request/all", { replace: true });
+	// 	}
+	// }, [canUserReview, navigate]);
 
 	// Options
 	const colorOptions = [
@@ -297,20 +315,20 @@ export default function GetOneMaterialRequest() {
 						</div>
 
 						<div className="form-action-btn">
-							{/* not showing even tho it has not been re */}
-							{canReview() === false && mRequest?.approvalStatus?.isApproved !== null ? null : canReview() === true && mRequest?.approvalStatus?.isApproved === null ? (
+							{canReview() === true ? (
 								<Link to={`/material/request/${requestId}/update`}>
 									<button className="form-submit-btn" type="button">
 										{t("review")}
 									</button>
 								</Link>
-							) : !data?.getOneMaterialRequest?.approvalStatus?.isApproved ? (
+							) : canReview() === false && data?.getOneMaterialRequest?.approvalStatus?.isApproved === null ? (
 								<Link to={`/material/request/${requestId}/update`}>
 									<button className="form-submit-btn" type="button">
 										{t("update-request")}
 									</button>
 								</Link>
 							) : null}
+							{/* !canReview() === true && data?.getOneMaterialRequest?.approvalStatus?.isApproved !== null ? null : null} */}
 						</div>
 					</div>
 				</div>

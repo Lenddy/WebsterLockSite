@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useMutation } from "@apollo/client";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { admin_update_multiple_users } from "../../../../graphQL/mutations/mutations";
 import Select from "react-select";
 import Fuse from "fuse.js";
@@ -13,8 +13,10 @@ import Eye from "../../../assets/eye.svg?react";
 import CloseEye from "../../../assets/closeEye.svg?react";
 
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function AdminUpdateMultipleUsers() {
+	const { userToken, pageLoading, loading: userLoading } = useAuth();
 	const { users, loading, error } = useUsers();
 
 	const [show, setShow] = useState(false);
@@ -28,6 +30,34 @@ export default function AdminUpdateMultipleUsers() {
 	const { userId } = useParams();
 
 	const { t } = useTranslation();
+	const navigate = useNavigate();
+
+	const decodedUser = useMemo(() => {
+		if (!userToken) return null;
+		try {
+			return JSON.parse(atob(userToken.split(".")[1])); // simple JWT decode
+		} catch (err) {
+			console.error("Invalid token", err);
+			return null;
+		}
+	}, [userToken]);
+
+	const canUserReview = useMemo(() => {
+		if (!decodedUser) return false;
+
+		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+
+		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const isOwner = decodedUser.userId === userId;
+
+		return hasRole;
+	}, [decodedUser]);
+
+	useEffect(() => {
+		if (!canUserReview) {
+			navigate("/material/request/all", { replace: true });
+		}
+	}, [canUserReview, navigate]);
 
 	const translatePermissionKey = (key) => {
 		const keys = {
@@ -69,10 +99,10 @@ export default function AdminUpdateMultipleUsers() {
 			// locked: false, //ensure new rows are never locked
 		},
 	]);
-	// console.log(rows);
+	console.log("all rows", rows);
 
 	useEffect(() => {
-		setLogUser(jwtDecode(localStorage.getItem("userToken")));
+		setLogUser(jwtDecode(userToken));
 		if (lastRowRef.current) {
 			lastRowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
 		}
@@ -255,29 +285,43 @@ export default function AdminUpdateMultipleUsers() {
 		try {
 			await adminChangeMultipleUserProfiles({
 				variables: {
-					inputs: rows.map((row) => ({
-						id: row?.id,
-						name: row?.name,
-						previousEmail: row?.previousEmail,
-						newEmail: row?.newEmail,
-						previousPassword: row?.previousPassword,
-						newPassword: row?.newPassword,
-						confirmNewPassword: row?.confirmNewPassword,
-						newRole: row?.newRole,
-						employeeNum: row?.employeeNum,
-						department: row?.department,
-						job: {
-							title: row?.title,
-							description: row?.description,
-						},
-						newPermissions: row?.newPermissions,
-					})),
+					inputs: rows.map((row) => {
+						const { __typename, ...cleanPermissions } = row?.newPermissions || {};
+
+						return {
+							id: row?.id,
+							name: row?.name,
+							previousEmail: row?.previousEmail,
+							newEmail: row?.newEmail,
+							previousPassword: row?.previousPassword,
+							newPassword: row?.newPassword,
+							confirmNewPassword: row?.confirmNewPassword,
+							newRole: row?.newRole,
+							employeeNum: row?.employeeNum,
+							department: row?.department,
+							job: {
+								title: row?.title,
+								description: row?.description,
+							},
+							newPermissions: cleanPermissions,
+						};
+					}),
 				},
 				onCompleted: (res) => {
-					// console.log("Mutation success:", res);
+					console.log("Mutation success:", res);
 
 					setSuccess({ success: true, update: "Update has been completed" });
 					alert(t("users-have-been-updated"));
+					//ANCHOR - try to update the  users token  here if they match the id  start hare adminChangeMultipleUserProfiles.id and token
+					//TODO yo need to find a new way to update the users toke like using the subs to trigger  like you did before the auth update
+					console.log(res?.adminChangeMultipleUserProfiles?.id === logUser.id);
+					console.log("updated token", res?.adminChangeMultipleUserProfiles?.token);
+
+					// if (res?.adminChangeMultipleUserProfiles?.id === logUser.id) {
+
+					res?.adminChangeMultipleUserProfiles.map((u) => (u.id === logUser.id ? localStorage.setItem("userToken", u.token) : null));
+
+					// }
 				},
 				onError: (errRes) => {
 					// console.log("Mutation error:", errRes);
@@ -285,7 +329,7 @@ export default function AdminUpdateMultipleUsers() {
 			});
 			// console.log(" Users updated");
 		} catch (err) {
-			// console.error(" Error updating users:", err);
+			console.error(" Error updating users:", err);
 		}
 	};
 

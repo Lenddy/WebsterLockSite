@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
 	const [loading, setLoading] = useState(true);
 	const [pageLoading, setPageLoading] = useState(false);
 	const currentRoutePath = location.pathname;
+
 	// Load token from localStorage on mount
 	useEffect(() => {
 		const storedToken = localStorage.getItem("userToken");
@@ -35,18 +36,18 @@ export const AuthProvider = ({ children }) => {
 		}
 	}, [userToken]);
 
-	// useEffect(() => {
-	// 	if (userToken) {
-	// 		localStorage.setItem("userToken", userToken);
+	useEffect(() => {
+		if (userToken) {
+			localStorage.setItem("userToken", userToken);
 
-	// 		// 🔥 Force WS reconnection with new token
-	// 		try {
-	// 			wsClient.dispose();
-	// 		} catch {}
-	// 	} else {
-	// 		localStorage.removeItem("userToken");
-	// 	}
-	// }, [userToken]);
+			// 🔥 Force WS reconnection with new token
+			// try {
+			// 	wsClient.dispose();
+			// } catch {}
+		} else {
+			localStorage.removeItem("userToken");
+		}
+	}, [userToken]);
 
 	// Decode the token to get the current user's ID
 	// const currentUserId = userToken ? jwtDecode(userToken).userId : null;
@@ -119,83 +120,3 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
-
-// previous context
-
-// // AuthContext.jsxpp
-// import React, { createContext, useState, useEffect, useContext } from "react";
-
-// const AuthContext = createContext(null);
-
-// export const AuthProvider = ({ children }) => {
-// 	const [userToken, setUserToken] = useState(null);
-// 	const [loading, setLoading] = useState(true); // auth initialization loading
-// 	const [pageLoading, setPageLoading] = useState(false); // <-- NEW: track app/page data loading
-
-// 	// Load token from localStorage on first mount
-// 	useEffect(() => {
-// 		const storedToken = localStorage.getItem("UserToken");
-// 		if (storedToken) {
-// 			setUserToken(storedToken);
-// 		}
-// 		setLoading(false); // done initializing
-// 	}, []);
-
-// 	// Sync changes to localStorage
-// 	useEffect(() => {
-// 		if (userToken) {
-// 			localStorage.setItem("UserToken", userToken);
-// 		} else {
-// 			localStorage.removeItem("UserToken");
-// 		}
-// 	}, [userToken]);
-
-// 	return (
-// 		<AuthContext.Provider
-// 			value={{
-// 				userToken,
-// 				setUserToken,
-// 				loading, // auth loading
-// 				pageLoading, // <-- new
-// 				setPageLoading, // <-- new
-// 			}}>
-// 			{children}
-// 		</AuthContext.Provider>
-// 	);
-// };
-
-// // custom hook
-// export const useAuth = () => useContext(AuthContext);
-
-// !!! old user context
-// import React, { createContext, useState, useEffect, useContext } from "react";
-
-// const AuthContext = createContext(null);
-
-// export const AuthProvider = ({ children }) => {
-// 	const [userToken, setUserToken] = useState(null);
-// 	const [loading, setLoading] = useState(true); //  new
-
-// 	// Load token from localStorage on first mount
-// 	useEffect(() => {
-// 		const storedToken = localStorage.getItem("UserToken");
-// 		if (storedToken) {
-// 			setUserToken(storedToken);
-// 		}
-// 		setLoading(false); //  done initializing
-// 	}, []);
-
-// 	// Sync changes to localStorage
-// 	useEffect(() => {
-// 		if (userToken) {
-// 			localStorage.setItem("UserToken", userToken);
-// 		} else {
-// 			localStorage.removeItem("UserToken");
-// 		}
-// 	}, [userToken]);
-
-// 	return <AuthContext.Provider value={{ userToken, setUserToken, loading }}>{children}</AuthContext.Provider>;
-// };
-
-// // custom hook
-// export const useAuth = () => useContext(AuthContext);

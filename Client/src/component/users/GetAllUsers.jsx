@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery, useSubscription, gql } from "@apollo/client";
 import { get_all_users } from "../../../graphQL/queries/queries";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { USER_CHANGE_SUBSCRIPTION } from "../../../graphQL/subscriptions/subscriptions";
 import Fuse from "fuse.js";
 import Modal from "../Modal";
@@ -9,12 +9,15 @@ import { useAuth } from "../../context/AuthContext"; // <-- use context here
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
 import { useUsers } from "../../context/UsersContext";
+// import { needReload } from "../../../graphQL/apolloClient";
 
 export default function GetAllUsers() {
 	const { userToken, setPageLoading } = useAuth(); // Get current user token from context
 	const [logUser, setLogUser] = useState(null);
 
 	const { users, loading, error } = useUsers();
+
+	// console.log("does the page needs a reload ? ", needReload);
 
 	// const { error, loading, data, refetch } = useQuery(get_all_users, {
 	// 	fetchPolicy: "cache-and-network",
@@ -26,6 +29,34 @@ export default function GetAllUsers() {
 	const [selectedUser, setSelectedUser] = useState(null);
 
 	const { t } = useTranslation();
+	const navigate = useNavigate();
+
+	const decodedUser = useMemo(() => {
+		if (!userToken) return null;
+		try {
+			return JSON.parse(atob(userToken.split(".")[1])); // simple JWT decode
+		} catch (err) {
+			console.error("Invalid token", err);
+			return null;
+		}
+	}, [userToken]);
+
+	const canUserReview = useMemo(() => {
+		if (!decodedUser) return false;
+
+		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+
+		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const isOwner = decodedUser.userId === userId;
+
+		return hasRole;
+	}, [decodedUser]);
+
+	useEffect(() => {
+		if (!canUserReview) {
+			navigate("/material/request/all", { replace: true });
+		}
+	}, [canUserReview, navigate]);
 
 	// Decode token once from context
 	useEffect(() => {
@@ -228,6 +259,11 @@ export default function GetAllUsers() {
 		return false;
 	};
 
+	const closeModal = () => {
+		setIsOpen(false);
+		setSelectedUser(null);
+	};
+
 	return (
 		<>
 			{loading ? (
@@ -311,8 +347,10 @@ export default function GetAllUsers() {
 							</tbody>
 						</table>
 					</div>
-
-					<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={selectedUser} />
+					{/*  onClose={() => setIsOpen(false)} */}
+					{/* //NOTE - i lost connection to then subs when i use the new code to close the modal after deletion  if i go back tot he old code it works normaly but the modal does not close  so figure out how to close the modal with out  breaking the subs  */}
+					{/* <Modal isOpen={isOpen} onClose={closeModal} data={selectedUser} setIsOpen={setIsOpen} /> */}
+					<Modal isOpen={isOpen} onClose={closeModal} data={selectedUser} setIsOpen={setIsOpen} setSelectedUser={setSelectedUser} />
 				</div>
 			)}
 			{error && <p style={{ color: "red" }}>{error.message}</p>}

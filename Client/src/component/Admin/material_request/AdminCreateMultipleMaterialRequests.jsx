@@ -15,15 +15,12 @@ import { useDebounce } from "use-debounce";
 import { useTranslation } from "react-i18next";
 import { useItemGroups } from "../../../context/ItemGroupContext";
 // const [items, setItems] = useState([]);
+import { useAuth } from "../../../context/AuthContext";
 
 export default function AdminCreateMultipleMaterialRequests() {
-	// const [users, setUsers] = useState([]);
+	const { userToken, pageLoading, loading: userLoading } = useAuth();
 	const { users, loading, error } = useUsers();
-	// const [itemGroups, setItemGroups] = useState([]);
-
-	// const [items, setItems] = useState([]);
 	const { items: itemGroups, loading: iGLoading, error: iGError } = useItemGroups();
-
 	const [requests, setRequests] = useState([
 		{
 			addedDate: "",
@@ -63,9 +60,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 			},
 		},
 	]);
-
-	// const { loading, data, error, refetch } = useQuery(get_all_users);
-	// const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
 	const [createNewMaterialRequests] = useMutation(create_multiple_material_requests);
 	const [searchValue, setSearchValue] = useState("");
 	const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
@@ -74,30 +68,32 @@ export default function AdminCreateMultipleMaterialRequests() {
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 
-	// useEffect(() => {
-	// setLogUser(jwtDecode(localStorage.getItem("UserToken")));
-	// if (iGLoading) console.log("loading");
-	// if (loading) {
-	// 	console.log("loading");
-	// }
-	// if (data) {
-	// 	// console.log(data.getAllUsers);
-	// 	setUsers(data.getAllUsers);
-	// }
-	// if (iGData) {
-	// 	// console.log("this are the itemGroups", iGData?.getAllItemGroups || []);
-	// 	// store the fetched groups so we can build brands and items
-	// 	setItemGroups(iGData?.getAllItemGroups || []);
-	// }
-	// if (error) {
-	// 	// console.log("there was an error", error);
-	// }
-	// if (iGError) {
-	// 	console.log("there was an error", iGError);
-	// }
-	// const fetchData = async () => {
-	// , data
-	// }, [loading, iGLoading, itemGroups]);
+	const decodedUser = useMemo(() => {
+		if (!userToken) return null;
+		try {
+			return JSON.parse(atob(userToken.split(".")[1])); // simple JWT decode
+		} catch (err) {
+			console.error("Invalid token", err);
+			return null;
+		}
+	}, [userToken]);
+
+	const canUserReview = useMemo(() => {
+		if (!decodedUser) return false;
+
+		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+
+		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const isOwner = decodedUser.userId === userId;
+
+		return hasRole;
+	}, [decodedUser]);
+
+	useEffect(() => {
+		if (!canUserReview) {
+			navigate("/material/request/all", { replace: true });
+		}
+	}, [canUserReview, navigate]);
 
 	// Add a new request (with one blank row)
 	const addRequest = () => {

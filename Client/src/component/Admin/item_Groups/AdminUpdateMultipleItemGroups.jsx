@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import Select from "react-select";
 import Fuse from "fuse.js";
 import { get_all_item_groups, get_one_item_group } from "../../../../graphQL/queries/queries";
 import { update_multiple_itemGroups } from "../../../../graphQL/mutations/mutations";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useItemGroups } from "../../../context/ItemGroupContext";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function AdminUpdateMultipleItemsGroups() {
+	const { userToken, setPageLoading } = useAuth(); // get token from context
 	const [oldItemGroups, setOldItemGroups] = useState([]);
 
 	const [selectedGroups, setSelectedGroups] = useState([]);
@@ -28,6 +30,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 	const { items: allData, loading: loadingAll, error: errorAll } = useItemGroups();
 
 	const { t } = useTranslation();
+	const navigate = useNavigate();
 
 	const {
 		loading: loadingOne,
@@ -39,6 +42,33 @@ export default function AdminUpdateMultipleItemsGroups() {
 	});
 
 	const [updateItemGroups] = useMutation(update_multiple_itemGroups);
+
+	const decodedUser = useMemo(() => {
+		if (!userToken) return null;
+		try {
+			return JSON.parse(atob(userToken.split(".")[1])); // simple JWT decode
+		} catch (err) {
+			console.error("Invalid token", err);
+			return null;
+		}
+	}, [userToken]);
+
+	const canUserReview = useMemo(() => {
+		if (!decodedUser) return false;
+
+		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+
+		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const isOwner = decodedUser.userId === userId;
+
+		return hasRole;
+	}, [decodedUser]);
+
+	useEffect(() => {
+		if (!canUserReview) {
+			navigate("/material/request/all", { replace: true });
+		}
+	}, [canUserReview, navigate]);
 
 	//  Handle when all item groups are fetched (no param mode)
 	useEffect(() => {

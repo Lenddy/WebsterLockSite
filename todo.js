@@ -1,16 +1,25 @@
-// # TODO List (Prioritized)
+// ANCHORs - Used to indicate a section in your file
+// TODOs - An item that is awaiting completion
+// FIXMEs - An item that requires a bugfix
+// STUBs - Used for generated default snippets
+// NOTEs - An important note for a specific code section
+// REVIEWs - An item that requires additional review
+// SECTIONs - Used to define a region (See 'Hierarchical anchors')
+// LINKs - Used to link to a file that can be opened within the editor (See 'Link Anchors')
 
-// ## 🔥 High Priority – Critical Fixes
-// [ ] Combine providers for users and items
+//TODO List (Prioritized)
+
+//TODO 🔥 High Priority – Critical Fixes
+// [x] Combine providers for users , request ,and items
 // [ ] Verify user is updated and ensure getAll still works with new fetching logic
 // [ ] Fix update-as-tech issue: Material Request update not reflected on GetOne view
 // [ ] Fix GraphQL PubSub error: "Cannot read properties of undefined (reading 'id')"
-// [ ] Ensure refetch only happens when needed; prevent unnecessary API calls
-// [ ] Prevent restricted routes from appearing
+// [x] Ensure refetch only happens when needed; prevent unnecessary API calls
+// [x] Prevent restricted routes from appearing
 //   - [ ] /user/userID
 //   - [ ] /admin/user/register
-// [ ] Fix refetch logic so each screen refetches ONLY its active data
-// [ ] Ensure new users appear to the creator via cache update
+// [x] Fix refetch logic so each screen refetches ONLY its active data
+// [] Ensure new users appear to the creator via cache update
 //   - [ ] Also apply to item groups
 // [ ] Add new pubsub triggers to backend & frontend
 // [ ] Add GraphQL validation on Create Item
@@ -19,7 +28,7 @@
 // [ ] Fix route mismatch error
 //   - [ ] Cast to ObjectId failed for “allsdjfksjdf”
 
-// ## ⚙️ Backend / Redis / Indexing
+//TODO ⚙️ Backend / Redis / Indexing
 // [ ] Add Redis index for users
 //   - [ ] Use hash + set pattern
 //   - [ ] Map user ID to hash lookup
@@ -28,19 +37,21 @@
 // [ ] Build "index" for Material Request (similar to redis demo)
 // [ ] Improve backend logs & provider merging
 
-// ## 🧪 Validation, Errors, UX
+//TODO 🧪 Validation, Errors, UX
 // [ ] GraphQL errors must appear directly under component inputs
 // [ ] All validation UI messages should render under inputs
 // [ ] Add toast notifications globally
 
-// ## 🧭 Routing Improvements
+//TODO 🧭 Routing Improvements
 // [ ] Create index route for /material/request/request
 //   - [ ] CreateOneMaterialRequest component
 // [ ] Fix pattern conflicts between:
 //   - [ ] /material/request/all
 //   - [ ] /material/request/:requestId/update?
 
-// ## 🗂 UI & Data Display
+//TODO 🗂 UI & Data Display
+//[ ] make sure all the ux/ui works as intended
+
 // ### Users
 // [ ] Allow users to edit their own profile
 // [ ] Show error messages centered on tables

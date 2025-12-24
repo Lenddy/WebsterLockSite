@@ -689,6 +689,7 @@ const userResolver = {
 
 		// Delete a user
 		deleteOneUser: async (_, { id }, { user, pubsub }) => {
+			console.log(" deleting user with id:", id);
 			if (!user) throw new Error("Unauthorized: No context provided."); // Check authentication
 
 			const isSelf = user.userId.toString() === id; // Check if deleting self

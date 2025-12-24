@@ -6,7 +6,8 @@ import { useAuth } from "../context/AuthContext";
 import doorHanding from "../assets/doorHanding.jpg";
 import { useTranslation } from "react-i18next";
 
-const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
+// const Modal = ({ isOpen, onClose, onConFirm, data, loading, setIsOpen }) => {
+const Modal = ({ isOpen, onClose, data, setIsOpen, setSelectedUser, onConFirm, loading }) => {
 	const { userToken } = useAuth(); // get currentUser and token from context
 	const location = useLocation();
 	const [content, setContent] = useState(null);
@@ -275,7 +276,7 @@ const Modal = ({ isOpen, onClose, onConFirm, data, loading }) => {
 									</Link>
 								</div>
 								<div className="model-btn-delete">
-									<DeleteOneUser userId={content?.value?.id} />
+									<DeleteOneUser userId={content?.value?.id} setIsOpen={setIsOpen} setSelectedUser={setSelectedUser} />
 								</div>
 							</>
 						)}

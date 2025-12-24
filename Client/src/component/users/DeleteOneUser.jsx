@@ -4,7 +4,7 @@ import { useMutation } from "@apollo/client";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-export default function DeleteOneUser({ userId, btnActive }) {
+export default function DeleteOneUser({ userId, btnActive, setIsOpen, setSelectedUser }) {
 	const [deleteOneUser, { data: UpdateData, loading: updateLoading, error: updateError }] = useMutation(delete_one_user);
 
 	const { t } = useTranslation();
@@ -20,6 +20,9 @@ export default function DeleteOneUser({ userId, btnActive }) {
 					// console.log("admin updateMutation success:", result);
 					// console.log;
 					alert(t("user-deleted-successfully"));
+					setIsOpen(false);
+					setSelectedUser(null); //
+					// console.log("this is the the set is open in the delete one user component" , )
 				},
 			});
 

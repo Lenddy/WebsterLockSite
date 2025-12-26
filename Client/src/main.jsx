@@ -15,16 +15,34 @@ import { ItemGroupsProvider } from "./context/ItemGroupContext";
 import { MaterialRequestsProvider } from "./context/MaterialRequestContext.jsx";
 import "../i18n.js";
 import AuthSubscriptionBridge from "./context/AuthSubscriptionBridge.jsx";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const isBrave = (navigator.brave && navigator.brave.isBrave()) || false;
 if (isBrave) {
-	alert("Brave browser detected. Please disable Shields by clicking the lion icon  and reload the page or you wont be able to get live data (latest data automatically) .");
+	//REVIEW use translations
+	toast("Brave browser detected. Please disable Shields by clicking the lion icon  and reload the page or you wont be able to get live data (latest data automatically) .", {
+		position: "top-left",
+		autoClose: false,
+		// hideProgressBar: false,
+		closeOnClick: true,
+		pauseOnHover: true,
+		draggable: true,
+		progress: undefined,
+		// theme: "light",
+		// transition: Bounce,
+	});
+}
+
+{
+	/* your routes / layout */
 }
 
 //  Render app
 createRoot(document.getElementById("root")).render(
 	// <ApolloProvider client={client}>
 	<AuthProvider>
+		<ToastContainer position="top-left" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick pauseOnHover draggable pauseOnFocusLoss />
 		<BrowserRouter>
 			<ApolloWrapper>
 				<AuthSubscriptionBridge />

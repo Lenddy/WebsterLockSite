@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../context/AuthContext";
+import { toast } from "react-toastify";
 
 export default function AdminCreateMultipleItemsGroups() {
 	const { userToken, setPageLoading } = useAuth(); // get token from context
@@ -124,7 +125,7 @@ export default function AdminCreateMultipleItemsGroups() {
 					// console.log("Mutation success:", res.createMultipleItemGroups);
 					// newMr =
 					// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
-					alert(t("Item-groups-added-successfully"));
+					toast.success(t("Item-groups-added-successfully"));
 					setMessage("New Item Groups have been added");
 				},
 				onError: (err) => {
@@ -132,6 +133,7 @@ export default function AdminCreateMultipleItemsGroups() {
 					// newMr =
 					// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
 					setMessage("error:", err);
+					toast.success(t("Item-groups-added-successfully"));
 				},
 			});
 		} catch (err) {

@@ -8,6 +8,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useItemGroups } from "../../../context/ItemGroupContext";
 import { useAuth } from "../../../context/AuthContext";
+import { toast } from "react-toastify";
 
 export default function AdminUpdateMultipleItemsGroups() {
 	const { userToken, setPageLoading } = useAuth(); // get token from context
@@ -189,11 +190,65 @@ export default function AdminUpdateMultipleItemsGroups() {
 		setSelectedGroups((prev) => prev.filter((_, idx) => idx !== groupIdx));
 	};
 
+	// const submit = async (e) => {
+	// 	e.preventDefault();
+
+	// 	if (!changesMade) {
+	// 		toast.success(t("no-changes-made"));
+	// 		return;
+	// 	}
+
+	// 	const input = selectedGroups
+	// 		.filter((g) => g.id)
+	// 		.map((g) => {
+	// 			const groupPayload = { id: g.id };
+	// 			if (g.brandAction?.toBeUpdated) {
+	// 				groupPayload.brand = g.brand;
+	// 				groupPayload.brandNameUpdate = true;
+	// 			}
+
+	// 			const changedItems = g.itemsList
+	// 				.filter((item) => item.action?.toBeAdded || item.action?.toBeUpdated || item.action?.toBeDeleted)
+	// 				.map((item) => {
+	// 					const payload = { action: {} };
+	// 					if (item.id) payload.id = item.id;
+	// 					if (item.itemName && (item.action?.toBeAdded || item.action?.toBeUpdated)) {
+	// 						payload.itemName = item.itemName;
+	// 					}
+	// 					if (item.action?.toBeAdded) payload.action.toBeAdded = true;
+	// 					if (item.action?.toBeUpdated) payload.action.toBeUpdated = true;
+	// 					if (item.action?.toBeDeleted) payload.action.toBeDeleted = true;
+	// 					return payload;
+	// 				});
+
+	// 			if (changedItems.length > 0) groupPayload.itemsList = changedItems;
+	// 			return groupPayload;
+	// 		})
+	// 		.filter((g) => g.brand || g.brandNameUpdate || g.itemsList);
+
+	// 	if (input.length === 0) {
+	// 		alert(t("no-real-changes-to-submit"));
+	// 		return;
+	// 	}
+
+	// 	console.log("Submitting:", input);
+
+	// 	await updateItemGroups({
+	// 		variables: { input },
+	// 		onCompleted: (res) => {
+	// 			alert(t("item-groups-have-been-updated-successfully"));
+	// 			// alert("Item Groups have been Updated successfully!");
+	// 			//  console.log("Success:", res)
+	// 		},
+	// 		onError: (err) => console.error("Error:", err),
+	// 	});
+	// };
+
 	const submit = async (e) => {
 		e.preventDefault();
 
 		if (!changesMade) {
-			alert(t("no-changes-made"));
+			toast.info(t("no-changes-made"));
 			return;
 		}
 
@@ -201,6 +256,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 			.filter((g) => g.id)
 			.map((g) => {
 				const groupPayload = { id: g.id };
+
 				if (g.brandAction?.toBeUpdated) {
 					groupPayload.brand = g.brand;
 					groupPayload.brandNameUpdate = true;
@@ -210,13 +266,16 @@ export default function AdminUpdateMultipleItemsGroups() {
 					.filter((item) => item.action?.toBeAdded || item.action?.toBeUpdated || item.action?.toBeDeleted)
 					.map((item) => {
 						const payload = { action: {} };
+
 						if (item.id) payload.id = item.id;
 						if (item.itemName && (item.action?.toBeAdded || item.action?.toBeUpdated)) {
 							payload.itemName = item.itemName;
 						}
+
 						if (item.action?.toBeAdded) payload.action.toBeAdded = true;
 						if (item.action?.toBeUpdated) payload.action.toBeUpdated = true;
 						if (item.action?.toBeDeleted) payload.action.toBeDeleted = true;
+
 						return payload;
 					});
 
@@ -226,20 +285,42 @@ export default function AdminUpdateMultipleItemsGroups() {
 			.filter((g) => g.brand || g.brandNameUpdate || g.itemsList);
 
 		if (input.length === 0) {
-			alert(t("no-real-changes-to-submit"));
+			toast.warn(t("no-real-changes-to-submit"));
 			return;
 		}
 
 		console.log("Submitting:", input);
 
-		await updateItemGroups({
+		const mutationPromise = updateItemGroups({
 			variables: { input },
-			onCompleted: (res) => {
-				alert(t("item-groups-have-been-updated-successfully"));
-				// alert("Item Groups have been Updated successfully!");
-				//  console.log("Success:", res)
+		});
+
+		toast.promise(mutationPromise, {
+			pending: t("updating-item-groups"),
+			success: {
+				render({ data }) {
+					return t("item-groups-have-been-updated-successfully");
+				},
 			},
-			onError: (err) => console.error("Error:", err),
+			error: {
+				render({ data }) {
+					// Apollo error object
+					const err = data;
+
+					// 1️ GraphQL errors array
+					if (err?.graphQLErrors?.length) {
+						return err.graphQLErrors.map((e) => e.message).join(", ");
+					}
+
+					// 2️ Network error
+					if (err?.networkError) {
+						return t("network-error-try-again");
+					}
+
+					// 3️ Fallback
+					return t("something-went-wrong");
+				},
+			},
 		});
 	};
 

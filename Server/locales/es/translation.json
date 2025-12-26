@@ -195,5 +195,14 @@
 	"material-request-will-be-deleted": "Solicitud del material va hacer borrada",
 	"will-be-approve": "Sera aprobada",
 	"will-be-deny": "Sera negada",
-	"request-already-reviewed": "No puedes editar esta solicitud, ya a sido revisada"
+	"request-already-reviewed": "No puedes editar esta solicitud, ya a sido revisada",
+	"updating-item-groups": "",
+	"network-error-try-again": "",
+	"something-went-wrong": "",
+	"duplicate-request-warning": "",
+	"go-to-list": "",
+	"stay-and-create-another": "",
+	"warning-duplicate-request": "",
+	"creating-material-request": "",
+	"duplicate-request": ""
 }

@@ -196,13 +196,13 @@
 	"will-be-approve": "Will be approve",
 	"will-be-deny": "Will be deny",
 	"request-already-reviewed": "You cant edit this request anymore, it has already been reviewed",
-	"updating-item-groups": "",
-	"network-error-try-again": "",
-	"something-went-wrong": "",
-	"duplicate-request-warning": "",
-	"go-to-list": "",
-	"stay-and-create-another": "",
-	"warning-duplicate-request": "",
-	"creating-material-request": "",
-	"duplicate-request": ""
+
+	"updating-item-groups": "Updating items",
+	"network-error-try-again": "Network error, try again",
+	"something-went-wrong": "Something went wrong",
+	"duplicate-request-warning": "Warning you are sending the same request no action was taken",
+	"view-all-request": "view requests",
+	"make-another-request": "Make another request",
+	"creating-material-request": "Make another request",
+	"duplicated-request": "Duplicated request"
 }

@@ -9,6 +9,7 @@ import DeleteOneUser from "./DeleteOneUser";
 import { useAuth } from "../../context/AuthContext"; // <-- use context
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 // import { useUsers } from "../../../context/UsersContext";
 
 export default function GetOneUser() {
@@ -124,14 +125,15 @@ export default function GetOneUser() {
 							...targetChange,
 						}));
 						if (currentRoutePath === `/user/${userId}`) {
-							alert(t("user-has-been-updated"));
+							toast.update(t("user-has-been-updated"));
 						}
 					}
 
 					if (eventType === "deleted") {
 						// const isAmin = ["headAdmin","admin","subAdmin"]
 						//  jwtDecode(userToken)?.role?.includes(isAmin)?
-						alert(t("user-has-been-deleted-you-will-be-redirected-to-see-all-user"));
+						// TODO - make logic so that the users get redirected when the notification fades or they can click a btn  to stay or be redirected  be redirected if they stay  they cant edit or do anything else  show a notification that says this
+						toast.error(t("user-has-been-deleted-you-will-be-redirected-to-see-all-user"));
 						navigate("/user/all");
 					}
 				}

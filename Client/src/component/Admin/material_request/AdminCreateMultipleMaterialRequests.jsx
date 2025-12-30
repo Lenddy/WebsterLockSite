@@ -323,33 +323,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 	//  Submit validation
 	const canSubmit = canAddMore; // since it's the same rule for "everything filled"
 
-	// const SuccessToast = ({ closeToast }) => (
-	// 	<div>
-	// 		<p>{t("material-requests-have-been-requested-successfully")}</p>
-
-	// 		<div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
-	// 			<button
-	// 				onClick={() => {
-	// 					closeToast();
-	// 					navigate("/material/request/all");
-	// 				}}>
-	// 				{t("go-to-list")}
-	// 			</button>
-
-	// 			<button
-	// 				onClick={() => {
-	// 					resetForm();
-	// 					setHasSubmitted(true);
-	// 					closeToast();
-	// 				}}>
-	// 				{t("stay-and-create-another")}
-	// 			</button>
-	// 		</div>
-
-	// 		<p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("warning-duplicate-request")}</p>
-	// 	</div>
-	// );
-
 	// REVIEW -      make the btn works (not brake the page )  and also dont allow a the users to click the submit btn  (see if you can overwrite the state variable on te component settings of the browser)and add the new translation
 
 	//TODO - if a request is made notify the users that is has succeeded/ fail (done )
@@ -390,82 +363,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 			{/* <p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("duplicate-request")}</p> */}
 		</div>
 	);
-
-	// const submit = async (e) => {
-	// 	e.preventDefault();
-	// 	// try {
-	// 	const inputs = requests.map((r) => ({
-	// 		// addedDate: r.addedDate,
-	// 		addedDate: dayjs(r?.addedDate).toISOString(),
-	// 		description: r?.description || null,
-	// 		items: r?.items.map((i) => ({
-	// 			quantity: parseInt(i?.quantity),
-	// 			itemName: i?.item?.value,
-	// 			color: i?.color || null,
-	// 			side: i?.side || null,
-	// 			size: i?.size || null,
-	// 			itemDescription: i?.itemDescription || null,
-	// 		})),
-	// 		requester: r.requester,
-	// 	}));
-
-	// 	console.log("this is the input that are send  ", inputs);
-
-	// 	const mutationPromise = createNewMaterialRequests({
-	// 		variables: { inputs },
-	// 	});
-
-	// 	toast.promise(mutationPromise, {
-	// 		pending: t("creating-material-request"),
-	// 		success: {
-	// 			render({ data }) {
-	// 				console.log("this is the data from he promise", data);
-	// 				//REVIEW - concat the amount (length) from data with the  translation
-	// 				return t("material-requests-have-been-requested-successfully");
-	// 			},
-	// 		},
-	// 		error: {
-	// 			render({ data }) {
-	// 				// Apollo error object
-	// 				const err = data;
-
-	// 				// 1️ GraphQL errors array
-	// 				if (err?.graphQLErrors?.length) {
-	// 					return err.graphQLErrors.map((e) => e.message).join(", ");
-	// 				}
-
-	// 				// 2️ Network error
-	// 				if (err?.networkError) {
-	// 					return t("network-error-try-again");
-	// 				}
-
-	// 				// 3️ Fallback
-	// 				return t("something-went-wrong");
-	// 			},
-	// 		},
-	// 	});
-
-	// 	// onCompleted: (res) => {
-	// 	// 	// console.log("Mutation success on the create multiple:", res.createMultipleMaterialRequests);
-	// 	// 	// newMr =
-	// 	// 	alert(t("material-requests-have-been-requested-successfully"));
-	// 	// 	navigate(`/material/request/all`);
-	// 	// },
-	// 	// onError: (err) => {
-	// 	// 	console.warn("Mutation error:", err);
-	// 	// 	// newMr =
-	// 	// 	// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
-	// 	// },
-	// 	// });
-
-	// 	// } catch (err) {
-	// 	// 	console.error("Submit error:", err);
-	// 	// }
-	// };
-
-	// const [showOptional, setShowOptional] = useState(false);
-
-	// NOTE - the warning is only supposed to show if the form is not clear (shoit like you are doint it now )
 
 	const submit = async (e) => {
 		e.preventDefault();
@@ -540,7 +437,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 
 			// 		return t("something-went-wrong");
 			// 	},
-			// 	autoClose: false, // required
+			// 	Haz otra solicitudautoClose: false, // required
 			// },
 
 			error: {
@@ -549,6 +446,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 					if (err?.graphQLErrors?.length) {
 						return err.graphQLErrors.map((e) => e.message).join(", ");
 					}
+					// come here
 					if (err?.networkError) return t("network-error-try-again");
 					return t("something-went-wrong");
 				},

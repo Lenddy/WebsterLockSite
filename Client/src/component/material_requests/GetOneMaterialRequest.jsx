@@ -8,6 +8,7 @@ import AdminUpdateOneMaterialRequest from "../Admin/material_request/AdminUpdate
 import Select from "react-select";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 
 export default function GetOneMaterialRequest() {
 	const { userToken, authLoading } = useAuth(); // get token from context
@@ -162,11 +163,13 @@ export default function GetOneMaterialRequest() {
 								};
 							})
 						);
-						alert(t("the-material-request-has-been-updated"));
+						toast.update(t("the-material-request-has-been-updated"), { autoClose: false });
 					}
 
 					if (eventType === "deleted") {
-						alert(t("the-material-request-has-been-deleted-you-will-be-redirected-to-view-all-material-requests"));
+						// TODO - make logic so that the users get redirected when the notification fades or they can click a btn  to stay or be redirected  be redirected if they stay  they cant edit or do anything else  show a notification that says this
+
+						toast.error(t("the-material-request-has-been-deleted-you-will-be-redirected-to-view-all-material-requests"));
 						navigate("/material/request/all");
 					}
 				}

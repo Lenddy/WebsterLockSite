@@ -14,6 +14,7 @@ import { useAuth } from "../../context/AuthContext"; //  use context
 import { List, useDynamicRowHeight } from "react-window";
 import { useDebounce } from "use-debounce";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 // import FixedSizeList from "react-window";
 
 // import {FixedSizeList} from "react-window"
@@ -25,6 +26,11 @@ export default function CreateOneMaterialRequest() {
 	const [logUser, setLogUser] = useState(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const [showDoorHanding, setShowDoorHanding] = useState(false);
+	const [hasSubmitted, setHasSubmitted] = useState(false);
+	const [formReset, setFormReset] = useState(false);
+	const [toastOpen, setToastOpen] = useState(false);
+	const [blockInput, setBlockInput] = useState(false);
+	const [requestId, setRequestId] = useState("");
 
 	const navigate = useNavigate();
 	const [NewMaterialRequest] = useMutation(create_one_material_request);
@@ -125,31 +131,108 @@ export default function CreateOneMaterialRequest() {
 
 	console.log("this are the rows", rows);
 
+	const resetForm = () => {
+		setRows([{ brand: "", item: "", quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
+		// or your initial requests state
+		// setSelectedGroups([]);
+		setHasSubmitted(false);
+		setFormReset(true);
+	};
+
+	const SuccessToast = ({ closeToast, resetForm }) => (
+		<div>
+			<p>{t("material-request-have-been-requested-successfully")}</p>
+
+			<div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+				<button
+					onClick={() => {
+						closeToast();
+						setBlockInput(false);
+						// navigate(`/material/request/${requestId}`);
+					}}>
+					{t("view-request")}
+				</button>
+
+				<button
+					onClick={() => {
+						resetForm();
+						setBlockInput(false);
+						// console.log("has submitted before", hasSubmitted);
+						setHasSubmitted(false);
+						// console.log("has submitted after", hasSubmitted);
+						closeToast();
+					}}>
+					{t("make-another-request")}
+				</button>
+			</div>
+
+			{/* <p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("duplicate-request")}</p> */}
+		</div>
+	);
+
+	// TODO fix the notification  it has to wait until view request is click to takes you to get one request also close the modal when it succeeds/fails (and one little thing it might be because it is so fast but you dont see the making a request notification )
 	const submit = async (e) => {
 		e.preventDefault();
-		try {
-			const input = {
-				items: rows.map((r) => ({
-					quantity: parseInt(r.quantity),
-					itemName: r?.item?.value || null,
-					color: r?.color || null,
-					side: r?.side || null,
-					size: r?.size || null,
-					itemDescription: r?.itemDescription || null,
-				})),
-			};
 
-			await NewMaterialRequest({
-				variables: { input },
-				onCompleted: (res) => {
-					// console.log("Mutation success:", res?.createOneMaterialRequest);
-					alert(t("Material-has-been-requested-successfully"));
-					navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
-				},
+		if (hasSubmitted === true) {
+			toast.warn(t("duplicate-request-warning"), {
+				// autoClose: false,
 			});
-		} catch (err) {
-			console.error("Submit error:", err);
+			return;
 		}
+
+		const input = {
+			items: rows.map((r) => ({
+				quantity: parseInt(r.quantity),
+				itemName: r?.item?.value || null,
+				color: r?.color || null,
+				side: r?.side || null,
+				size: r?.size || null,
+				itemDescription: r?.itemDescription || null,
+			})),
+		};
+
+		const mutationPromise = NewMaterialRequest({
+			variables: { input },
+			// onCompleted: (res) => {
+			// 	// console.log("Mutation success:", res?.createOneMaterialRequest);
+			// 	toast.success(t("Material-has-been-requested-successfully"));
+			// 	navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
+			// },
+		});
+
+		toast.promise(mutationPromise, {
+			pending: t("creating-material-request"),
+
+			success: {
+				render({ closeToast }) {
+					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} />;
+				},
+				autoClose: false,
+			},
+
+			error: {
+				render({ data }) {
+					const err = data;
+					if (err?.graphQLErrors?.length) {
+						return err.graphQLErrors.map((e) => e.message).join(", ");
+					}
+					// come here
+					if (err?.networkError) return t("network-error-try-again");
+					return t("something-went-wrong");
+				},
+				autoClose: false,
+			},
+		});
+		mutationPromise
+			.then((res) => {
+				setRequestId(`${res?.createOneMaterialRequest?.id}`);
+				setHasSubmitted(true);
+				setBlockInput(true);
+			})
+			.catch(() => {
+				setHasSubmitted(false);
+			});
 	};
 
 	const isFormValid = rows?.every((r) => r?.item && r?.quantity !== "" && Number(r?.quantity) > 0);

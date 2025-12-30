@@ -46,8 +46,6 @@ export default function LogIn({ screenWidth }) {
 		if (name.length > 0 && value.length > 0) setBlockInput(false);
 	};
 
-	// TODO -if
-
 	const submit = async (e) => {
 		e.preventDefault();
 
@@ -117,7 +115,7 @@ export default function LogIn({ screenWidth }) {
 		// }
 	};
 
-	console.log("testing stop logs on production");
+	// console.log("testing stop logs on production");
 
 	return (
 		<div>

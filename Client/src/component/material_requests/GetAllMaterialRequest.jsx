@@ -291,6 +291,8 @@ export default function GetAllMaterialRequest() {
 	};
 	// test
 
+	// TODO - if a request has been approved by some one else alert the the users that one of their request  has been approved / denied
+
 	return (
 		<>
 			{loading ? (

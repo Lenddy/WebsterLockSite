@@ -3,6 +3,7 @@ import { delete_one_user } from "../../../graphQL/mutations/mutations";
 import { useMutation } from "@apollo/client";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 
 export default function DeleteOneUser({ userId, btnActive, setIsOpen, setSelectedUser }) {
 	const [deleteOneUser, { data: UpdateData, loading: updateLoading, error: updateError }] = useMutation(delete_one_user);
@@ -19,7 +20,7 @@ export default function DeleteOneUser({ userId, btnActive, setIsOpen, setSelecte
 				onCompleted: (result) => {
 					// console.log("admin updateMutation success:", result);
 					// console.log;
-					alert(t("user-deleted-successfully"));
+					toast.success(t("user-deleted-successfully"));
 					setIsOpen(false);
 					setSelectedUser(null); //
 					// console.log("this is the the set is open in the delete one user component" , )

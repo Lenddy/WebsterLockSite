@@ -196,13 +196,24 @@
 	"will-be-approve": "Will be approve",
 	"will-be-deny": "Will be deny",
 	"request-already-reviewed": "You cant edit this request anymore, it has already been reviewed",
-
 	"updating-item-groups": "Updating items",
 	"network-error-try-again": "Network error, try again",
 	"something-went-wrong": "Something went wrong",
 	"duplicate-request-warning": "Warning you are sending the same request no action was taken",
 	"view-all-request": "view requests",
 	"make-another-request": "Make another request",
-	"creating-material-request": "Make another request",
-	"duplicated-request": "Duplicated request"
+	"creating-material-request": "Creating request",
+	"duplicated-request": "Duplicated request",
+	"you-dont-have-permission-to-edit-users": "You dont have permission to edit users",
+	"duplicate-request": "Duplicated request",
+	"view-all-users": "View users",
+	"user-has-been-updated-successfully": "Users have been updated successfully",
+	"update-more-users": "Update more users",
+	"updating-users": "Updating users",
+	"user-profile-has-been-updated": "Your profile has be updated",
+	"register-more-users": "Register More users",
+	"your-profile-has-been-updated-successfully": "Your profile has been updated successfully",
+	"view-profile": "View profile",
+	"make-another-update": "Make another update",
+	"updating-user-profile": "Updating user profile"
 }

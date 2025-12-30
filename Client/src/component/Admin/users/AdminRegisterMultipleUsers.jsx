@@ -212,7 +212,7 @@ export default function AdminRegisterMultipleUsers() {
 						console.log("has submitted after", hasSubmitted);
 						closeToast();
 					}}>
-					{t("make-another-request")}
+					{t("register-more-users")}
 				</button>
 			</div>
 

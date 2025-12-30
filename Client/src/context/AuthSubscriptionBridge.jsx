@@ -2,12 +2,14 @@ import { useSubscription } from "@apollo/client";
 import { jwtDecode } from "jwt-decode";
 import { USER_CHANGE_SUBSCRIPTION } from "../../graphQL/subscriptions/subscriptions";
 import { useAuth } from "./AuthContext";
+import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 export default function AuthSubscriptionBridge() {
 	const { userToken, setUserToken } = useAuth();
 
 	const currentUserId = userToken ? jwtDecode(userToken).userId : null;
-
+	const { t } = useTranslation();
 	// useSubscription(USER_CHANGE_SUBSCRIPTION, {
 	// 	onData: ({ data }) => {
 	// 		const payload = data?.data?.onUserChange;
@@ -56,7 +58,9 @@ export default function AuthSubscriptionBridge() {
 					setUserToken(newToken);
 					console.log("updateBy", updateBy);
 					if (updateBy !== currentUserId) {
-						alert("User profile has been updated (from the context)");
+						// TODO - add translations
+						// toast.update("User profile has been updated (from the context)");
+						alert(t("user-profile-has-been-updated"));
 					}
 
 					// Optional: toast or banner

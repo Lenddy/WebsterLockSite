@@ -18,12 +18,13 @@ import { List, useDynamicRowHeight } from "react-window";
 import { useDebounce } from "use-debounce";
 import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
+import { toast } from "react-toastify";
 
 function AdminUpdateOneMaterialRequest() {
 	const { userToken, loading: authLoading } = useAuth();
 	const { requestId } = useParams();
 	const navigate = useNavigate();
-	const skipNextSubAlert = useRef(false);
+	const skipNextSub = useRef(false);
 	const { t } = useTranslation();
 
 	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
@@ -187,8 +188,8 @@ function AdminUpdateOneMaterialRequest() {
 
 			if (canReview() === false && req?.approvalStatus?.isApproved !== null) {
 				navigate("/material/request/all");
-				skipNextSubAlert.current = true;
-				alert(t("request-already-reviewed"));
+				skipNextSub.current = true;
+				toast.warn(t("request-already-reviewed"));
 			}
 
 			setMRequest({
@@ -229,9 +230,9 @@ function AdminUpdateOneMaterialRequest() {
 
 	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
 		onData: ({ data: subscriptionData }) => {
-			if (skipNextSubAlert.current) {
-				skipNextSubAlert.current = false;
-				return; // skip alert triggered by your own update
+			if (skipNextSub.current) {
+				skipNextSub.current = false;
+				return; // skip  triggered by your own update
 			}
 
 			const change = subscriptionData?.data?.onMaterialRequestChange;
@@ -242,7 +243,7 @@ function AdminUpdateOneMaterialRequest() {
 
 			if (Changes?.id === requestId) {
 				if (eventType === "updated" && Array.isArray(Changes.items)) {
-					alert(t("material-request-updated")); //"The material request has been updated"
+					t("material-request-updated"); //"The material request has been updated"
 					setRows(() => {
 						//  Map updated items into the same format as the initial useEffect
 						return Changes.items.map((item) => {
@@ -265,7 +266,7 @@ function AdminUpdateOneMaterialRequest() {
 				}
 
 				if (eventType === "deleted") {
-					alert(t("material-request-deleted")); //"The material request has been deleted. You will be redirected to view all material requests."
+					t("material-request-deleted"); //"The material request has been deleted. You will be redirected to view all material requests."
 					navigate("/material/request/all");
 				}
 			}
@@ -335,8 +336,8 @@ function AdminUpdateOneMaterialRequest() {
 	// ----- Submit -----
 	const submit = async (e) => {
 		e.preventDefault();
-		skipNextSubAlert.current = true;
-		if (!userToken) return alert(t("please-login")); //"Please log in first.");
+		skipNextSub.current = true;
+		if (!userToken) return t("please-login"); //"Please log in first.");
 		// client.clearStore();
 		// await client.cache.reset();
 		try {
@@ -373,7 +374,7 @@ function AdminUpdateOneMaterialRequest() {
 					// console.log("user update ", jwtDecode(userToken).userId == requestersID);
 					// console.log("Mutation success:", res?.updateOneMaterialRequest);
 					// console.log("this is the client / caches", client.cache.extract());
-					// alert("Material requests have been updated successfully!");
+					// ("Material requests have been updated successfully!");
 					navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
 				},
 			});
@@ -388,8 +389,8 @@ function AdminUpdateOneMaterialRequest() {
 		// e.preventDefault();
 
 		// e.preventDefault();
-		skipNextSubAlert.current = true;
-		if (!userToken) return alert(t("please-login")); //"Please log in first.");
+		skipNextSub.current = true;
+		if (!userToken) return t("please-login"); //"Please log in first.");
 		// client.clearStore();
 		// await client.cache.reset();
 		try {
@@ -401,7 +402,7 @@ function AdminUpdateOneMaterialRequest() {
 					// console.log("user update ", jwtDecode(userToken).userId == requestersID);
 					// console.log("Mutation success:", res?.updateOneMaterialRequest);
 					// console.log("this is the client / caches", client.cache.extract());
-					// alert("Material request has been deleted successfully!");
+					// ("Material request has been deleted successfully!");
 					navigate(`/material/request/all`);
 				},
 			});
@@ -416,7 +417,7 @@ function AdminUpdateOneMaterialRequest() {
 
 	const openModal = () => {
 		if (!mRequest) {
-			alert(t("request-loading-data")); //"Loading request data, please wait...");
+			t("request-loading-data"); //"Loading request data, please wait...");
 			return;
 		}
 		setIsOpen(true);

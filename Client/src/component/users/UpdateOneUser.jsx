@@ -5,12 +5,18 @@ import Eye from "../../assets/eye.svg?react";
 import CloseEye from "../../assets/closeEye.svg?react";
 import { useAuth } from "../../context/AuthContext";
 import { jwtDecode } from "jwt-decode";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 
 export default function UpdateOneUser() {
 	// user
 	const { userId } = useParams();
+	const navigate = useNavigate();
+	const [hasSubmitted, setHasSubmitted] = useState(false);
+	const [formReset, setFormReset] = useState(false);
+	const [toastOpen, setToastOpen] = useState(false);
+	const [blockInput, setBlockInput] = useState(false);
 
 	// include setUserToken and currentUserId if your AuthContext provides them
 	const { userToken, loading: authLoading, setUserToken, currentUserId } = useAuth();
@@ -93,39 +99,130 @@ export default function UpdateOneUser() {
 
 	const formatKey = (key) => key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (str) => str.toUpperCase());
 
+	const resetForm = () => {
+		setInfo({
+			previousName: decodedUser?.name,
+			name: "",
+			previousEmail: decodedUser?.email || "",
+			newEmail: "",
+			previousPassword: "",
+			newPassword: "",
+			confirmNewPassword: "",
+			employeeNum: decodedUser?.employeeNum || "",
+			department: decodedUser?.department || "",
+			// newRole: user?.role || "",
+			title: decodedUser?.job?.title || "",
+			description: decodedUser?.job?.description || "",
+			// newPermissions: { ... }
+		}); // or your initial requests state
+		// setSelectedGroups([]);
+		setHasSubmitted(false);
+		setFormReset(true);
+	};
+
+	const SuccessToast = ({ closeToast, resetForm }) => (
+		<div>
+			<p>{t("your-profile-has-been-updated-successfully")}</p>
+
+			<div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+				<button
+					onClick={() => {
+						closeToast();
+						setBlockInput(false);
+						navigate(`/user/${userId}`);
+					}}>
+					{t("view-profile")}
+				</button>
+
+				<button
+					onClick={() => {
+						resetForm();
+						setBlockInput(false);
+						// console.log("has submitted before", hasSubmitted);
+						setHasSubmitted(false);
+						// console.log("has submitted after", hasSubmitted);
+						closeToast();
+					}}>
+					{t("make-another-update")}
+				</button>
+			</div>
+
+			{/* <p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("duplicate-request")}</p> */}
+		</div>
+	);
+
 	const submit = async (e) => {
 		e.preventDefault();
-		try {
-			await updateUserProfile({
-				variables: {
-					id: userId,
-					input: {
-						name: info.name || undefined,
-						previousEmail: info.previousEmail || undefined,
-						newEmail: info.newEmail || undefined,
-						previousPassword: info.previousPassword || undefined,
-						newPassword: info.newPassword || undefined,
-						confirmNewPassword: info.confirmNewPassword || undefined,
-						employeeNum: info.employeeNum || undefined,
-						department: info.department || undefined,
-						// role: info.newRole || undefined,
-						job: {
-							title: info.title || undefined,
-							description: info.description || undefined,
-						},
-						// permissions: info.newPermissions,
-					},
-				},
-				onCompleted: (data) => {
-					// console.log("this is the data on update", data);
-					// localStorage.setItem("userToken", data?.updateUserProfile?.token);
-					setUserToken(data?.updateUserProfile?.token);
-					alert(t("user-updated-successfully"));
-				},
+
+		if (hasSubmitted === true) {
+			toast.warn(t("duplicate-request-warning"), {
+				// autoClose: false,
 			});
-		} catch (err) {
-			console.error("Error updating user:", err);
+			return;
 		}
+
+		const input = {
+			name: info.name || undefined,
+			previousEmail: info.previousEmail || undefined,
+			newEmail: info.newEmail || undefined,
+			previousPassword: info.previousPassword || undefined,
+			newPassword: info.newPassword || undefined,
+			confirmNewPassword: info.confirmNewPassword || undefined,
+			employeeNum: info.employeeNum || undefined,
+			department: info.department || undefined,
+			// role: info.newRole || undefined,
+			job: {
+				title: info.title || undefined,
+				description: info.description || undefined,
+			},
+			// permissions: info.newPermissions,
+		};
+
+		const mutationPromise = updateUserProfile({
+			variables: {
+				id: userId,
+				input,
+			},
+			// onCompleted: (data) => {
+			// 	// console.log("this is the data on update", data);
+			// 	// localStorage.setItem("userToken", data?.updateUserProfile?.token);
+			// 	setUserToken(data?.updateUserProfile?.token);
+			// 	toast.success(t("user-updated-successfully"));
+			// },
+		});
+
+		toast.promise(mutationPromise, {
+			pending: t("updating-user-profile"),
+
+			success: {
+				render({ closeToast }) {
+					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} />;
+				},
+				autoClose: false,
+			},
+
+			error: {
+				render({ data }) {
+					const err = data;
+					if (err?.graphQLErrors?.length) {
+						return err.graphQLErrors.map((e) => e.message).join(", ");
+					}
+					// come here
+					if (err?.networkError) return t("network-error-try-again");
+					return t("something-went-wrong");
+				},
+				autoClose: false,
+			},
+		});
+
+		mutationPromise
+			.then(() => {
+				setHasSubmitted(true);
+				setBlockInput(true);
+			})
+			.catch(() => {
+				setHasSubmitted(false);
+			});
 	};
 
 	return (
@@ -149,12 +246,12 @@ export default function UpdateOneUser() {
 
 							<div className="form-row-top-left">
 								<label htmlFor="employeeNum">{t("employee-number")}</label>
-								<input type="text" name="employeeNum" value={info.employeeNum} onChange={SubmissionInfo} />
+								<input type="text" name="employeeNum" value={info.employeeNum} onChange={SubmissionInfo} disabled={blockInput} />
 							</div>
 
 							<div className="form-row-top-right">
 								<label htmlFor="department">{t("department")}</label>
-								<input type="text" name="department" value={info.department} onChange={SubmissionInfo} />
+								<input type="text" name="department" value={info.department} onChange={SubmissionInfo} disabled={blockInput} />
 							</div>
 						</div>
 
@@ -164,18 +261,18 @@ export default function UpdateOneUser() {
 								<div className="form-row-center-left-wrapper">
 									<div>
 										<label htmlFor="name">{t("new-name")}</label>
-										<input type="text" name="name" value={info.name} onChange={SubmissionInfo} />
+										<input type="text" name="name" value={info.name} onChange={SubmissionInfo} disabled={blockInput} />
 									</div>
 
 									<div>
 										<label htmlFor="newEmail">{t("new-email")}</label>
-										<input type="text" name="newEmail" value={info.newEmail} onChange={SubmissionInfo} />
+										<input type="text" name="newEmail" value={info.newEmail} onChange={SubmissionInfo} disabled={blockInput} />
 									</div>
 
 									<div>
 										<label>{t("previous-password")}</label>
 										<div className="update-form-input">
-											<input type={show ? "text" : "password"} name="previousPassword" value={info.previousPassword} onChange={SubmissionInfo} placeholder={t("previous-password")} />
+											<input type={show ? "text" : "password"} name="previousPassword" value={info.previousPassword} onChange={SubmissionInfo} placeholder={t("previous-password")} disabled={blockInput} />
 											<span className="update-form-show-hide" onClick={() => setShow(!show)}>
 												{show ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 											</span>
@@ -185,7 +282,7 @@ export default function UpdateOneUser() {
 									<div>
 										<label>{t("new-password")}</label>
 										<div className="update-form-input">
-											<input type={show ? "text" : "password"} name="newPassword" value={info.newPassword} onChange={SubmissionInfo} />
+											<input type={show ? "text" : "password"} name="newPassword" value={info.newPassword} onChange={SubmissionInfo} disabled={blockInput} />
 											<span className="update-form-show-hide" onClick={() => setShow(!show)}>
 												{show ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 											</span>
@@ -195,7 +292,7 @@ export default function UpdateOneUser() {
 									<div>
 										<label>{t("confirm-password")}</label>
 										<div className="update-form-input">
-											<input type={show ? "text" : "password"} name="confirmNewPassword" value={info.confirmNewPassword} onChange={SubmissionInfo} />
+											<input type={show ? "text" : "password"} name="confirmNewPassword" value={info.confirmNewPassword} onChange={SubmissionInfo} disabled={blockInput} />
 											<span className="update-form-show-hide" onClick={() => setShow(!show)}>
 												{show ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 											</span>
@@ -208,12 +305,12 @@ export default function UpdateOneUser() {
 								<div className="form-row-center-right-wrapper">
 									<div>
 										<label htmlFor="title">{t("job-title")}</label>
-										<input type="text" name="title" value={info.title} onChange={SubmissionInfo} placeholder={decodedUser?.job?.title} />
+										<input type="text" name="title" value={info.title} onChange={SubmissionInfo} placeholder={decodedUser?.job?.title} disabled={blockInput} />
 									</div>
 
 									<div>
 										<label>{t("new-job-description")}</label>
-										<textarea name="description" value={info.description} onChange={SubmissionInfo} placeholder={t("new-job-description")}></textarea>
+										<textarea name="description" value={info.description} onChange={SubmissionInfo} placeholder={t("new-job-description")} disabled={blockInput}></textarea>
 									</div>
 
 									{/* <div>

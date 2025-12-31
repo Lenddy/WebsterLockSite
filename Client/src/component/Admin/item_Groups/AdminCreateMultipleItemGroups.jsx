@@ -9,6 +9,10 @@ import { toast } from "react-toastify";
 
 export default function AdminCreateMultipleItemsGroups() {
 	const { userToken, setPageLoading } = useAuth(); // get token from context
+	const [hasSubmitted, setHasSubmitted] = useState(false);
+	const [formReset, setFormReset] = useState(false);
+	const [toastOpen, setToastOpen] = useState(false);
+	const [blockInput, setBlockInput] = useState(false);
 
 	const [message, setMessage] = useState("");
 	const [itemGroups, setItemGroups] = useState([
@@ -107,38 +111,123 @@ export default function AdminCreateMultipleItemsGroups() {
 	//  Submit validation
 	const canSubmit = canAddMore; // since it's the same rule for "everything filled"
 
+	const resetForm = () => {
+		setItemGroups([
+			{
+				brand: "",
+				itemsList: [
+					{
+						itemName: "",
+					},
+				],
+			},
+		]);
+
+		setHasSubmitted(false);
+		setFormReset(true);
+	};
+
+	const SuccessToast = ({ closeToast, resetForm }) => (
+		<div>
+			<p>{t("items-have-been-added-successfully")}</p>
+
+			<div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+				<button
+					onClick={() => {
+						closeToast();
+						setBlockInput(false);
+						navigate("/admin/material/item/all");
+					}}>
+					{t("view-all-items")}
+				</button>
+
+				<button
+					onClick={() => {
+						resetForm();
+						setBlockInput(false);
+						// console.log("has submitted before", hasSubmitted);
+						setHasSubmitted(false);
+						// console.log("has submitted after", hasSubmitted);
+						closeToast();
+					}}>
+					{t("add-more-items")}
+				</button>
+			</div>
+
+			{/* <p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("duplicate-request")}</p> */}
+		</div>
+	);
+
 	const submit = async (e) => {
 		e.preventDefault();
-		try {
-			const input = itemGroups.flatMap((ig) => ({
-				brand: ig.brand,
-				itemsList: ig.itemsList.map((i) => ({
-					itemName: i?.itemName,
-				})),
-			}));
 
-			// console.log("this is the input that are send  ", input);
-
-			await createNewItemGroups({
-				variables: { input },
-				onCompleted: (res) => {
-					// console.log("Mutation success:", res.createMultipleItemGroups);
-					// newMr =
-					// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
-					toast.success(t("Item-groups-added-successfully"));
-					setMessage("New Item Groups have been added");
-				},
-				onError: (err) => {
-					// console.warn("Mutation success:", err);
-					// newMr =
-					// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
-					setMessage("error:", err);
-					toast.success(t("Item-groups-added-successfully"));
-				},
+		if (hasSubmitted === true) {
+			toast.warn(t("duplicate-request-warning"), {
+				// autoClose: false,
 			});
-		} catch (err) {
-			console.error("Submit error:", err);
+			return;
 		}
+
+		const input = itemGroups.flatMap((ig) => ({
+			brand: ig.brand,
+			itemsList: ig.itemsList.map((i) => ({
+				itemName: i?.itemName,
+			})),
+		}));
+
+		// console.log("this is the input that are send  ", input);
+
+		const mutationPromise = createNewItemGroups({
+			variables: { input },
+			// onCompleted: (res) => {
+			// 	// console.log("Mutation success:", res.createMultipleItemGroups);
+			// 	// newMr =
+			// 	// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
+			// 	toast.success(t("Item-groups-added-successfully"));
+			// 	setMessage("New Item Groups have been added");
+			// },
+			// onError: (err) => {
+			// 	// console.warn("Mutation success:", err);
+			// 	// newMr =
+			// 	// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
+			// 	setMessage("error:", err);
+			// 	toast.success(t("Item-groups-added-successfully"));
+			// },
+		});
+		// } catch (err) {
+		// 	console.error("Submit error:", err);
+		// }
+		toast.promise(mutationPromise, {
+			pending: t("adding-items"),
+
+			success: {
+				render({ closeToast }) {
+					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} />;
+				},
+				autoClose: false,
+			},
+
+			error: {
+				render({ data }) {
+					const err = data;
+					if (err?.graphQLErrors?.length) {
+						return err.graphQLErrors.map((e) => e.message).join(", ");
+					}
+					// come here
+					if (err?.networkError) return t("network-error-try-again");
+					return t("something-went-wrong");
+				},
+				autoClose: false,
+			},
+		});
+		mutationPromise
+			.then(() => {
+				setHasSubmitted(true);
+				setBlockInput(true);
+			})
+			.catch(() => {
+				setHasSubmitted(false);
+			});
 	};
 
 	return (
@@ -159,7 +248,7 @@ export default function AdminCreateMultipleItemsGroups() {
 								<div className="form-row-top-container material-request">
 									<div className="form-row-top-right material-request">
 										<label>{t("brand-name")}</label>
-										<input type="text" value={ig?.brand} onChange={(e) => handleItemGroupChange(igIdx, "brand", e.target.value)} placeholder={t("brand-name")} />
+										<input type="text" value={ig?.brand} disabled={blockInput} onChange={(e) => handleItemGroupChange(igIdx, "brand", e.target.value)} placeholder={t("brand-name")} />
 									</div>
 								</div>
 
@@ -169,7 +258,7 @@ export default function AdminCreateMultipleItemsGroups() {
 									{ig?.itemsList?.map((row, rowIdx) => (
 										<div key={rowIdx} className="form-row-item-wrapper">
 											{/* Item Name */}
-											<input type="text" value={row?.itemName} onChange={(e) => handleItemChange(igIdx, rowIdx, "itemName", e.target.value)} placeholder={t("item-name")} />
+											<input type="text" value={row?.itemName} disabled={blockInput} onChange={(e) => handleItemChange(igIdx, rowIdx, "itemName", e.target.value)} placeholder={t("item-name")} />
 
 											{/* Remove item */}
 											{ig?.itemsList?.length > 1 && (

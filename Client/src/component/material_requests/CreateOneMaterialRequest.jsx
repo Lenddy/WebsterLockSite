@@ -139,16 +139,16 @@ export default function CreateOneMaterialRequest() {
 		setFormReset(true);
 	};
 
-	const SuccessToast = ({ closeToast, resetForm }) => (
+	const SuccessToast = ({ closeToast, resetForm, navigate, requestId }) => (
 		<div>
-			<p>{t("material-request-have-been-requested-successfully")}</p>
+			<p>{t("material-request-has-been-requested-successfully")}</p>
 
 			<div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
 				<button
 					onClick={() => {
 						closeToast();
 						setBlockInput(false);
-						// navigate(`/material/request/${requestId}`);
+						navigate(`/material/request/${requestId}`);
 					}}>
 					{t("view-request")}
 				</button>
@@ -157,6 +157,7 @@ export default function CreateOneMaterialRequest() {
 					onClick={() => {
 						resetForm();
 						setBlockInput(false);
+						setIsOpen(false);
 						// console.log("has submitted before", hasSubmitted);
 						setHasSubmitted(false);
 						// console.log("has submitted after", hasSubmitted);
@@ -170,7 +171,6 @@ export default function CreateOneMaterialRequest() {
 		</div>
 	);
 
-	// TODO fix the notification  it has to wait until view request is click to takes you to get one request also close the modal when it succeeds/fails (and one little thing it might be because it is so fast but you dont see the making a request notification )
 	const submit = async (e) => {
 		e.preventDefault();
 
@@ -194,19 +194,16 @@ export default function CreateOneMaterialRequest() {
 
 		const mutationPromise = NewMaterialRequest({
 			variables: { input },
-			// onCompleted: (res) => {
-			// 	// console.log("Mutation success:", res?.createOneMaterialRequest);
-			// 	toast.success(t("Material-has-been-requested-successfully"));
-			// 	navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
-			// },
 		});
 
 		toast.promise(mutationPromise, {
 			pending: t("creating-material-request"),
 
 			success: {
-				render({ closeToast }) {
-					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} />;
+				render({ data, closeToast }) {
+					setIsOpen(false);
+					const id = data?.data?.createOneMaterialRequest?.id;
+					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} requestId={id} />;
 				},
 				autoClose: false,
 			},
@@ -226,7 +223,6 @@ export default function CreateOneMaterialRequest() {
 		});
 		mutationPromise
 			.then((res) => {
-				setRequestId(`${res?.createOneMaterialRequest?.id}`);
 				setHasSubmitted(true);
 				setBlockInput(true);
 			})
@@ -349,6 +345,7 @@ export default function CreateOneMaterialRequest() {
 										placeholder={t("select-brand")}
 										isClearable
 										isSearchable
+										isDisabled={blockInput}
 										styles={{
 											control: (base) => ({
 												...base,
@@ -369,7 +366,7 @@ export default function CreateOneMaterialRequest() {
 								<div className="form-row-top-container material-request">
 									<div className="form-row-top-left material-request">
 										<label>{t("quantity")}</label>
-										<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} placeholder={t("qty")} />
+										<input type="number" value={row.quantity} disabled={blockInput} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} placeholder={t("qty")} />
 									</div>
 
 									<div className="form-row-top-right material-request">
@@ -381,7 +378,7 @@ export default function CreateOneMaterialRequest() {
 											value={row.item}
 											onChange={(val) => handleRowChange(idx, "item", val)}
 											placeholder={isItemsReady ? t("select-item") : t("loading-items")}
-											isDisabled={!isItemsReady}
+											isDisabled={!isItemsReady || blockInput}
 											// onInputChange={(val, meta) => {
 											// 	// console.log("InputChange value:", val, "action:", meta.action);
 											// 	if (meta.action === "input-change") {
@@ -434,6 +431,7 @@ export default function CreateOneMaterialRequest() {
 														placeholder={t("select-color")}
 														isClearable
 														isSearchable
+														isDisabled={blockInput}
 														formatOptionLabel={(option) => (
 															<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
 																<div style={{ width: "30px", height: "30px", backgroundColor: option.hex, border: "1px solid #ccc" }} />
@@ -469,6 +467,7 @@ export default function CreateOneMaterialRequest() {
 														placeholder={t("select-side")}
 														isClearable
 														isSearchable
+														isDisabled={blockInput}
 														styles={{
 															control: (base) => ({
 																...base,
@@ -494,6 +493,7 @@ export default function CreateOneMaterialRequest() {
 														placeholder={t("select-size")}
 														isClearable
 														isSearchable
+														isDisabled={blockInput}
 														styles={{
 															control: (base) => ({
 																...base,
@@ -515,7 +515,7 @@ export default function CreateOneMaterialRequest() {
 									{row.showDescription && (
 										<div className="form-row-center-container-material-request-wrapper-bottom">
 											<label>{t("description")}</label>
-											<textarea value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder={t("description-for-the-item")} cols={40} rows={10} />
+											<textarea value={row.itemDescription} disabled={blockInput} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder={t("description-for-the-item")} cols={40} rows={10} />
 										</div>
 									)}
 

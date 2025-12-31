@@ -26,6 +26,10 @@ function AdminUpdateOneMaterialRequest() {
 	const navigate = useNavigate();
 	const skipNextSub = useRef(false);
 	const { t } = useTranslation();
+	const [hasSubmitted, setHasSubmitted] = useState(false);
+	const [formReset, setFormReset] = useState(false);
+	const [toastOpen, setToastOpen] = useState(false);
+	const [blockInput, setBlockInput] = useState(false);
 
 	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
 	const [isOpen, setIsOpen] = useState(false);
@@ -175,6 +179,12 @@ function AdminUpdateOneMaterialRequest() {
 
 	// console.log("this are the items on the material request rows ,", rows);
 
+	/* // TODO - when the update happens instead of resetting the form completely  just add the new changes to it  
+		if theres an update from the out side  it alertes the users  and add the updated request (done on the use sub)
+		 whe the use updates the request it notifies you that  it happen and it allow you to updated it again or go view
+
+	*/
+
 	// ----- Load item groups -----
 	useEffect(() => {
 		if (iGData?.getAllItemGroups) {
@@ -243,7 +253,7 @@ function AdminUpdateOneMaterialRequest() {
 
 			if (Changes?.id === requestId) {
 				if (eventType === "updated" && Array.isArray(Changes.items)) {
-					t("material-request-updated"); //"The material request has been updated"
+					toast.update(t("material-request-updated"), { autoClose: false }); //"The material request has been updated"
 					setRows(() => {
 						//  Map updated items into the same format as the initial useEffect
 						return Changes.items.map((item) => {
@@ -333,82 +343,198 @@ function AdminUpdateOneMaterialRequest() {
 		return fuse.search(inputValue).some((r) => r.item.value === option.value);
 	};
 
+	const resetForm = () => {
+		setRows([...rows]);
+
+		setHasSubmitted(false);
+		setFormReset(true);
+	};
+
+	const SuccessToast = ({ closeToast, resetForm, navigate, requestId }) => (
+		<div>
+			<p>{t("request-have-been-updated-successfully")}</p>
+
+			<div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+				<button
+					onClick={() => {
+						closeToast();
+						setBlockInput(false);
+						navigate("");
+					}}>
+					{t("view-all-items")}
+				</button>
+
+				<button
+					onClick={() => {
+						resetForm();
+						setBlockInput(false);
+						// console.log("has submitted before", hasSubmitted);
+						setHasSubmitted(false);
+						// console.log("has submitted after", hasSubmitted);
+						closeToast();
+					}}>
+					{t("add-more-items")}
+				</button>
+			</div>
+
+			{/* <p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("duplicate-request")}</p> */}
+		</div>
+	);
+
 	// ----- Submit -----
 	const submit = async (e) => {
 		e.preventDefault();
 		skipNextSub.current = true;
-		if (!userToken) return t("please-login"); //"Please log in first.");
+
+		if (!userToken) {
+			toast.error(t("please-login")); //"Please log in first.");
+			navigate("/");
+		}
+
+		if (hasSubmitted === true) {
+			toast.warn(t("duplicate-request-warning"), {
+				// autoClose: false,
+			});
+			return;
+		}
+
 		// client.clearStore();
 		// await client.cache.reset();
-		try {
-			const decoded = jwtDecode(userToken);
-			const requestersID = mRequest?.requester?.userId;
-			const input = {
-				id: requestId,
-				items: rows.map((r) => ({
-					id: r.id,
-					quantity: parseInt(r.quantity),
-					itemName: r?.item?.value,
-					color: r?.color?.value || null,
-					side: r?.side?.value || null,
-					size: r?.size?.value || null,
-					itemDescription: r?.itemDescription || null,
-					action: r?.action || {},
-				})),
-				approvalStatus: {
-					approvedBy: {
-						userId: decoded.userId,
-						name: decoded.name,
-						email: decoded.email,
-						employeeNum: decoded.employeeNum,
-						department: decoded.department,
-					},
-					...(jwtDecode(userToken).userId !== requestersID && { isApproved: approval, approvedAt: dayjs().toISOString() }),
-				},
-				requesterId: requestersID,
-			};
 
-			await updatedMaterialRequest({
-				variables: { input },
-				onCompleted: (res) => {
-					// console.log("user update ", jwtDecode(userToken).userId == requestersID);
-					// console.log("Mutation success:", res?.updateOneMaterialRequest);
-					// console.log("this is the client / caches", client.cache.extract());
-					// ("Material requests have been updated successfully!");
-					navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
+		const decoded = jwtDecode(userToken);
+		const requestersID = mRequest?.requester?.userId;
+		const input = {
+			id: requestId,
+			items: rows.map((r) => ({
+				id: r.id,
+				quantity: parseInt(r.quantity),
+				itemName: r?.item?.value,
+				color: r?.color?.value || null,
+				side: r?.side?.value || null,
+				size: r?.size?.value || null,
+				itemDescription: r?.itemDescription || null,
+				action: r?.action || {},
+			})),
+			approvalStatus: {
+				approvedBy: {
+					userId: decoded.userId,
+					name: decoded.name,
+					email: decoded.email,
+					employeeNum: decoded.employeeNum,
+					department: decoded.department,
 				},
+				...(jwtDecode(userToken).userId !== requestersID && { isApproved: approval, approvedAt: dayjs().toISOString() }),
+			},
+			requesterId: requestersID,
+		};
+
+		const mutationPromise = updatedMaterialRequest({
+			variables: { input },
+			// onCompleted: (res) => {
+			// 	// console.log("user update ", jwtDecode(userToken).userId == requestersID);
+			// 	// console.log("Mutation success:", res?.updateOneMaterialRequest);
+			// 	// console.log("this is the client / caches", client.cache.extract());
+			// 	// ("Material requests have been updated successfully!");
+			// 	navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
+			// },
+		});
+
+		// } catch (err) {
+		// 	console.error("Submit error:", err);
+		// }
+
+		toast.promise(mutationPromise, {
+			pending: t("updating-request"),
+
+			success: {
+				render({ closeToast }) {
+					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} />;
+				},
+				autoClose: false,
+			},
+
+			error: {
+				render({ data }) {
+					const err = data;
+					if (err?.graphQLErrors?.length) {
+						return err.graphQLErrors.map((e) => e.message).join(", ");
+					}
+					// come here
+					if (err?.networkError) return t("network-error-try-again");
+					return t("something-went-wrong");
+				},
+				autoClose: false,
+			},
+		});
+		mutationPromise
+			.then(() => {
+				setHasSubmitted(true);
+				setBlockInput(true);
+			})
+			.catch(() => {
+				setHasSubmitted(false);
 			});
-		} catch (err) {
-			console.error("Submit error:", err);
-		}
 	};
+
+	// TODO - fix the other problems  do yo get the same request twice from the new update that you did ?   make the modal close when the update happens  a an block inputs and fix the will be deny on the modal that show if you are updating
 
 	const deleteRequest = async (e) => {
 		// console.log("deleting request");
 		// console.log(e);
-		// e.preventDefault();
+		e.preventDefault();
 
 		// e.preventDefault();
 		skipNextSub.current = true;
-		if (!userToken) return t("please-login"); //"Please log in first.");
+		if (!userToken) return toast.warn("please-login"); //"Please log in first.");
 		// client.clearStore();
 		// await client.cache.reset();
-		try {
-			const decoded = jwtDecode(userToken);
+		// try {
+		const decoded = jwtDecode(userToken);
 
-			await deletedMaterialRequest({
-				variables: { id: requestId },
-				onCompleted: (res) => {
-					// console.log("user update ", jwtDecode(userToken).userId == requestersID);
-					// console.log("Mutation success:", res?.updateOneMaterialRequest);
-					// console.log("this is the client / caches", client.cache.extract());
-					// ("Material request has been deleted successfully!");
-					navigate(`/material/request/all`);
+		const mutationPromise = deletedMaterialRequest({
+			variables: { id: requestId },
+			onCompleted: (res) => {
+				// console.log("user update ", jwtDecode(userToken).userId == requestersID);
+				// console.log("Mutation success:", res?.updateOneMaterialRequest);
+				// console.log("this is the client / caches", client.cache.extract());
+				// ("Material request has been deleted successfully!");
+				navigate(`/material/request/all`);
+			},
+		});
+		// } catch (err) {
+		// 	console.error("Submit error:", err);
+		// }
+		toast.promise(mutationPromise, {
+			pending: t("deleting-request"),
+
+			success: {
+				render({ closeToast }) {
+					setIsOpen(false);
+					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} deleting={true} />;
 				},
+			},
+
+			error: {
+				render({ data }) {
+					const err = data;
+					if (err?.graphQLErrors?.length) {
+						return err.graphQLErrors.map((e) => e.message).join(", ");
+					}
+					// come here
+					if (err?.networkError) return t("network-error-try-again");
+					return t("something-went-wrong");
+				},
+				autoClose: false,
+			},
+		});
+		mutationPromise
+			.then(() => {
+				setHasSubmitted(true);
+				setBlockInput(true);
+			})
+			.catch(() => {
+				setHasSubmitted(false);
 			});
-		} catch (err) {
-			console.error("Submit error:", err);
-		}
 	};
 
 	const isFormValid = rows.every((r) => r.item && r.quantity !== "" && Number(r.quantity) > 0);
@@ -424,6 +550,10 @@ function AdminUpdateOneMaterialRequest() {
 	};
 
 	// console.log("request", mRequest?.requester?.userId);
+
+	//TODO -  when i change the permission and role of a users and they try to update their own request it show that they are trying to denied them fix that
+
+	// NOTE - do it is not that it is submitting wrong but the modal it is showing will be deny  for all of the user so thats the problem  not i need ti figure out why  the test9 keeps saying that i lack permission to update it while the other too head admin / normal tech  can update the problem is the test9 user  (and fine out why it alway shoes )
 
 	return (
 		<div className="update-container">
@@ -462,7 +592,7 @@ function AdminUpdateOneMaterialRequest() {
 										placeholder={t("filter-brand")}
 										isClearable
 										isSearchable
-										isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
+										isDisabled={blockInput || mRLoading ? true : row?.action?.toBeDeleted ? true : false}
 										styles={{
 											control: (base) => ({
 												...base,
@@ -485,7 +615,7 @@ function AdminUpdateOneMaterialRequest() {
 									<div className="form-row-top-left material-request">
 										{/* Quantity input */}
 										<label htmlFor="">{t("quantity")}</label>
-										<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} min={1} placeholder={mRLoading ? t("loading") : t("qty")} disabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
+										<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} min={1} placeholder={mRLoading ? t("loading") : t("qty")} disabled={blockInput || mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
 									</div>
 
 									<div className="form-row-top-right  material-request">
@@ -500,7 +630,7 @@ function AdminUpdateOneMaterialRequest() {
 											value={row.item}
 											onChange={(val) => handleRowChange(idx, "item", val)}
 											placeholder={isItemsReady ? t("select-item") : t("loading-items")}
-											isDisabled={!isItemsReady}
+											isDisabled={!isItemsReady || blockInput}
 											// onInputChange={(val, meta) => {
 											// 	// console.log("InputChange value:", val, "action:", meta.action);
 											// 	if (meta.action === "input-change") {
@@ -556,7 +686,7 @@ function AdminUpdateOneMaterialRequest() {
 														// onChange={(val) => handleRowChange(idx, "color", val?.value || null)}
 														onChange={(val) => handleRowChange(idx, "color", val)}
 														placeholder={mRLoading ? t("loading") : "Color"}
-														isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
+														isDisabled={blockInput || mRLoading ? true : row?.action?.toBeDeleted ? true : false}
 														isClearable
 														isSearchable
 														styles={{
@@ -603,7 +733,7 @@ function AdminUpdateOneMaterialRequest() {
 														// onChange={(val) => handleRowChange(idx, "side", val?.value || null)}
 														onChange={(val) => handleRowChange(idx, "side", val)}
 														placeholder={mRLoading ? t("loading") : t("side")}
-														isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
+														isDisabled={blockInput || mRLoading ? true : row?.action?.toBeDeleted ? true : false}
 														filterOption={customFilter}
 														isClearable
 														isSearchable
@@ -635,7 +765,7 @@ function AdminUpdateOneMaterialRequest() {
 														// onChange={(val) => handleRowChange(idx, "size", val?.value || null)}
 														onChange={(val) => handleRowChange(idx, "size", val)}
 														placeholder={mRLoading ? t("loading") : t("size")}
-														isDisabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false}
+														isDisabled={blockInput || mRLoading ? true : row?.action?.toBeDeleted ? true : false}
 														filterOption={customFilter}
 														isClearable
 														isSearchable
@@ -663,7 +793,7 @@ function AdminUpdateOneMaterialRequest() {
 										<div className="form-row-center-container-material-request-wrapper-bottom">
 											<label htmlFor="">{t("description")}</label>
 
-											<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder={mRLoading ? t("loading") : t("item-description")} disabled={mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
+											<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder={mRLoading ? t("loading") : t("item-description")} disabled={blockInput || mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
 										</div>
 									)}
 
@@ -717,7 +847,7 @@ function AdminUpdateOneMaterialRequest() {
 							className="form-submit-btn"
 							type="button"
 							// type="submit"
-							disabled={loading || deletedLoading || mRLoading || !isFormValid}
+							disabled={loading || deletedLoading || mRLoading || !isFormValid || blockInput}
 							onClick={() => {
 								{
 									canReview() ? setApproval(false) : setDeletion(true);
@@ -735,7 +865,7 @@ function AdminUpdateOneMaterialRequest() {
 							className="form-submit-btn"
 							type="button"
 							// type="submit"
-							disabled={loading || mRLoading || !isFormValid}
+							disabled={loading || mRLoading || !isFormValid || blockInput}
 							onClick={() => {
 								canReview() ? setApproval(true) : null;
 

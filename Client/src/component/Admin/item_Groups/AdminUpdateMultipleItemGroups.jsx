@@ -16,6 +16,10 @@ export default function AdminUpdateMultipleItemsGroups() {
 
 	const [selectedGroups, setSelectedGroups] = useState([]);
 	const [changesMade, setChangesMade] = useState(false);
+	const [hasSubmitted, setHasSubmitted] = useState(false);
+	const [formReset, setFormReset] = useState(false);
+	const [toastOpen, setToastOpen] = useState(false);
+	const [blockInput, setBlockInput] = useState(false);
 
 	const { itemId } = useParams();
 
@@ -243,12 +247,59 @@ export default function AdminUpdateMultipleItemsGroups() {
 	// 		onError: (err) => console.error("Error:", err),
 	// 	});
 	// };
+	//
+
+	// todo if theres an id send as a param set the ide to be the selected group
+	const resetForm = () => {
+		setSelectedGroups([{ id: null, brand: "", itemsList: [], brandAction: {} }]);
+
+		setHasSubmitted(false);
+		setFormReset(true);
+	};
+
+	const SuccessToast = ({ closeToast, resetForm }) => (
+		<div>
+			<p>{t("items-have-been-updated-successfully")}</p>
+
+			<div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+				<button
+					onClick={() => {
+						closeToast();
+						setBlockInput(false);
+						navigate("/admin/material/item/all");
+					}}>
+					{t("view-all-items")}
+				</button>
+
+				<button
+					onClick={() => {
+						resetForm();
+						setBlockInput(false);
+						// console.log("has submitted before", hasSubmitted);
+						setHasSubmitted(false);
+						// console.log("has submitted after", hasSubmitted);
+						closeToast();
+					}}>
+					{t("update-more-items")}
+				</button>
+			</div>
+
+			{/* <p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("duplicate-request")}</p> */}
+		</div>
+	);
 
 	const submit = async (e) => {
 		e.preventDefault();
 
 		if (!changesMade) {
 			toast.info(t("no-changes-made"));
+			return;
+		}
+
+		if (hasSubmitted === true) {
+			toast.warn(t("duplicate-request-warning"), {
+				// autoClose: false,
+			});
 			return;
 		}
 
@@ -289,39 +340,43 @@ export default function AdminUpdateMultipleItemsGroups() {
 			return;
 		}
 
-		console.log("Submitting:", input);
+		// console.log("Submitting:", input);
 
 		const mutationPromise = updateItemGroups({
 			variables: { input },
 		});
 
 		toast.promise(mutationPromise, {
-			pending: t("updating-item-groups"),
+			pending: t("updating-items"),
+
 			success: {
-				render({ data }) {
-					return t("item-groups-have-been-updated-successfully");
+				render({ closeToast }) {
+					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} />;
 				},
+				autoClose: false,
 			},
+
 			error: {
 				render({ data }) {
-					// Apollo error object
 					const err = data;
-
-					// 1️ GraphQL errors array
 					if (err?.graphQLErrors?.length) {
 						return err.graphQLErrors.map((e) => e.message).join(", ");
 					}
-
-					// 2️ Network error
-					if (err?.networkError) {
-						return t("network-error-try-again");
-					}
-
-					// 3️ Fallback
+					// come here
+					if (err?.networkError) return t("network-error-try-again");
 					return t("something-went-wrong");
 				},
+				autoClose: false,
 			},
 		});
+		mutationPromise
+			.then(() => {
+				setHasSubmitted(true);
+				setBlockInput(true);
+			})
+			.catch(() => {
+				setHasSubmitted(false);
+			});
 	};
 
 	const isLoading = loadingAll || loadingOne;
@@ -345,7 +400,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 									filterOption={customUserFilter}
 									isSearchable
 									onChange={(selected) => handleSelectGroup(gIdx, selected)}
-									isDisabled={!!itemId || loadingAll || loadingOne} //  disable dropdown if loaded from param
+									isDisabled={!!itemId || loadingAll || loadingOne || blockInput} //  disable dropdown if loaded from param
 									styles={{
 										control: (base, state) => ({
 											...base,
@@ -371,7 +426,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 									{group.id && (
 										<div className="form-row-top-right material-request">
 											<label>{t("brand")}:</label>
-											<input type="text" value={group.brand} onChange={(e) => handleBrandChange(gIdx, e.target.value)} placeholder={t("brand-name")} />
+											<input type="text" value={group.brand} onChange={(e) => handleBrandChange(gIdx, e.target.value)} placeholder={t("brand-name")} disabled={blockInput} />
 										</div>
 									)}
 								</div>

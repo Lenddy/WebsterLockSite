@@ -397,22 +397,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 
 		toast.promise(mutationPromise, {
 			pending: t("creating-material-request"),
-			// {
-			// 	render() {
-			// 		setToastOpen(true);
-			// 		canAddMore = true;
-			// 		return t("creating-material-request");
-			// 	},
-			// },
-
-			// success: {
-			// 	render({ data, closeToast }) {
-			// 		setToastOpen(false);
-			// 		setHasSubmitted(true);
-			// 		return <SuccessToast closeToast={closeToast} resetForm={resetForm} />;
-			// 	},
-			// 	autoClose: false,
-			// },
 
 			success: {
 				render({ closeToast }) {
@@ -420,25 +404,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 				},
 				autoClose: false,
 			},
-
-			// error: {
-			// 	render({ data }) {
-			// 		const err = data;
-			// 		canAddMore = false;
-			// 		setToastOpen(false);
-			// 		hasSubmitted(false);
-			// 		if (err?.graphQLErrors?.length) {
-			// 			return err.graphQLErrors.map((e) => e.message).join(", ");
-			// 		}
-
-			// 		if (err?.networkError) {
-			// 			return t("network-error-try-again");
-			// 		}
-
-			// 		return t("something-went-wrong");
-			// 	},
-			// 	Haz otra solicitudautoClose: false, // required
-			// },
 
 			error: {
 				render({ data }) {

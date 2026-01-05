@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 
 export default function GetOneMaterialRequest() {
-	const { userToken, authLoading } = useAuth(); // get token from context
+	const { userToken, authLoading, setWsDisconnected } = useAuth(); // get token from context
 	const { requestId } = useParams();
 	const location = useLocation();
 	const currentRoutePath = location.pathname;
@@ -145,7 +145,9 @@ export default function GetOneMaterialRequest() {
 				const targetChange = changesArray.find((c) => c.id === requestId);
 				if (targetChange) {
 					if (eventType === "updated" && Array.isArray(targetChange.items)) {
-						setRows(() =>
+						//
+
+						setRows(
 							targetChange.items.map((item) => {
 								const matchedItem = allItems.find((i) => i.value === item.itemName);
 								const matchedColor = colorOptions.find((i) => i.value === item.color);
@@ -156,14 +158,18 @@ export default function GetOneMaterialRequest() {
 									id: item.id,
 									quantity: item.quantity,
 									item: matchedItem || { label: item.itemName, value: item.itemName },
-									itemDescription: item.itemDescription || "",
-									color: matchedColor || { label: item.color, value: item.color },
-									side: matchedSide || { label: item.side, value: item.side },
-									size: matchedSize || { label: item.size, value: item.size },
+									itemDescription: item.itemDescription ?? "",
+									color: matchedColor || null,
+									side: matchedSide || null,
+									size: matchedSize || null,
 								};
 							})
 						);
-						toast.update(t("the-material-request-has-been-updated"), { autoClose: false });
+
+						// toast.update(t("the-material-request-has-been-updated"), { autoClose: false });
+						toast.info(t("the-material-request-has-been-updated"), {
+							autoClose: false,
+						});
 					}
 
 					if (eventType === "deleted") {
@@ -177,7 +183,10 @@ export default function GetOneMaterialRequest() {
 		},
 
 		onError: (err) => {
-			console.error("🚨 Subscription error:", err);
+			console.error("Subscription error:", err);
+			if (err?.message?.includes("Socket closed") || err?.networkError) {
+				setWsDisconnected(true);
+			}
 		},
 	});
 

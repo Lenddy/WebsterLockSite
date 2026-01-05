@@ -7,7 +7,7 @@ import { useAuth } from "./AuthContext";
 const MaterialRequestsContext = createContext();
 
 export function MaterialRequestsProvider({ children }) {
-	const { loading: authLoading, userToken } = useAuth(); // wait for auth token
+	const { loading: authLoading, userToken, setWsDisconnected } = useAuth(); // wait for auth token
 	const [requests, setRequests] = useState([]);
 
 	const {
@@ -193,7 +193,12 @@ export function MaterialRequestsProvider({ children }) {
 				console.warn("⚠️ Cache update skipped:", err.message);
 			}
 		},
-		onError: (err) => console.error("🚨 Subscription error:", err),
+		onError: (err) => {
+			console.error("Subscription error:", err);
+			if (err?.message?.includes("Socket closed") || err?.networkError) {
+				setWsDisconnected(true);
+			}
+		},
 	});
 
 	return <MaterialRequestsContext.Provider value={{ requests, loading: queryLoading || authLoading, error }}>{children}</MaterialRequestsContext.Provider>;

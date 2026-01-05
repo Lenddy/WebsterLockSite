@@ -52,11 +52,19 @@ const Modal = ({ isOpen, onClose, data, setIsOpen, setSelectedUser, onConFirm, l
 								<div>
 									{data?.deleting ? (
 										<h4>{t("material-request-will-be-deleted")}:</h4>
-									) : data?.approved === true ? (
+									) : data?.approval === true ? (
 										<>
 											<h4>{t("requested-by")}:</h4>{" "}
 											<p>
 												{data?.mRequest?.requester?.name} {t("will-be-approve")}{" "}
+											</p>
+											{/* <br /> <p>will be approved</p> */}
+										</>
+									) : data?.updating === true ? (
+										<>
+											<h4>{t("requested-by")}:</h4>{" "}
+											<p>
+												{data?.mRequest?.requester?.name} {t("will-be-updated")}{" "}
 											</p>
 											{/* <br /> <p>will be approved</p> */}
 										</>

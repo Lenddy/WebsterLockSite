@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../context/AuthContext"; // use context
 
 export default function AdminGetOneItem() {
-	const { userToken, setPageLoading } = useAuth(); // get token from context
+	const { userToken, setPageLoading, setWsDisconnected } = useAuth(); // get token from context
 	const [itemGroup, setItemGroup] = useState(null); // the full group (brand + itemsList)
 	const [filteredItems, setFilteredItems] = useState([]); // only items
 	const [searchValue, setSearchValue] = useState("");
@@ -83,7 +83,6 @@ export default function AdminGetOneItem() {
 
 	// Update subscription to sort live updates
 	useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
-		onError: (err) => console.error("Subscription error:", err),
 		onData: ({ data }) => {
 			const change = data?.data?.onItemGroupChange;
 			if (!change) return;
@@ -98,6 +97,12 @@ export default function AdminGetOneItem() {
 
 				setItemGroup(updatedGroup);
 				setFilteredItems(sortByItemName(updatedGroup?.itemsList || []));
+			}
+		},
+		onError: (err) => {
+			console.error("Subscription error:", err);
+			if (err?.message?.includes("Socket closed") || err?.networkError) {
+				setWsDisconnected(true);
 			}
 		},
 	});

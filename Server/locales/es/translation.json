@@ -215,5 +215,27 @@
 	"your-profile-has-been-updated-successfully": "Tu perfil se ha actualizado correctamente",
 	"view-profile": "Vew perfil",
 	"make-another-update": "Realiza otra actualización",
-	"updating-user-profile": "Actualizando perfil"
+	"updating-user-profile": "Actualizando perfil",
+	"items-have-been-added-successfully": "Los materiales and sido agregados con éxito",
+	"view-all-items": "Ver los materiales",
+	"add-more-items": "Agregar mas materiales",
+	"adding-items": "Agregando materiales",
+	"items-have-been-updated-successfully": "Los materiales and sido actualizados con éxito",
+	"update-more-items": "Actualizar mas materiales",
+	"updating-items": "Actualizando materiales",
+	"request-have-been-updated-successfully": "La solicitud a sido actualizada con éxito",
+	"update-add-more-items": "Actualizar/Agregar mas materiales",
+	"updating-request": "Actualizando solicitud",
+	"deleting-request": "Borrando solicitud",
+	"material-request-has-been-requested-successfully": "La solicitud the material se a solicitado con éxito",
+	"view-request": "Ver solicitud",
+	"view-requests": "Ver solicitudes",
+	"will-be-updated": "Va a ser actualizada",
+	"connection-to-the-serve-was-lost-make-sure-that-you-are-connected-to-the-internet": "Se perdió la conexión con el servidor. Asegúrese de estar conectado a internet.",
+
+	"please-way-a-couple-of-minutes-then-please-refresh-to-continue": "Por favor, espere unos minutos y luego actualice/recargue la página para continuar.",
+
+	"to-get-live-data-and-to-not-potentially-lose-your-changes": "Para obtener datos en tiempo real y evitar la posible pérdida de los cambios que haya realizado.",
+
+	"if-this-problem-continues-please-contact-the-site-manager": "Si este problema persiste, por favor contacte al administrador de la pagina web."
 }

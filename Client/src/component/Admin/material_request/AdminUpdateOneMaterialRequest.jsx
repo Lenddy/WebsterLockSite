@@ -21,7 +21,7 @@ import dayjs from "dayjs";
 import { toast } from "react-toastify";
 
 function AdminUpdateOneMaterialRequest() {
-	const { userToken, loading: authLoading } = useAuth();
+	const { userToken, loading: authLoading, setWsDisconnected } = useAuth();
 	const { requestId } = useParams();
 	const navigate = useNavigate();
 	const skipNextSub = useRef(false);
@@ -41,6 +41,7 @@ function AdminUpdateOneMaterialRequest() {
 	const [isItemsReady, setIsItemsReady] = useState(false);
 	const [deletion, setDeletion] = useState(false);
 	const [approval, setApproval] = useState(false);
+	const [updating, setUpdating] = useState(false);
 
 	const { data: iGData } = useQuery(get_all_item_groups);
 	const { data: mRData, loading: mRLoading } = useQuery(get_one_material_request, {
@@ -238,42 +239,61 @@ function AdminUpdateOneMaterialRequest() {
 
 	// add this sub to the get one material request too
 
+	// TODO - fix the other problems  do yo get the same request twice from the new update that you did ?   make the modal close when the update happens  a an block inputs and fix the will be deny on the modal that show if you are updating
+
+	// NOTE - i see the update twice because the old update is still in place the form reset did not take effect so the old request  was still there there for if a new requests is send it has the new item that was added, updated or deleted still there  that why
+
 	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
 		onData: ({ data: subscriptionData }) => {
-			if (skipNextSub.current) {
-				skipNextSub.current = false;
-				return; // skip  triggered by your own update
-			}
+			const changeEvent = subscriptionData?.data?.onMaterialRequestChange;
+			// const change = subscriptionData?.data?.onMaterialRequestChange;
+			if (!changeEvent) return;
 
-			const change = subscriptionData?.data?.onMaterialRequestChange;
-			if (!change) return;
+			// const { eventType, Changes } = change;
 
-			const { eventType, Changes } = change;
-			// console.log("Material Request subscription event:", eventType, Changes);
+			const { eventType, changeType, change, changes } = changeEvent;
+			// Normalize into an array so logic is consistent
+			const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
 
-			if (Changes?.id === requestId) {
-				if (eventType === "updated" && Array.isArray(Changes.items)) {
-					toast.update(t("material-request-updated"), { autoClose: false }); //"The material request has been updated"
-					setRows(() => {
-						//  Map updated items into the same format as the initial useEffect
-						return Changes.items.map((item) => {
-							const matchedItem = allItems.find((i) => i.value === item.itemName);
-							const matchedColor = colorOptions.find((i) => i.value === item.color);
-							const matchedSide = sideOptions.find((i) => i.value === item.side);
-							const matchedSize = sizeOptions.find((i) => i.value === item.size);
+			if (!changesArray.length) return;
 
-							return {
-								id: item.id,
-								quantity: item.quantity,
-								item: matchedItem || { label: item.itemName, value: item.itemName },
-								itemDescription: item.itemDescription || "",
-								color: matchedColor || { label: item.color, value: item.color },
-								side: matchedSide || { label: item.side, value: item.side },
-								size: matchedSize || { label: item.size, value: item.size },
-							};
-						});
-					});
+			console.log(`📡 Material Request subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+
+			if (requestId) {
+				const targetChange = changesArray.find((c) => c.id === requestId);
+				if (targetChange) {
+					if (eventType === "updated" && Array.isArray(targetChange.items)) {
+						// if (eventType === "updated" && Array.isArray(change.items)) {
+
+						setRows(
+							targetChange.items.map((item) => {
+								const matchedItem = allItems.find((i) => i.value === item.itemName);
+								const matchedColor = colorOptions.find((i) => i.value === item.color);
+								const matchedSide = sideOptions.find((i) => i.value === item.side);
+								const matchedSize = sizeOptions.find((i) => i.value === item.size);
+
+								return {
+									id: item.id,
+									quantity: item.quantity,
+									item: matchedItem || { label: item.itemName, value: item.itemName },
+									itemDescription: item.itemDescription || "",
+									color: matchedColor || null,
+									side: matchedSide || null,
+									size: matchedSize || null,
+								};
+							})
+						);
+					}
 				}
+
+				// toast.info(t("material-request-updated"), {
+				// 	autoClose: false,
+				// });
+
+				// if (skipNextSub.current) {
+				// skipNextSub.current = false;
+				// return; // skip  triggered by your own update
+				// }
 
 				if (eventType === "deleted") {
 					t("material-request-deleted"); //"The material request has been deleted. You will be redirected to view all material requests."
@@ -282,7 +302,10 @@ function AdminUpdateOneMaterialRequest() {
 			}
 		},
 		onError: (err) => {
-			console.error(" Subscription error:", err);
+			console.error("Subscription error:", err);
+			if (err?.message?.includes("Socket closed") || err?.networkError) {
+				setWsDisconnected(true);
+			}
 		},
 	});
 
@@ -344,7 +367,7 @@ function AdminUpdateOneMaterialRequest() {
 	};
 
 	const resetForm = () => {
-		setRows([...rows]);
+		// setRows([...rows]);
 
 		setHasSubmitted(false);
 		setFormReset(true);
@@ -359,9 +382,10 @@ function AdminUpdateOneMaterialRequest() {
 					onClick={() => {
 						closeToast();
 						setBlockInput(false);
-						navigate("");
+						// navigate(`/material/request/${requestId}`);
+						navigate(`/material/request/all`);
 					}}>
-					{t("view-all-items")}
+					{t("view-request")}
 				</button>
 
 				<button
@@ -373,7 +397,7 @@ function AdminUpdateOneMaterialRequest() {
 						// console.log("has submitted after", hasSubmitted);
 						closeToast();
 					}}>
-					{t("add-more-items")}
+					{t("update-add-more-items")}
 				</button>
 			</div>
 
@@ -430,13 +454,6 @@ function AdminUpdateOneMaterialRequest() {
 
 		const mutationPromise = updatedMaterialRequest({
 			variables: { input },
-			// onCompleted: (res) => {
-			// 	// console.log("user update ", jwtDecode(userToken).userId == requestersID);
-			// 	// console.log("Mutation success:", res?.updateOneMaterialRequest);
-			// 	// console.log("this is the client / caches", client.cache.extract());
-			// 	// ("Material requests have been updated successfully!");
-			// 	navigate(`/material/request/${res?.updateOneMaterialRequest?.id}`);
-			// },
 		});
 
 		// } catch (err) {
@@ -448,6 +465,7 @@ function AdminUpdateOneMaterialRequest() {
 
 			success: {
 				render({ closeToast }) {
+					setIsOpen(false);
 					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} />;
 				},
 				autoClose: false,
@@ -475,8 +493,6 @@ function AdminUpdateOneMaterialRequest() {
 				setHasSubmitted(false);
 			});
 	};
-
-	// TODO - fix the other problems  do yo get the same request twice from the new update that you did ?   make the modal close when the update happens  a an block inputs and fix the will be deny on the modal that show if you are updating
 
 	const deleteRequest = async (e) => {
 		// console.log("deleting request");
@@ -867,7 +883,7 @@ function AdminUpdateOneMaterialRequest() {
 							// type="submit"
 							disabled={loading || mRLoading || !isFormValid || blockInput}
 							onClick={() => {
-								canReview() ? setApproval(true) : null;
+								canReview() ? setApproval(true) : setUpdating(true);
 
 								openModal();
 							}}>
@@ -886,10 +902,11 @@ function AdminUpdateOneMaterialRequest() {
 					onClose={() => {
 						setIsOpen(false);
 						setDeletion(false);
-						// setApproval(false);
+						setApproval(false);
+						setUpdating(false);
 					}}
 					onConFirm={deletion === true ? deleteRequest : submit}
-					data={{ mRequest, rows, deleting: deletion, approval }}
+					data={{ mRequest, rows, deleting: deletion, approval, updating }}
 					loading={loading}
 				/>
 			</form>

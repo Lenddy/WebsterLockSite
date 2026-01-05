@@ -12,7 +12,7 @@ import { useMaterialRequests } from "../../../context/MaterialRequestContext";
 import { useAuth } from "../../../context/AuthContext";
 
 export default function AdminItemUsage() {
-	const { userToken, setPageLoading } = useAuth(); // get token from context
+	const { userToken, setPageLoading, setWsDisconnected } = useAuth(); // get token from context
 	// const { error, loading, data } = useQuery(get_all_material_requests);
 	const [mRequests, setMRequests] = useState([]);
 	const { requests: allMRequests, loading, error } = useMaterialRequests();
@@ -79,6 +79,12 @@ export default function AdminItemUsage() {
 						return prev;
 				}
 			});
+		},
+		onError: (err) => {
+			console.error("Subscription error:", err);
+			if (err?.message?.includes("Socket closed") || err?.networkError) {
+				setWsDisconnected(true);
+			}
 		},
 	});
 

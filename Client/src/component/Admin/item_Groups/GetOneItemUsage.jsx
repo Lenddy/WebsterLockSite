@@ -14,7 +14,7 @@ import { useAuth } from "../../../context/AuthContext";
 
 function GetOneItemUsage() {
 	// const { name } = useParams();
-	const { userToken, setPageLoading } = useAuth(); // Get current user token from context
+	const { userToken, setPageLoading, setWsDisconnected } = useAuth(); // Get current user token from context
 	const { name: itemName } = useParams(); // item name from route
 	const decodedURl = decodeURIComponent(itemName);
 	console.log("url:", itemName);
@@ -85,6 +85,12 @@ function GetOneItemUsage() {
 						return prev;
 				}
 			});
+		},
+		onError: (err) => {
+			console.error("Subscription error:", err);
+			if (err?.message?.includes("Socket closed") || err?.networkError) {
+				setWsDisconnected(true);
+			}
 		},
 	});
 

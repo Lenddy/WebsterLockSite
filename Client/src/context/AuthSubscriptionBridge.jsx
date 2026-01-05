@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 
 export default function AuthSubscriptionBridge() {
-	const { userToken, setUserToken } = useAuth();
+	const { userToken, setUserToken, setWsDisconnected } = useAuth();
 
 	const currentUserId = userToken ? jwtDecode(userToken).userId : null;
 	const { t } = useTranslation();
@@ -82,7 +82,10 @@ export default function AuthSubscriptionBridge() {
 		},
 
 		onError: (err) => {
-			console.error("🚨 [AuthContext] Subscription error:", err);
+			console.error("Subscription error:", err);
+			if (err?.message?.includes("Socket closed") || err?.networkError) {
+				setWsDisconnected(true);
+			}
 		},
 	});
 

@@ -215,5 +215,27 @@
 	"your-profile-has-been-updated-successfully": "Your profile has been updated successfully",
 	"view-profile": "View profile",
 	"make-another-update": "Make another update",
-	"updating-user-profile": "Updating user profile"
+	"updating-user-profile": "Updating user profile",
+	"items-have-been-added-successfully": "Items have been added successfully",
+	"view-all-items": "View all items",
+	"add-more-items": "Add more items",
+	"adding-items": "Adding items",
+	"items-have-been-updated-successfully": "Items have been updated successfully",
+	"update-more-items": "Update more items",
+	"updating-items": "Updating items",
+	"request-have-been-updated-successfully": "Request have been updated successfully",
+	"update-add-more-items": "Update/Add more items",
+	"updating-request": "Updating request",
+	"deleting-request": "Deleting request",
+	"material-request-has-been-requested-successfully": "Material request has been requested successfully",
+	"view-request": "View request",
+	"view-requests": "View requests",
+	"will-be-updated": "Will be updated",
+	"connection-to-the-serve-was-lost-make-sure-that-you-are-connected-to-the-internet": "The connection to the server was lost. Make sure that you are connected to the internet",
+
+	"please-way-a-couple-of-minutes-then-please-refresh-to-continue": "Actualice /Recargue la página para continuar",
+
+	"to-get-live-data-and-to-not-potentially-lose-your-changes": "To get live data and not to potentially lose the changes you have made.",
+
+	"if-this-problem-continues-please-contact-the-site-manager": "If this problem continues please contact the site manager"
 }

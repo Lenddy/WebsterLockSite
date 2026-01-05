@@ -8,12 +8,14 @@ import CloseEye from "../../assets/closeEye.svg?react";
 import { useAuth } from "../../context/AuthContext"; // import your context
 import { useTranslation } from "react-i18next";
 import i18n from "../../../i18n";
+import { toast } from "react-toastify";
 
 // import NavBar from "../NavBar";
 
 export default function LogIn({ screenWidth }) {
 	const { setUserToken, userToken } = useAuth(); //  get setter from context
 	const [info, setInfo] = useState({});
+	const [blockInput, setBlockInput] = useState({});
 	const navigate = useNavigate();
 	const [logInUser, { data, loading, error }] = useMutation(log_In_user);
 	const [show, setShow] = useState(false);
@@ -30,15 +32,24 @@ export default function LogIn({ screenWidth }) {
 		},
 	];
 
+	//REVIEW - ask for a minimum limit on the passwords
+
 	const SubmissionInfo = (e) => {
+		const { name, value } = e.target;
 		setInfo({
 			...info,
-			[e.target.name]: e.target.value,
+			[name]: value,
 		});
+
+		if (name.length <= 0) setBlockInput(true);
+		else if (value.length <= 0) setBlockInput(true);
+		if (name.length > 0 && value.length > 0) setBlockInput(false);
 	};
 
 	const submit = async (e) => {
 		e.preventDefault();
+
+		//REVIEW - me the bank end send  error messages that are appropriate for the  users  (send info that the users and other devs can understand (one for the uses and the other for the devs ))
 
 		try {
 			const { data } = await logInUser({
@@ -61,7 +72,7 @@ export default function LogIn({ screenWidth }) {
 					setUserToken(null); // reset context
 
 					// Notify user
-					alert(t("previous-session-was-logged-out-to-allow-this-login"));
+					toast.warn(t("previous-session-was-logged-out-to-allow-this-login"), { autoClose: 5000 });
 				}
 
 				// Save new token
@@ -104,7 +115,7 @@ export default function LogIn({ screenWidth }) {
 		// }
 	};
 
-	console.log("testing stop logs on production");
+	// console.log("testing stop logs on production");
 
 	return (
 		<div>
@@ -150,7 +161,7 @@ export default function LogIn({ screenWidth }) {
 							{show === false ? <CloseEye className="eye" /> : <Eye className="eye" />}
 						</span>
 					</div>
-					<button className="form-submission-btn" type="submit" disabled={loading}>
+					<button className={`form-submission-btn ${blockInput ? "disable-btn" : ""}`} type="submit" disabled={loading || blockInput}>
 						{loading ? t("logging-in") : t("log-in")}
 						{/* Logging In... */}
 						{/* Log In */}

@@ -14,6 +14,7 @@ import CloseEye from "../../../assets/closeEye.svg?react";
 
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../context/AuthContext";
+import { toast } from "react-toastify";
 
 export default function AdminUpdateMultipleUsers() {
 	const { userToken, pageLoading, loading: userLoading } = useAuth();
@@ -24,6 +25,12 @@ export default function AdminUpdateMultipleUsers() {
 	const [success, setSuccess] = useState();
 	// const { error, loading, data, refetch } = useQuery(get_all_users);
 	const [logUser, setLogUser] = useState({});
+
+	const [hasSubmitted, setHasSubmitted] = useState(false);
+	const [formReset, setFormReset] = useState(false);
+	const [toastOpen, setToastOpen] = useState(false);
+	const [blockInput, setBlockInput] = useState(false);
+
 	const lastRowRef = useRef(null);
 	const location = useLocation();
 
@@ -55,6 +62,7 @@ export default function AdminUpdateMultipleUsers() {
 
 	useEffect(() => {
 		if (!canUserReview) {
+			toast.warn(t("you-dont-have-permission-to-edit-users"));
 			navigate("/material/request/all", { replace: true });
 		}
 	}, [canUserReview, navigate]);
@@ -279,58 +287,166 @@ export default function AdminUpdateMultipleUsers() {
 			.replace(/^./, (str) => str.toUpperCase()); // capitalize first letter
 	};
 
+	const resetForm = () => {
+		setRows([
+			{
+				id: "",
+				name: "",
+				previousEmail: "",
+				newEmail: "",
+				previousPassword: "",
+				newPassword: "",
+				confirmNewPassword: "",
+				employeeNum: "",
+				department: "",
+				title: "",
+				description: "",
+				newRole: "",
+				newPermissions: {
+					canViewAllUsers: false,
+					canEditUsers: false,
+					canDeleteUsers: false,
+					canChangeRole: false,
+					canEditSelf: true,
+					canViewSelf: true,
+					canDeleteSelf: false,
+				},
+				locked: false, // ensure new rows are never locked
+			},
+		]);
+		// setSuccess({ success: false });
+		setSuccess(null);
+		// setSelectedGroups([]);
+		setHasSubmitted(false);
+		setFormReset(true);
+	};
+
+	const SuccessToast = ({ closeToast, resetForm }) => (
+		<div>
+			<p>{t("user-has-been-updated-successfully")}</p>
+
+			<div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+				<button
+					onClick={() => {
+						closeToast();
+						setBlockInput(false);
+						navigate("/user/all");
+					}}>
+					{t("view-all-users")}
+				</button>
+
+				<button
+					onClick={() => {
+						resetForm();
+						setBlockInput(false);
+						// console.log("has submitted before", hasSubmitted);
+						setHasSubmitted(false);
+						// console.log("has submitted after", hasSubmitted);
+						closeToast();
+					}}>
+					{t("update-more-users")}
+				</button>
+			</div>
+
+			{/* <p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("duplicate-request")}</p> */}
+		</div>
+	);
+
 	// Submit
 	const submit = async (e) => {
 		e.preventDefault();
-		try {
-			await adminChangeMultipleUserProfiles({
-				variables: {
-					inputs: rows.map((row) => {
-						const { __typename, ...cleanPermissions } = row?.newPermissions || {};
 
-						return {
-							id: row?.id,
-							name: row?.name,
-							previousEmail: row?.previousEmail,
-							newEmail: row?.newEmail,
-							previousPassword: row?.previousPassword,
-							newPassword: row?.newPassword,
-							confirmNewPassword: row?.confirmNewPassword,
-							newRole: row?.newRole,
-							employeeNum: row?.employeeNum,
-							department: row?.department,
-							job: {
-								title: row?.title,
-								description: row?.description,
-							},
-							newPermissions: cleanPermissions,
-						};
-					}),
-				},
-				onCompleted: (res) => {
-					console.log("Mutation success:", res);
-
-					setSuccess({ success: true, update: "Update has been completed" });
-					alert(t("users-have-been-updated"));
-					//ANCHOR - try to update the  users token  here if they match the id  start hare adminChangeMultipleUserProfiles.id and token
-					//TODO yo need to find a new way to update the users toke like using the subs to trigger  like you did before the auth update
-					console.log(res?.adminChangeMultipleUserProfiles?.id === logUser.id);
-					console.log("updated token", res?.adminChangeMultipleUserProfiles?.token);
-
-					// if (res?.adminChangeMultipleUserProfiles?.id === logUser.id) {
-
-					res?.adminChangeMultipleUserProfiles.map((u) => (u.id === logUser.id ? localStorage.setItem("userToken", u.token) : null));
-
-					// }
-				},
-				onError: (errRes) => {
-					// console.log("Mutation error:", errRes);
-				},
+		if (hasSubmitted === true) {
+			toast.warn(t("duplicate-request-warning"), {
+				// autoClose: false,
 			});
-			// console.log(" Users updated");
-		} catch (err) {
-			console.error(" Error updating users:", err);
+			return;
 		}
+
+		const inputs = rows.map((row) => {
+			const { __typename, ...cleanPermissions } = row?.newPermissions || {};
+
+			return {
+				id: row?.id,
+				name: row?.name,
+				previousEmail: row?.previousEmail,
+				newEmail: row?.newEmail,
+				previousPassword: row?.previousPassword,
+				newPassword: row?.newPassword,
+				confirmNewPassword: row?.confirmNewPassword,
+				newRole: row?.newRole,
+				employeeNum: row?.employeeNum,
+				department: row?.department,
+				job: {
+					title: row?.title,
+					description: row?.description,
+				},
+				newPermissions: cleanPermissions,
+			};
+		});
+
+		const mutationPromise = adminChangeMultipleUserProfiles({
+			variables: {
+				inputs,
+			},
+
+			// onCompleted: (res) => {
+			// 	console.log("Mutation success:", res);
+
+			// 	setSuccess({ success: true, update: "Update has been completed" });
+			// 	t("users-have-been-updated");
+			// 	//ANCHOR - try to update the  users token  here if they match the id  start hare adminChangeMultipleUserProfiles.id and token
+			// 	//TODO yo need to find a new way to update the users toke like using the subs to trigger  like you did before the auth update
+			// 	console.log(res?.adminChangeMultipleUserProfiles?.id === logUser.id);
+			// 	console.log("updated token", res?.adminChangeMultipleUserProfiles?.token);
+
+			// 	// if (res?.adminChangeMultipleUserProfiles?.id === logUser.id) {
+
+			// 	// res?.adminChangeMultipleUserProfiles.map((u) => (u.id === logUser.id ? localStorage.setItem("userToken", u.token) : null));
+
+			// 	// }
+			// },
+			// onError: (errRes) => {
+			// 	// console.log("Mutation error:", errRes);
+			// },
+		});
+
+		toast.promise(mutationPromise, {
+			pending: t("updating-users"),
+
+			success: {
+				render({ closeToast }) {
+					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} />;
+				},
+				autoClose: false,
+			},
+
+			error: {
+				render({ data }) {
+					const err = data;
+					if (err?.graphQLErrors?.length) {
+						return err.graphQLErrors.map((e) => e.message).join(", ");
+					}
+					// come here
+					if (err?.networkError) return t("network-error-try-again");
+					return t("something-went-wrong");
+				},
+				autoClose: false,
+			},
+		});
+		mutationPromise
+			.then(() => {
+				setHasSubmitted(true);
+				setBlockInput(true);
+				setSuccess({ success: true, update: "Update has been completed" });
+			})
+			.catch(() => {
+				setHasSubmitted(false);
+			});
+		// console.log(" Users updated");
+		// } catch (err) {
+		// 	console.error(" Error updating users:", err);
+		// }
 	};
 
 	return (
@@ -412,7 +528,7 @@ export default function AdminUpdateMultipleUsers() {
 										placeholder={loading ? t("loading") : t("Select-user-by-name-email")}
 										isClearable={!row?.locked} //  Don't allow clearing if locked
 										isSearchable={!row?.locked} //  Disable search if locked
-										isDisabled={row?.locked || loading} //  Disable Select if locked
+										isDisabled={row?.locked || loading || blockInput} //  Disable Select if locked
 										styles={{
 											control: (base) => ({
 												...base,
@@ -432,7 +548,7 @@ export default function AdminUpdateMultipleUsers() {
 								{/* right side of the top container */}
 								<div className="form-row-top-right">
 									<label>{t("previous-email")}:</label>
-									<input type="text" name="previousEmail" value={row?.previousEmail} onChange={(e) => handleRowChange(index, e)} disabled placeholder={t("Previous Email")} />
+									<input type="text" name="previousEmail" value={row?.previousEmail} onChange={(e) => handleRowChange(index, e)} disabled={loading || blockInput} placeholder={t("Previous Email")} />
 								</div>
 
 								<div className="form-row-top-left">
@@ -444,6 +560,7 @@ export default function AdminUpdateMultipleUsers() {
 										onChange={(e) => {
 											handleRowChange(index, e), console.log(row?.employeeNum);
 										}}
+										disabled={blockInput}
 										placeholder={t("employee-number")}
 									/>
 								</div>
@@ -458,6 +575,7 @@ export default function AdminUpdateMultipleUsers() {
 											handleRowChange(index, e), console.log(row?.department);
 										}}
 										placeholder={t("department")}
+										disabled={blockInput}
 									/>
 								</div>
 							</div>
@@ -471,12 +589,12 @@ export default function AdminUpdateMultipleUsers() {
 									<div className="form-row-center-left-wrapper">
 										<div>
 											<label>{t("new name")}:</label>
-											<input type="text" name="name" value={row?.name} onChange={(e) => handleRowChange(index, e)} placeholder={t("new name")} />
+											<input type="text" name="name" value={row?.name} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} placeholder={t("new name")} />
 										</div>
 
 										<div>
 											<label>{t("new-email")}:</label>
-											<input type="email" name="newEmail" value={row?.newEmail} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-email")} />
+											<input type="email" name="newEmail" value={row?.newEmail} disabled={blockInput} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-email")} />
 										</div>
 
 										{/* <div className="form-row-center-left-bottom"> */}
@@ -484,7 +602,7 @@ export default function AdminUpdateMultipleUsers() {
 											<div>
 												<label>{t("previous-password")}:</label>
 												<div className="update-form-input">
-													<input type={show ? "text" : "password"} name="previousPassword" value={row?.previousPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("previous-password")} />
+													<input type={show ? "text" : "password"} name="previousPassword" disabled={blockInput} value={row?.previousPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("previous-password")} />
 
 													<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
 														{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
@@ -496,7 +614,7 @@ export default function AdminUpdateMultipleUsers() {
 										<div>
 											<label>{t("new-password")}:</label>
 											<div className="update-form-input">
-												<input type={show ? "text" : "password"} name="newPassword" value={row?.newPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-password")} />
+												<input type={show ? "text" : "password"} name="newPassword" value={row?.newPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-password")} disabled={blockInput} />
 
 												<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
 													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
@@ -507,7 +625,7 @@ export default function AdminUpdateMultipleUsers() {
 										<div>
 											<label>{t("confirm-new-password")}:</label>
 											<div className="update-form-input">
-												<input type={show ? "text" : "password"} name="confirmNewPassword" value={row?.confirmNewPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("confirm-new-password")} />
+												<input type={show ? "text" : "password"} name="confirmNewPassword" value={row?.confirmNewPassword} disabled={blockInput} onChange={(e) => handleRowChange(index, e)} placeholder={t("confirm-new-password")} />
 												<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
 													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 												</span>
@@ -521,18 +639,18 @@ export default function AdminUpdateMultipleUsers() {
 									<div className="form-row-center-right-wrapper">
 										<div>
 											<label>{t("new-job-title")}:</label>
-											<input type="text" name="title" value={row?.title} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-job-title")} />
+											<input type="text" name="title" value={row?.title} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} placeholder={t("new-job-title")} />
 										</div>
 
 										<div>
 											<label>{t("new-job-description")}:</label>
-											<textarea name="description" value={row?.description} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-job-description")}></textarea>
+											<textarea name="description" value={row?.description} disabled={blockInput} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-job-description")}></textarea>
 										</div>
 										{logUser?.permissions?.canChangeRole && (
 											<div>
 												<label>{t("new-role")}:</label>
 												{/* here */}
-												<select name="newRole" value={row?.newRole} onChange={(e) => handleRowChange(index, e)}>
+												<select name="newRole" value={row?.newRole} disabled={blockInput} onChange={(e) => handleRowChange(index, e)}>
 													<option value="" disabled>
 														{t("select-role")}
 													</option>
@@ -564,7 +682,7 @@ export default function AdminUpdateMultipleUsers() {
 																		{/* {formatKey(permKey)} */}
 																		{translatePermissionKey(permKey)}
 
-																		<input onChange={(e) => handleRowChange(index, e)} type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} />
+																		<input onChange={(e) => handleRowChange(index, e)} disabled={blockInput} type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} />
 																	</label>
 																</li>
 															))}
@@ -587,7 +705,7 @@ export default function AdminUpdateMultipleUsers() {
 																		<label>
 																			{/* {formatKey(permKey)}*/}
 																			{translatePermissionKey(permKey)}
-																			<input type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+																			<input type="checkbox" name={permKey} disabled={blockInput} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
 																		</label>
 																	</li>
 																))

@@ -8,9 +8,10 @@ import AdminUpdateOneMaterialRequest from "../Admin/material_request/AdminUpdate
 import Select from "react-select";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 
 export default function GetOneMaterialRequest() {
-	const { userToken, authLoading } = useAuth(); // get token from context
+	const { userToken, authLoading, setWsDisconnected } = useAuth(); // get token from context
 	const { requestId } = useParams();
 	const location = useLocation();
 	const currentRoutePath = location.pathname;
@@ -144,7 +145,9 @@ export default function GetOneMaterialRequest() {
 				const targetChange = changesArray.find((c) => c.id === requestId);
 				if (targetChange) {
 					if (eventType === "updated" && Array.isArray(targetChange.items)) {
-						setRows(() =>
+						//
+
+						setRows(
 							targetChange.items.map((item) => {
 								const matchedItem = allItems.find((i) => i.value === item.itemName);
 								const matchedColor = colorOptions.find((i) => i.value === item.color);
@@ -155,18 +158,24 @@ export default function GetOneMaterialRequest() {
 									id: item.id,
 									quantity: item.quantity,
 									item: matchedItem || { label: item.itemName, value: item.itemName },
-									itemDescription: item.itemDescription || "",
-									color: matchedColor || { label: item.color, value: item.color },
-									side: matchedSide || { label: item.side, value: item.side },
-									size: matchedSize || { label: item.size, value: item.size },
+									itemDescription: item.itemDescription ?? "",
+									color: matchedColor || null,
+									side: matchedSide || null,
+									size: matchedSize || null,
 								};
 							})
 						);
-						alert(t("the-material-request-has-been-updated"));
+
+						// toast.update(t("the-material-request-has-been-updated"), { autoClose: false });
+						toast.info(t("the-material-request-has-been-updated"), {
+							autoClose: false,
+						});
 					}
 
 					if (eventType === "deleted") {
-						alert(t("the-material-request-has-been-deleted-you-will-be-redirected-to-view-all-material-requests"));
+						// TODO - make logic so that the users get redirected when the notification fades or they can click a btn  to stay or be redirected  be redirected if they stay  they cant edit or do anything else  show a notification that says this
+
+						toast.error(t("the-material-request-has-been-deleted-you-will-be-redirected-to-view-all-material-requests"));
 						navigate("/material/request/all");
 					}
 				}
@@ -174,7 +183,10 @@ export default function GetOneMaterialRequest() {
 		},
 
 		onError: (err) => {
-			console.error("🚨 Subscription error:", err);
+			console.error("Subscription error:", err);
+			if (err?.message?.includes("Socket closed") || err?.networkError) {
+				setWsDisconnected(true);
+			}
 		},
 	});
 

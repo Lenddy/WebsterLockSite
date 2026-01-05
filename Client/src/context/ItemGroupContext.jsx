@@ -8,7 +8,7 @@ import { jwtDecode } from "jwt-decode";
 const ItemGroupsContext = createContext();
 
 export function ItemGroupsProvider({ children }) {
-	const { loading: authLoading, userToken } = useAuth(); // wait for token
+	const { loading: authLoading, userToken, setWsDisconnected } = useAuth(); // wait for token
 	const [items, setItems] = useState([]);
 
 	const canReview = () => {
@@ -125,7 +125,12 @@ export function ItemGroupsProvider({ children }) {
 				console.warn("⚠️ Cache update skipped:", err.message);
 			}
 		},
-		onError: (err) => console.error("🚨 Subscription error:", err),
+		onError: (err) => {
+			console.error("Subscription error:", err);
+			if (err?.message?.includes("Socket closed") || err?.networkError) {
+				setWsDisconnected(true);
+			}
+		},
 	});
 
 	return <ItemGroupsContext.Provider value={{ items, loading: queryLoading || authLoading, error }}>{children}</ItemGroupsContext.Provider>;

@@ -1944,6 +1944,14 @@ textarea:disabled {
 	border-radius: 10px;
 }
 
+/* global classes */
+
+.disable-btn {
+	opacity: 0.6;
+	pointer-events: none;
+	cursor: not-allowed;
+}
+
 /* !!!!! */
 /* !!!!! */
 /* !!!!! */

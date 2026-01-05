@@ -4,8 +4,11 @@ import { useSubscription, gql } from "@apollo/client";
 import { jwtDecode } from "jwt-decode";
 import { USER_CHANGE_SUBSCRIPTION } from "../../graphQL/subscriptions/subscriptions"; // adjust import path
 import { useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
 // import { wsClient } from "../../graphQL/apolloClient";
 // import { wsClient } from "../../graphQL/apolloClient";
+// import i18n from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const AuthContext = createContext(null);
 
@@ -15,6 +18,44 @@ export const AuthProvider = ({ children }) => {
 	const [loading, setLoading] = useState(true);
 	const [pageLoading, setPageLoading] = useState(false);
 	const currentRoutePath = location.pathname;
+	const [wsDisconnected, setWsDisconnected] = useState(false);
+
+	const { t } = useTranslation();
+
+	useEffect(() => {
+		if (!wsDisconnected) return;
+
+		toast.error(
+			({ closeToast }) => (
+				<div>
+					<p>
+						{t("connection-to-the-serve-was-lost-make-sure-that-you-are-connected-to-the-internet")}
+						<br />
+						{t("please-way-a-couple-of-minutes-then-please-refresh-to-continue")}
+						<br />
+						<span style={{ color: "red" }}>{t("to-get-live-data-and-to-not-potentially-lose-your-changes")}</span>
+
+						<br />
+						{t("if-this-problem-continues-please-contact-the-site-manager")}
+					</p>
+
+					<button
+						onClick={() => {
+							closeToast();
+							window.location.reload();
+						}}
+						style={{ marginTop: "8px" }}>
+						OK
+					</button>
+				</div>
+			),
+			{
+				autoClose: false,
+				closeOnClick: false,
+				draggable: false,
+			}
+		);
+	}, [wsDisconnected]);
 
 	// Load token from localStorage on mount
 	useEffect(() => {
@@ -49,62 +90,6 @@ export const AuthProvider = ({ children }) => {
 		}
 	}, [userToken]);
 
-	// Decode the token to get the current user's ID
-	// const currentUserId = userToken ? jwtDecode(userToken).userId : null;
-
-	// Listen for USER_CHANGE_SUBSCRIPTION (same event you use everywhere else)
-	// useSubscription(USER_CHANGE_SUBSCRIPTION, {
-	// 	onData: ({ data: subscriptionData }) => {
-	// 		console.log("📡 [AuthContext] Subscription data:", subscriptionData);
-
-	// 		const changeEvent = subscriptionData?.data?.onUserChange;
-	// 		if (!changeEvent) return;
-
-	// 		const { eventType, changeType, change, changes, updateBy } = changeEvent;
-
-	// 		// Normalize into array for consistency
-	// 		const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
-
-	// 		if (!changesArray.length) return;
-
-	// 		for (const updatedUser of changesArray) {
-	// 			if (eventType !== "updated") continue; // only handle updates
-
-	// 			const newToken = updatedUser?.token;
-	// 			const updatedUserId = updatedUser?.id;
-
-	// 			//  Only update if the changed user is the logged-in one
-	// 			if (currentUserId && updatedUserId === currentUserId && newToken) {
-	// 				console.log("🔑 [AuthContext] Token updated via PubSub — refreshing context...");
-	// 				setUserToken(newToken);
-	// 				console.log("updateBy", updateBy);
-	// 				if (updateBy !== currentUserId) {
-	// 					alert("User profile has been updated (from the context)");
-	// 				}
-
-	// 				// Optional: toast or banner
-	// 				// showToast("Your session was refreshed after profile update");
-	// 			}
-
-	// 			// if (currentUserId && updatedUserId === currentUserId && newToken) {
-	// 			// 	setUserToken(newToken);
-
-	// 			// 	// 🔥 Force WebSocket reconnection
-	// 			// 	try {
-	// 			// 		// wsLink.client?.dispose();
-	// 			// 		wsClient.dispose();
-	// 			// 	} catch (e) {
-	// 			// 		console.warn("WS reconnect error:", e);
-	// 			// 	}
-	// 			// }
-	// 		}
-	// 	},
-
-	// 	onError: (err) => {
-	// 		console.error("🚨 [AuthContext] Subscription error:", err);
-	// 	},
-	// });
-
 	return (
 		<AuthContext.Provider
 			value={{
@@ -113,6 +98,8 @@ export const AuthProvider = ({ children }) => {
 				loading,
 				pageLoading,
 				setPageLoading,
+				wsDisconnected,
+				setWsDisconnected,
 			}}>
 			{children}
 		</AuthContext.Provider>

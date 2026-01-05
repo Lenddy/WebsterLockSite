@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { useItemGroups } from "../../../context/ItemGroupContext";
 // const [items, setItems] = useState([]);
 import { useAuth } from "../../../context/AuthContext";
+import { toast } from "react-toastify";
 
 export default function AdminCreateMultipleMaterialRequests() {
 	const { userToken, pageLoading, loading: userLoading } = useAuth();
@@ -64,6 +65,10 @@ export default function AdminCreateMultipleMaterialRequests() {
 	const [searchValue, setSearchValue] = useState("");
 	const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
 	const [isItemsReady, setIsItemsReady] = useState(false);
+	const [hasSubmitted, setHasSubmitted] = useState(false);
+	const [formReset, setFormReset] = useState(false);
+	const [toastOpen, setToastOpen] = useState(false);
+	const [blockInput, setBlockInput] = useState(false);
 
 	const navigate = useNavigate();
 	const { t } = useTranslation();
@@ -241,6 +246,12 @@ export default function AdminCreateMultipleMaterialRequests() {
 		}
 	}, [allItems]);
 
+	// 	useEffect(() => {
+	// 	if (hasSubmitted) {
+	// 		toast.info(t("duplicate-request-warning"), { autoClose: false });
+	// 	}
+	// }, [hasSubmitted]);
+
 	const customUserFilter = (option, inputValue = "") => {
 		// If search is empty → show all
 		if (!inputValue) return true;
@@ -260,55 +271,162 @@ export default function AdminCreateMultipleMaterialRequests() {
 		const fuse = new Fuse(allItems, { keys: ["label"], threshold: 0.4 });
 
 		// Keep options that fuzzy-match the search term
-		return fuse.search(inputValue).some((r) => r.item.value === option.value);
+		return fuse?.search(inputValue)?.some((r) => r?.item?.value === option?.value);
 	};
 
-	const canAddMore = requests.every((r) => r.requester?.userId && r.addedDate && r.items.every((i) => i.quantity && i.item?.value));
+	const resetForm = () => {
+		setRequests([
+			{
+				addedDate: "",
+				description: "",
+				items: [
+					{
+						brand: "",
+						quantity: "",
+						item: null,
+						color: null,
+						side: null,
+						size: null,
+						itemDescription: "",
+						showOptional: false,
+						showDescription: false,
+					},
+				],
+				requester: {
+					userId: "",
+					email: "",
+					name: "",
+					role: "",
+					employeeNum: "",
+					department: "",
+					permissions: {
+						canEditUsers: false,
+						canDeleteUsers: false,
+						canChangeRole: false,
+						canViewUsers: false,
+						canViewAllUsers: false,
+						canEditSelf: false,
+						canViewSelf: false,
+						canDeleteSelf: false,
+						canRegisterUser: false,
+					},
+				},
+			},
+		]); // or your initial requests state
+		// setSelectedGroups([]);
+		setHasSubmitted(false);
+		setFormReset(true);
+	};
+
+	let canAddMore = requests?.every((r) => r.requester?.userId && r?.addedDate && r?.items?.every((i) => i?.quantity && i?.item?.value));
 
 	//  Submit validation
 	const canSubmit = canAddMore; // since it's the same rule for "everything filled"
 
+	// REVIEW -      make the btn works (not brake the page )  and also dont allow a the users to click the submit btn  (see if you can overwrite the state variable on te component settings of the browser)and add the new translation
+
+	//TODO - if a request is made notify the users that is has succeeded/ fail (done )
+
+	//TODO -  if the same requests gets send with not changes dont let the request pass and notify the user that it is a duplicate and it needs to be change (done)
+
+	//TODO - if the users wants to make another request they should not be able to edit their current request nor make another request (not able to edit current request ) until  they click make another request / reload site
+
+	//TODO - if the user wants to see the requests they can navigate to view all requests  when the uses closes the notification or clicks view requests btn
+
+	const SuccessToast = ({ closeToast, resetForm }) => (
+		<div>
+			<p>{t("material-requests-have-been-requested-successfully")}</p>
+
+			<div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+				<button
+					onClick={() => {
+						closeToast();
+						setBlockInput(false);
+						navigate("/material/request/all");
+					}}>
+					{t("view-all-request")}
+				</button>
+
+				<button
+					onClick={() => {
+						resetForm();
+						setBlockInput(false);
+						console.log("has submitted before", hasSubmitted);
+						setHasSubmitted(false);
+						console.log("has submitted after", hasSubmitted);
+						closeToast();
+					}}>
+					{t("make-another-request")}
+				</button>
+			</div>
+
+			{/* <p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("duplicate-request")}</p> */}
+		</div>
+	);
+
 	const submit = async (e) => {
 		e.preventDefault();
-		try {
-			const inputs = requests.map((r) => ({
-				// addedDate: r.addedDate,
-				addedDate: dayjs(r?.addedDate).toISOString(),
-				description: r?.description || null,
-				items: r?.items.map((i) => ({
-					quantity: parseInt(i?.quantity),
-					itemName: i?.item?.value,
-					color: i?.color || null,
-					side: i?.side || null,
-					size: i?.size || null,
-					itemDescription: i?.itemDescription || null,
-				})),
-				requester: r.requester,
-			}));
 
-			console.log("this is the input that are send  ", inputs);
-
-			await createNewMaterialRequests({
-				variables: { inputs },
-
-				onCompleted: (res) => {
-					// console.log("Mutation success on the create multiple:", res.createMultipleMaterialRequests);
-					// newMr =
-					alert(t("material-requests-have-been-requested-successfully"));
-					navigate(`/material/request/all`);
-				},
-				onError: (err) => {
-					console.warn("Mutation error:", err);
-					// newMr =
-					// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
-				},
+		if (hasSubmitted === true) {
+			toast.warn(t("duplicate-request-warning"), {
+				// autoClose: false,
 			});
-		} catch (err) {
-			console.error("Submit error:", err);
+			return;
 		}
-	};
 
-	// const [showOptional, setShowOptional] = useState(false);
+		const inputs = requests.map((r) => ({
+			// addedDate: r.addedDate,
+			addedDate: dayjs(r?.addedDate).toISOString(),
+			description: r?.description || null,
+			items: r?.items.map((i) => ({
+				quantity: parseInt(i?.quantity),
+				itemName: i?.item?.value,
+				color: i?.color || null,
+				side: i?.side || null,
+				size: i?.size || null,
+				itemDescription: i?.itemDescription || null,
+			})),
+			requester: r.requester,
+		}));
+
+		// console.log("this is the input that are send  ", inputs);
+
+		const mutationPromise = createNewMaterialRequests({
+			variables: { inputs },
+		});
+
+		toast.promise(mutationPromise, {
+			pending: t("creating-material-request"),
+
+			success: {
+				render({ closeToast }) {
+					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} />;
+				},
+				autoClose: false,
+			},
+
+			error: {
+				render({ data }) {
+					const err = data;
+					if (err?.graphQLErrors?.length) {
+						return err.graphQLErrors.map((e) => e.message).join(", ");
+					}
+					// come here
+					if (err?.networkError) return t("network-error-try-again");
+					return t("something-went-wrong");
+				},
+				autoClose: false,
+			},
+		});
+		mutationPromise
+			.then(() => {
+				setHasSubmitted(true);
+				setBlockInput(true);
+			})
+			.catch(() => {
+				setHasSubmitted(false);
+			});
+	};
 
 	function VirtualizedMenuList({ options, children, maxHeight }) {
 		// console.log("maxHeight", maxHeight);
@@ -350,11 +468,11 @@ export default function AdminCreateMultipleMaterialRequests() {
 	}
 
 	const filteredAllItems = useMemo(() => {
-		console.log("🔍 debouncedSearch:", debouncedSearch);
-		console.log("📦 allItems:", allItems);
+		// console.log("🔍 debouncedSearch:", debouncedSearch);
+		// console.log("📦 allItems:", allItems);
 
 		if (!debouncedSearch) {
-			console.log("➡ Returning all items (no search)");
+			// console.log("➡ Returning all items (no search)");
 			return allItems;
 		}
 
@@ -369,30 +487,18 @@ export default function AdminCreateMultipleMaterialRequests() {
 			const results = fuse.search(debouncedSearch);
 			// const results = fuse.search(debouncedSearch).some((r) => r.item.value);
 
-			console.log("🎯 Fuse raw results:", results);
+			// console.log("🎯 Fuse raw results:", results);
 
 			const mapped = results.map((r) => r.item);
 			// const mapped = results.some((r) => r.item);
-			console.log("📌 Mapped results:", mapped);
+			// console.log("📌 Mapped results:", mapped);
 
 			return mapped;
 		} catch (err) {
-			console.error("❌ Fuzzy error:", err);
+			// console.error("❌ Fuzzy error:", err);
 			return allItems;
 		}
 	}, [allItems, debouncedSearch]);
-
-	// const filteredAllItems = useMemo(() => {
-	// 	if (!debouncedSearch) return allItems;
-
-	// 	const fuse = new Fuse(allItems, {
-	// 		keys: ["label", "brand"],
-	// 		threshold: 0.4,
-	// 		ignoreLocation: true,
-	// 	});
-
-	// 	return fuse.search(debouncedSearch).map((r) => r.item);
-	// }, [allItems, debouncedSearch]);
 
 	return (
 		<div className="update-container">
@@ -414,7 +520,10 @@ export default function AdminCreateMultipleMaterialRequests() {
 									<Select
 										className="form-row-top-select"
 										options={userOptions}
-										value={requests[reqIdx]?.requester ? userOptions.find((opt) => opt.value.userId === requests[reqIdx].requester.userId) : null}
+										value={
+											// requests[reqIdx]?.requester ? userOptions.find((opt) => opt.value.userId === requests[reqIdx].requester.userId) : null
+											requests[reqIdx]?.requester?.userId ? userOptions.find((opt) => opt.value.userId === requests[reqIdx].requester.userId) : null
+										}
 										onChange={(selected) =>
 											handleRequestChange(
 												reqIdx,
@@ -426,7 +535,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 										placeholder={loading ? t("loading") : t("select-requester")}
 										isClearable
 										isSearchable
-										isDisabled={loading}
+										isDisabled={loading || blockInput}
 										styles={{
 											control: (base) => ({
 												...base,
@@ -450,7 +559,9 @@ export default function AdminCreateMultipleMaterialRequests() {
 									<input
 										className="date-input"
 										type="date"
-										value={req.date}
+										disabled={loading || blockInput}
+										// value={req.date || null}
+										value={requests[reqIdx]?.addedDate ?? ""}
 										onChange={(e) => {
 											handleRequestChange(reqIdx, "addedDate", e.target.value), console.log("initial date", e.target.value, "formatted Date", dayjs(e.target.value).toISOString());
 										}}
@@ -478,7 +589,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 												placeholder={iGLoading ? t("loading") : t("select-brand")}
 												isClearable
 												isSearchable
-												isDisabled={iGLoading}
+												isDisabled={iGLoading || blockInput}
 												styles={{
 													control: (base) => ({
 														...base,
@@ -500,7 +611,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 											<div className="form-row-top-left material-request">
 												<label htmlFor="">{t("quantity")}</label>
 												{/* Quantity */}
-												<input type="number" value={row.quantity} onChange={(e) => handleItemChange(reqIdx, rowIdx, "quantity", e.target.value)} placeholder={t("qty")} min={0} />
+												<input type="number" disabled={loading || blockInput} value={row.quantity} onChange={(e) => handleItemChange(reqIdx, rowIdx, "quantity", e.target.value)} placeholder={t("qty")} min={0} />
 											</div>
 
 											<div className="form-row-top-right material-request">
@@ -513,7 +624,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 													value={row.item}
 													onChange={(val) => handleItemChange(reqIdx, rowIdx, "item", val)}
 													placeholder={isItemsReady ? t("select-item") : t("loading-items")}
-													isDisabled={!isItemsReady}
+													isDisabled={!isItemsReady || blockInput}
 													// onInputChange={(val, meta) => {
 													// 	// console.log("InputChange value:", val, "action:", meta.action);
 													// 	if (meta.action === "input-change") {
@@ -571,6 +682,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 																value={colorOptions.find((opt) => opt.value === row.color)}
 																onChange={(val) => handleItemChange(reqIdx, rowIdx, "color", val?.value || null)}
 																placeholder={t("select-color")}
+																isDisabled={loading || blockInput}
 																styles={{
 																	control: (base) => ({
 																		...base,
@@ -606,6 +718,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 																filterOption={customFilter}
 																isClearable
 																isSearchable
+																isDisabled={loading || blockInput}
 																styles={{
 																	control: (base) => ({
 																		...base,
@@ -635,6 +748,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 																filterOption={customFilter}
 																isClearable
 																isSearchable
+																isDisabled={loading || blockInput}
 																styles={{
 																	control: (base) => ({
 																		...base,
@@ -661,10 +775,11 @@ export default function AdminCreateMultipleMaterialRequests() {
 													<label htmlFor="">{t("description")}</label>
 
 													{/* Item description */}
-													<textarea type="text" value={row.itemDescription} onChange={(e) => handleItemChange(reqIdx, rowIdx, "itemDescription", e.target.value)} placeholder={t("description-for-the-item")} cols={40} rows={10} />
+													<textarea type="text" disabled={loading || blockInput} value={row.itemDescription} onChange={(e) => handleItemChange(reqIdx, rowIdx, "itemDescription", e.target.value)} placeholder={t("description-for-the-item")} cols={40} rows={10} />
 												</div>
 											)}
 
+											{/* //REVIEW - change the spans to btns and add the allow to disable them if blockInput == ture or loading  (also change css from spans to btns ) */}
 											<div className="form-action-hidden-fields">
 												<span className="show-fields-btn" type="button" onClick={() => toggleItemField(reqIdx, rowIdx, "showOptional")}>
 													{row.showOptional ? t("hide-optional-fields") : t("show-optional-fields")}

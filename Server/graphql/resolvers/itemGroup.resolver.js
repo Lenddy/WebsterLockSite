@@ -230,6 +230,7 @@ const itemGroupResolver = {
 		},
 
 		updateMultipleItemGroups: async (_, { input }, { user, pubsub }) => {
+			// throw new Error("TEST ERROR: Forced failure");
 			try {
 				// console.log("this is the input ________________");
 				// console.dir(input, { depth: null });

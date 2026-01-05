@@ -8,6 +8,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useItemGroups } from "../../../context/ItemGroupContext";
 import { useAuth } from "../../../context/AuthContext";
+import { toast } from "react-toastify";
 
 export default function AdminUpdateMultipleItemsGroups() {
 	const { userToken, setPageLoading } = useAuth(); // get token from context
@@ -15,6 +16,10 @@ export default function AdminUpdateMultipleItemsGroups() {
 
 	const [selectedGroups, setSelectedGroups] = useState([]);
 	const [changesMade, setChangesMade] = useState(false);
+	const [hasSubmitted, setHasSubmitted] = useState(false);
+	const [formReset, setFormReset] = useState(false);
+	const [toastOpen, setToastOpen] = useState(false);
+	const [blockInput, setBlockInput] = useState(false);
 
 	const { itemId } = useParams();
 
@@ -189,11 +194,112 @@ export default function AdminUpdateMultipleItemsGroups() {
 		setSelectedGroups((prev) => prev.filter((_, idx) => idx !== groupIdx));
 	};
 
+	// const submit = async (e) => {
+	// 	e.preventDefault();
+
+	// 	if (!changesMade) {
+	// 		toast.success(t("no-changes-made"));
+	// 		return;
+	// 	}
+
+	// 	const input = selectedGroups
+	// 		.filter((g) => g.id)
+	// 		.map((g) => {
+	// 			const groupPayload = { id: g.id };
+	// 			if (g.brandAction?.toBeUpdated) {
+	// 				groupPayload.brand = g.brand;
+	// 				groupPayload.brandNameUpdate = true;
+	// 			}
+
+	// 			const changedItems = g.itemsList
+	// 				.filter((item) => item.action?.toBeAdded || item.action?.toBeUpdated || item.action?.toBeDeleted)
+	// 				.map((item) => {
+	// 					const payload = { action: {} };
+	// 					if (item.id) payload.id = item.id;
+	// 					if (item.itemName && (item.action?.toBeAdded || item.action?.toBeUpdated)) {
+	// 						payload.itemName = item.itemName;
+	// 					}
+	// 					if (item.action?.toBeAdded) payload.action.toBeAdded = true;
+	// 					if (item.action?.toBeUpdated) payload.action.toBeUpdated = true;
+	// 					if (item.action?.toBeDeleted) payload.action.toBeDeleted = true;
+	// 					return payload;
+	// 				});
+
+	// 			if (changedItems.length > 0) groupPayload.itemsList = changedItems;
+	// 			return groupPayload;
+	// 		})
+	// 		.filter((g) => g.brand || g.brandNameUpdate || g.itemsList);
+
+	// 	if (input.length === 0) {
+	// 		alert(t("no-real-changes-to-submit"));
+	// 		return;
+	// 	}
+
+	// 	console.log("Submitting:", input);
+
+	// 	await updateItemGroups({
+	// 		variables: { input },
+	// 		onCompleted: (res) => {
+	// 			alert(t("item-groups-have-been-updated-successfully"));
+	// 			// ("Item Groups have been Updated successfully!");
+	// 			//  console.log("Success:", res)
+	// 		},
+	// 		onError: (err) => console.error("Error:", err),
+	// 	});
+	// };
+	//
+
+	// todo if theres an id send as a param set the ide to be the selected group
+	const resetForm = () => {
+		setSelectedGroups([{ id: null, brand: "", itemsList: [], brandAction: {} }]);
+
+		setHasSubmitted(false);
+		setFormReset(true);
+	};
+
+	const SuccessToast = ({ closeToast, resetForm }) => (
+		<div>
+			<p>{t("items-have-been-updated-successfully")}</p>
+
+			<div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+				<button
+					onClick={() => {
+						closeToast();
+						setBlockInput(false);
+						navigate("/admin/material/item/all");
+					}}>
+					{t("view-all-items")}
+				</button>
+
+				<button
+					onClick={() => {
+						resetForm();
+						setBlockInput(false);
+						// console.log("has submitted before", hasSubmitted);
+						setHasSubmitted(false);
+						// console.log("has submitted after", hasSubmitted);
+						closeToast();
+					}}>
+					{t("update-more-items")}
+				</button>
+			</div>
+
+			{/* <p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("duplicate-request")}</p> */}
+		</div>
+	);
+
 	const submit = async (e) => {
 		e.preventDefault();
 
 		if (!changesMade) {
-			alert(t("no-changes-made"));
+			toast.info(t("no-changes-made"));
+			return;
+		}
+
+		if (hasSubmitted === true) {
+			toast.warn(t("duplicate-request-warning"), {
+				// autoClose: false,
+			});
 			return;
 		}
 
@@ -201,6 +307,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 			.filter((g) => g.id)
 			.map((g) => {
 				const groupPayload = { id: g.id };
+
 				if (g.brandAction?.toBeUpdated) {
 					groupPayload.brand = g.brand;
 					groupPayload.brandNameUpdate = true;
@@ -210,13 +317,16 @@ export default function AdminUpdateMultipleItemsGroups() {
 					.filter((item) => item.action?.toBeAdded || item.action?.toBeUpdated || item.action?.toBeDeleted)
 					.map((item) => {
 						const payload = { action: {} };
+
 						if (item.id) payload.id = item.id;
 						if (item.itemName && (item.action?.toBeAdded || item.action?.toBeUpdated)) {
 							payload.itemName = item.itemName;
 						}
+
 						if (item.action?.toBeAdded) payload.action.toBeAdded = true;
 						if (item.action?.toBeUpdated) payload.action.toBeUpdated = true;
 						if (item.action?.toBeDeleted) payload.action.toBeDeleted = true;
+
 						return payload;
 					});
 
@@ -226,21 +336,47 @@ export default function AdminUpdateMultipleItemsGroups() {
 			.filter((g) => g.brand || g.brandNameUpdate || g.itemsList);
 
 		if (input.length === 0) {
-			alert(t("no-real-changes-to-submit"));
+			toast.warn(t("no-real-changes-to-submit"));
 			return;
 		}
 
-		console.log("Submitting:", input);
+		// console.log("Submitting:", input);
 
-		await updateItemGroups({
+		const mutationPromise = updateItemGroups({
 			variables: { input },
-			onCompleted: (res) => {
-				alert(t("item-groups-have-been-updated-successfully"));
-				// alert("Item Groups have been Updated successfully!");
-				//  console.log("Success:", res)
-			},
-			onError: (err) => console.error("Error:", err),
 		});
+
+		toast.promise(mutationPromise, {
+			pending: t("updating-items"),
+
+			success: {
+				render({ closeToast }) {
+					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} />;
+				},
+				autoClose: false,
+			},
+
+			error: {
+				render({ data }) {
+					const err = data;
+					if (err?.graphQLErrors?.length) {
+						return err.graphQLErrors.map((e) => e.message).join(", ");
+					}
+					// come here
+					if (err?.networkError) return t("network-error-try-again");
+					return t("something-went-wrong");
+				},
+				autoClose: false,
+			},
+		});
+		mutationPromise
+			.then(() => {
+				setHasSubmitted(true);
+				setBlockInput(true);
+			})
+			.catch(() => {
+				setHasSubmitted(false);
+			});
 	};
 
 	const isLoading = loadingAll || loadingOne;
@@ -264,7 +400,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 									filterOption={customUserFilter}
 									isSearchable
 									onChange={(selected) => handleSelectGroup(gIdx, selected)}
-									isDisabled={!!itemId || loadingAll || loadingOne} //  disable dropdown if loaded from param
+									isDisabled={!!itemId || loadingAll || loadingOne || blockInput} //  disable dropdown if loaded from param
 									styles={{
 										control: (base, state) => ({
 											...base,
@@ -290,7 +426,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 									{group.id && (
 										<div className="form-row-top-right material-request">
 											<label>{t("brand")}:</label>
-											<input type="text" value={group.brand} onChange={(e) => handleBrandChange(gIdx, e.target.value)} placeholder={t("brand-name")} />
+											<input type="text" value={group.brand} onChange={(e) => handleBrandChange(gIdx, e.target.value)} placeholder={t("brand-name")} disabled={blockInput} />
 										</div>
 									)}
 								</div>

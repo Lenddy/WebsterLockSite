@@ -83,6 +83,8 @@ const materialRequestResolvers = {
 	// Mutation resolvers
 	Mutation: {
 		createOneMaterialRequest: async (_, { input: { description, items } }, { user }) => {
+			// return new ApolloError("testing error");
+
 			// Check if user context is provided (authentication)
 			if (!user) throw new ApolloError("Unauthorized: no user context given.");
 
@@ -238,8 +240,21 @@ const materialRequestResolvers = {
 			try {
 				if (!user) throw new ApolloError("Unauthorized: No user context.");
 
-				//! here  it is saying that even if the id of the users and the requester match it will not work because  of the validation checking if they have permission to edit other users      find a solution to this
-				if ((!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole" || (!user.permissions.canEditUsers && user.userId !== requesterId)) {
+				//! here it is saying that even if the id of the users and the requester match it will not work because  of the validation checking if they have permission to edit other users      find a solution to this
+
+				// (!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole" || (!user.permissions.canEditUsers &&
+
+				// console.log(user.userId !== requesterId);
+				// console.log(!user?.permissions?.canEditUsers);
+
+				// if (user.userId !== requesterId || user?.permissions?.canEditUsers === false) {
+				// 	throw new ApolloError("Unauthorized: You lack permission.");
+				// }
+
+				const isOwner = user.userId.toString() === requesterId.toString();
+				const canUpdate = user.permissions?.canEditUsers === true && ["headAdmin", "admin", "subAdmin"].includes(user.role);
+
+				if (!isOwner && !canUpdate) {
 					throw new ApolloError("Unauthorized: You lack permission.");
 				}
 
@@ -523,7 +538,7 @@ const materialRequestResolvers = {
 		// Delete a material request (admin only)
 		deleteOneMaterialRequest: async (_, { id }, { user }) => {
 			if (!user) throw new ApolloError("Unauthorized: No context provided."); // Require authentication
-			if (!user.permissions.canDeleteUsers) throw new ApolloError("You lack permission to delete Material request."); // Require permission
+			// if (!user.permissions.canDeleteUsers) throw new ApolloError("You lack permission to delete Material request."); // Require permission
 
 			const deletedMaterialRequest = await MaterialRequest.findByIdAndDelete(id);
 			if (!deletedMaterialRequest) throw new ApolloError("Material Request not found");

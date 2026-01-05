@@ -7,6 +7,7 @@ import Eye from "../../../assets/eye.svg?react";
 import CloseEye from "../../../assets/closeEye.svg?react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function AdminRegisterMultipleUsers() {
 	const { userToken } = useAuth(); // get token from context
@@ -14,6 +15,9 @@ export default function AdminRegisterMultipleUsers() {
 	const [success, setSuccess] = useState(false);
 	const navigate = useNavigate();
 	const lastRowRef = useRef(null);
+	const [hasSubmitted, setHasSubmitted] = useState(false);
+	const [formReset, setFormReset] = useState(false);
+	const [blockInput, setBlockInput] = useState(false);
 
 	const { t } = useTranslation();
 
@@ -151,42 +155,147 @@ export default function AdminRegisterMultipleUsers() {
 			.replace(/^./, (str) => str.toUpperCase()); // capitalize first letter
 	};
 
+	const resetForm = () => {
+		setRows([
+			{
+				name: "",
+				email: "",
+				password: "",
+				confirmPassword: "",
+				employeeNum: "",
+				description: "",
+				title: "",
+				role: "",
+				department: "",
+				permissions: {
+					canViewAllUsers: false,
+					canEditUsers: false,
+					canDeleteUsers: false,
+					canChangeRole: false,
+					canEditSelf: true,
+					canViewSelf: true,
+					canDeleteSelf: false,
+				},
+			},
+		]); // or your initial requests state
+		// setSelectedGroups([]);
+		setHasSubmitted(false);
+		setFormReset(true);
+	};
+
+	// TODO - notify user if mutation pass/fail
+	// TODO - block inputs
+	// TODO - block  duplicated requests
+	// TODO - give navegation btns to go see all or to stay
+	// TODO - if user stays reset the form
+
+	const SuccessToast = ({ closeToast, resetForm }) => (
+		<div>
+			<p>{t("material-requests-have-been-requested-successfully")}</p>
+
+			<div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+				<button
+					onClick={() => {
+						setBlockInput(false);
+						closeToast();
+						navigate("/user/all");
+					}}>
+					{t("view-all-users")}
+				</button>
+
+				<button
+					onClick={() => {
+						resetForm();
+						setBlockInput(false);
+						console.log("has submitted before", hasSubmitted);
+						setHasSubmitted(false);
+						console.log("has submitted after", hasSubmitted);
+						closeToast();
+					}}>
+					{t("register-more-users")}
+				</button>
+			</div>
+
+			{/* <p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("duplicate-request")}</p> */}
+		</div>
+	);
+
 	// Submit all rows in one mutation
 	const submit = async (e) => {
 		e.preventDefault();
+		// TODO -  come here
+		if (hasSubmitted === true) {
+			toast.warn(t("duplicate-request-warning"), {
+				// autoClose: false,
+			});
+			return;
+		}
 
-		try {
-			await adminRegisterMultipleUserProfiles({
-				variables: {
-					inputs: rows.map((row) => ({
-						name: row.name,
-						email: row.email,
-						password: row.password,
-						confirmPassword: row.confirmPassword,
-						role: row.role,
-						employeeNum: row?.employeeNum,
-						department: row?.department,
-						job: {
-							title: row.title,
-							description: row.description,
-						},
-						permissions: row.permissions,
-					})),
+		const inputs = rows.map((row) => ({
+			name: row.name,
+			email: row.email,
+			password: row.password,
+			confirmPassword: row.confirmPassword,
+			role: row.role,
+			employeeNum: row?.employeeNum,
+			department: row?.department,
+			job: {
+				title: row.title,
+				description: row.description,
+			},
+			permissions: row.permissions,
+		}));
+
+		const mutationPromise = adminRegisterMultipleUserProfiles({
+			variables: { inputs },
+		});
+
+		toast.promise(mutationPromise, {
+			pending: t("creating-material-request"),
+
+			success: {
+				render({ closeToast }) {
+					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} />;
 				},
-				onCompleted: (res) => {
-					console.log("Mutation success:", res?.registerMultipleUsers);
-					alert(t("users-added-successfully"));
-					setSuccess(true);
+				autoClose: false,
+			},
+
+			error: {
+				render({ data }) {
+					const err = data;
+					if (err?.graphQLErrors?.length) {
+						return err.graphQLErrors.map((e) => e.message).join(", ");
+					}
+					if (err?.networkError) return t("network-error-try-again");
+					return t("something-went-wrong");
 				},
-				onError: (errRes) => {
-					console.log("Mutation error:", errRes);
-				},
+				autoClose: false,
+			},
+		});
+
+		mutationPromise
+			.then(() => {
+				setHasSubmitted(true);
+				setBlockInput(true);
+			})
+			.catch(() => {
+				setHasSubmitted(false);
 			});
 
-			console.log("Users registered");
-		} catch (err) {
-			console.error("Error registering users:", err);
-		}
+		// onCompleted: (res) => {
+		// 	console.log("Mutation success:", res?.registerMultipleUsers);
+		// 	toast.success(t("users-added-successfully"));
+		// 	setSuccess(true);
+		// },
+		// onError: (errRes) => {
+		// 	console.log("Mutation error:", errRes);
+		// },
+		// });
+
+		// console.log("Users registered");
+		// } catch (err) {
+		// 	console.error("Error registering users:", err);
+		// }
 	};
 
 	// Show nothing if token isn't loaded
@@ -217,22 +326,22 @@ export default function AdminRegisterMultipleUsers() {
 
 								<div className="form-row-top-left">
 									<label htmlFor="name">{t("name")}:</label>
-									<input type="text" name="name" onChange={(e) => handleRowChange(index, e)} placeholder={t("name")} />
+									<input type="text" name="name" onChange={(e) => handleRowChange(index, e)} placeholder={t("name")} disabled={blockInput} value={row.name || ""} />
 								</div>
 
 								<div className="form-row-top-right">
 									<label htmlFor="email">{t("email")}:</label>
-									<input type="text" name="email" onChange={(e) => handleRowChange(index, e)} placeholder={t("email")} />
+									<input type="text" name="email" onChange={(e) => handleRowChange(index, e)} placeholder={t("email")} disabled={blockInput} value={row.email || ""} />
 								</div>
 
 								<div className="form-row-top-left">
 									<label htmlFor="employeeNun">{t("employee-number")}:</label>
-									<input type="text" name="employeeNum" onChange={(e) => handleRowChange(index, e)} placeholder={t("employee-number")} />
+									<input type="text" name="employeeNum" onChange={(e) => handleRowChange(index, e)} placeholder={t("employee-number")} disabled={blockInput} value={row.employeeNum || ""} />
 								</div>
 
 								<div className="form-row-top-right">
 									<label htmlFor="department">{t("department")}:</label>
-									<input type="text" name="department" onChange={(e) => handleRowChange(index, e)} placeholder={t("department")} />
+									<input type="text" name="department" onChange={(e) => handleRowChange(index, e)} placeholder={t("department")} disabled={blockInput} value={row.department || ""} />
 								</div>
 							</div>
 
@@ -242,7 +351,7 @@ export default function AdminRegisterMultipleUsers() {
 										<div>
 											<label>{t("password")}:</label>
 											<div className="update-form-input">
-												<input type={show ? "text" : "password"} name="password" value={row.password} onChange={(e) => handleRowChange(index, e)} placeholder={t("password")} />
+												<input type={show ? "text" : "password"} name="password" value={row.password} onChange={(e) => handleRowChange(index, e)} placeholder={t("password")} disabled={blockInput} />
 												<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
 													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 												</span>
@@ -252,7 +361,7 @@ export default function AdminRegisterMultipleUsers() {
 										<div>
 											<label>{t("confirm-password")}:</label>
 											<div className="update-form-input">
-												<input type={show ? "text" : "password"} name="confirmPassword" value={row.confirmPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("confirm-password")} />
+												<input type={show ? "text" : "password"} name="confirmPassword" value={row.confirmPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("confirm-password")} disabled={blockInput} />
 												<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
 													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 												</span>
@@ -265,18 +374,18 @@ export default function AdminRegisterMultipleUsers() {
 									<div className="form-row-center-right-wrapper">
 										<div>
 											<label>{t("job-title")}:</label>
-											<input type="text" name="title" value={row.title} onChange={(e) => handleRowChange(index, e)} placeholder="Job Title" />
+											<input type="text" name="title" value={row.title} onChange={(e) => handleRowChange(index, e)} placeholder="Job Title" disabled={blockInput} />
 										</div>
 										<div>
 											<label>{t("job-description")}:</label>
-											<textarea name="description" value={row.description} onChange={(e) => handleRowChange(index, e)} placeholder={t("job-description")}></textarea>
+											<textarea name="description" value={row.description} onChange={(e) => handleRowChange(index, e)} placeholder={t("job-description")} disabled={blockInput}></textarea>
 										</div>
 
 										{/* Only show role selection if user has permission */}
 										{decodedUser?.permissions?.canChangeRole && (
 											<div>
 												<label>{t("role")}:</label>
-												<select name="role" value={row.role} onChange={(e) => handleRowChange(index, e)}>
+												<select name="role" value={row.role} onChange={(e) => handleRowChange(index, e)} disabled={blockInput}>
 													<option value="">{t("select-role")}</option>
 													{decodedUser.role === "headAdmin" && <option value="headAdmin">{t("head-admin")}</option>}
 													<option value="admin">{t("admin")}</option>
@@ -304,7 +413,7 @@ export default function AdminRegisterMultipleUsers() {
 																<label>
 																	{/* {formatKey(permKey)} */}
 																	{translatePermissionKey(permKey)}
-																	<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+																	<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
 																</label>
 															</li>
 														))}
@@ -320,7 +429,7 @@ export default function AdminRegisterMultipleUsers() {
 																<label>
 																	{/* {formatKey(permKey)} */}
 																	{translatePermissionKey(permKey)}
-																	<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
+																	<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
 																</label>
 															</li>
 														))}

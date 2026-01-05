@@ -6,6 +6,7 @@ import Eye from "../../assets/eye.svg?react";
 import CloseEye from "../../assets/closeEye.svg?react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-toastify";
 
 export default function RegisterUser() {
 	const { userToken, setPageLoading } = useAuth(); // Get current user token from context
@@ -101,7 +102,7 @@ export default function RegisterUser() {
 		})
 			.then((res) => {
 				// console.log(" Registered user:", res.data.registerUser);
-				alert("User registered successfully!");
+				toast.success("User registered successfully!");
 				navigate(`/user/${res.data.registerUser.id}`);
 			})
 			.catch((err) => {

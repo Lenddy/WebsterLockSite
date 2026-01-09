@@ -19,7 +19,8 @@ const userTypeDef = gql`
 		role: UserRole! # Assigned role enum
 		department: String
 		job: Job # Nested job object
-		permissions: Permissions # Nested permissions object
+		# permissions: Permissions # Nested permissions object
+		permissions: [String!] # Nested permissions object
 		createdAt: DateTime # Timestamp for when user was created
 		updatedAt: DateTime # Timestamp for last update to user profile
 	}
@@ -41,19 +42,19 @@ const userTypeDef = gql`
 	}
 
 	# Object type representing a user's permission settings
-	type Permissions {
-		canEditUsers: Boolean # Can this user edit other users?
-		canDeleteUsers: Boolean # Can this user delete other users?
-		canChangeRole: Boolean # Can this user assign or change roles?
-		canViewUsers: Boolean # Can this user view a list of users?
-		canViewAllUsers: Boolean # Can this user view all users?
-		canEditSelf: Boolean # Can this user update their own profile info?
-		canViewSelf: Boolean # Can this user view their own profile?
-		canDeleteSelf: Boolean # Can this user delete their own account?
-		canRegisterUser: Boolean
-		canNotBeDeleted: Boolean
-		canNotBeUpdated: Boolean
-	}
+	# type Permissions {
+	# 	canEditUsers: Boolean # Can this user edit other users?
+	# 	canDeleteUsers: Boolean # Can this user delete other users?
+	# 	canChangeRole: Boolean # Can this user assign or change roles?
+	# 	canViewUsers: Boolean # Can this user view a list of users?
+	# 	canViewAllUsers: Boolean # Can this user view all users?
+	# 	canEditSelf: Boolean # Can this user update their own profile info?
+	# 	canViewSelf: Boolean # Can this user view their own profile?
+	# 	canDeleteSelf: Boolean # Can this user delete their own account?
+	# 	canRegisterUser: Boolean
+	# 	canNotBeDeleted: Boolean
+	# 	canNotBeUpdated: Boolean
+	# }
 
 	# Input object for job data, used in registration or profile update
 	input JobInput {
@@ -62,19 +63,33 @@ const userTypeDef = gql`
 	}
 
 	# Input type for Permissions (optional, allows custom permissions on register)
-	input PermissionsInput {
-		canEditUsers: Boolean
-		canDeleteUsers: Boolean
-		canChangeRole: Boolean
-		canViewUsers: Boolean
-		canViewAllUsers: Boolean
-		canEditSelf: Boolean
-		canViewSelf: Boolean
-		canDeleteSelf: Boolean
-		canRegisterUser: Boolean
-		canNotBeDeleted: Boolean
-		canNotBeUpdated: Boolean
-	}
+	# input PermissionsInput {
+	# 	canEditUsers: Boolean
+	# 	canDeleteUsers: Boolean
+	# 	canChangeRole: Boolean
+	# 	canViewUsers: Boolean
+	# 	canViewAllUsers: Boolean
+	# 	canEditSelf: Boolean
+	# 	canViewSelf: Boolean
+	# 	canDeleteSelf: Boolean
+	# 	canRegisterUser: Boolean
+	# 	canNotBeDeleted: Boolean
+	# 	canNotBeUpdated: Boolean
+	# }
+
+	# input PermissionsInput {
+	# 	canEditUsers: Boolean
+	# 	canDeleteUsers: Boolean
+	# 	canChangeRole: Boolean
+	# 	canViewUsers: Boolean
+	# 	canViewAllUsers: Boolean
+	# 	canEditSelf: Boolean
+	# 	canViewSelf: Boolean
+	# 	canDeleteSelf: Boolean
+	# 	canRegisterUser: Boolean
+	# 	canNotBeDeleted: Boolean
+	# 	canNotBeUpdated: Boolean
+	# }
 
 	# Input object for registering a user
 	input RegisterInput {
@@ -86,7 +101,8 @@ const userTypeDef = gql`
 		role: UserRole # Initial role to assign
 		department: String
 		job: JobInput # Optional job data
-		permissions: PermissionsInput # Optional custom permissions for the user
+		# permissions: PermissionsInput # Optional custom permissions for the user
+		permissions: [String!] # Optional custom permissions for the user
 	}
 
 	# Input object for registering a user
@@ -100,7 +116,8 @@ const userTypeDef = gql`
 		role: UserRole # Initial role to assign
 		job: JobInput # Optional job data
 		department: String
-		permissions: PermissionsInput # Optional custom permissions for the user
+		# permissions: PermissionsInput # Optional custom permissions for the user
+		permissions: [String!] # Optional custom permissions for the user
 	}
 
 	# Input object for user login
@@ -148,7 +165,8 @@ const userTypeDef = gql`
 		job: JobInput
 		department: String
 		newRole: UserRole
-		newPermissions: PermissionsInput
+		# newPermissions: PermissionsInput
+		newPermissions: [String!]
 	}
 
 	# Root query operations (read-only)
@@ -167,6 +185,7 @@ const userTypeDef = gql`
 		adminChangeMultipleUserProfiles(inputs: [AdminChangeUserProfileInput!]!): [User!]! # Update others users data
 		deleteOneUser(id: ID!): User! # Permanently delete a user
 		deleteMultipleUsers(ids: [ID!]): [User!]! # Permanently delete multiple  users
+		adminSyncAllUserPermissionsByRole: [User!]!
 	}
 
 	# Used in subscriptions to indicate type of change and changed user

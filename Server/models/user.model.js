@@ -72,20 +72,53 @@ const UserSchema = new Schema(
 		},
 
 		// Permissions object for granular access control
+		// permissions: {
+		// 	canEditUsers: { type: Boolean, default: false }, // Permission to edit other users
+		// 	canDeleteUsers: { type: Boolean, default: false }, // Permission to delete other users
+		// 	canChangeRole: { type: Boolean, default: false }, // Permission to change user roles
+		// 	canViewUsers: { type: Boolean, default: false }, // Permission to view users
+		// 	canViewAllUsers: { type: Boolean, default: false }, // Permission to view all users
+		// 	canEditSelf: { type: Boolean, default: true }, // Permission to edit own profile
+		// 	canViewSelf: { type: Boolean, default: true }, // Permission to view own profile
+		// 	canDeleteSelf: { type: Boolean, default: false }, // Permission to delete own account
+		// 	canNotBeDeleted: { type: Boolean, default: false }, // Permission to not be able to be delete
+		// 	canNotBeUpdated: { type: Boolean, default: false }, // Permission to not be able to be updated
+		// 	canRegisterUser: { type: Boolean, default: false }, // Permission to be able register user
+		// },
+
+		/**
+		 * Extra permissions ON TOP of role defaults
+		 * Mostly used for admins & subAdmins
+		 */
+		// permissions: {
+
+		// 	users: {
+		// 		create: { type: Boolean, default: false },
+		// 		update: { type: Boolean, default: false },
+		// 		delete: { type: Boolean, default: false },
+		// 		changeRole: { type: Boolean, default: false },
+		// 	},
+
+		// 	requests: {
+		// 		create: { type: Boolean, default: false },
+		// 		updateAny: { type: Boolean, default: false },
+		// 		deleteAny: { type: Boolean, default: false },
+		// 	},
+
+		// 	items: {
+		// 		create: { type: Boolean, default: false },
+		// 		update: { type: Boolean, default: false },
+		// 		delete: { type: Boolean, default: false },
+		// 	},
+		// },
+
+		//TODO - uncomment this when you are ready to use the new system
 		permissions: {
-			canEditUsers: { type: Boolean, default: false }, // Permission to edit other users
-			canDeleteUsers: { type: Boolean, default: false }, // Permission to delete other users
-			canChangeRole: { type: Boolean, default: false }, // Permission to change user roles
-			canViewUsers: { type: Boolean, default: false }, // Permission to view users
-			canViewAllUsers: { type: Boolean, default: false }, // Permission to view all users
-			canEditSelf: { type: Boolean, default: true }, // Permission to edit own profile
-			canViewSelf: { type: Boolean, default: true }, // Permission to view own profile
-			canDeleteSelf: { type: Boolean, default: false }, // Permission to delete own account
-			canNotBeDeleted: { type: Boolean, default: false }, // Permission to not be able to be delete
-			canNotBeUpdated: { type: Boolean, default: false }, // Permission to not be able to be updated
-			canRegisterUser: { type: Boolean, default: false }, // Permission to be able register user
+			type: [String],
+			default: [],
 		},
 	},
+
 	{
 		timestamps: true, // Automatically include createdAt and updatedAt timestamps
 		toJSON: { getters: true }, // Use getters when converting to JSON (e.g., virtuals)

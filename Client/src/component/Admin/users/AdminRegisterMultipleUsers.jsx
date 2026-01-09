@@ -223,7 +223,6 @@ export default function AdminRegisterMultipleUsers() {
 	// Submit all rows in one mutation
 	const submit = async (e) => {
 		e.preventDefault();
-		// TODO -  come here
 		if (hasSubmitted === true) {
 			toast.warn(t("duplicate-request-warning"), {
 				// autoClose: false,

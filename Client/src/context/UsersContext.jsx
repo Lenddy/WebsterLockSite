@@ -4,6 +4,7 @@ import { get_all_users } from "../../graphQL/queries/queries";
 import { USER_CHANGE_SUBSCRIPTION } from "../../graphQL/subscriptions/subscriptions";
 import { useAuth } from "./AuthContext"; // <-- import your auth context
 import { jwtDecode } from "jwt-decode";
+import { can } from "../component/utilities/can.js";
 
 const UsersContext = createContext();
 
@@ -28,7 +29,8 @@ export function UsersProvider({ children }) {
 
 		const hasReviewRole = ["headAdmin", "admin", "subAdmin"].includes(role);
 
-		const hasPermission = token?.permissions?.canViewAllUsers === true;
+		// const hasPermission = token?.permissions?.canViewAllUsers === true;
+		const hasPermission = can(token, "users:read:any");
 		// canViewAllUsers
 		return hasReviewRole && hasPermission;
 	};

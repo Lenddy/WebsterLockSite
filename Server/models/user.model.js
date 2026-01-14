@@ -86,32 +86,6 @@ const UserSchema = new Schema(
 		// 	canRegisterUser: { type: Boolean, default: false }, // Permission to be able register user
 		// },
 
-		/**
-		 * Extra permissions ON TOP of role defaults
-		 * Mostly used for admins & subAdmins
-		 */
-		// permissions: {
-
-		// 	users: {
-		// 		create: { type: Boolean, default: false },
-		// 		update: { type: Boolean, default: false },
-		// 		delete: { type: Boolean, default: false },
-		// 		changeRole: { type: Boolean, default: false },
-		// 	},
-
-		// 	requests: {
-		// 		create: { type: Boolean, default: false },
-		// 		updateAny: { type: Boolean, default: false },
-		// 		deleteAny: { type: Boolean, default: false },
-		// 	},
-
-		// 	items: {
-		// 		create: { type: Boolean, default: false },
-		// 		update: { type: Boolean, default: false },
-		// 		delete: { type: Boolean, default: false },
-		// 	},
-		// },
-
 		//TODO - uncomment this when you are ready to use the new system
 		permissions: {
 			type: [String],

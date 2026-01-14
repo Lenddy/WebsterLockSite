@@ -13,16 +13,7 @@ export const register_User = gql`
 				title
 				description
 			}
-			permissions {
-				canEditUsers
-				canDeleteUsers
-				canChangeRole
-				canViewUsers
-				canViewAllUsers
-				canEditSelf
-				canViewSelf
-				canDeleteSelf
-			}
+			permissions
 		}
 	}
 `;
@@ -40,16 +31,7 @@ export const register_multiple_Users = gql`
 				title
 				description
 			}
-			permissions {
-				canEditUsers
-				canDeleteUsers
-				canChangeRole
-				canViewUsers
-				canViewAllUsers
-				canEditSelf
-				canViewSelf
-				canDeleteSelf
-			}
+			permissions
 		}
 	}
 `;
@@ -78,16 +60,7 @@ export const update_One_user = gql`
 				title
 				description
 			}
-			permissions {
-				canEditUsers
-				canDeleteUsers
-				canChangeRole
-				canViewUsers
-				canViewAllUsers
-				canEditSelf
-				canViewSelf
-				canDeleteSelf
-			}
+			permissions
 		}
 	}
 `;
@@ -106,16 +79,7 @@ export const admin_update_multiple_users = gql`
 				title
 				description
 			}
-			permissions {
-				canEditUsers
-				canDeleteUsers
-				canChangeRole
-				canViewUsers
-				canViewAllUsers
-				canEditSelf
-				canViewSelf
-				canDeleteSelf
-			}
+			permissions
 		}
 	}
 `;

@@ -10,6 +10,8 @@ import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
 import { useUsers } from "../../context/UsersContext";
 // import { needReload } from "../../../graphQL/apolloClient";
+import { can } from "../../../../Server/isAdmin";
+import { roleRank } from "../utilities/role.config";
 
 export default function GetAllUsers() {
 	const { userToken, setPageLoading } = useAuth(); // Get current user token from context
@@ -102,46 +104,115 @@ export default function GetAllUsers() {
 
 	const getRoleString = (role) => (typeof role === "string" ? role : role?.role || "");
 
+	// const canEditUser = (logUser, targetUser) => {
+	// 	if (!logUser || !targetUser) return false;
+
+	// 	const logRole = getRoleString(logUser.role);
+	// 	const targetRole = getRoleString(targetUser.role);
+	// 	const perms = logUser.permissions || [];
+	// 	console.log("perms", perms);
+	// 	can(logUser, "users:update:any", logUser.userId);
+	// 	can(logUser, "users:update:any");
+	// 	// 1️ Self-edit always comes first
+	// 	if (logUser.userId === targetUser.id) return perms.canEditSelf ?? true;
+
+	// 	// 2️ Must have global permission to edit other users
+	// 	if (!perms.canEditUsers) return false;
+
+	// 	// 3️Role hierarchy for editing others
+	// 	if (logRole === "headAdmin") return !targetUser.permissions?.canNotBeUpdated;
+	// 	if (logRole === "admin") return ["subAdmin", "technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeUpdated;
+	// 	if (logRole === "subAdmin") return ["technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeUpdated;
+
+	// 	return false;
+	// };
+
+	// export
+
 	const canEditUser = (logUser, targetUser) => {
 		if (!logUser || !targetUser) return false;
 
-		const logRole = getRoleString(logUser.role);
-		const targetRole = getRoleString(targetUser.role);
-		const perms = logUser.permissions || {};
+		const isSelf = String(logUser.userId) === String(targetUser.id);
 
-		// 1️ Self-edit always comes first
-		if (logUser.userId === targetUser.id) return perms.canEditSelf ?? true;
+		// --------------------
+		// Self update
+		// --------------------
+		if (isSelf) {
+			return can(logUser, "users:update:own", { ownerId: targetUser.id });
+		}
 
-		// 2️ Must have global permission to edit other users
-		if (!perms.canEditUsers) return false;
+		// --------------------
+		// Update others
+		// --------------------
+		if (!can(logUser, "users:update:any")) {
+			return false;
+		}
 
-		// 3️Role hierarchy for editing others
-		if (logRole === "headAdmin") return !targetUser.permissions?.canNotBeUpdated;
-		if (logRole === "admin") return ["subAdmin", "technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeUpdated;
-		if (logRole === "subAdmin") return ["technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeUpdated;
+		// --------------------
+		// Role hierarchy
+		// --------------------
+		const logRank = roleRank[logUser.role] ?? 0;
+		const targetRank = roleRank[targetUser.role] ?? 0;
 
-		return false;
+		if (logRank <= targetRank) {
+			return false;
+		}
+
+		return true;
 	};
 
+	// const canDeleteUser = (logUser, targetUser) => {
+	// 	if (!logUser || !targetUser) return false;
+
+	// 	const logRole = getRoleString(logUser.role);
+	// 	const targetRole = getRoleString(targetUser.role);
+	// 	const perms = logUser.permissions || {};
+
+	// 	// 1️Self-delete always comes first
+	// 	if (logUser.userId === targetUser.id) return perms.canDeleteSelf ?? false;
+
+	// 	// 2 Must have global permission to delete other users
+	// 	if (!perms.canDeleteUsers) return false;
+
+	// 	// 3️Role hierarchy for deleting others
+	// 	if (logRole === "headAdmin") return !targetUser.permissions?.canNotBeDeleted;
+	// 	if (logRole === "admin") return ["subAdmin", "technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeDeleted;
+	// 	if (logRole === "subAdmin") return ["technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeDeleted;
+
+	// 	return false;
+	// };
+
+	// export
 	const canDeleteUser = (logUser, targetUser) => {
 		if (!logUser || !targetUser) return false;
 
-		const logRole = getRoleString(logUser.role);
-		const targetRole = getRoleString(targetUser.role);
-		const perms = logUser.permissions || {};
+		const isSelf = String(logUser.userId) === String(targetUser.id);
 
-		// 1️Self-delete always comes first
-		if (logUser.userId === targetUser.id) return perms.canDeleteSelf ?? false;
+		// --------------------
+		// Self delete
+		// --------------------
+		if (isSelf) {
+			return can(logUser, "users:delete:own", { ownerId: targetUser.id });
+		}
 
-		// 2 Must have global permission to delete other users
-		if (!perms.canDeleteUsers) return false;
+		// --------------------
+		// Delete others
+		// --------------------
+		if (!can(logUser, "users:delete:any")) {
+			return false;
+		}
 
-		// 3️Role hierarchy for deleting others
-		if (logRole === "headAdmin") return !targetUser.permissions?.canNotBeDeleted;
-		if (logRole === "admin") return ["subAdmin", "technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeDeleted;
-		if (logRole === "subAdmin") return ["technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeDeleted;
+		// --------------------
+		// Role hierarchy
+		// --------------------
+		const logRank = roleRank[logUser.role] ?? 0;
+		const targetRank = roleRank[targetUser.role] ?? 0;
 
-		return false;
+		if (logRank <= targetRank) {
+			return false;
+		}
+
+		return true;
 	};
 
 	const closeModal = () => {

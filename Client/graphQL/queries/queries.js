@@ -15,18 +15,10 @@ export const get_all_users = gql`
 				title
 				description
 			}
-			permissions {
-				canEditUsers
-				canDeleteUsers
-				canChangeRole
-				canViewUsers
-				canViewAllUsers
-				canEditSelf
-				canViewSelf
-				canDeleteSelf
-			}
-			createdAt
-			updatedAt
+			permissions
+
+			# createdAt
+			# updatedAt
 		}
 	}
 `;
@@ -46,18 +38,7 @@ export const get_one_user = gql`
 				title
 				description
 			}
-			permissions {
-				canEditUsers
-				canDeleteUsers
-				canChangeRole
-				canViewUsers
-				canViewAllUsers
-				canEditSelf
-				canViewSelf
-				canDeleteSelf
-				canNotBeDeleted
-				canNotBeUpdated
-			}
+			permissions
 		}
 	}
 `;

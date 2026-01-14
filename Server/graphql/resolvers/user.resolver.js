@@ -5,7 +5,8 @@ import { ApolloError } from "apollo-server-errors"; // Apollo error handling
 import jwt from "jsonwebtoken"; // JWT for token creation
 import bcrypt from "bcrypt"; // Bcrypt for password hashing
 import { can } from "../../isAdmin.js";
-import { ROLE_PERMISSIONS } from "../../role.config.js";
+import { ROLE_PERMISSIONS, roleRank } from "../../role.config.js";
+roleRank;
 
 // Resolver object for user-related operations
 const userResolver = {
@@ -30,6 +31,7 @@ const userResolver = {
 				}
 
 				const users = await User.find(); // Fetch all users from DB
+				console.log("all the users", users);
 				// console.log("Users fetched by caller:", users); // Log fetched users
 				return users; // Return users
 			} catch (error) {
@@ -226,6 +228,7 @@ const userResolver = {
 			//REVIEW - if  users are given the  the can change role , they would need to also have the user:read:any
 			try {
 				console.log("Raw inputs received:", JSON.stringify(inputs, null, 2));
+				// console.log("check 1");
 
 				// Permission check
 				if (user.role !== "headAdmin" && user.role !== "admin" && (user.role !== "subAdmin" || !user.permissions?.includes("users:create:any"))) {
@@ -501,8 +504,6 @@ const userResolver = {
 		},
 
 		// Update user profile (self)
-
-		// TODO TEST THIS AGAIN DELETE THE 2 NEW USERS AND RE ADD THEM
 		updateUserProfile: async (_, { id, input: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, employeeNum, department, job } }, { user, pubsub }) => {
 			try {
 				if (!user) {
@@ -512,15 +513,18 @@ const userResolver = {
 				const validRoles = ["headAdmin", "admin", "subAdmin"];
 				// Self-update only
 				const isSelf = user.userId === id;
-				// || !user.role == "headAdmin"
-				if (!isSelf) {
+
+				console.log("first role check");
+				if (!isSelf && !Object.keys(validRoles).includes(user.role) && !can(user, "users:update:any")) {
 					throw new ApolloError("Unauthorized: You can only update your own profile.", "FORBIDDEN");
 				}
 
-				// Permission check
-				if (!user.permissions?.includes("users:update:own")) {
-					throw new ApolloError("Unauthorized: You do not have permission to update your profile.", "FORBIDDEN");
-				}
+				// // throw new ApolloError("test for the valid roles");
+				// console.log("second role check");
+				// // Permission check
+				// if (!user.permissions?.includes("users:update:own") || !user.permissions?.includes("users:update:any")) {
+				// 	throw new ApolloError("Unauthorized: You do not have permission to update this profile.", "FORBIDDEN");
+				// }
 
 				const targetUser = await User.findById(id);
 				if (!targetUser) {
@@ -577,11 +581,10 @@ const userResolver = {
 				if (job) targetUser.job = job;
 
 				// TODO - update  this part so that if theres is  a empNum or dep and their are not a admin and can update any to throw the error
-				// if (validRoles.includes(user.role) && can(user, "users:update:any")) {
-				if (employeeNum) targetUser.employeeNum = employeeNum;
-				if (department) targetUser.department = department;
-				// }
-				// else throw new ApolloError("You are not allowed to update your Employ number or department");
+				if (isSelf || (validRoles.includes(user.role) && can(user, "users:update:any"))) {
+					if (employeeNum) targetUser.employeeNum = employeeNum;
+					if (department) targetUser.department = department;
+				} else throw new ApolloError("You are not allowed to update your Employ number or department");
 
 				// --------------------
 				// Token refresh
@@ -636,149 +639,6 @@ const userResolver = {
 			}
 		},
 
-		// updateUserProfile: async (_, { id, input: { name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, employeeNum, department, role, job } }, { user, pubsub }) => {
-		// 	console.log("updated data", name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, employeeNum, department, role, job);
-
-		// 	try {
-		// 		if (!user) {
-		// 			throw new ApolloError("Unauthorized: No user context."); // Check authentication
-		// 		}
-
-		// 		if (!user.permissions?.canEditSelf) {
-		// 			throw new ApolloError("Unauthorized: You do not have permission to update your profile."); // Check permission
-		// 		}
-
-		// 		const targetUser = await User.findById(id); // Find user by ID
-		// 		console.log();
-
-		// 		if (!targetUser) {
-		// 			throw new ApolloError("User not found", "USER_NOT_FOUND"); // User not found
-		// 		}
-
-		// 		if (targetUser.permissions.canNotBeUpdated) {
-		// 			throw new ApolloError("Unauthorized: user can not be updated"); // Cannot update
-		// 		}
-
-		// 		const isSelf = user.userId === id; // Check if updating self
-		// 		if (!isSelf) {
-		// 			throw new ApolloError("Unauthorized: You can only update your own profile."); // Only self-update allowed
-		// 		}
-
-		// 		if (newEmail) {
-		// 			const existingUser = await User.findOne({ email: newEmail }); // Check if email exists
-		// 			if (existingUser && existingUser.id !== id) {
-		// 				throw new ApolloError(`User with email: ${newEmail} already exists`, "USER_ALREADY_EXIST"); // Email in use
-		// 			}
-
-		// 			if (!previousEmail) {
-		// 				throw new ApolloError("Previous email is required to update email", "EMAIL_VALIDATION_ERROR"); // Need previous email
-		// 			}
-
-		// 			if (targetUser.email !== previousEmail) {
-		// 				throw new ApolloError("Previous email does not match", "PREVIOUS_EMAIL_MISMATCH"); // Email mismatch
-		// 			}
-
-		// 			targetUser.email = newEmail; // Update email
-		// 		}
-
-		// 		if (newPassword) {
-		// 			if (!previousPassword) {
-		// 				throw new ApolloError("Previous password is required to update your password", "PASSWORD_VALIDATION_ERROR"); // Need previous password
-		// 			}
-
-		// 			const passwordMatch = await bcrypt.compare(previousPassword, targetUser.password); // Check password
-		// 			if (!passwordMatch) {
-		// 				throw new ApolloError("Previous password does not match", "PREVIOUS_PASSWORD_MISMATCH"); // Password mismatch
-		// 			}
-
-		// 			if (newPassword !== confirmNewPassword) {
-		// 				throw new ApolloError("Password and confirm password don't match", "PASSWORD_VALIDATION_ERROR"); // Confirm mismatch
-		// 			}
-
-		// 			targetUser.password = newPassword; // Update password
-		// 			targetUser.confirmPassword = confirmNewPassword; // Update confirm password
-		// 		}
-
-		// 		if (name) targetUser.name = name; // Update name
-
-		// 		if (employeeNum) targetUser.employeeNum = employeeNum;
-		// 		if (department) targetUser.department = department;
-		// 		const validRoles = ["headAdmin", "admin", "subAdmin", "user", "noRole", "technician"]; // Valid roles
-		// 		if (!validRoles.includes(role)) {
-		// 			role = "noRole"; // Default role if invalid
-		// 		}
-		// 		// if (role) targetUser.role = role;
-		// 		if (job) targetUser.job = job;
-
-		// 		const newToken = jwt.sign(
-		// 			{
-		// 				userId: targetUser?.id, // User ID
-		// 				name: targetUser?.name,
-		// 				email: targetUser?.email, // Email
-		// 				role: targetUser?.role, // Role
-		// 				employeeNum: targetUser?.employeeNum,
-		// 				department: targetUser?.department,
-		// 				permissions: targetUser?.permissions, // Permissions
-		// 			},
-		// 			process.env.Secret_Key // Secret key
-		// 		);
-
-		// 		targetUser.token = newToken; // Update token
-
-		// 		// await targetUser.save(); // Save changes
-
-		// 		// await pubsub.publish("USER_UPDATED", {
-		// 		// 	onUserChange: {
-		// 		// 		eventType: "updated", // Event type
-		// 		// 		Changes: targetUser, // User data
-		// 		// 	},
-		// 		// });
-
-		// 		// Save changes
-		// 		await targetUser.save();
-
-		// 		// Build payload
-		// 		const payload = {
-		// 			...targetUser.toObject(),
-		// 			id: targetUser._id.toString(),
-		// 			// Optional: normalize nested arrays if needed
-		// 			// roles:
-		// 			// 	targetUser?.map((role) => ({
-		// 			// 		id: role._id?.toString() ?? role.id,
-		// 			// 		name: role.name,
-		// 			// 		email: role?.email, // Email
-		// 			// 		role: role?.role, // Role
-		// 			// 		employeeNum: role?.employeeNum,
-		// 			// 		permissions: role?.permissions, // Permissions
-		// 			// 	})) ?? [],
-		// 		};
-		// 		console.log("this is the user", user);
-		// 		// Publish subscription event
-		// 		await pubsub.publish("USER_UPDATED", {
-		// 			onUserChange: {
-		// 				eventType: "updated",
-		// 				changeType: "single",
-		// 				updateBy: user.userId,
-		// 				change: payload,
-		// 			},
-		// 		});
-
-		// 		return {
-		// 			id: targetUser.id, // User ID
-		// 			name: targetUser.name, // Name
-		// 			email: targetUser.email, // Email
-		// 			permissions: targetUser.permissions, // Permissions
-		// 			role: targetUser.role, // Role
-		// 			token: newToken, // Token
-		// 			employeeNum: targetUser.employeeNum,
-		// 			department: targetUser.department,
-		// 		};
-		// 	} catch (error) {
-		// 		console.error("Error updating user profile:", error); // Log error
-		// 		throw error; // Rethrow error
-		// 	}
-		// },
-
 		adminChangeMultipleUserProfiles: async (
 			_,
 			{ inputs }, // inputs: [{ id, name, previousEmail, newEmail, ... }]
@@ -800,24 +660,20 @@ const userResolver = {
 		|--------------------------------------------------------------------------
 		*/
 				const canUpdateAnyUser = can(user, "users:update:any");
+				const canUpdateAdmin = can(user, "users:update:admin");
 				const canUpdateOwnUser = can(user, "users:update:own");
 
 				if (!canUpdateAnyUser && !canUpdateOwnUser) {
 					throw new ApolloError("Unauthorized: You cannot update user profiles.");
 				}
 
-				/*
-		|--------------------------------------------------------------------------
-		| Role hierarchy (authority level, NOT permission)
-		|--------------------------------------------------------------------------
-		*/
-				const roleRank = {
-					headAdmin: 5,
-					admin: 4,
-					subAdmin: 3,
-					user: 2,
-					noRole: 1,
-				};
+				// TODO - MAKE SURE THAT THERE IS A NEW PERMISSION ALLOWING  SOME ADMINS TO BE ABLE TO EDIT OTHER ADMINS  BUT NOT THE HEAD ADMIN
+				// TODO - MAKE SURE THAT THERE IS A NEW PERMISSION ALLOWING  SOME ADMINS TO BE ABLE TO EDIT OTHER ADMINS  BUT NOT THE HEAD ADMIN
+				// TODO - MAKE SURE THAT THERE IS A NEW PERMISSION ALLOWING  SOME ADMINS TO BE ABLE TO EDIT OTHER ADMINS  BUT NOT THE HEAD ADMIN
+				// TODO - MAKE SURE THAT THERE IS A NEW PERMISSION ALLOWING  SOME ADMINS TO BE ABLE TO EDIT OTHER ADMINS  BUT NOT THE HEAD ADMIN
+				// TODO - MAKE SURE THAT THERE IS A NEW PERMISSION ALLOWING  SOME ADMINS TO BE ABLE TO EDIT OTHER ADMINS  BUT NOT THE HEAD ADMIN
+				// TODO - MAKE SURE THAT THERE IS A NEW PERMISSION ALLOWING  SOME ADMINS TO BE ABLE TO EDIT OTHER ADMINS  BUT NOT THE HEAD ADMIN
+				// TODO - MAKE SURE THAT THERE IS A NEW PERMISSION ALLOWING  SOME ADMINS TO BE ABLE TO EDIT OTHER ADMINS  BUT NOT THE HEAD ADMIN
 
 				/*
 		|--------------------------------------------------------------------------
@@ -1046,347 +902,113 @@ const userResolver = {
 			}
 		},
 
-		// adminChangeMultipleUserProfiles: async (
-		// 	_,
-		// 	{ inputs }, // inputs: [{ id, name, previousEmail, newEmail, ... }]
-		// 	{ user, pubsub }
-		// ) => {
-		// 	try {
-		// 		// console.log("users", user);
-		// 		console.log("New inputs", inputs);
-
-		// 		if (!user) throw new ApolloError("Unauthorized: No user context.");
-
-		// 		// throw new ApolloError("testing new admins");
-
-		// 		const requesterRole = user.role;
-		// 		const perms = user.permissions || {};
-
-		// 		const allowedRoles = ["headAdmin", "admin", "subAdmin"];
-		// 		if (!allowedRoles.includes(requesterRole)) {
-		// 			throw new ApolloError("Unauthorized: Your role cannot update users.");
-		// 		}
-
-		// 		const hasAllRequiredPerms = perms.canEditUsers === true && perms.canViewAllUsers === true;
-		// 		// && perms.canViewUsers === true
-		// 		if (!hasAllRequiredPerms) {
-		// 			throw new ApolloError("Unauthorized: You lack required permissions.");
-		// 		}
-
-		// 		// --- Role hierarchy ranking ---
-		// 		const roleRank = {
-		// 			headAdmin: 3,
-		// 			admin: 2,
-		// 			subAdmin: 1,
-		// 			user: 0,
-		// 			technician: -1,
-		// 			noRole: -2,
-		// 		};
-
-		// 		// --- Validate for duplicate IDs in request ---
-		// 		const ids = inputs.map((i) => i.id);
-		// 		const duplicateIds = ids.filter((id, idx) => ids.indexOf(id) !== idx);
-		// 		if (duplicateIds.length > 0) {
-		// 			throw new ApolloError(`Duplicate user IDs in request: ${[...new Set(duplicateIds)].join(", ")}`);
-		// 		}
-
-		// 		// --- Validate for duplicate newEmails in request ---
-		// 		const newEmails = inputs.map((i) => i.newEmail).filter((email) => !!email); // only non-null
-		// 		const duplicateNewEmails = newEmails.filter((e, idx) => newEmails.indexOf(e) !== idx);
-		// 		if (duplicateNewEmails.length > 0) {
-		// 			throw new ApolloError(`Duplicate new emails in request: ${[...new Set(duplicateNewEmails)].join(", ")}`);
-		// 		}
-
-		// 		// Fetch users by IDs
-		// 		const usersToUpdate = await User.find({ _id: { $in: ids } });
-		// 		if (usersToUpdate.length === 0) {
-		// 			throw new ApolloError("No matching users found.");
-		// 		}
-
-		// 		// --- Check if any newEmail already exists in DB ---
-		// 		if (newEmails.length > 0) {
-		// 			const existing = await User.find({ email: { $in: newEmails } });
-		// 			if (existing.length > 0) {
-		// 				const conflicts = existing.map((u) => u.email);
-		// 				throw new ApolloError(`These new emails are already taken: ${conflicts.join(", ")}`);
-		// 			}
-		// 		}
-
-		// 		const bulkOps = [];
-		// 		const updatedUsers = [];
-
-		// 		for (const input of inputs) {
-		// 			const { id, name, previousEmail, newEmail, previousPassword, newPassword, confirmNewPassword, newRole, newPermissions, job, employeeNum, department } = input;
-
-		// 			const targetUser = usersToUpdate.find((u) => u.id.toString() === id);
-		// 			if (!targetUser) continue;
-
-		// 			if (targetUser.permissions.canNotBeUpdated) {
-		// 				throw new ApolloError(`User ${targetUser.email} cannot be updated`);
-		// 			}
-
-		// 			const isSelf = user.userId === id;
-		// 			const targetRole = targetUser.role;
-
-		// 			// --- role hierarchy & restrictions ---
-		// 			if (!isSelf && roleRank[requesterRole] <= roleRank[targetRole]) {
-		// 				throw new ApolloError("Unauthorized: Cannot update equal/higher role user.");
-		// 			}
-		// 			if (requesterRole === "admin" && newRole) {
-		// 				if (newRole === "headAdmin") {
-		// 					throw new ApolloError("Admins cannot promote to headAdmin.");
-		// 				}
-		// 				if (targetRole === "admin" && newRole !== "admin") {
-		// 					throw new ApolloError("Admins cannot demote other admins.");
-		// 				}
-		// 			}
-		// 			if (newRole && perms.canChangeRole !== true && requesterRole !== "headAdmin") {
-		// 				throw new ApolloError("Unauthorized: You do not have permission to change roles.");
-		// 			}
-
-		// 			// --- check new email ---
-		// 			if (newEmail) {
-		// 				if (!previousEmail) throw new ApolloError("Previous email required");
-		// 				if (targetUser.email !== previousEmail) {
-		// 					throw new ApolloError("Previous email does not match");
-		// 				}
-		// 				targetUser.email = newEmail;
-		// 			}
-
-		// 			// --- check new password ---
-		// 			if (newPassword) {
-		// 				if (requesterRole !== "headAdmin") {
-		// 					if (!previousPassword) {
-		// 						throw new ApolloError("Previous password required");
-		// 					}
-		// 					const isMatch = await bcrypt.compare(previousPassword, targetUser.password);
-		// 					if (!isMatch) throw new ApolloError("Previous password incorrect");
-		// 				}
-		// 				if (newPassword !== confirmNewPassword) {
-		// 					throw new ApolloError("Passwords do not match");
-		// 				}
-
-		// 				targetUser.password = await bcrypt.hash(newPassword, 10);
-		// 				targetUser.confirmPassword = await bcrypt.hash(confirmNewPassword, 10);
-		// 			}
-
-		// 			// --- apply field updates ---
-		// 			if (name) targetUser.name = name;
-		// 			if (job) targetUser.job = job;
-		// 			if (newRole) targetUser.role = newRole;
-		// 			if (employeeNum) targetUser.employeeNum = employeeNum;
-		// 			if (department) targetUser.department = department;
-
-		// 			if (newPermissions) {
-		// 				const allowedPermissionKeys = ["canEditUsers", "canDeleteUsers", "canChangeRole", "canViewUsers", "canViewAllUsers", "canEditSelf", "canViewSelf", "canDeleteSelf", "canNotBeUpdated", "canRegisterUser"];
-		// 				const filtered = Object.keys(newPermissions)
-		// 					.filter((key) => allowedPermissionKeys.includes(key))
-		// 					.reduce((obj, key) => {
-		// 						obj[key] = newPermissions[key];
-		// 						return obj;
-		// 					}, {});
-		// 				targetUser.permissions = {
-		// 					...targetUser.permissions,
-		// 					...filtered,
-		// 				};
-		// 			}
-
-		// 			// --- generate new token ---
-		// 			const newToken = jwt.sign(
-		// 				{
-		// 					userId: targetUser?.id,
-		// 					name: targetUser?.name,
-		// 					email: targetUser?.email,
-		// 					role: targetUser?.role,
-		// 					employeeNum: targetUser?.employeeNum,
-		// 					department: targetUser?.department,
-		// 					permissions: targetUser.permissions,
-		// 				},
-		// 				process.env.Secret_Key
-		// 			);
-		// 			targetUser.token = newToken;
-
-		// 			// Add bulk update
-		// 			bulkOps.push({
-		// 				updateOne: {
-		// 					filter: { _id: id },
-		// 					update: {
-		// 						$set: {
-		// 							name: targetUser.name,
-		// 							email: targetUser.email,
-		// 							password: targetUser.password,
-		// 							confirmPassword: targetUser.confirmPassword,
-		// 							role: targetUser.role,
-		// 							job: targetUser.job,
-		// 							permissions: targetUser.permissions,
-		// 							employeeNum: targetUser.employeeNum,
-		// 							department: targetUser.department,
-		// 							token: newToken,
-		// 						},
-		// 					},
-		// 				},
-		// 			});
-
-		// 			updatedUsers.push({
-		// 				id: targetUser.id,
-		// 				name: targetUser.name,
-		// 				email: targetUser.email,
-		// 				permissions: targetUser.permissions,
-		// 				role: targetUser.role,
-		// 				token: newToken,
-		// 				job: targetUser.job,
-		// 				employeeNum: targetUser.employeeNum,
-		// 				department: targetUser.department,
-		// 			});
-
-		// 			// if (bulkOps.length > 0) {
-		// 			// 	await User.bulkWrite(bulkOps);
-		// 			// }
-
-		// 			// // publish one by one
-		// 			// for (const u of updatedUsers) {
-		// 			// 	await pubsub.publish("USER_UPDATED", {
-		// 			// 		onUserChange: {
-		// 			// 			eventType: "updated",
-		// 			// 			Changes: u,
-		// 			// 		},
-		// 			// 	});
-
-		// 			// After performing your bulk updates
-		// 			if (bulkOps.length > 0) {
-		// 				await User.bulkWrite(bulkOps);
-		// 			}
-
-		// 			// Build payload array
-		// 			const payloadArray = updatedUsers.map((user) => ({
-		// 				...user,
-		// 				id: user.id.toString(),
-		// 				// Optional: normalize nested structures if any
-		// 			}));
-
-		// 			const changeType = payloadArray.length > 1 ? "multiple" : "single";
-		// 			const changes = changeType === "multiple" ? payloadArray : payloadArray[0];
-
-		// 			// Publish a single event with all updated users
-		// 			await pubsub.publish("USER_UPDATED", {
-		// 				onUserChange: {
-		// 					eventType: "updated",
-		// 					changeType,
-		// 					updateBy: user?.userId,
-		// 					...(changeType === "multiple" ? { changes } : { change: changes }),
-		// 				},
-		// 			});
-		// 		}
-
-		// 		return updatedUsers;
-		// 	} catch (error) {
-		// 		console.error("Error in adminChangeMultipleUserProfiles:", error);
-		// 		throw error;
-		// 	}
-		// },
-
-		// Delete a user
-
 		deleteOneUser: async (_, { id }, { user, pubsub }) => {
-			console.log(" deleting user with id:", id);
-			if (!user) throw new Error("Unauthorized: No context provided."); // Check authentication
-
-			const isSelf = user.userId.toString() === id; // Check if deleting self
-
-			if (isSelf) {
-				if (user.permissions.canNotBeDeleted) throw new ApolloError("You cannot delete your own account."); // Cannot delete self
-				if (!user.permissions.canDeleteSelf) throw new ApolloError("You lack permission to delete your account."); // Permission check
-			} else {
-				if (!user.permissions.canDeleteUsers) throw new ApolloError("You lack permission to delete other users."); // Permission check
-
-				const targetUser = await User.findById(id); // Find target user
-				if (!targetUser) throw new ApolloError("User not found."); // User not found
-				if (targetUser.permissions?.canNotBeDeleted) throw new ApolloError("This user cannot be deleted."); // Cannot delete
-			}
-
-			// const deletedUser = await User.findByIdAndDelete(id); // Delete user
-
-			// await pubsub.publish("USER_DELETED", {
-			// 	onUserChange: { eventType: "deleted", Changes: deletedUser }, // Publish event
-			// });
-
-			const deletedUser = await User.findByIdAndDelete(id); // Delete user
-			if (!deletedUser) throw new ApolloError("User not found");
-
-			// Publish subscription event
-			await pubsub.publish("USER_DELETED", {
-				onUserChange: {
-					eventType: "deleted",
-					changeType: "single",
-					change: {
-						...deletedUser.toObject(),
-						id: deletedUser._id.toString(), // normalize id
-					},
-				},
-			});
-
-			return deletedUser; // Return deleted user
-		},
-
-		// Delete multiple users
-		deleteMultipleUsers: async (_, { ids }, { user, pubsub }) => {
 			try {
-				if (!user) throw new Error("Unauthorized: No context provided.");
-
-				// If trying to delete self, enforce self-delete rules
-				if (ids.includes(user.userId.toString())) {
-					if (user.permissions.canNotBeDeleted) {
-						throw new ApolloError("You cannot delete your own account.");
-					}
-					if (!user.permissions.canDeleteSelf) {
-						throw new ApolloError("You lack permission to delete your own account.");
-					}
+				if (!user) {
+					throw new ApolloError("Unauthorized: No user context.", "UNAUTHENTICATED");
 				}
 
-				// Check delete permissions for others
-				if (!user.permissions.canDeleteUsers) {
-					throw new ApolloError("You lack permission to delete other users.");
+				// const isSelf = String(user.userId) === String(id);
+
+				// -----------------------
+				// SELF DELETE
+				// -----------------------
+				// if (isSelf) {
+				// 	if (!can(user, "users:delete:own", { ownerId: id })) {
+				// 		throw new ApolloError(
+				// 			"Unauthorized: You do not have permission to delete your account.",
+				// 			"FORBIDDEN"
+				// 		);
+				// 	}
+				// }
+				// -----------------------
+				// DELETE OTHER USER
+				// -----------------------
+				// else {
+				if (!can(user, "users:update:any")) {
+					throw new ApolloError("Unauthorized: You do not have permission to delete other users.", "FORBIDDEN");
 				}
-
-				// Fetch all target users
-				const targetUsers = await User.find({ _id: { $in: ids } });
-
-				if (targetUsers.length === 0) {
-					throw new ApolloError("No users found to delete.");
-				}
-
-				// Validate if any target cannot be deleted
-				for (const targetUser of targetUsers) {
-					if (targetUser.permissions?.canNotBeDeleted) {
-						throw new ApolloError(`User ${targetUser.name || targetUser._id} cannot be deleted.`);
-					}
-				}
-
-				// // Perform bulk delete
-				// const bulkOps = ids.map((id) => ({
-				// 	deleteOne: { filter: { _id: id } },
-				// }));
-
-				// await User.bulkWrite(bulkOps);
-
-				// // Publish subscription events for each deleted user
-				// for (const deletedUser of targetUsers) {
-				// 	await pubsub.publish("USER_DELETED", {
-				// 		onUserChange: { eventType: "deleted", Changes: deletedUser },
-				// 	});
 				// }
 
-				// Perform bulk delete
+				const deletedUser = await User.findByIdAndDelete(id);
+				if (!deletedUser) {
+					throw new ApolloError("User not found.", "USER_NOT_FOUND");
+				}
+
+				// -----------------------
+				// PubSub event
+				// -----------------------
+				await pubsub.publish("USER_DELETED", {
+					onUserChange: {
+						eventType: "deleted",
+						changeType: "single",
+						change: {
+							...deletedUser.toObject(),
+							id: deletedUser._id.toString(),
+						},
+					},
+				});
+
+				return deletedUser;
+			} catch (error) {
+				console.error("Error deleting user:", error);
+				throw error;
+			}
+		},
+
+		deleteMultipleUsers: async (_, { ids }, { user, pubsub }) => {
+			try {
+				if (!user) {
+					throw new ApolloError("Unauthorized: No user context.", "UNAUTHENTICATED");
+				}
+
+				if (!Array.isArray(ids) || ids.length === 0) {
+					throw new ApolloError("No user IDs provided.", "BAD_REQUEST");
+				}
+
+				const userIdStr = String(user.userId);
+				const includesSelf = ids.some((id) => String(id) === userIdStr);
+				const includesOthers = ids.some((id) => String(id) !== userIdStr);
+
+				// -----------------------
+				// RBAC checks
+				// -----------------------
+				if (includesSelf) {
+					if (!can(user, "users:update:any", { ownerId: user.userId })) {
+						throw new ApolloError("Unauthorized: You cannot delete your own account.", "FORBIDDEN");
+					}
+				}
+
+				if (includesOthers) {
+					if (!can(user, "users:update:any")) {
+						throw new ApolloError("Unauthorized: You cannot delete other users.", "FORBIDDEN");
+					}
+				}
+
+				// -----------------------
+				// Fetch target users
+				// -----------------------
+				const targetUsers = await User.find({ _id: { $in: ids } });
+
+				if (!targetUsers.length) {
+					throw new ApolloError("No users found to delete.", "USER_NOT_FOUND");
+				}
+
+				// -----------------------
+				// Bulk delete
+				// -----------------------
 				const bulkOps = ids.map((id) => ({
 					deleteOne: { filter: { _id: id } },
 				}));
 
 				await User.bulkWrite(bulkOps);
 
-				// Publish a single subscription event for all deleted users
-				const payloadArray = targetUsers.map((user) => ({
-					...user.toObject(),
-					id: user._id.toString(), // normalize id
+				// -----------------------
+				// PubSub payload
+				// -----------------------
+				const payloadArray = targetUsers.map((u) => ({
+					...u.toObject(),
+					id: u._id.toString(),
 				}));
 
 				await pubsub.publish("USER_DELETED", {
@@ -1397,11 +1019,86 @@ const userResolver = {
 					},
 				});
 
-				return targetUsers; // Return deleted users
+				return targetUsers;
 			} catch (error) {
-				console.error("error deleting users", error);
+				console.error("Error deleting multiple users:", error);
+				throw error;
 			}
 		},
+
+		// deleteMultipleUsers: async (_, { ids }, { user, pubsub }) => {
+		// 	try {
+		// 		if (!user) throw new Error("Unauthorized: No context provided.");
+
+		// 		// If trying to delete self, enforce self-delete rules
+		// 		if (ids.includes(user.userId.toString())) {
+		// 			if (user.permissions.canNotBeDeleted) {
+		// 				throw new ApolloError("You cannot delete your own account.");
+		// 			}
+		// 			if (!user.permissions.canDeleteSelf) {
+		// 				throw new ApolloError("You lack permission to delete your own account.");
+		// 			}
+		// 		}
+
+		// 		// Check delete permissions for others
+		// 		if (!user.permissions.canDeleteUsers) {
+		// 			throw new ApolloError("You lack permission to delete other users.");
+		// 		}
+
+		// 		// Fetch all target users
+		// 		const targetUsers = await User.find({ _id: { $in: ids } });
+
+		// 		if (targetUsers.length === 0) {
+		// 			throw new ApolloError("No users found to delete.");
+		// 		}
+
+		// 		// Validate if any target cannot be deleted
+		// 		for (const targetUser of targetUsers) {
+		// 			if (targetUser.permissions?.canNotBeDeleted) {
+		// 				throw new ApolloError(`User ${targetUser.name || targetUser._id} cannot be deleted.`);
+		// 			}
+		// 		}
+
+		// 		// // Perform bulk delete
+		// 		// const bulkOps = ids.map((id) => ({
+		// 		// 	deleteOne: { filter: { _id: id } },
+		// 		// }));
+
+		// 		// await User.bulkWrite(bulkOps);
+
+		// 		// // Publish subscription events for each deleted user
+		// 		// for (const deletedUser of targetUsers) {
+		// 		// 	await pubsub.publish("USER_DELETED", {
+		// 		// 		onUserChange: { eventType: "deleted", Changes: deletedUser },
+		// 		// 	});
+		// 		// }
+
+		// 		// Perform bulk delete
+		// 		const bulkOps = ids.map((id) => ({
+		// 			deleteOne: { filter: { _id: id } },
+		// 		}));
+
+		// 		await User.bulkWrite(bulkOps);
+
+		// 		// Publish a single subscription event for all deleted users
+		// 		const payloadArray = targetUsers.map((user) => ({
+		// 			...user.toObject(),
+		// 			id: user._id.toString(), // normalize id
+		// 		}));
+
+		// 		await pubsub.publish("USER_DELETED", {
+		// 			onUserChange: {
+		// 				eventType: "deleted",
+		// 				changeType: payloadArray.length > 1 ? "multiple" : "single",
+		// 				...(payloadArray.length > 1 ? { changes: payloadArray } : { change: payloadArray[0] }),
+		// 			},
+		// 		});
+
+		// 		return targetUsers; // Return deleted users
+		// 	} catch (error) {
+		// 		console.error("error deleting users", error);
+		// 	}
+		// },
 
 		adminSyncAllUserPermissionsByRole: async (_, __, { user, pubsub }) => {
 			try {

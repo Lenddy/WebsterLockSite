@@ -18,19 +18,7 @@ export const USER_CHANGE_SUBSCRIPTION = gql`
 					title
 					description
 				}
-				permissions {
-					canEditUsers
-					canDeleteUsers
-					canChangeRole
-					canViewUsers
-					canViewAllUsers
-					canEditSelf
-					canViewSelf
-					canDeleteSelf
-					canRegisterUser
-					canNotBeDeleted
-					canNotBeUpdated
-				}
+				permissions
 			}
 
 			changes {
@@ -47,19 +35,7 @@ export const USER_CHANGE_SUBSCRIPTION = gql`
 					title
 					description
 				}
-				permissions {
-					canEditUsers
-					canDeleteUsers
-					canChangeRole
-					canViewUsers
-					canViewAllUsers
-					canEditSelf
-					canViewSelf
-					canDeleteSelf
-					canRegisterUser
-					canNotBeDeleted
-					canNotBeUpdated
-				}
+				permissions
 			}
 		}
 	}

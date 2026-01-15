@@ -4,9 +4,8 @@ import pubsub from "../pubsub.js"; // PubSub for subscriptions
 import { ApolloError } from "apollo-server-errors"; // Apollo error handling
 import jwt from "jsonwebtoken"; // JWT for token creation
 import bcrypt from "bcrypt"; // Bcrypt for password hashing
-import { can } from "../../isAdmin.js";
+import { can, mergePermissions } from "../../isAdmin.js";
 import { ROLE_PERMISSIONS, roleRank } from "../../role.config.js";
-roleRank;
 
 // Resolver object for user-related operations
 const userResolver = {
@@ -127,6 +126,7 @@ const userResolver = {
 		| Only admins / headAdmins can add permissions beyond role defaults
 		|--------------------------------------------------------------------------
 		*/
+
 				let extraPermissions = [];
 
 				if (permissions.length > 0) {
@@ -134,17 +134,38 @@ const userResolver = {
 						throw new ApolloError("You are not allowed to assign custom permissions.", "FORBIDDEN");
 					}
 
-					// Safety filter: only allow known permission namespaces
 					const allowedPrefixes = ["users:", "requests:", "items:", "role:"];
-					extraPermissions = permissions.filter((perm) => allowedPrefixes.some((prefix) => perm.startsWith(prefix)));
+					const isAllowed = (p) => allowedPrefixes.some((pre) => p.startsWith(pre));
+
+					extraPermissions = permissions.filter(isAllowed);
 				}
 
 				/*
-		|--------------------------------------------------------------------------
-		| Final permissions = role defaults + optional extras
-		|--------------------------------------------------------------------------
-		*/
-				const finalPermissions = Array.from(new Set([...rolePermissions, ...extraPermissions]));
+				|--------------------------------------------------------------------------
+				| Final permissions = role defaults + extras (extras override)
+				|--------------------------------------------------------------------------
+				*/
+				// const permissionMap = Object.create(null);
+
+				// // Load role defaults first
+				// for (const perm of rolePermissions) {
+				// 	const [resource, action] = perm.split(":", 2);
+				// 	if (!resource || !action) continue;
+
+				// 	permissionMap[`${resource}:${action}`] = perm;
+				// }
+
+				// // Extras override role defaults
+				// for (const perm of extraPermissions) {
+				// 	const [resource, action] = perm.split(":", 2);
+				// 	if (!resource || !action) continue;
+
+				// 	permissionMap[`${resource}:${action}`] = perm;
+				// }
+
+				// const finalPermissions = Object.values(permissionMap);
+
+				const finalPermissions = mergePermissions(ROLE_PERMISSIONS[role], extraPermissions);
 
 				/*
 		|--------------------------------------------------------------------------
@@ -289,10 +310,29 @@ const userResolver = {
 					}
 
 					/*|--------------------------------------------------------------------------
-		| Final permissions = role defaults + optional extras
-		|--------------------------------------------------------------------------
-		*/
-					const finalPermissions = Array.from(new Set([...ROLE_PERMISSIONS[role], ...extraPermissions]));
+					| Final permissions = role defaults + extras (extras override)
+					|--------------------------------------------------------------------------*/
+					// const permissionMap = Object.create(null);
+
+					// // 1) Load role defaults first
+					// for (const perm of ROLE_PERMISSIONS[role]) {
+					// 	const [resource, action] = perm.split(":", 2);
+					// 	if (!resource || !action) continue;
+
+					// 	permissionMap[`${resource}:${action}`] = perm;
+					// }
+
+					// // 2) Extras override role defaults
+					// for (const perm of extraPermissions) {
+					// 	const [resource, action] = perm.split(":", 2);
+					// 	if (!resource || !action) continue;
+
+					// 	permissionMap[`${resource}:${action}`] = perm;
+					// }
+
+					// const finalPermissions = Object.values(permissionMap);
+
+					const finalPermissions = mergePermissions(ROLE_PERMISSIONS[role], extraPermissions);
 
 					const newUser = new User({
 						name,
@@ -660,20 +700,12 @@ const userResolver = {
 		|--------------------------------------------------------------------------
 		*/
 				const canUpdateAnyUser = can(user, "users:update:any");
-				const canUpdateAdmin = can(user, "users:update:admin");
+				const canUpdatePeer = can(user, "users:update:peer");
 				const canUpdateOwnUser = can(user, "users:update:own");
 
 				if (!canUpdateAnyUser && !canUpdateOwnUser) {
 					throw new ApolloError("Unauthorized: You cannot update user profiles.");
 				}
-
-				// TODO - MAKE SURE THAT THERE IS A NEW PERMISSION ALLOWING  SOME ADMINS TO BE ABLE TO EDIT OTHER ADMINS  BUT NOT THE HEAD ADMIN
-				// TODO - MAKE SURE THAT THERE IS A NEW PERMISSION ALLOWING  SOME ADMINS TO BE ABLE TO EDIT OTHER ADMINS  BUT NOT THE HEAD ADMIN
-				// TODO - MAKE SURE THAT THERE IS A NEW PERMISSION ALLOWING  SOME ADMINS TO BE ABLE TO EDIT OTHER ADMINS  BUT NOT THE HEAD ADMIN
-				// TODO - MAKE SURE THAT THERE IS A NEW PERMISSION ALLOWING  SOME ADMINS TO BE ABLE TO EDIT OTHER ADMINS  BUT NOT THE HEAD ADMIN
-				// TODO - MAKE SURE THAT THERE IS A NEW PERMISSION ALLOWING  SOME ADMINS TO BE ABLE TO EDIT OTHER ADMINS  BUT NOT THE HEAD ADMIN
-				// TODO - MAKE SURE THAT THERE IS A NEW PERMISSION ALLOWING  SOME ADMINS TO BE ABLE TO EDIT OTHER ADMINS  BUT NOT THE HEAD ADMIN
-				// TODO - MAKE SURE THAT THERE IS A NEW PERMISSION ALLOWING  SOME ADMINS TO BE ABLE TO EDIT OTHER ADMINS  BUT NOT THE HEAD ADMIN
 
 				/*
 		|--------------------------------------------------------------------------
@@ -751,8 +783,24 @@ const userResolver = {
 			| Role hierarchy protection
 			|--------------------------------------------------------------------------
 			*/
-					if (!isSelf && roleRank[user.role] <= roleRank[targetUser.role]) {
-						throw new ApolloError("Unauthorized: Cannot update user with equal or higher role.");
+
+					// if (!isSelf && roleRank[user.role] <= roleRank[targetUser.role]) {
+					// 	throw new ApolloError("Unauthorized: Cannot update user with equal or higher role.");
+					// }
+
+					if (!isSelf) {
+						// Head admin always allowed
+						if (user.role !== "headAdmin") {
+							// Higher role → never allowed
+							if (roleRank[user.role] < roleRank[targetUser.role]) {
+								throw new ApolloError("Unauthorized: Cannot update higher role user.");
+							}
+
+							// Same role → requires peer permission
+							if (roleRank[user.role] === roleRank[targetUser.role] && !can(user, "users:update:peer", { targetRole: targetUser.role })) {
+								throw new ApolloError("Unauthorized: Cannot update peer user.");
+							}
+						}
 					}
 
 					/*
@@ -773,7 +821,7 @@ const userResolver = {
 			*/
 					const restrictedFields = ["employeeNum", "department"];
 					if (!isSelf && restrictedFields.some((f) => f in input) && user.role !== "headAdmin") {
-						throw new ApolloError("Unauthorized: Restricted fields cannot be updated.");
+						throw new ApolloError("Unauthorized: Restricted fields cannot be updated. (EmployeeNum / Department)");
 					}
 
 					/*
@@ -825,15 +873,30 @@ const userResolver = {
 			| RBAC: Assign scoped permissions (string-based)
 			|--------------------------------------------------------------------------
 			*/
-					if (newPermissions && Array.isArray(newPermissions)) {
+					// if (newPermissions && Array.isArray(newPermissions)) {
+					// 	if (!can(user, "users:update:any")) {
+					// 		throw new ApolloError("Unauthorized: Cannot assign permissions.");
+					// 	}
+
+					// 	const allowedPrefixes = ["users:", "requests:", "items:", "role:"];
+					// 	const filtered = newPermissions.filter((perm) => allowedPrefixes.some((prefix) => perm.startsWith(prefix)));
+
+					// 	targetUser.permissions = Array.from(new Set([...(targetUser.permissions || []), ...filtered]));
+					// }
+
+					// TODO -put the merge permission  functions  where is spoused to go
+
+					if (Array.isArray(newPermissions)) {
 						if (!can(user, "users:update:any")) {
 							throw new ApolloError("Unauthorized: Cannot assign permissions.");
 						}
 
 						const allowedPrefixes = ["users:", "requests:", "items:", "role:"];
-						const filtered = newPermissions.filter((perm) => allowedPrefixes.some((prefix) => perm.startsWith(prefix)));
+						const isAllowed = (p) => allowedPrefixes.some((pre) => p.startsWith(pre));
 
-						targetUser.permissions = Array.from(new Set([...(targetUser.permissions || []), ...filtered]));
+						const filteredNewPermissions = newPermissions.filter(isAllowed);
+
+						targetUser.permissions = mergePermissions(targetUser.permissions || [], filteredNewPermissions);
 					}
 
 					/*
@@ -902,42 +965,94 @@ const userResolver = {
 			}
 		},
 
+		// deleteOneUser: async (_, { id }, { user, pubsub }) => {
+		// 	try {
+		// 		if (!user) {
+		// 			throw new ApolloError("Unauthorized: No user context.", "UNAUTHENTICATED");
+		// 		}
+
+		// 		// const isSelf = String(user.userId) === String(id);
+
+		// 		// -----------------------
+		// 		// SELF DELETE
+		// 		// -----------------------
+		// 		// if (isSelf) {
+		// 		// 	if (!can(user, "users:delete:own", { ownerId: id })) {
+		// 		// 		throw new ApolloError(
+		// 		// 			"Unauthorized: You do not have permission to delete your account.",
+		// 		// 			"FORBIDDEN"
+		// 		// 		);
+		// 		// 	}
+		// 		// }
+		// 		// -----------------------
+		// 		// DELETE OTHER USER
+		// 		// -----------------------
+		// 		// else {
+		// 		if (!can(user, "users:delete:any")) {
+		// 			throw new ApolloError("Unauthorized: You do not have permission to delete other users.", "FORBIDDEN");
+		// 		}
+		// 		// }
+
+		// 		const deletedUser = await User.findByIdAndDelete(id);
+		// 		if (!deletedUser) {
+		// 			throw new ApolloError("User not found.", "USER_NOT_FOUND");
+		// 		}
+
+		// 		// -----------------------
+		// 		// PubSub event
+		// 		// -----------------------
+		// 		await pubsub.publish("USER_DELETED", {
+		// 			onUserChange: {
+		// 				eventType: "deleted",
+		// 				changeType: "single",
+		// 				change: {
+		// 					...deletedUser.toObject(),
+		// 					id: deletedUser._id.toString(),
+		// 				},
+		// 			},
+		// 		});
+
+		// 		return deletedUser;
+		// 	} catch (error) {
+		// 		console.error("Error deleting user:", error);
+		// 		throw error;
+		// 	}
+		// },
+
 		deleteOneUser: async (_, { id }, { user, pubsub }) => {
 			try {
 				if (!user) {
 					throw new ApolloError("Unauthorized: No user context.", "UNAUTHENTICATED");
 				}
 
-				// const isSelf = String(user.userId) === String(id);
-
-				// -----------------------
-				// SELF DELETE
-				// -----------------------
-				// if (isSelf) {
-				// 	if (!can(user, "users:delete:own", { ownerId: id })) {
-				// 		throw new ApolloError(
-				// 			"Unauthorized: You do not have permission to delete your account.",
-				// 			"FORBIDDEN"
-				// 		);
-				// 	}
-				// }
-				// -----------------------
-				// DELETE OTHER USER
-				// -----------------------
-				// else {
-				if (!can(user, "users:update:any")) {
-					throw new ApolloError("Unauthorized: You do not have permission to delete other users.", "FORBIDDEN");
+				if (!can(user, "users:delete:any")) {
+					throw new ApolloError("Unauthorized: You do not have permission to delete users.", "FORBIDDEN");
 				}
-				// }
 
-				const deletedUser = await User.findByIdAndDelete(id);
-				if (!deletedUser) {
+				const targetUser = await User.findById(id);
+				if (!targetUser) {
 					throw new ApolloError("User not found.", "USER_NOT_FOUND");
 				}
 
-				// -----------------------
-				// PubSub event
-				// -----------------------
+				/*
+		|------------------------------------------------------------------
+		| Role hierarchy + peer permission check (headAdmin excluded)
+		|------------------------------------------------------------------
+		*/
+				if (user.role !== "headAdmin") {
+					// Higher role → never allowed
+					if (roleRank[user.role] < roleRank[targetUser.role]) {
+						throw new ApolloError("Unauthorized: Cannot delete a user with a higher role.", "FORBIDDEN");
+					}
+
+					// Same role → requires peer permission
+					if (roleRank[user.role] === roleRank[targetUser.role] && !can(user, "users:delete:peer", { targetRole: targetUser.role })) {
+						throw new ApolloError("Unauthorized: Cannot delete a peer user.", "FORBIDDEN");
+					}
+				}
+
+				const deletedUser = await User.findByIdAndDelete(id);
+
 				await pubsub.publish("USER_DELETED", {
 					onUserChange: {
 						eventType: "deleted",
@@ -956,6 +1071,76 @@ const userResolver = {
 			}
 		},
 
+		// deleteMultipleUsers: async (_, { ids }, { user, pubsub }) => {
+		// 	try {
+		// 		if (!user) {
+		// 			throw new ApolloError("Unauthorized: No user context.", "UNAUTHENTICATED");
+		// 		}
+
+		// 		if (!Array.isArray(ids) || ids.length === 0) {
+		// 			throw new ApolloError("No user IDs provided.", "BAD_REQUEST");
+		// 		}
+
+		// 		const userIdStr = String(user.userId);
+		// 		const includesSelf = ids.some((id) => String(id) === userIdStr);
+		// 		const includesOthers = ids.some((id) => String(id) !== userIdStr);
+
+		// 		// -----------------------
+		// 		// RBAC checks
+		// 		// -----------------------
+		// 		if (includesSelf) {
+		// 			if (!can(user, "users:delete:any", { ownerId: user.userId })) {
+		// 				throw new ApolloError("Unauthorized: You cannot delete your own account.", "FORBIDDEN");
+		// 			}
+		// 		}
+
+		// 		if (includesOthers) {
+		// 			if (!can(user, "users:delete:any")) {
+		// 				throw new ApolloError("Unauthorized: You cannot delete other users.", "FORBIDDEN");
+		// 			}
+		// 		}
+
+		// 		// -----------------------
+		// 		// Fetch target users
+		// 		// -----------------------
+		// 		const targetUsers = await User.find({ _id: { $in: ids } });
+
+		// 		if (!targetUsers.length) {
+		// 			throw new ApolloError("No users found to delete.", "USER_NOT_FOUND");
+		// 		}
+
+		// 		// -----------------------
+		// 		// Bulk delete
+		// 		// -----------------------
+		// 		const bulkOps = ids.map((id) => ({
+		// 			deleteOne: { filter: { _id: id } },
+		// 		}));
+
+		// 		await User.bulkWrite(bulkOps);
+
+		// 		// -----------------------
+		// 		// PubSub payload
+		// 		// -----------------------
+		// 		const payloadArray = targetUsers.map((u) => ({
+		// 			...u.toObject(),
+		// 			id: u._id.toString(),
+		// 		}));
+
+		// 		await pubsub.publish("USER_DELETED", {
+		// 			onUserChange: {
+		// 				eventType: "deleted",
+		// 				changeType: payloadArray.length > 1 ? "multiple" : "single",
+		// 				...(payloadArray.length > 1 ? { changes: payloadArray } : { change: payloadArray[0] }),
+		// 			},
+		// 		});
+
+		// 		return targetUsers;
+		// 	} catch (error) {
+		// 		console.error("Error deleting multiple users:", error);
+		// 		throw error;
+		// 	}
+		// },
+
 		deleteMultipleUsers: async (_, { ids }, { user, pubsub }) => {
 			try {
 				if (!user) {
@@ -966,46 +1151,40 @@ const userResolver = {
 					throw new ApolloError("No user IDs provided.", "BAD_REQUEST");
 				}
 
-				const userIdStr = String(user.userId);
-				const includesSelf = ids.some((id) => String(id) === userIdStr);
-				const includesOthers = ids.some((id) => String(id) !== userIdStr);
-
-				// -----------------------
-				// RBAC checks
-				// -----------------------
-				if (includesSelf) {
-					if (!can(user, "users:update:any", { ownerId: user.userId })) {
-						throw new ApolloError("Unauthorized: You cannot delete your own account.", "FORBIDDEN");
-					}
+				if (!can(user, "users:delete:any")) {
+					throw new ApolloError("Unauthorized: You do not have permission to delete users.", "FORBIDDEN");
 				}
 
-				if (includesOthers) {
-					if (!can(user, "users:update:any")) {
-						throw new ApolloError("Unauthorized: You cannot delete other users.", "FORBIDDEN");
-					}
-				}
-
-				// -----------------------
-				// Fetch target users
-				// -----------------------
 				const targetUsers = await User.find({ _id: { $in: ids } });
-
 				if (!targetUsers.length) {
 					throw new ApolloError("No users found to delete.", "USER_NOT_FOUND");
 				}
 
-				// -----------------------
-				// Bulk delete
-				// -----------------------
+				/*
+		|------------------------------------------------------------------
+		| Role hierarchy + peer permission checks (headAdmin excluded)
+		|------------------------------------------------------------------
+		*/
+				if (user.role !== "headAdmin") {
+					for (const targetUser of targetUsers) {
+						// Higher role → never allowed
+						if (roleRank[user.role] < roleRank[targetUser.role]) {
+							throw new ApolloError(`Unauthorized: Cannot delete higher role user (${targetUser.email}).`, "FORBIDDEN");
+						}
+
+						// Same role → requires peer permission
+						if (roleRank[user.role] === roleRank[targetUser.role] && !can(user, "users:delete:peer", { targetRole: targetUser.role })) {
+							throw new ApolloError(`Unauthorized: Cannot delete peer user (${targetUser.email}).`, "FORBIDDEN");
+						}
+					}
+				}
+
 				const bulkOps = ids.map((id) => ({
 					deleteOne: { filter: { _id: id } },
 				}));
 
 				await User.bulkWrite(bulkOps);
 
-				// -----------------------
-				// PubSub payload
-				// -----------------------
 				const payloadArray = targetUsers.map((u) => ({
 					...u.toObject(),
 					id: u._id.toString(),
@@ -1025,80 +1204,6 @@ const userResolver = {
 				throw error;
 			}
 		},
-
-		// deleteMultipleUsers: async (_, { ids }, { user, pubsub }) => {
-		// 	try {
-		// 		if (!user) throw new Error("Unauthorized: No context provided.");
-
-		// 		// If trying to delete self, enforce self-delete rules
-		// 		if (ids.includes(user.userId.toString())) {
-		// 			if (user.permissions.canNotBeDeleted) {
-		// 				throw new ApolloError("You cannot delete your own account.");
-		// 			}
-		// 			if (!user.permissions.canDeleteSelf) {
-		// 				throw new ApolloError("You lack permission to delete your own account.");
-		// 			}
-		// 		}
-
-		// 		// Check delete permissions for others
-		// 		if (!user.permissions.canDeleteUsers) {
-		// 			throw new ApolloError("You lack permission to delete other users.");
-		// 		}
-
-		// 		// Fetch all target users
-		// 		const targetUsers = await User.find({ _id: { $in: ids } });
-
-		// 		if (targetUsers.length === 0) {
-		// 			throw new ApolloError("No users found to delete.");
-		// 		}
-
-		// 		// Validate if any target cannot be deleted
-		// 		for (const targetUser of targetUsers) {
-		// 			if (targetUser.permissions?.canNotBeDeleted) {
-		// 				throw new ApolloError(`User ${targetUser.name || targetUser._id} cannot be deleted.`);
-		// 			}
-		// 		}
-
-		// 		// // Perform bulk delete
-		// 		// const bulkOps = ids.map((id) => ({
-		// 		// 	deleteOne: { filter: { _id: id } },
-		// 		// }));
-
-		// 		// await User.bulkWrite(bulkOps);
-
-		// 		// // Publish subscription events for each deleted user
-		// 		// for (const deletedUser of targetUsers) {
-		// 		// 	await pubsub.publish("USER_DELETED", {
-		// 		// 		onUserChange: { eventType: "deleted", Changes: deletedUser },
-		// 		// 	});
-		// 		// }
-
-		// 		// Perform bulk delete
-		// 		const bulkOps = ids.map((id) => ({
-		// 			deleteOne: { filter: { _id: id } },
-		// 		}));
-
-		// 		await User.bulkWrite(bulkOps);
-
-		// 		// Publish a single subscription event for all deleted users
-		// 		const payloadArray = targetUsers.map((user) => ({
-		// 			...user.toObject(),
-		// 			id: user._id.toString(), // normalize id
-		// 		}));
-
-		// 		await pubsub.publish("USER_DELETED", {
-		// 			onUserChange: {
-		// 				eventType: "deleted",
-		// 				changeType: payloadArray.length > 1 ? "multiple" : "single",
-		// 				...(payloadArray.length > 1 ? { changes: payloadArray } : { change: payloadArray[0] }),
-		// 			},
-		// 		});
-
-		// 		return targetUsers; // Return deleted users
-		// 	} catch (error) {
-		// 		console.error("error deleting users", error);
-		// 	}
-		// },
 
 		adminSyncAllUserPermissionsByRole: async (_, __, { user, pubsub }) => {
 			try {

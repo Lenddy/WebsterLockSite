@@ -27,7 +27,7 @@ export function UsersProvider({ children }) {
 		// Extract role safely whether it's: "admin" OR { role: "admin" }
 		const role = typeof token?.role === "string" ? token.role : token?.role?.role;
 
-		const hasReviewRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		const hasReviewRole = ["headAdmin", "admin"].includes(role) || (role === "subAdmin" && can(token, "users:read:any"));
 
 		// const hasPermission = token?.permissions?.canViewAllUsers === true;
 		const hasPermission = can(token, "users:read:any");

@@ -1,42 +1,11 @@
 import { ROLE_PERMISSIONS } from "./role.config.js";
 
-// export const can = (user, permission, { ownerId } = {}) => {
-// 	// headAdmin wildcard
-// 	if (user?.role === "headAdmin") return true;
-
-// 	const rolePerms = ROLE_PERMISSIONS[user?.role] || [];
-// 	const userPerms = user?.permissions || [];
-
-// 	// Merge role + user permissions
-// 	const allPerms = new Set([...rolePerms, ...userPerms]);
-
-// 	// Wildcard support
-// 	if (allPerms?.has("*")) return true;
-// 	if (allPerms?.has(permission?.replace(":own", ":any"))) return true;
-
-// 	// Own vs any
-// 	if (permission?.endsWith(":own")) {
-// 		return ownerId && user?.userId?.equals(ownerId) && allPerms?.has(permission);
-// 	}
-
-// 	return allPerms?.has(permission);
-// };
-
-export const can = (user, permission, { ownerId } = {}) => {
+export const can = (user, permission, { ownerId, targetRole } = {}) => {
 	// headAdmin has unrestricted access
 	if (user?.role === "headAdmin") return true;
 
 	const rolePerms = ROLE_PERMISSIONS[user?.role] || [];
-	// const userPerms = user?.permissions || [];
-	const userPerms = [
-		"users:update:own",
-		// requests
-		"requests:create:own",
-		// items
-		"requests:update:own",
-	];
-
-	// Combine role permissions and user-granted permissions
+	const userPerms = user?.permissions || [];
 	const allPerms = new Set([...rolePerms, ...userPerms]);
 
 	// Global wildcard
@@ -47,12 +16,31 @@ export const can = (user, permission, { ownerId } = {}) => {
 		return true;
 	}
 
-	// Own-resource permission check
-	if (permission.endsWith(":own")) {
-		const sameUser = String(user?.userId) === String(ownerId);
-		return sameUser && allPerms.has(permission);
+	// peer permission
+	if (permission.endsWith(":peer")) {
+		return allPerms.has(permission) && user.role === targetRole;
 	}
 
-	// Direct permission match
+	// Own-resource permission check
+	if (permission.endsWith(":own")) {
+		return ownerId && String(user.userId) === String(ownerId) && allPerms.has(permission);
+	}
+
 	return allPerms.has(permission);
+};
+
+export const mergePermissions = (rolePermissions = [], extraPermissions = []) => {
+	const map = Object.create(null);
+
+	for (const perm of rolePermissions) {
+		const [r, a] = perm.split(":", 2);
+		if (r && a) map[`${r}:${a}`] = perm;
+	}
+
+	for (const perm of extraPermissions) {
+		const [r, a] = perm.split(":", 2);
+		if (r && a) map[`${r}:${a}`] = perm;
+	}
+
+	return Object.values(map);
 };

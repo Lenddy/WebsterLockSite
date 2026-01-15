@@ -9,6 +9,7 @@ export const ROLE_PERMISSIONS = {
 		"users:create:any",
 		"users:update:any",
 		"users:delete:any",
+		// "users:update:peer",
 
 		// requests
 		"requests:read:any",

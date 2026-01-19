@@ -555,7 +555,7 @@ const userResolver = {
 				const isSelf = user.userId === id;
 
 				console.log("first role check");
-				if (!isSelf && !Object.keys(validRoles).includes(user.role) && !can(user, "users:update:any")) {
+				if ((!isSelf && !Object.keys(validRoles).includes(user.role) && !can(user, "users:update:any")) || !can(user, "users:update:peer")) {
 					throw new ApolloError("Unauthorized: You can only update your own profile.", "FORBIDDEN");
 				}
 
@@ -621,7 +621,7 @@ const userResolver = {
 				if (job) targetUser.job = job;
 
 				// TODO - update  this part so that if theres is  a empNum or dep and their are not a admin and can update any to throw the error
-				if (isSelf || (validRoles.includes(user.role) && can(user, "users:update:any"))) {
+				if (isSelf || (validRoles.includes(user.role) && can(user, "users:update:any")) || can(user, "users:update:peer")) {
 					if (employeeNum) targetUser.employeeNum = employeeNum;
 					if (department) targetUser.department = department;
 				} else throw new ApolloError("You are not allowed to update your Employ number or department");
@@ -773,7 +773,7 @@ const userResolver = {
 							throw new ApolloError("Unauthorized: Cannot update your own profile.");
 						}
 					} else {
-						if (!can(user, "users:update:any")) {
+						if (!can(user, "users:update:any") && !can(user, "users:update:peer")) {
 							throw new ApolloError("Unauthorized: Cannot update other users.");
 						}
 					}
@@ -798,7 +798,7 @@ const userResolver = {
 
 							// Same role → requires peer permission
 							if (roleRank[user.role] === roleRank[targetUser.role] && !can(user, "users:update:peer", { targetRole: targetUser.role })) {
-								throw new ApolloError("Unauthorized: Cannot update peer user.");
+								throw new ApolloError("Unauthorized: Cannot update user with the same role are you.");
 							}
 						}
 					}
@@ -809,7 +809,7 @@ const userResolver = {
 			|--------------------------------------------------------------------------
 			*/
 					if (newRole) {
-						if (!can(user, "role:change:any")) {
+						if ((!can(user, "role:change:any") && !can(user, "users:update:any")) || !can(user, "users:update:peer")) {
 							throw new ApolloError("Unauthorized: You cannot change user roles.");
 						}
 					}

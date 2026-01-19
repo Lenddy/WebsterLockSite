@@ -104,36 +104,23 @@ export default function GetAllUsers() {
 
 	const getRoleString = (role) => (typeof role === "string" ? role : role?.role || "");
 
-	// const canEditUser = (logUser, targetUser) => {
-	// 	if (!logUser || !targetUser) return false;
-
-	// 	const logRole = getRoleString(logUser.role);
-	// 	const targetRole = getRoleString(targetUser.role);
-	// 	const perms = logUser.permissions || [];
-	// 	console.log("perms", perms);
-	// 	can(logUser, "users:update:any", logUser.userId);
-	// 	can(logUser, "users:update:any");
-	// 	// 1️ Self-edit always comes first
-	// 	if (logUser.userId === targetUser.id) return perms.canEditSelf ?? true;
-
-	// 	// 2️ Must have global permission to edit other users
-	// 	if (!perms.canEditUsers) return false;
-
-	// 	// 3️Role hierarchy for editing others
-	// 	if (logRole === "headAdmin") return !targetUser.permissions?.canNotBeUpdated;
-	// 	if (logRole === "admin") return ["subAdmin", "technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeUpdated;
-	// 	if (logRole === "subAdmin") return ["technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeUpdated;
-
-	// 	return false;
-	// };
-
-	// export
-
 	const canEditUser = (logUser, targetUser) => {
+		//TODO you change peer permission so make it works
+
+		console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", targetUser, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		// const targetRole = targetUser.role;
+		// console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", targetUser.role, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		// console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", logUser, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		// console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", targetUser, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		console.log("check 0");
+
 		if (!logUser || !targetUser) return false;
 
-		const isSelf = String(logUser.userId) === String(targetUser.id);
+		// console.log("logUser:", logUser, "targetUser:", targetUser);
 
+		console.log("check 1");
+		const isSelf = String(logUser.userId) === String(targetUser.id);
+		console.log("check 2");
 		// --------------------
 		// Self update
 		// --------------------
@@ -141,79 +128,139 @@ export default function GetAllUsers() {
 			return can(logUser, "users:update:own", { ownerId: targetUser.id });
 		}
 
+		console.log("check 3");
 		// --------------------
-		// Update others
-		// --------------------
-		if (!can(logUser, "users:update:any")) {
+		// Must have at least ONE update permission
+		// --------------------{ targetRole: targetUser.role }
+		const canAny = can(logUser, "users:update:any");
+		// const canPeer = can(logUser, "users:update:peer", { targetRole: targetUser.role });
+		const canPeer = can(logUser, "users:update:any:peer", { targetRole: targetUser.role });
+		// const canPeer = can(logUser, "users:update:peer");
+		// const canPeer = true;
+
+		console.log("this is the can use peer", canPeer);
+		console.log("check 4");
+		// !canAny &&
+		if (!canAny && !canPeer) {
 			return false;
 		}
 
+		console.log("check 5");
 		// --------------------
 		// Role hierarchy
 		// --------------------
 		const logRank = roleRank[logUser.role] ?? 0;
-		const targetRank = roleRank[targetUser.role] ?? 0;
+		console.log("logRank", logRank);
 
-		if (logRank <= targetRank) {
-			return false;
+		const targetRank = roleRank[targetUser.role] ?? 0;
+		console.log("targetRank", targetRank);
+		// Higher role → allowed
+		if (logRank > targetRank) return true;
+
+		console.log("check 6");
+		// Same role → requires peer permission
+		if (logRank === targetRank) {
+			return canPeer;
 		}
 
-		return true;
+		console.log("check 7");
+
+		// Lower role trying to update higher
+
+		return false;
 	};
+
+	// const canEditUser = (logUser, targetUser) => {
+	// 	if (!logUser || !targetUser) return false;
+
+	// 	const isSelf = String(logUser.userId) === String(targetUser.id);
+
+	// 	if (isSelf) {
+	// 		return can(logUser, "users:update:own", { ownerId: targetUser.id });
+	// 	}
+
+	// 	const canAny = can(logUser, "users:update:any");
+	// 	const canPeer = can(logUser, "users:update:peer");
+
+	// 	if (!canAny && !canPeer) return false;
+
+	// 	const logRank = roleRank[logUser.role] ?? 0;
+	// 	const targetRank = roleRank[targetUser.role] ?? 0;
+
+	// 	// higher role always allowed
+	// 	if (logRank > targetRank) return true;
+
+	// 	// same role → peer required
+	// 	if (logRank === targetRank) return canPeer;
+
+	// 	// lower role editing higher → never
+	// 	return false;
+	// };
 
 	// const canDeleteUser = (logUser, targetUser) => {
 	// 	if (!logUser || !targetUser) return false;
 
-	// 	const logRole = getRoleString(logUser.role);
-	// 	const targetRole = getRoleString(targetUser.role);
-	// 	const perms = logUser.permissions || {};
+	// 	const isSelf = String(logUser.userId) === String(targetUser.id);
 
-	// 	// 1️Self-delete always comes first
-	// 	if (logUser.userId === targetUser.id) return perms.canDeleteSelf ?? false;
+	// 	// --------------------
+	// 	// Self delete
+	// 	// --------------------
+	// 	if (isSelf) {
+	// 		return can(logUser, "users:delete:own", { ownerId: targetUser.id });
+	// 	}
 
-	// 	// 2 Must have global permission to delete other users
-	// 	if (!perms.canDeleteUsers) return false;
+	// 	const canAny = can(logUser, "users:delete:any");
+	// 	const canPeer = can(logUser, "users:delete:peer", { targetRole: targetUser.role });
 
-	// 	// 3️Role hierarchy for deleting others
-	// 	if (logRole === "headAdmin") return !targetUser.permissions?.canNotBeDeleted;
-	// 	if (logRole === "admin") return ["subAdmin", "technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeDeleted;
-	// 	if (logRole === "subAdmin") return ["technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeDeleted;
+	// 	if (!canAny && !canPeer) {
+	// 		return false;
+	// 	}
+
+	// 	const logRank = roleRank[logUser.role] ?? 0;
+	// 	console.log("logRank", logRank);
+	// 	const targetRank = roleRank[targetUser.role] ?? 0;
+	// 	console.log("targetRank", targetRank);
+
+	// 	if (logRank > targetRank) return true;
+
+	// 	if (logRank === targetRank) {
+	// 		return canPeer;
+	// 	}
 
 	// 	return false;
 	// };
 
-	// export
-	const canDeleteUser = (logUser, targetUser) => {
-		if (!logUser || !targetUser) return false;
+	// const canDeleteUser = (logUser, targetUser) => {
+	// 	if (!logUser || !targetUser) return false;
 
-		const isSelf = String(logUser.userId) === String(targetUser.id);
+	// 	const isSelf = String(logUser.userId) === String(targetUser.id);
 
-		// --------------------
-		// Self delete
-		// --------------------
-		if (isSelf) {
-			return can(logUser, "users:delete:own", { ownerId: targetUser.id });
-		}
+	// 	// --------------------
+	// 	// Self delete
+	// 	// --------------------
+	// 	if (isSelf) {
+	// 		return can(logUser, "users:delete:own", { ownerId: targetUser.id });
+	// 	}
 
-		// --------------------
-		// Delete others
-		// --------------------
-		if (!can(logUser, "users:delete:any")) {
-			return false;
-		}
+	// 	// --------------------
+	// 	// Delete others
+	// 	// --------------------
+	// 	if (!can(logUser, "users:delete:any")) {
+	// 		return false;
+	// 	}
 
-		// --------------------
-		// Role hierarchy
-		// --------------------
-		const logRank = roleRank[logUser.role] ?? 0;
-		const targetRank = roleRank[targetUser.role] ?? 0;
+	// 	// --------------------
+	// 	// Role hierarchy
+	// 	// --------------------
+	// 	const logRank = roleRank[logUser.role] ?? 0;
+	// 	const targetRank = roleRank[targetUser.role] ?? 0;
 
-		if (logRank <= targetRank) {
-			return false;
-		}
+	// 	if (logRank <= targetRank && !can(logUser, "users:update:peer")) {
+	// 		return false;
+	// 	}
 
-		return true;
-	};
+	// 	return true;
+	// };
 
 	const closeModal = () => {
 		setIsOpen(false);
@@ -276,14 +323,38 @@ export default function GetAllUsers() {
 
 										<td>{user?.department ? user?.department : "N/A"}</td>
 										<td>
-											{(canEditUser(logUser, user) || canDeleteUser(logUser, user)) && logUser ? (
-												<div className="table-action-wrapper">
-													{canEditUser(logUser, user) && (
-														<Link to={`/admin/user/${user?.id}/update`}>
-															<span className="table-action first">{t("update")}</span>
-														</Link>
-													)}
-													{canDeleteUser(logUser, user) && (
+											{/* <div className="table-action-wrapper">
+												{canEditUser(logUser, user) && (
+													<Link to={`/admin/user/${user?.id}/update`}>
+														<span className="table-action first">{t("update")}</span>
+													</Link>
+												)}
+
+												{canDeleteUser(logUser, user) && (
+													<span
+														className="table-action last"
+														onClick={() => {
+															setSelectedUser(user);
+															setIsOpen(true);
+														}}>
+														{t("delete")}
+													</span>
+												)}
+											</div> */}
+
+											{
+												// (
+												canEditUser(logUser, user) &&
+												// || canDeleteUser(logUser, user))
+
+												logUser ? (
+													<div className="table-action-wrapper">
+														{canEditUser(logUser, user) && (
+															<Link to={`/admin/user/${user?.id}/update`}>
+																<span className="table-action first">{t("update")}</span>
+															</Link>
+														)}
+														{/* {canDeleteUser(logUser, user) && (
 														<span
 															className="table-action last"
 															onClick={() => {
@@ -292,11 +363,12 @@ export default function GetAllUsers() {
 															}}>
 															{t("delete")}
 														</span>
-													)}
-												</div>
-											) : (
-												"N/A"
-											)}
+													)} */}
+													</div>
+												) : (
+													"N/A"
+												)
+											}
 										</td>
 									</tr>
 								))}

@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-	console.log("started auth context at", new Date());
+	// console.log("started auth context at", new Date());
 	const [userToken, setUserToken] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [pageLoading, setPageLoading] = useState(false);
@@ -62,12 +62,12 @@ export const AuthProvider = ({ children }) => {
 		const storedToken = localStorage.getItem("userToken");
 		if (storedToken) {
 			setUserToken(storedToken);
-			console.log(" ", userToken);
+			// console.log(" ", userToken);
 		}
 		setLoading(false);
 	}, []);
 
-	console.log("this is the token ", userToken);
+	// console.log("this is the token ", userToken);
 	// Keep localStorage synced
 	useEffect(() => {
 		if (userToken) {

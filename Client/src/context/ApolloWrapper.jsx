@@ -27,7 +27,7 @@ export default function ApolloWrapper({ children }) {
 	// )
 
 	const client = useMemo(() => {
-		console.log("🚀 Creating Apollo Client with userToken at :", new Date(), "\n", userToken);
+		// console.log("🚀 Creating Apollo Client with userToken at :", new Date(), "\n", userToken);
 
 		// ---- AUTH LINK ----
 		const authLink = setContext((_, { headers }) => ({

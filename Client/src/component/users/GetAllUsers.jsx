@@ -105,97 +105,127 @@ export default function GetAllUsers() {
 	const getRoleString = (role) => (typeof role === "string" ? role : role?.role || "");
 
 	const canEditUser = (logUser, targetUser) => {
-		//TODO you change peer permission so make it works
-
-		console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", targetUser, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-		// const targetRole = targetUser.role;
-		// console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", targetUser.role, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-		// console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", logUser, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-		// console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", targetUser, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-		console.log("check 0");
-
 		if (!logUser || !targetUser) return false;
 
-		// console.log("logUser:", logUser, "targetUser:", targetUser);
-
-		console.log("check 1");
 		const isSelf = String(logUser.userId) === String(targetUser.id);
-		console.log("check 2");
-		// --------------------
-		// Self update
-		// --------------------
-		if (isSelf) {
-			return can(logUser, "users:update:own", { ownerId: targetUser.id });
-		}
-
-		console.log("check 3");
-		// --------------------
-		// Must have at least ONE update permission
-		// --------------------{ targetRole: targetUser.role }
-		const canAny = can(logUser, "users:update:any");
-		// const canPeer = can(logUser, "users:update:peer", { targetRole: targetUser.role });
-		const canPeer = can(logUser, "users:update:any:peer", { targetRole: targetUser.role });
-		// const canPeer = can(logUser, "users:update:peer");
-		// const canPeer = true;
-
-		console.log("this is the can use peer", canPeer);
-		console.log("check 4");
-		// !canAny &&
-		if (!canAny && !canPeer) {
-			return false;
-		}
-
-		console.log("check 5");
-		// --------------------
-		// Role hierarchy
-		// --------------------
 		const logRank = roleRank[logUser.role] ?? 0;
-		console.log("logRank", logRank);
-
 		const targetRank = roleRank[targetUser.role] ?? 0;
-		console.log("targetRank", targetRank);
-		// Higher role → allowed
-		if (logRank > targetRank) return true;
 
-		console.log("check 6");
-		// Same role → requires peer permission
+		//  Self update
+		if (isSelf) {
+			return can(logUser, "users:update:own", { ownerId: logUser?.userId });
+		}
+
+		//  Must have some non-own permission
+		const canAny = can(logUser, "users:update:any");
+		const canPeer = can(logUser, "peers:update:any", { targetRole: targetUser?.role });
+
+		if (!canAny && !canPeer) return false;
+
+		//  Higher role → allowed with ANY
+		if (logRank > targetRank) {
+			return canAny;
+		}
+
+		//  Same role → PEER required
 		if (logRank === targetRank) {
 			return canPeer;
 		}
 
-		console.log("check 7");
-
-		// Lower role trying to update higher
-
+		//  Lower role → never
 		return false;
 	};
 
 	// const canEditUser = (logUser, targetUser) => {
+	// 	//TODO you change peer permission so make it works
+
+	// 	console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", targetUser, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
+	// 	console.log("check 0");
+
 	// 	if (!logUser || !targetUser) return false;
 
-	// 	const isSelf = String(logUser.userId) === String(targetUser.id);
+	// 	// console.log("logUser:", logUser, "targetUser:", targetUser);
 
+	// 	console.log("check 1");
+	// 	const isSelf = String(logUser.userId) === String(targetUser.id);
+	// 	console.log("check 2");
+	// 	// --------------------
+	// 	// Self update
+	// 	// --------------------
 	// 	if (isSelf) {
 	// 		return can(logUser, "users:update:own", { ownerId: targetUser.id });
 	// 	}
 
-	// 	const canAny = can(logUser, "users:update:any");
-	// 	const canPeer = can(logUser, "users:update:peer");
+	// 	console.log("user have update own", can(logUser, "users:update:own"));
 
-	// 	if (!canAny && !canPeer) return false;
+	// 	if (can(logUser, "users:update:own")) {
+	// 		console.log("check 3");
+	// 		// --------------------
+	// 		// Must have at least ONE update permission
+	// 		// --------------------{ targetRole: targetUser.role }
+	// 		const canAny = can(logUser, "users:update:any");
+	// 		// const canPeer = can(logUser, "users:update:peer", { targetRole: targetUser.role });
+	// 		const canPeer = can(logUser, "users:update:any:peer", { targetRole: targetUser.role });
+	// 		// const canPeer = can(logUser, "users:update:peer");
+	// 		// const canPeer = true;
 
-	// 	const logRank = roleRank[logUser.role] ?? 0;
-	// 	const targetRank = roleRank[targetUser.role] ?? 0;
+	// 		console.log("this is the can use peer", canPeer);
+	// 		console.log("check 4");
+	// 		// !canAny &&
+	// 		// if (!canAny && !canPeer) {
+	// 		// 	return false;
+	// 		// }
 
-	// 	// higher role always allowed
-	// 	if (logRank > targetRank) return true;
+	// 		console.log("check 5");
+	// 		// --------------------
+	// 		// Role hierarchy
+	// 		// --------------------
+	// 		const logRank = roleRank[logUser.role] ?? 0;
+	// 		console.log("logRank", logRank);
 
-	// 	// same role → peer required
-	// 	if (logRank === targetRank) return canPeer;
+	// 		const targetRank = roleRank[targetUser.role] ?? 0;
+	// 		console.log("targetRank", targetRank);
+	// 		// Higher role → allowed
+	// 		if (logRank > targetRank) return true;
 
-	// 	// lower role editing higher → never
+	// 		console.log("check 6");
+	// 		// Same role → requires peer permission
+	// 		if (logRank === targetRank) {
+	// 			return canPeer;
+	// 		}
+
+	// 		console.log("check 7");
+	// 	}
+
+	// 	// Lower role trying to update higher
+
 	// 	return false;
 	// };
+
+	const canDeleteUser = (logUser, targetUser) => {
+		if (!logUser || !targetUser) return false;
+
+		const isSelf = String(logUser.userId) === String(targetUser.id);
+		const logRank = roleRank[logUser.role] ?? 0;
+		const targetRank = roleRank[targetUser.role] ?? 0;
+
+		if (isSelf) {
+			return can(logUser, "users:delete:own");
+		}
+
+		const canAny = can(logUser, "users:delete:any");
+		const canPeer = can(logUser, "peers:update:any", { targetRole: targetUser?.role });
+		// const canDelete = can(logUser, "users:delete:any");
+
+		if (!canAny && !canPeer) return false;
+
+		if (logRank > targetRank) return canAny;
+
+		if (logRank === targetRank && !canAny && !canPeer) return canAny && canPeer;
+
+		return false;
+	};
 
 	// const canDeleteUser = (logUser, targetUser) => {
 	// 	if (!logUser || !targetUser) return false;
@@ -230,7 +260,9 @@ export default function GetAllUsers() {
 	// 	return false;
 	// };
 
+	// !!!!!!!!!!!!!!!!!!
 	// const canDeleteUser = (logUser, targetUser) => {
+
 	// 	if (!logUser || !targetUser) return false;
 
 	// 	const isSelf = String(logUser.userId) === String(targetUser.id);
@@ -341,34 +373,32 @@ export default function GetAllUsers() {
 													</span>
 												)}
 											</div> */}
-
-											{
-												// (
-												canEditUser(logUser, user) &&
-												// || canDeleteUser(logUser, user))
-
-												logUser ? (
+											{logUser ? (
+												canEditUser(logUser, user) || canDeleteUser(logUser, user) ? (
 													<div className="table-action-wrapper">
 														{canEditUser(logUser, user) && (
-															<Link to={`/admin/user/${user?.id}/update`}>
+															<Link to={`/admin/user/${user.id}/update`}>
 																<span className="table-action first">{t("update")}</span>
 															</Link>
 														)}
-														{/* {canDeleteUser(logUser, user) && (
-														<span
-															className="table-action last"
-															onClick={() => {
-																setSelectedUser(user);
-																setIsOpen(true);
-															}}>
-															{t("delete")}
-														</span>
-													)} */}
+
+														{canDeleteUser(logUser, user) && (
+															<span
+																className="table-action last"
+																onClick={() => {
+																	setSelectedUser(user);
+																	setIsOpen(true);
+																}}>
+																{t("delete")}
+															</span>
+														)}
 													</div>
 												) : (
 													"N/A"
 												)
-											}
+											) : (
+												"N/A"
+											)}
 										</td>
 									</tr>
 								))}

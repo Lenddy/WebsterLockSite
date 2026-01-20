@@ -17,7 +17,7 @@ export const can = (user, permission, { ownerId, targetRole } = {}) => {
 	}
 
 	// peer permission
-	if (permission.endsWith(":peer")) {
+	if (permission.startsWith("peers") && permission.endsWith(":any")) {
 		return allPerms.has(permission) && user.role === targetRole;
 	}
 

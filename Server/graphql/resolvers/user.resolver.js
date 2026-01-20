@@ -555,7 +555,7 @@ const userResolver = {
 				const isSelf = user.userId === id;
 
 				console.log("first role check");
-				if ((!isSelf && !Object.keys(validRoles).includes(user.role) && !can(user, "users:update:any")) || !can(user, "users:update:peer")) {
+				if (!isSelf && !Object.keys(validRoles).includes(user.role) && !can(user, "users:update:any")) {
 					throw new ApolloError("Unauthorized: You can only update your own profile.", "FORBIDDEN");
 				}
 
@@ -569,6 +569,10 @@ const userResolver = {
 				const targetUser = await User.findById(id);
 				if (!targetUser) {
 					throw new ApolloError("User not found", "USER_NOT_FOUND");
+				}
+
+				if (user.role === targetUser.role && !can(user, "peers:update:any", { targetRole: targetUser.role })) {
+					throw new ApolloError("You cant update Users with the same role as you");
 				}
 
 				// --------------------
@@ -700,7 +704,7 @@ const userResolver = {
 		|--------------------------------------------------------------------------
 		*/
 				const canUpdateAnyUser = can(user, "users:update:any");
-				const canUpdatePeer = can(user, "users:update:peer");
+				const canUpdatePeer = can(user, "peer:update:any");
 				const canUpdateOwnUser = can(user, "users:update:own");
 
 				if (!canUpdateAnyUser && !canUpdateOwnUser) {
@@ -719,9 +723,9 @@ const userResolver = {
 				}
 
 				/*
-		|--------------------------------------------------------------------------
-		| Validate duplicate new emails in request
-		|--------------------------------------------------------------------------
+			|--------------------------------------------------------------------------
+			| Validate duplicate new emails in request
+			|--------------------------------------------------------------------------
 		*/
 				const newEmails = inputs.map((i) => i.newEmail).filter(Boolean);
 				const duplicateNewEmails = newEmails.filter((e, idx) => newEmails.indexOf(e) !== idx);
@@ -772,10 +776,6 @@ const userResolver = {
 						if (!can(user, "users:update:own", { ownerId: id })) {
 							throw new ApolloError("Unauthorized: Cannot update your own profile.");
 						}
-					} else {
-						if (!can(user, "users:update:any") && !can(user, "users:update:peer")) {
-							throw new ApolloError("Unauthorized: Cannot update other users.");
-						}
 					}
 
 					/*
@@ -797,8 +797,12 @@ const userResolver = {
 							}
 
 							// Same role → requires peer permission
-							if (roleRank[user.role] === roleRank[targetUser.role] && !can(user, "users:update:peer", { targetRole: targetUser.role })) {
+							if (roleRank[user.role] === roleRank[targetUser.role] && !can(user, "peers:update:any", { targetRole: targetUser.role })) {
 								throw new ApolloError("Unauthorized: Cannot update user with the same role are you.");
+							}
+
+							if (roleRank[user.role] !== roleRank[targetUser.role] && !can(user, "users:update:any")) {
+								throw new ApolloError("Unauthorized: Cannot update other users.");
 							}
 						}
 					}
@@ -809,7 +813,7 @@ const userResolver = {
 			|--------------------------------------------------------------------------
 			*/
 					if (newRole) {
-						if ((!can(user, "role:change:any") && !can(user, "users:update:any")) || !can(user, "users:update:peer")) {
+						if (!can(user, "role:change:any") && !can(user, "users:update:any")) {
 							throw new ApolloError("Unauthorized: You cannot change user roles.");
 						}
 					}
@@ -819,8 +823,10 @@ const userResolver = {
 			| Restricted fields (only headAdmin)
 			|--------------------------------------------------------------------------
 			*/
+
+					// TODO ADD EH
 					const restrictedFields = ["employeeNum", "department"];
-					if (!isSelf && restrictedFields.some((f) => f in input) && user.role !== "headAdmin") {
+					if ((!isSelf && restrictedFields.some((f) => f in input) && user.role !== "headAdmin") || user.role !== "admin") {
 						throw new ApolloError("Unauthorized: Restricted fields cannot be updated. (EmployeeNum / Department)");
 					}
 

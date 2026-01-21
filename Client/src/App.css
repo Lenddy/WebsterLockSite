@@ -272,7 +272,9 @@
 	color: var(--white);
 	scale: 1.1;
 	transform: translateY(5px);
-	transition: scale ease-in-out 200ms, transform ease-in 200ms;
+	transition:
+		scale ease-in-out 200ms,
+		transform ease-in 200ms;
 	text-decoration: underline;
 	z-index: 999999999;
 }
@@ -519,7 +521,9 @@
 	justify-content: center;
 	align-items: center;
 	opacity: 0; /* hidden by default */
-	transition: opacity 0.2s, width 0.2s;
+	transition:
+		opacity 0.2s,
+		width 0.2s;
 	position: absolute;
 	right: 0;
 	top: 0;
@@ -605,6 +609,15 @@
 	/* border: 1px solid #ccc; */
 	padding: 0 10px;
 	border-bottom: solid 1px var(--white);
+}
+
+.clickable-th {
+	cursor: pointer;
+	user-select: none;
+}
+
+.clickable-th:hover {
+	text-decoration: underline;
 }
 
 .table-wrapper tr:nth-child(even) {
@@ -1424,7 +1437,9 @@
 	cursor: pointer;
 	position: relative;
 	margin-left: 10px;
-	transition: background 0.2s, border-color 0.2s;
+	transition:
+		background 0.2s,
+		border-color 0.2s;
 }
 
 /* Checked state */
@@ -1434,16 +1449,6 @@
 }
 
 /* Inner dot */
-.permissions-list input[type="checkbox"]:checked::after {
-	content: "";
-	position: absolute;
-	top: 4px;
-	left: 4px;
-	width: 6px;
-	height: 6px;
-	background: white;
-	border-radius: 50%;
-}
 
 /* here */
 
@@ -1459,7 +1464,8 @@
 .permissions-list {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-	gap: 12px 0px;
+	/* grid-template-columns: auto auto auto; */
+	gap: 4px 4px;
 	list-style: none;
 	padding: 0;
 	margin: 10px 0;
@@ -2218,7 +2224,9 @@ __placeholder
 	color: var(--white);
 	scale: 1.1;
 	transform: translateY(5px);
-	transition: scale ease-in-out 200ms, transform ease-in 200ms;
+	transition:
+		scale ease-in-out 200ms,
+		transform ease-in 200ms;
 	text-decoration: underline;
 	z-index: 999999999;
 }

@@ -8,6 +8,8 @@ import CloseEye from "../../../assets/closeEye.svg?react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { can } from "../../utilities/can";
+import { ROLE_PERMISSIONS } from "../../utilities/role.config";
 
 export default function AdminRegisterMultipleUsers() {
 	const { userToken } = useAuth(); // get token from context
@@ -18,6 +20,7 @@ export default function AdminRegisterMultipleUsers() {
 	const [hasSubmitted, setHasSubmitted] = useState(false);
 	const [formReset, setFormReset] = useState(false);
 	const [blockInput, setBlockInput] = useState(false);
+	const [extraPerms, setExtraPerms] = useState(false);
 
 	const { t } = useTranslation();
 
@@ -69,26 +72,27 @@ export default function AdminRegisterMultipleUsers() {
 			password: "",
 			confirmPassword: "",
 			employeeNum: "",
-			description: "",
-			title: "",
+			// description: "",
+			// title: "",
 			role: "",
 			department: "",
-			permissions: {
-				canViewAllUsers: false,
-				canEditUsers: false,
-				canDeleteUsers: false,
-				canChangeRole: false,
-				canEditSelf: true,
-				canViewSelf: true,
-				canDeleteSelf: false,
-			},
+			permissions: [],
+			// {
+			// 	canViewAllUsers: false,
+			// 	canEditUsers: false,
+			// 	canDeleteUsers: false,
+			// 	canChangeRole: false,
+			// 	canEditSelf: true,
+			// 	canViewSelf: true,
+			// 	canDeleteSelf: false,
+			// }
 		},
 	]);
 
 	// Decode token and scroll to last row
 	useEffect(() => {
 		if (lastRowRef.current) {
-			lastRowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+			// lastRowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
 		}
 	}, [rows]);
 
@@ -97,14 +101,63 @@ export default function AdminRegisterMultipleUsers() {
 	const [adminRegisterMultipleUserProfiles, { loading, error: updateError }] = useMutation(register_multiple_Users);
 
 	// Update text, select, or checkbox values for a specific row
+	// const handleRowChange = (index, e) => {
+	// 	const { name, value, type, checked } = e.target;
+
+	// 	setRows((prev) => {
+	// 		const newRows = [...prev];
+
+	// 		if (type === "checkbox") newRows[index].permissions[name] = checked;
+	// 		else newRows[index][name] = value;
+
+	// 		return newRows;
+	// 	});
+	// };
+
 	const handleRowChange = (index, e) => {
 		const { name, value, type, checked } = e.target;
 
 		setRows((prev) => {
 			const newRows = [...prev];
+			const row = { ...newRows[index] };
 
-			if (type === "checkbox") newRows[index].permissions[name] = checked;
-			else newRows[index][name] = value;
+			// ROLE CHANGE → reset permissions
+			if (name === "role") {
+				row.role = value;
+				row.permissions = ROLE_PERMISSIONS[value] ? [...ROLE_PERMISSIONS[value]] : [];
+			}
+
+			// // PERMISSIONS CHECKBOX
+			// else if (type === "checkbox") {
+			// 	if (checked) {
+			// 		row.permissions = [...row.permissions, name];
+			// 	} else {
+			// 		row.permissions = row.permissions.filter((p) => p !== name);
+			// 	}
+			// }
+
+			// // NORMAL INPUT
+			// else {
+			// 	row[name] = value;
+			// }
+			else if (type === "checkbox") {
+				const permBase = getPermissionBase(name);
+
+				if (checked) {
+					// Remove other permissions with same base (any ↔ own)
+					row.permissions = row.permissions.filter((p) => getPermissionBase(p) !== permBase);
+
+					// Add the selected permission
+					row.permissions.push(name);
+				} else {
+					// Remove unchecked permission
+					row.permissions = row.permissions.filter((p) => p !== name);
+				}
+			}
+
+			newRows[index] = row;
+
+			console.log("this are the inputs ", newRows);
 
 			return newRows;
 		});
@@ -121,18 +174,19 @@ export default function AdminRegisterMultipleUsers() {
 				confirmPassword: "",
 				employeeNum: "",
 				department: "",
-				title: "",
-				description: "",
+				// title: "",
+				// description: "",
 				role: "",
-				permissions: {
-					canViewAllUsers: false,
-					canEditUsers: false,
-					canDeleteUsers: false,
-					canChangeRole: false,
-					canEditSelf: true,
-					canViewSelf: true,
-					canDeleteSelf: false,
-				},
+				permissions: [],
+				//  {
+				// 	canViewAllUsers: false,
+				// 	canEditUsers: false,
+				// 	canDeleteUsers: false,
+				// 	canChangeRole: false,
+				// 	canEditSelf: true,
+				// 	canViewSelf: true,
+				// 	canDeleteSelf: false,
+				// },
 			},
 		]);
 	};
@@ -163,19 +217,20 @@ export default function AdminRegisterMultipleUsers() {
 				password: "",
 				confirmPassword: "",
 				employeeNum: "",
-				description: "",
-				title: "",
+				// description: "",
+				// title: "",
 				role: "",
 				department: "",
-				permissions: {
-					canViewAllUsers: false,
-					canEditUsers: false,
-					canDeleteUsers: false,
-					canChangeRole: false,
-					canEditSelf: true,
-					canViewSelf: true,
-					canDeleteSelf: false,
-				},
+				permissions: [],
+				//  {
+				// 	canViewAllUsers: false,
+				// 	canEditUsers: false,
+				// 	canDeleteUsers: false,
+				// 	canChangeRole: false,
+				// 	canEditSelf: true,
+				// 	canViewSelf: true,
+				// 	canDeleteSelf: false,
+				// }
 			},
 		]); // or your initial requests state
 		// setSelectedGroups([]);
@@ -189,6 +244,9 @@ export default function AdminRegisterMultipleUsers() {
 	// TODO - give navegation btns to go see all or to stay
 	// TODO - if user stays reset the form
 
+	const ALL_PERMISSIONS = ["users:read:any", "users:read:own", "users:create:any", "users:update:any", "users:update:own", "users:delete:any", "users:delete:own", "requests:read:any", "requests:read:own", "requests:create:any", "requests:create:own", "requests:update:any", "requests:update:own", "requests:delete:any", "requests:delete:own", "items:read:any", "items:create:any", "items:update:any", "items:delete:any", "role:change:any"];
+
+	// if  user is a sub admin and they cant update role set the role to be a user
 	const SuccessToast = ({ closeToast, resetForm }) => (
 		<div>
 			<p>{t("material-requests-have-been-requested-successfully")}</p>
@@ -220,6 +278,13 @@ export default function AdminRegisterMultipleUsers() {
 		</div>
 	);
 
+	const getPermissionBase = (perm) => {
+		// users:read:any → users:read
+		return perm.split(":").slice(0, 2).join(":");
+	};
+
+	const isSubAdmin = decodedUser.role === "subAdmin";
+
 	// Submit all rows in one mutation
 	const submit = async (e) => {
 		e.preventDefault();
@@ -235,13 +300,13 @@ export default function AdminRegisterMultipleUsers() {
 			email: row.email,
 			password: row.password,
 			confirmPassword: row.confirmPassword,
-			role: row.role,
+			role: isSubAdmin ? "user" : row.role,
 			employeeNum: row?.employeeNum,
 			department: row?.department,
-			job: {
-				title: row.title,
-				description: row.description,
-			},
+			// job: {
+			// 	title: row.title,
+			// 	description: row.description,
+			// },
 			permissions: row.permissions,
 		}));
 
@@ -296,6 +361,29 @@ export default function AdminRegisterMultipleUsers() {
 		// 	console.error("Error registering users:", err);
 		// }
 	};
+
+	const groupPermissions = (permissions) => {
+		const groups = {};
+
+		permissions.forEach((perm) => {
+			const [resource, action, scope] = perm.split(":");
+			const key = `${resource}:${action}`;
+
+			if (!groups[key]) {
+				groups[key] = {
+					resource,
+					action,
+					perms: [],
+				};
+			}
+
+			groups[key].perms.push({ perm, scope });
+		});
+
+		return Object.values(groups);
+	};
+
+	const groupedPermissions = useMemo(() => groupPermissions(ALL_PERMISSIONS), []);
 
 	// Show nothing if token isn't loaded
 	if (!decodedUser) return null;
@@ -371,25 +459,28 @@ export default function AdminRegisterMultipleUsers() {
 
 								<div className="form-row-center-right">
 									<div className="form-row-center-right-wrapper">
-										<div>
+										{/* <div>
 											<label>{t("job-title")}:</label>
 											<input type="text" name="title" value={row.title} onChange={(e) => handleRowChange(index, e)} placeholder="Job Title" disabled={blockInput} />
 										</div>
 										<div>
 											<label>{t("job-description")}:</label>
 											<textarea name="description" value={row.description} onChange={(e) => handleRowChange(index, e)} placeholder={t("job-description")} disabled={blockInput}></textarea>
-										</div>
+										</div> */}
 
 										{/* Only show role selection if user has permission */}
-										{decodedUser?.permissions?.canChangeRole && (
+										{can(decodedUser, "role:change:any") && (
 											<div>
 												<label>{t("role")}:</label>
 												<select name="role" value={row.role} onChange={(e) => handleRowChange(index, e)} disabled={blockInput}>
+													{/* <option value="" disabled>
+														{t("select-role")}
+													</option> */}
 													<option value="">{t("select-role")}</option>
 													{decodedUser.role === "headAdmin" && <option value="headAdmin">{t("head-admin")}</option>}
 													<option value="admin">{t("admin")}</option>
 													<option value="subAdmin">{t("sub-admin")}</option>
-													<option value="technician">{t("technician")}</option>
+													{/* <option value="technician">{t("technician")}</option> */}
 													<option value="user">{t("user")}</option>
 													<option value="noRole">{t("no-role")}</option>
 												</select>
@@ -399,44 +490,74 @@ export default function AdminRegisterMultipleUsers() {
 								</div>
 
 								{/* Permissions checkboxes */}
-								{decodedUser?.permissions?.canChangeRole && (
+
+								{can(decodedUser, "role:change:any") && extraPerms == true ? (
 									<div className="form-row-center-bottom">
 										<label>{t("permissions")}:</label>
 										<div className="permissions-grid">
 											<div>
 												<ul className="permissions-list">
-													{Object.keys(row?.permissions)
+													{ALL_PERMISSIONS.map((perm) => (
+														<li key={perm}>
+															{/* <label className="permission-item">
+																{perm}
+																<input type="checkbox" name={perm} checked={row.permissions.includes(perm)} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
+															</label> */}
+
+															<label className="permission-item">
+																<span>{perm}</span>
+																<input type="checkbox" name={perm} checked={row.permissions.includes(perm)} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
+															</label>
+														</li>
+													))}
+
+													{/* {formatKey(permKey)} */}
+													{/* {Object.keys(row?.permissions)
 														.filter((permKey) => permKey.includes("Users") || permKey.includes("Role"))
 														.map((permKey) => (
 															<li key={permKey}>
 																<label>
-																	{/* {formatKey(permKey)} */}
 																	{translatePermissionKey(permKey)}
 																	<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
 																</label>
 															</li>
-														))}
+														))} */}
 												</ul>
 											</div>
 
-											<div>
+											{/* {formatKey(permKey)} */}
+											{/* <div>
 												<ul className="permissions-list">
 													{Object.keys(row?.permissions)
 														.filter((permKey) => permKey.includes("Self"))
 														.map((permKey) => (
 															<li key={permKey}>
 																<label>
-																	{/* {formatKey(permKey)} */}
 																	{translatePermissionKey(permKey)}
 																	<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
 																</label>
 															</li>
 														))}
 												</ul>
-											</div>
+											</div> */}
 										</div>
 									</div>
-								)}
+								) : (can(decodedUser, "role:change:any") && row.role !== "" && decodedUser.role === "admin") || decodedUser.role === "headAdmen" ? (
+									// TODO make the add extra perms btn be base on every row
+
+									<div>
+										<button
+											type="button"
+											onClick={() => {
+												console.log("adding new perm");
+												setExtraPerms((prev) => !prev);
+												console.log(extraPerms);
+											}}>
+											{" "}
+											Edit permission
+										</button>
+									</div>
+								) : null}
 							</div>
 
 							{rows.length > 1 && (

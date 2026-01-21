@@ -11,6 +11,7 @@ import { useQuery } from "@apollo/client";
 import RefetchButton from "./utilities/RefetchButton";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
+import { can } from "./utilities/can";
 
 export default function NavBar({ children, screenWidth }) {
 	const { userToken, setUserToken, loading: authLoading, pageLoading } = useAuth();
@@ -79,7 +80,7 @@ export default function NavBar({ children, screenWidth }) {
 	const isAdmin = useMemo(() => ["headAdmin", "admin", "subAdmin"].includes(role), [role]);
 
 	// Choose which user query to run; skip until decodedUser is present.
-	const shouldUseAllUsers = !!decodedUser && isAdmin;
+	const shouldUseAllUsers = !!decodedUser && isAdmin && decodedUser.permissions.includes("users:read:any");
 	const { refetch: allUsersRefetch } = useQuery(get_all_users, { skip: !shouldUseAllUsers || !decodedUser });
 	const { refetch: oneUserRefetch } = useQuery(get_one_user, {
 		skip: shouldUseAllUsers || !decodedUser,
@@ -125,7 +126,7 @@ export default function NavBar({ children, screenWidth }) {
 						// 	title: "Language",
 						// 	links: [{ name: "English" }, { name: "Español" }],
 						// },
-				  ]
+					]
 				: [
 						// {
 						// 	title: t("Users"),
@@ -142,7 +143,7 @@ export default function NavBar({ children, screenWidth }) {
 						// 	title: "Language",
 						// 	links: [{ name: "English" }, { name: "Español" }],
 						// },
-				  ],
+					],
 		[isAdmin, decodedUser?.userId, t] //, i18n.language
 	);
 
@@ -181,6 +182,50 @@ export default function NavBar({ children, screenWidth }) {
 		return null;
 	})();
 
+	const canReadUsers = can(decodedUser, "users:read:any");
+	const canCreateUsers = can(decodedUser, "users:create:any");
+	const canUpdateUsers = can(decodedUser, "users:update:any");
+
+	const isLinkDisabled = (path) => {
+		// !!!
+		// View all users
+		if (path === "/admin/users") {
+			return !canReadUsers;
+		}
+
+		// Register user
+		if (path === "/admin/user/register") {
+			return !canCreateUsers;
+		}
+
+		// Update user
+		if (path.startsWith("/admin/user/") && path.endsWith("/update")) {
+			return !canUpdateUsers;
+		}
+
+		// /admin/material/item/all
+		// /admin/material/item/:itemId
+		// /admin/material/item/:itemId?/update
+
+		// // !!!
+		// // View all users
+		// if (path === "") {
+		// 	return !canReadUsers;
+		// }
+
+		// // Register user
+		// if (path === "/admin/user/register") {
+		// 	return !canCreateUsers;
+		// }
+
+		// // Update user
+		// if (path.startsWith("/admin/user/") && path.endsWith("/update")) {
+		// 	return !canUpdateUsers;
+		// }
+
+		return false;
+	};
+
 	return (
 		<div className="content-container">
 			<div className="nav-container">
@@ -197,23 +242,37 @@ export default function NavBar({ children, screenWidth }) {
 								<li className="nav-link-container-dropdown" key={m.title}>
 									<span className="nav-link-container-dropdown-title">{m.title} ▾</span>
 									<div className="nav-link-container-dropdown-link">
-										{m.links.map((i) =>
-											role === "admin" || role === "subAdmin" ? (
-												<Link
-													key={i.path}
-													to={i.path == "/admin/material/item/create" || i.path == "/admin/material/item/update" ? "" : i.path}
-													className={
-														// location.pathname === i.path
-														i.path == "/admin/material/item/create" || i.path == "/admin/material/item/update" || location.pathname === i.path ? "nav-bar-link-disabled" : ""
-													}>
-													{i.name}
-												</Link>
-											) : (
-												<Link key={i.path} to={i.path} className={location.pathname === i.path ? "nav-bar-link-disabled" : ""}>
-													{i.name}
-												</Link>
+										{
+											m.links.map((i) =>
+												role === "admin" || role === "subAdmin" ? (
+													<Link
+														key={i.path}
+														to={i.path == "/admin/material/item/create" || i.path == "/admin/material/item/update" ? "" : i.path}
+														onClick={closeMenu}
+														className={
+															i.path == "/admin/material/item/create" || i.path == "/admin/material/item/update" || location.pathname === i.path ? "nav-bar-link-disabled" : ""
+
+															// location.pathname === i.path ? "nav-bar-link-disabled" : ""
+														}>
+														{i.name}
+													</Link>
+												) : (
+													<Link key={i.path} to={i.path} onClick={closeMenu} className={location.pathname === i.path ? "nav-bar-link-disabled" : ""}>
+														{i.name}
+													</Link>
+												)
 											)
-										)}
+
+											// m.links.map((i) => {
+											// 	const disabled = isLinkDisabled(i.path);
+
+											// 	return (
+											// 		<Link key={i.path} to={disabled ? "#" : i.path} onClick={(e) => disabled && e.preventDefault()} className={`${location.pathname === i.path ? "nav-bar-link-active" : ""} ${disabled ? "nav-bar-link-disabled" : ""}`} aria-disabled={disabled}>
+											// 			{i.name}
+											// 		</Link>
+											// 	);
+											// })
+										}
 									</div>
 								</li>
 							))}
@@ -263,25 +322,48 @@ export default function NavBar({ children, screenWidth }) {
 							<li className="nav-burger-menu-links-section" key={m.title}>
 								<div className="nav-burger-menu-links-section-title">{m.title}</div>
 
-								{m.links.map((i) =>
-									role === "admin" || role === "subAdmin" ? (
-										<Link
-											key={i.path}
-											to={i.path == "/admin/material/item/create" || i.path == "/admin/material/item/update" ? "" : i.path}
-											onClick={closeMenu}
-											className={
-												i.path == "/admin/material/item/create" || i.path == "/admin/material/item/update" || location.pathname === i.path ? "nav-bar-link-disabled" : ""
+								{
+									m.links.map((i) =>
+										role === "admin" || role === "subAdmin" ? (
+											<Link
+												key={i.path}
+												to={i.path == "/admin/material/item/create" || i.path == "/admin/material/item/update" ? "" : i.path}
+												onClick={closeMenu}
+												className={
+													i.path == "/admin/material/item/create" || i.path == "/admin/material/item/update" || location.pathname === i.path ? "nav-bar-link-disabled" : ""
 
-												// location.pathname === i.path ? "nav-bar-link-disabled" : ""
-											}>
-											{i.name}
-										</Link>
-									) : (
-										<Link key={i.path} to={i.path} onClick={closeMenu} className={location.pathname === i.path ? "nav-bar-link-disabled" : ""}>
-											{i.name}
-										</Link>
+													// location.pathname === i.path ? "nav-bar-link-disabled" : ""
+												}>
+												{i.name}
+											</Link>
+										) : (
+											<Link key={i.path} to={i.path} onClick={closeMenu} className={location.pathname === i.path ? "nav-bar-link-disabled" : ""}>
+												{i.name}
+											</Link>
+										)
 									)
-								)}
+
+									// m.links.map((i) => {
+									// 	const disabled = isLinkDisabled(i.path);
+									// 	console.log(location.pathname);
+									// 	console.log(i.path);
+									// 	console.log(location.pathname === i.path);
+									// 	return (
+									// 		<Link
+									// 			key={i.path}
+									// 			to={disabled ? "#" : i.path}
+									// 			onClick={(e) => {
+									// 				disabled && e.preventDefault();
+									// 				// closeMenu();
+									// 			}}
+									// 			className={`${location.pathname === i.path ? "nav-bar-link-active" : ""} `}
+									// 			aria-disabled={disabled}>
+									// 			{i.name}
+									// 		</Link>
+									// 	);
+									// }
+									// )
+								}
 							</li>
 						))}
 

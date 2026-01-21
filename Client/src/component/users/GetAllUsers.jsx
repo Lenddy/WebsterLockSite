@@ -30,6 +30,54 @@ export default function GetAllUsers() {
 	const [isOpen, setIsOpen] = useState(false);
 	const [selectedUser, setSelectedUser] = useState(null);
 
+	// sorting
+	const SORT_KEY_STORAGE = "usersTableSortKey";
+	const SORT_DIR_STORAGE = "usersTableSortDir";
+
+	const [sortKey, setSortKey] = useState(() => {
+		return localStorage.getItem(SORT_KEY_STORAGE) || "name";
+	});
+
+	const [sortDir, setSortDir] = useState(() => {
+		return localStorage.getItem(SORT_DIR_STORAGE) || "asc";
+	});
+
+	useEffect(() => {
+		localStorage.setItem(SORT_KEY_STORAGE, sortKey);
+		localStorage.setItem(SORT_DIR_STORAGE, sortDir);
+	}, [sortKey, sortDir]);
+
+	const sortUsers = (list, key, dir) => {
+		return [...list].sort((a, b) => {
+			let aVal = a[key];
+			let bVal = b[key];
+
+			// Explicit numeric sort for employeeNum
+			if (key === "employeeNum") {
+				const aNum = Number(aVal);
+				const bNum = Number(bVal);
+
+				// Handle missing / invalid numbers safely
+				if (Number.isNaN(aNum)) return 1;
+				if (Number.isNaN(bNum)) return -1;
+
+				return dir === "asc" ? aNum - bNum : bNum - aNum;
+			}
+
+			// Default string sort
+			return dir === "asc" ? String(aVal ?? "").localeCompare(String(bVal ?? "")) : String(bVal ?? "").localeCompare(String(aVal ?? ""));
+		});
+	};
+
+	const handleSort = (key) => {
+		if (sortKey === key) {
+			setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+		} else {
+			setSortKey(key);
+			setSortDir("asc");
+		}
+	};
+
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 
@@ -72,18 +120,26 @@ export default function GetAllUsers() {
 	}, [userToken]);
 
 	// Initialize users and filtered users
+	// !!!!! old
+	// useEffect(() => {
+	// 	setPageLoading(loading);
+	// 	setFilteredUsers(users);
+
+	// 	// if (data) {
+	// 	// 	console.log(data.getAllUsers);
+	// 	// 	setUsers(data.getAllUsers);
+	// 	// 	setFilteredUsers(data.getAllUsers);
+	// 	// }
+
+	// 	// data, loading, setPageLoading
+	// }, [loading, setPageLoading, users]);
+
 	useEffect(() => {
 		setPageLoading(loading);
-		setFilteredUsers(users);
 
-		// if (data) {
-		// 	console.log(data.getAllUsers);
-		// 	setUsers(data.getAllUsers);
-		// 	setFilteredUsers(data.getAllUsers);
-		// }
-
-		// data, loading, setPageLoading
-	}, [loading, setPageLoading, users]);
+		const sorted = sortUsers(users, sortKey, sortDir);
+		setFilteredUsers(sorted);
+	}, [loading, users, sortKey, sortDir, setPageLoading]);
 
 	const applyFuse = (list, search) => {
 		if (!search) return list;
@@ -136,73 +192,6 @@ export default function GetAllUsers() {
 		return false;
 	};
 
-	// const canEditUser = (logUser, targetUser) => {
-	// 	//TODO you change peer permission so make it works
-
-	// 	console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", targetUser, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-
-	// 	console.log("check 0");
-
-	// 	if (!logUser || !targetUser) return false;
-
-	// 	// console.log("logUser:", logUser, "targetUser:", targetUser);
-
-	// 	console.log("check 1");
-	// 	const isSelf = String(logUser.userId) === String(targetUser.id);
-	// 	console.log("check 2");
-	// 	// --------------------
-	// 	// Self update
-	// 	// --------------------
-	// 	if (isSelf) {
-	// 		return can(logUser, "users:update:own", { ownerId: targetUser.id });
-	// 	}
-
-	// 	console.log("user have update own", can(logUser, "users:update:own"));
-
-	// 	if (can(logUser, "users:update:own")) {
-	// 		console.log("check 3");
-	// 		// --------------------
-	// 		// Must have at least ONE update permission
-	// 		// --------------------{ targetRole: targetUser.role }
-	// 		const canAny = can(logUser, "users:update:any");
-	// 		// const canPeer = can(logUser, "users:update:peer", { targetRole: targetUser.role });
-	// 		const canPeer = can(logUser, "users:update:any:peer", { targetRole: targetUser.role });
-	// 		// const canPeer = can(logUser, "users:update:peer");
-	// 		// const canPeer = true;
-
-	// 		console.log("this is the can use peer", canPeer);
-	// 		console.log("check 4");
-	// 		// !canAny &&
-	// 		// if (!canAny && !canPeer) {
-	// 		// 	return false;
-	// 		// }
-
-	// 		console.log("check 5");
-	// 		// --------------------
-	// 		// Role hierarchy
-	// 		// --------------------
-	// 		const logRank = roleRank[logUser.role] ?? 0;
-	// 		console.log("logRank", logRank);
-
-	// 		const targetRank = roleRank[targetUser.role] ?? 0;
-	// 		console.log("targetRank", targetRank);
-	// 		// Higher role → allowed
-	// 		if (logRank > targetRank) return true;
-
-	// 		console.log("check 6");
-	// 		// Same role → requires peer permission
-	// 		if (logRank === targetRank) {
-	// 			return canPeer;
-	// 		}
-
-	// 		console.log("check 7");
-	// 	}
-
-	// 	// Lower role trying to update higher
-
-	// 	return false;
-	// };
-
 	const canDeleteUser = (logUser, targetUser) => {
 		if (!logUser || !targetUser) return false;
 
@@ -227,73 +216,6 @@ export default function GetAllUsers() {
 		return false;
 	};
 
-	// const canDeleteUser = (logUser, targetUser) => {
-	// 	if (!logUser || !targetUser) return false;
-
-	// 	const isSelf = String(logUser.userId) === String(targetUser.id);
-
-	// 	// --------------------
-	// 	// Self delete
-	// 	// --------------------
-	// 	if (isSelf) {
-	// 		return can(logUser, "users:delete:own", { ownerId: targetUser.id });
-	// 	}
-
-	// 	const canAny = can(logUser, "users:delete:any");
-	// 	const canPeer = can(logUser, "users:delete:peer", { targetRole: targetUser.role });
-
-	// 	if (!canAny && !canPeer) {
-	// 		return false;
-	// 	}
-
-	// 	const logRank = roleRank[logUser.role] ?? 0;
-	// 	console.log("logRank", logRank);
-	// 	const targetRank = roleRank[targetUser.role] ?? 0;
-	// 	console.log("targetRank", targetRank);
-
-	// 	if (logRank > targetRank) return true;
-
-	// 	if (logRank === targetRank) {
-	// 		return canPeer;
-	// 	}
-
-	// 	return false;
-	// };
-
-	// !!!!!!!!!!!!!!!!!!
-	// const canDeleteUser = (logUser, targetUser) => {
-
-	// 	if (!logUser || !targetUser) return false;
-
-	// 	const isSelf = String(logUser.userId) === String(targetUser.id);
-
-	// 	// --------------------
-	// 	// Self delete
-	// 	// --------------------
-	// 	if (isSelf) {
-	// 		return can(logUser, "users:delete:own", { ownerId: targetUser.id });
-	// 	}
-
-	// 	// --------------------
-	// 	// Delete others
-	// 	// --------------------
-	// 	if (!can(logUser, "users:delete:any")) {
-	// 		return false;
-	// 	}
-
-	// 	// --------------------
-	// 	// Role hierarchy
-	// 	// --------------------
-	// 	const logRank = roleRank[logUser.role] ?? 0;
-	// 	const targetRank = roleRank[targetUser.role] ?? 0;
-
-	// 	if (logRank <= targetRank && !can(logUser, "users:update:peer")) {
-	// 		return false;
-	// 	}
-
-	// 	return true;
-	// };
-
 	const closeModal = () => {
 		setIsOpen(false);
 		setSelectedUser(null);
@@ -306,7 +228,6 @@ export default function GetAllUsers() {
 			) : (
 				<div className="list-get-all-content">
 					{/* Search */}
-
 					<div className="search-filter-wrapper">
 						<div className="search-filter-container">
 							<input type="text" className="search-filter-input" placeholder={t("search-users-by-name-or-email")} value={searchValue} onChange={handleSearchChange} autoComplete="false" />
@@ -315,7 +236,6 @@ export default function GetAllUsers() {
 							</button>
 						</div>
 					</div>
-
 					<div className="table-wrapper">
 						<div className="table-title">
 							<h2>{t("users")}</h2>
@@ -325,9 +245,22 @@ export default function GetAllUsers() {
 								<tr>
 									{logUser?.role == "headAdmin" && <th>ID</th>}
 
-									<th>#</th>
+									{/* <th>#</th>
 									<th>{t("name")}</th>
-									<th>{t("email")}</th>
+									<th>{t("email")}</th> */}
+
+									<th onClick={() => handleSort("employeeNum")} className="clickable-th">
+										# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
+									</th>
+
+									<th onClick={() => handleSort("name")} className="clickable-th">
+										{t("name")} {sortKey === "name" && (sortDir === "asc" ? "▾" : "▴")}
+									</th>
+
+									<th onClick={() => handleSort("email")} className="clickable-th">
+										{t("email")} {sortKey === "email" && (sortDir === "asc" ? "▾" : "▴")}
+									</th>
+
 									<th>{t("role")}</th>
 									<th>{t("department")}</th>
 									<th>{t("action")}</th>

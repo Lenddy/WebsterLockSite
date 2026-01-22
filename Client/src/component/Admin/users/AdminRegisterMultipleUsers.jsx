@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { can } from "../../utilities/can";
-import { ROLE_PERMISSIONS } from "../../utilities/role.config";
+import { ROLE_PERMISSIONS, scopeDisplayName } from "../../utilities/role.config";
 
 export default function AdminRegisterMultipleUsers() {
 	const { userToken } = useAuth(); // get token from context
@@ -72,20 +72,9 @@ export default function AdminRegisterMultipleUsers() {
 			password: "",
 			confirmPassword: "",
 			employeeNum: "",
-			// description: "",
-			// title: "",
 			role: "",
 			department: "",
 			permissions: [],
-			// {
-			// 	canViewAllUsers: false,
-			// 	canEditUsers: false,
-			// 	canDeleteUsers: false,
-			// 	canChangeRole: false,
-			// 	canEditSelf: true,
-			// 	canViewSelf: true,
-			// 	canDeleteSelf: false,
-			// }
 		},
 	]);
 
@@ -100,20 +89,6 @@ export default function AdminRegisterMultipleUsers() {
 
 	const [adminRegisterMultipleUserProfiles, { loading, error: updateError }] = useMutation(register_multiple_Users);
 
-	// Update text, select, or checkbox values for a specific row
-	// const handleRowChange = (index, e) => {
-	// 	const { name, value, type, checked } = e.target;
-
-	// 	setRows((prev) => {
-	// 		const newRows = [...prev];
-
-	// 		if (type === "checkbox") newRows[index].permissions[name] = checked;
-	// 		else newRows[index][name] = value;
-
-	// 		return newRows;
-	// 	});
-	// };
-
 	const handleRowChange = (index, e) => {
 		const { name, value, type, checked } = e.target;
 
@@ -126,20 +101,7 @@ export default function AdminRegisterMultipleUsers() {
 				row.role = value;
 				row.permissions = ROLE_PERMISSIONS[value] ? [...ROLE_PERMISSIONS[value]] : [];
 			}
-
-			// // PERMISSIONS CHECKBOX
-			// else if (type === "checkbox") {
-			// 	if (checked) {
-			// 		row.permissions = [...row.permissions, name];
-			// 	} else {
-			// 		row.permissions = row.permissions.filter((p) => p !== name);
-			// 	}
-			// }
-
-			// // NORMAL INPUT
-			// else {
-			// 	row[name] = value;
-			// }
+			// CHECKBOX
 			else if (type === "checkbox") {
 				const permBase = getPermissionBase(name);
 
@@ -154,16 +116,16 @@ export default function AdminRegisterMultipleUsers() {
 					row.permissions = row.permissions.filter((p) => p !== name);
 				}
 			}
+			// NORMAL INPUT
+			else {
+				row[name] = value; // <-- this updates text inputs
+			}
 
 			newRows[index] = row;
-
-			console.log("this are the inputs ", newRows);
-
 			return newRows;
 		});
 	};
 
-	// Add a new row
 	const addRow = () => {
 		setRows((prev) => [
 			...prev,
@@ -217,20 +179,9 @@ export default function AdminRegisterMultipleUsers() {
 				password: "",
 				confirmPassword: "",
 				employeeNum: "",
-				// description: "",
-				// title: "",
 				role: "",
 				department: "",
 				permissions: [],
-				//  {
-				// 	canViewAllUsers: false,
-				// 	canEditUsers: false,
-				// 	canDeleteUsers: false,
-				// 	canChangeRole: false,
-				// 	canEditSelf: true,
-				// 	canViewSelf: true,
-				// 	canDeleteSelf: false,
-				// }
 			},
 		]); // or your initial requests state
 		// setSelectedGroups([]);
@@ -244,7 +195,7 @@ export default function AdminRegisterMultipleUsers() {
 	// TODO - give navegation btns to go see all or to stay
 	// TODO - if user stays reset the form
 
-	const ALL_PERMISSIONS = ["users:read:any", "users:read:own", "users:create:any", "users:update:any", "users:update:own", "users:delete:any", "users:delete:own", "requests:read:any", "requests:read:own", "requests:create:any", "requests:create:own", "requests:update:any", "requests:update:own", "requests:delete:any", "requests:delete:own", "items:read:any", "items:create:any", "items:update:any", "items:delete:any", "role:change:any"];
+	const ALL_PERMISSIONS = ["users:read:any", "users:read:own", "users:create:any", "users:update:any", "users:update:own", "users:delete:any", "users:delete:own", "peers:update:any", "requests:read:any", "requests:read:own", "requests:create:any", "requests:create:own", "requests:update:any", "requests:update:own", "requests:delete:any", "requests:delete:own", "items:read:any", "items:create:any", "items:update:any", "items:delete:any", "role:change:any"];
 
 	// if  user is a sub admin and they cant update role set the role to be a user
 	const SuccessToast = ({ closeToast, resetForm }) => (
@@ -273,8 +224,6 @@ export default function AdminRegisterMultipleUsers() {
 					{t("register-more-users")}
 				</button>
 			</div>
-
-			{/* <p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("duplicate-request")}</p> */}
 		</div>
 	);
 
@@ -303,10 +252,6 @@ export default function AdminRegisterMultipleUsers() {
 			role: isSubAdmin ? "user" : row.role,
 			employeeNum: row?.employeeNum,
 			department: row?.department,
-			// job: {
-			// 	title: row.title,
-			// 	description: row.description,
-			// },
 			permissions: row.permissions,
 		}));
 
@@ -345,48 +290,51 @@ export default function AdminRegisterMultipleUsers() {
 			.catch(() => {
 				setHasSubmitted(false);
 			});
-
-		// onCompleted: (res) => {
-		// 	console.log("Mutation success:", res?.registerMultipleUsers);
-		// 	toast.success(t("users-added-successfully"));
-		// 	setSuccess(true);
-		// },
-		// onError: (errRes) => {
-		// 	console.log("Mutation error:", errRes);
-		// },
-		// });
-
-		// console.log("Users registered");
-		// } catch (err) {
-		// 	console.error("Error registering users:", err);
-		// }
 	};
 
 	const groupPermissions = (permissions) => {
-		const groups = {};
+		const result = {};
 
 		permissions.forEach((perm) => {
-			const [resource, action, scope] = perm.split(":");
-			const key = `${resource}:${action}`;
+			let [resource, action, scope] = perm.split(":");
+			console.log("resource:", resource, "action:", action, "scope:", scope);
+			// role permissions belong to users column
+			if (resource === "role" || resource === "peers") {
+				resource = "users";
+			}
 
-			if (!groups[key]) {
-				groups[key] = {
-					resource,
+			if (!result[resource]) {
+				result[resource] = {};
+			}
+
+			const actionKey = action;
+
+			if (!result[resource][actionKey]) {
+				result[resource][actionKey] = {
 					action,
 					perms: [],
 				};
 			}
 
-			groups[key].perms.push({ perm, scope });
+			result[resource][actionKey].perms.push({
+				perm,
+				scope,
+			});
 		});
 
-		return Object.values(groups);
+		return result;
 	};
 
 	const groupedPermissions = useMemo(() => groupPermissions(ALL_PERMISSIONS), []);
 
+	console.log("groupedPermissions", groupedPermissions);
+
 	// Show nothing if token isn't loaded
 	if (!decodedUser) return null;
+
+	console.log(rows);
+
+	// TODO -  FIX THE BTN  THAT SHOW THE EXTRA PERMISSIONS   PER ROLE LIMIT THE AMOUNT OF PERMISSION THAT THEY CAN HAVE ,ADD THE TRANSLATIONS TO THE SCOPE NAME DISPLAY ,  UPDATE THE UPDATE USERS COMPONENTS WITH THE SAME CHANGES
 
 	return (
 		<div className="register-container">
@@ -459,15 +407,7 @@ export default function AdminRegisterMultipleUsers() {
 
 								<div className="form-row-center-right">
 									<div className="form-row-center-right-wrapper">
-										{/* <div>
-											<label>{t("job-title")}:</label>
-											<input type="text" name="title" value={row.title} onChange={(e) => handleRowChange(index, e)} placeholder="Job Title" disabled={blockInput} />
-										</div>
-										<div>
-											<label>{t("job-description")}:</label>
-											<textarea name="description" value={row.description} onChange={(e) => handleRowChange(index, e)} placeholder={t("job-description")} disabled={blockInput}></textarea>
-										</div> */}
-
+										{/*//!! role dropdown */}
 										{/* Only show role selection if user has permission */}
 										{can(decodedUser, "role:change:any") && (
 											<div>
@@ -486,78 +426,89 @@ export default function AdminRegisterMultipleUsers() {
 												</select>
 											</div>
 										)}
+
+										{/*//!! extra Permissions btn  */}
+										{can(decodedUser, "role:change:any") && row.role !== "" && (decodedUser.role === "admin" || decodedUser.role === "headAdmin") && (
+											<div>
+												<button
+													type="button"
+													onClick={() => {
+														setExtraPerms((prev) => !prev);
+													}}>
+													Edit permission also
+												</button>
+											</div>
+										)}
 									</div>
 								</div>
 
-								{/* Permissions checkboxes */}
-
+								{/*//!! Permissions checkboxes */}
 								{can(decodedUser, "role:change:any") && extraPerms == true ? (
-									<div className="form-row-center-bottom">
-										<label>{t("permissions")}:</label>
-										<div className="permissions-grid">
-											<div>
-												<ul className="permissions-list">
-													{ALL_PERMISSIONS.map((perm) => (
-														<li key={perm}>
-															{/* <label className="permission-item">
-																{perm}
-																<input type="checkbox" name={perm} checked={row.permissions.includes(perm)} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
-															</label> */}
+									// <div className="permissions-grid">
+									// 	{Object.entries(groupedByResource).map(([resource, perms]) => (
+									// 		<div key={resource} className="permissions-column">
+									// 			<h4 className="permissions-title">{t(resource)}</h4>
 
-															<label className="permission-item">
-																<span>{perm}</span>
-																<input type="checkbox" name={perm} checked={row.permissions.includes(perm)} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
-															</label>
-														</li>
-													))}
+									// 			<ul className="permissions-list">
+									// 				{perms?.map((perm) => (
+									// 					<li key={perm}>
+									// 						<label className="permission-item">
+									// 							<input type="checkbox" name={perm} checked={row.permissions.includes(perm)} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
+									// 							<span>{perm}</span>
+									// 						</label>
+									// 					</li>
+									// 				))}
+									// 			</ul>
+									// 		</div>
+									// 	))}
+									// </div>
 
-													{/* {formatKey(permKey)} */}
-													{/* {Object.keys(row?.permissions)
-														.filter((permKey) => permKey.includes("Users") || permKey.includes("Role"))
-														.map((permKey) => (
-															<li key={permKey}>
-																<label>
-																	{translatePermissionKey(permKey)}
-																	<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
-																</label>
-															</li>
-														))} */}
-												</ul>
+									<div className="permissions-grid">
+										{Object.entries(groupedPermissions).map(([resource, actions]) => (
+											<div key={resource} className="permissions-column">
+												<h4 className="permissions-column-title">{t(resource)}</h4>
+
+												{Object.values(actions).map(({ action, perms }) => (
+													<div key={action} className="permissions-group">
+														<strong className="permissions-action-title">{t(action)}</strong>
+
+														<ul className="permissions-list">
+															{perms.map(({ perm, scope }) => (
+																<li key={perm}>
+																	<label className="permission-item">
+																		<input type="checkbox" name={perm} checked={row.permissions.includes(perm)} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
+																		<span>{scopeDisplayName(perm)}</span>
+																	</label>
+																</li>
+															))}
+														</ul>
+													</div>
+												))}
 											</div>
-
-											{/* {formatKey(permKey)} */}
-											{/* <div>
-												<ul className="permissions-list">
-													{Object.keys(row?.permissions)
-														.filter((permKey) => permKey.includes("Self"))
-														.map((permKey) => (
-															<li key={permKey}>
-																<label>
-																	{translatePermissionKey(permKey)}
-																	<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
-																</label>
-															</li>
-														))}
-												</ul>
-											</div> */}
-										</div>
+										))}
 									</div>
-								) : (can(decodedUser, "role:change:any") && row.role !== "" && decodedUser.role === "admin") || decodedUser.role === "headAdmen" ? (
-									// TODO make the add extra perms btn be base on every row
+								) : // <div className="permissions-grid">
+								// 	{groupedPermissions.map((group) => (
+								// 		<div key={`${group.resource}:${group.action}`} className="permission-group">
+								// 			<h4 className="permission-group-title">
+								// 				{group.resource} – {group.action}
+								// 			</h4>
 
-									<div>
-										<button
-											type="button"
-											onClick={() => {
-												console.log("adding new perm");
-												setExtraPerms((prev) => !prev);
-												console.log(extraPerms);
-											}}>
-											{" "}
-											Edit permission
-										</button>
-									</div>
-								) : null}
+								// 			<ul className="permissions-list">
+								// 				{group.perms.map(({ perm, scope }) => (
+								// 					<li key={perm}>
+								// 						<label className="permission-item">
+								// 							<input type="checkbox" name={perm} checked={row.permissions.includes(perm)} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
+								// 							<span>{scope === "any" ? "All users" : "Own only"}</span>
+								// 						</label>
+								// 					</li>
+								// 				))}
+								// 			</ul>
+								// 		</div>
+								// 	))}
+								// </div>
+
+								null}
 							</div>
 
 							{rows.length > 1 && (

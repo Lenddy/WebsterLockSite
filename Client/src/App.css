@@ -1455,9 +1455,19 @@
 /* Wrap both groups side by side on wide screens */
 .permissions-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 	/* gap: 5px; */
 	justify-items: center;
+	/* background-color: red; */
+	width: 100%;
+}
+
+.permissions-title {
+	text-align: center;
+	font-weight: 600;
+	margin-bottom: 6px;
+	border-bottom: 1px solid #ccc;
+	padding-bottom: 4px;
 }
 
 /* Grid layout for splitting into 2 columns */
@@ -1470,7 +1480,39 @@
 	padding: 0;
 	margin: 10px 0;
 	/* background-color: red; */
-	max-width: 90%;
+	/* max-width: 90%; */
+}
+
+/* .permissions-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 8px;
+	list-style: none;
+	padding: 0;
+	margin: 10px 0;
+	width: 100%;
+} */
+
+.permissions-column {
+	width: 200px;
+	/* background-color: red; */
+}
+
+.permissions-column-title {
+	text-align: center;
+	margin-bottom: 8px;
+}
+
+.permissions-group {
+	border-top: 1px solid #ddd;
+	padding-top: 6px;
+	margin-bottom: 10px;
+}
+
+.permissions-action-title {
+	display: block;
+	font-size: 0.9rem;
+	margin-bottom: 4px;
 }
 
 .permissions-list li {
@@ -1480,6 +1522,37 @@
 	border-radius: 10px;
 	/* max-width: 95%; */
 	/* margin: 0 5px; */
+}
+
+/* .permission-card {
+	background-color: var(--white);
+	border: 1px solid var(--dark-blue);
+	border-radius: 10px;
+	padding: 8px 10px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+} */
+
+.permission-group {
+	border: 1px solid #ccc;
+	border-radius: 10px;
+	padding: 10px;
+	background: blue;
+	scale: 0.8;
+}
+
+.permission-group-title {
+	font-size: 14px;
+	font-weight: 600;
+	margin-bottom: 8px;
+	text-transform: capitalize;
+}
+
+.permission-item {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	cursor: pointer;
+	/* width: 200px; */
 }
 
 .update-form-input input {

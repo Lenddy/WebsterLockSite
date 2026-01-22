@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { can } from "../../utilities/can";
-import { ROLE_PERMISSIONS, scopeDisplayName } from "../../utilities/role.config";
+import { ROLE_PERMISSIONS, ALL_PERMISSIONS, scopeDisplayName } from "../../utilities/role.config";
 
 export default function AdminRegisterMultipleUsers() {
 	const { userToken } = useAuth(); // get token from context
@@ -189,13 +189,55 @@ export default function AdminRegisterMultipleUsers() {
 		setFormReset(true);
 	};
 
+	// base on the role  i would like to limit the amount of permission  allow to be added
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
+
 	// TODO - notify user if mutation pass/fail
 	// TODO - block inputs
 	// TODO - block  duplicated requests
 	// TODO - give navegation btns to go see all or to stay
 	// TODO - if user stays reset the form
-
-	const ALL_PERMISSIONS = ["users:read:any", "users:read:own", "users:create:any", "users:update:any", "users:update:own", "users:delete:any", "users:delete:own", "peers:update:any", "requests:read:any", "requests:read:own", "requests:create:any", "requests:create:own", "requests:update:any", "requests:update:own", "requests:delete:any", "requests:delete:own", "items:read:any", "items:create:any", "items:update:any", "items:delete:any", "role:change:any"];
 
 	// if  user is a sub admin and they cant update role set the role to be a user
 	const SuccessToast = ({ closeToast, resetForm }) => (
@@ -233,6 +275,43 @@ export default function AdminRegisterMultipleUsers() {
 	};
 
 	const isSubAdmin = decodedUser.role === "subAdmin";
+
+	const groupPermissions = (permissions) => {
+		const result = {};
+
+		permissions.forEach((perm) => {
+			let [resource, action, scope] = perm.split(":");
+			console.log("resource:", resource, "action:", action, "scope:", scope);
+			// role permissions belong to users column
+			if (resource === "role" || resource === "peers") {
+				resource = "users";
+			}
+
+			if (!result[resource]) {
+				result[resource] = {};
+			}
+
+			const actionKey = action;
+
+			if (!result[resource][actionKey]) {
+				result[resource][actionKey] = {
+					action,
+					perms: [],
+				};
+			}
+
+			result[resource][actionKey].perms.push({
+				perm,
+				scope,
+			});
+		});
+
+		return result;
+	};
+
+	const groupedPermissions = useMemo(() => groupPermissions(ALL_PERMISSIONS), []);
+
+	console.log("groupedPermissions", groupedPermissions);
 
 	// Submit all rows in one mutation
 	const submit = async (e) => {
@@ -292,49 +371,12 @@ export default function AdminRegisterMultipleUsers() {
 			});
 	};
 
-	const groupPermissions = (permissions) => {
-		const result = {};
-
-		permissions.forEach((perm) => {
-			let [resource, action, scope] = perm.split(":");
-			console.log("resource:", resource, "action:", action, "scope:", scope);
-			// role permissions belong to users column
-			if (resource === "role" || resource === "peers") {
-				resource = "users";
-			}
-
-			if (!result[resource]) {
-				result[resource] = {};
-			}
-
-			const actionKey = action;
-
-			if (!result[resource][actionKey]) {
-				result[resource][actionKey] = {
-					action,
-					perms: [],
-				};
-			}
-
-			result[resource][actionKey].perms.push({
-				perm,
-				scope,
-			});
-		});
-
-		return result;
-	};
-
-	const groupedPermissions = useMemo(() => groupPermissions(ALL_PERMISSIONS), []);
-
-	console.log("groupedPermissions", groupedPermissions);
-
 	// Show nothing if token isn't loaded
 	if (!decodedUser) return null;
 
 	console.log(rows);
 
-	// TODO -  FIX THE BTN  THAT SHOW THE EXTRA PERMISSIONS   PER ROLE LIMIT THE AMOUNT OF PERMISSION THAT THEY CAN HAVE ,ADD THE TRANSLATIONS TO THE SCOPE NAME DISPLAY ,  UPDATE THE UPDATE USERS COMPONENTS WITH THE SAME CHANGES
+	// TODO - FIX THE BTN THAT SHOW THE EXTRA PERMISSIONS   PER ROLE LIMIT THE AMOUNT OF PERMISSION THAT THEY CAN HAVE ,ADD THE TRANSLATIONS TO THE SCOPE NAME DISPLAY ,  UPDATE THE UPDATE USERS COMPONENTS WITH THE SAME CHANGES
 
 	return (
 		<div className="register-container">

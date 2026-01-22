@@ -1,52 +1,67 @@
 export const ROLE_PERMISSIONS = {
 	// all permission (5)
-	headAdmin: ["*"],
-
+	headAdmin: {
+		permissions: ["*"],
+		descriptions: "Is allow to do all the actions",
+	},
 	// mostly all permission (4)
-	admin: [
-		// users
-		"users:read:any",
-		"users:create:any",
-		"users:update:any",
-		"users:delete:any",
+	admin: {
+		permissions: [
+			// users
+			"users:read:any",
+			"users:create:any",
+			"users:update:any",
+			"users:delete:any",
 
-		// requests
-		"requests:read:any",
-		"requests:create:any",
-		"requests:update:any",
-		"requests:delete:any",
+			// requests
+			"requests:read:any",
+			"requests:create:any",
+			"requests:update:any",
+			"requests:delete:any",
 
-		// items
-		"items:read:any",
-		"items:create:any",
-		"items:update:any",
-		"items:delete:any",
+			// items
+			"items:read:any",
+			"items:create:any",
+			"items:update:any",
+			"items:delete:any",
 
-		// roles
-		"role:change:any",
-	],
+			// roles
+			"role:change:any",
+		],
+		descriptions: "Is allowed to create ,update and delete all (users,request,items) by default",
+	},
 
 	// permissions can be given (3)
-	subAdmin: [
-		// users
-		"users:read:own",
-		"users:update:own",
-		// requests
-		"requests:create:any",
-		"requests:update:any",
-		// items
-	],
+	subAdmin: {
+		permissions: [
+			// users
+			"users:read:own",
+			"users:update:own",
+			// requests
+			"requests:create:any",
+			"requests:update:any",
+			// items
+		],
+
+		descriptions: "Is allowed to create ,update  (request) and update their profile by default",
+	},
 
 	// limited to own updates (2)
-	user: [
-		// users
-		"users:read:own",
-		"users:update:own",
-		// requests
-		"requests:create:own",
-		"requests:update:own",
-		// items
-	],
+	user: {
+		permissions: [
+			// users
+			"users:read:own",
+			"users:update:own",
+			// requests
+			"requests:read:own",
+			"requests:create:own",
+			"requests:update:own",
+			"requests:delete:own",
+			// items
+		],
+
+		descriptions: "Is allowed to create ,update and delete their own (request) and update their profile by default",
+	},
 
 	// not role given (1)
 	noRole: [
@@ -63,6 +78,8 @@ export const roleRank = {
 	user: 2,
 	noRole: 1,
 };
+
+export const ALL_PERMISSIONS = ["users:read:any", "users:read:own", "users:create:any", "users:update:any", "users:update:own", "users:delete:any", "users:delete:own", "peers:update:any", "requests:read:any", "requests:read:own", "requests:create:any", "requests:create:own", "requests:update:any", "requests:update:own", "requests:delete:any", "requests:delete:own", "items:read:any", "items:create:any", "items:update:any", "items:delete:any", "role:change:any"];
 
 export const scopeDisplayName = (scope) => {
 	const map = {
@@ -101,3 +118,5 @@ export const scopeDisplayName = (scope) => {
 
 	return map[scope] ?? scope;
 };
+
+export const Role_description = {};

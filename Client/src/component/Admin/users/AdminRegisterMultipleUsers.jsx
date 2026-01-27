@@ -20,7 +20,6 @@ export default function AdminRegisterMultipleUsers() {
 	const [hasSubmitted, setHasSubmitted] = useState(false);
 	const [formReset, setFormReset] = useState(false);
 	const [blockInput, setBlockInput] = useState(false);
-	const [extraPerms, setExtraPerms] = useState(false);
 
 	const { t } = useTranslation();
 
@@ -72,9 +71,10 @@ export default function AdminRegisterMultipleUsers() {
 			password: "",
 			confirmPassword: "",
 			employeeNum: "",
-			role: "",
+			...(decodedUserCanView.role === "subAdmin" ? { role: "user" } : { role: "" }),
 			department: "",
 			permissions: [],
+			editPermission: false,
 		},
 	]);
 
@@ -91,6 +91,7 @@ export default function AdminRegisterMultipleUsers() {
 
 	const handleRowChange = (index, e) => {
 		const { name, value, type, checked } = e.target;
+		console.log("inputs", { name, value, type, checked });
 
 		setRows((prev) => {
 			const newRows = [...prev];
@@ -99,7 +100,8 @@ export default function AdminRegisterMultipleUsers() {
 			// ROLE CHANGE → reset permissions
 			if (name === "role") {
 				row.role = value;
-				row.permissions = ROLE_PERMISSIONS[value] ? [...ROLE_PERMISSIONS[value]] : [];
+				// row.permissions = ROLE_PERMISSIONS[value] ? [...ROLE_PERMISSIONS[value]] : [];
+				row.permissions = ROLE_PERMISSIONS[value]?.permissions ? [...ROLE_PERMISSIONS[value].permissions] : [];
 			}
 			// CHECKBOX
 			else if (type === "checkbox") {
@@ -190,48 +192,6 @@ export default function AdminRegisterMultipleUsers() {
 	};
 
 	// base on the role  i would like to limit the amount of permission  allow to be added
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
-	// ! update where all the permissions are because you change the ROLE_PERMISSIONS object
 
 	// TODO - notify user if mutation pass/fail
 	// TODO - block inputs
@@ -374,7 +334,7 @@ export default function AdminRegisterMultipleUsers() {
 	// Show nothing if token isn't loaded
 	if (!decodedUser) return null;
 
-	console.log(rows);
+	console.log("this are the rows", rows);
 
 	// TODO - FIX THE BTN THAT SHOW THE EXTRA PERMISSIONS   PER ROLE LIMIT THE AMOUNT OF PERMISSION THAT THEY CAN HAVE ,ADD THE TRANSLATIONS TO THE SCOPE NAME DISPLAY ,  UPDATE THE UPDATE USERS COMPONENTS WITH THE SAME CHANGES
 
@@ -391,16 +351,6 @@ export default function AdminRegisterMultipleUsers() {
 							</h3>
 
 							<div className="form-row-top-container">
-								{/* <div className="form-row-top-left">
-									<label>Name:</label>
-									<input type="text" name="name" value={row.name} onChange={(e) => handleRowChange(index, e)} placeholder="Name" />
-								</div>
-
-								<div className="form-row-top-right">
-									<label>Email:</label>
-									<input type="text" name="email" value={row.email} onChange={(e) => handleRowChange(index, e)} placeholder="Email" />
-								</div> */}
-
 								<div className="form-row-top-left">
 									<label htmlFor="name">{t("name")}:</label>
 									<input type="text" name="name" onChange={(e) => handleRowChange(index, e)} placeholder={t("name")} disabled={blockInput} value={row.name || ""} />
@@ -455,12 +405,13 @@ export default function AdminRegisterMultipleUsers() {
 											<div>
 												<label>{t("role")}:</label>
 												<select name="role" value={row.role} onChange={(e) => handleRowChange(index, e)} disabled={blockInput}>
-													{/* <option value="" disabled>
+													<option value="" disabled>
 														{t("select-role")}
-													</option> */}
-													<option value="">{t("select-role")}</option>
+													</option>
+													{/* <option value="">{t("select-role")}</option> */}
 													{decodedUser.role === "headAdmin" && <option value="headAdmin">{t("head-admin")}</option>}
-													<option value="admin">{t("admin")}</option>
+													{decodedUser.role === "admin" && <option value="admin">{t("admin")}</option>}
+													{/* <option value="admin">{t("admin")}</option> */}
 													<option value="subAdmin">{t("sub-admin")}</option>
 													{/* <option value="technician">{t("technician")}</option> */}
 													<option value="user">{t("user")}</option>
@@ -469,42 +420,48 @@ export default function AdminRegisterMultipleUsers() {
 											</div>
 										)}
 
+										{row.role ? (
+											<div>
+												<p style={{ color: "red" }}>{ROLE_PERMISSIONS[row.role].description}</p>
+											</div>
+										) : null}
+
 										{/*//!! extra Permissions btn  */}
 										{can(decodedUser, "role:change:any") && row.role !== "" && (decodedUser.role === "admin" || decodedUser.role === "headAdmin") && (
 											<div>
 												<button
 													type="button"
-													onClick={() => {
-														setExtraPerms((prev) => !prev);
-													}}>
-													Edit permission also
+													onClick={() =>
+														setRows((prev) => {
+															const newRows = [...prev];
+															newRows[index] = {
+																...newRows[index],
+																editPermission: !newRows[index].editPermission,
+															};
+															return newRows;
+														})
+													}>
+													Edit permissions
 												</button>
 											</div>
 										)}
 									</div>
 								</div>
 
+								{/* 
+												i would like to  
+												hide certain permission base on the roles 
+
+												if  user or norole limit it to only their default  permission 
+
+												if sub admin 
+													they could be able to view items  but not create, update or delete items
+													and you have todecide if they are going to be able to create users (most lilty not )
+
+
+											*/}
 								{/*//!! Permissions checkboxes */}
-								{can(decodedUser, "role:change:any") && extraPerms == true ? (
-									// <div className="permissions-grid">
-									// 	{Object.entries(groupedByResource).map(([resource, perms]) => (
-									// 		<div key={resource} className="permissions-column">
-									// 			<h4 className="permissions-title">{t(resource)}</h4>
-
-									// 			<ul className="permissions-list">
-									// 				{perms?.map((perm) => (
-									// 					<li key={perm}>
-									// 						<label className="permission-item">
-									// 							<input type="checkbox" name={perm} checked={row.permissions.includes(perm)} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
-									// 							<span>{perm}</span>
-									// 						</label>
-									// 					</li>
-									// 				))}
-									// 			</ul>
-									// 		</div>
-									// 	))}
-									// </div>
-
+								{can(decodedUser, "role:change:any") && row.editPermission == true ? (
 									<div className="permissions-grid">
 										{Object.entries(groupedPermissions).map(([resource, actions]) => (
 											<div key={resource} className="permissions-column">
@@ -529,28 +486,7 @@ export default function AdminRegisterMultipleUsers() {
 											</div>
 										))}
 									</div>
-								) : // <div className="permissions-grid">
-								// 	{groupedPermissions.map((group) => (
-								// 		<div key={`${group.resource}:${group.action}`} className="permission-group">
-								// 			<h4 className="permission-group-title">
-								// 				{group.resource} – {group.action}
-								// 			</h4>
-
-								// 			<ul className="permissions-list">
-								// 				{group.perms.map(({ perm, scope }) => (
-								// 					<li key={perm}>
-								// 						<label className="permission-item">
-								// 							<input type="checkbox" name={perm} checked={row.permissions.includes(perm)} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
-								// 							<span>{scope === "any" ? "All users" : "Own only"}</span>
-								// 						</label>
-								// 					</li>
-								// 				))}
-								// 			</ul>
-								// 		</div>
-								// 	))}
-								// </div>
-
-								null}
+								) : null}
 							</div>
 
 							{rows.length > 1 && (

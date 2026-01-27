@@ -4,7 +4,7 @@ export const can = (user, permission, { ownerId, targetRole } = {}) => {
 	// headAdmin has unrestricted access
 	if (user?.role === "headAdmin") return true;
 
-	const rolePerms = ROLE_PERMISSIONS[user?.role] || [];
+	const rolePerms = ROLE_PERMISSIONS[user?.role].permission || [];
 	const userPerms = user?.permissions || [];
 	const allPerms = new Set([...rolePerms, ...userPerms]);
 

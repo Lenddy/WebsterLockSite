@@ -2,7 +2,7 @@ export const ROLE_PERMISSIONS = {
 	// all permission (5)
 	headAdmin: {
 		permissions: ["*"],
-		descriptions: "Is allow to do all the actions",
+		description: "Is allowed to perform all actions.",
 	},
 	// mostly all permission (4)
 	admin: {
@@ -28,7 +28,7 @@ export const ROLE_PERMISSIONS = {
 			// roles
 			"role:change:any",
 		],
-		descriptions: "Is allowed to create ,update and delete all (users,request,items) by default",
+		description: "Is allowed to create, update, and delete all users, requests, and items, and change roles by default.",
 	},
 
 	// permissions can be given (3)
@@ -38,12 +38,13 @@ export const ROLE_PERMISSIONS = {
 			"users:read:own",
 			"users:update:own",
 			// requests
+			"requests:read:any",
 			"requests:create:any",
 			"requests:update:any",
 			// items
 		],
 
-		descriptions: "Is allowed to create ,update  (request) and update their profile by default",
+		description: "Is allowed to view, create and update requests and update their profile by default.",
 	},
 
 	// limited to own updates (2)
@@ -60,16 +61,80 @@ export const ROLE_PERMISSIONS = {
 			// items
 		],
 
-		descriptions: "Is allowed to create ,update and delete their own (request) and update their profile by default",
+		description: "Is allowed to create, update, and delete their own requests and update their profile by default.",
 	},
 
 	// not role given (1)
-	noRole: [
-		// users
-		"users:read:own",
-		"users:update:own",
-	],
+	noRole: {
+		permissions: [
+			// users
+			"users:read:own",
+			"users:update:own",
+		],
+		description: "Role to be determine later, can only update and view profile",
+	},
 };
+
+// export const ROLE_PERMISSIONS = {
+// 	// all permission (5)
+// 	headAdmin:["*"],
+
+// 	// mostly all permission (4)
+// 	admin:[
+// 			// users
+// 			"users:read:any",
+// 			"users:create:any",
+// 			"users:update:any",
+// 			"users:delete:any",
+
+// 			// requests
+// 			"requests:read:any",
+// 			"requests:create:any",
+// 			"requests:update:any",
+// 			"requests:delete:any",
+
+// 			// items
+// 			"items:read:any",
+// 			"items:create:any",
+// 			"items:update:any",
+// 			"items:delete:any",
+
+// 			// roles
+// 			"role:change:any",
+// 		],
+
+// 	// permissions can be given (3)
+// 	subAdmin:[
+// 			// users
+// 			"users:read:own",
+// 			"users:update:own",
+// 			// requests
+// 			"requests:create:any",
+// 			"requests:update:any",
+// 			// items
+// 		],
+
+// 	// limited to own updates (2)
+// 	user:[
+// 			// users
+// 			"users:read:own",
+// 			"users:update:own",
+// 			// requests
+// 			"requests:read:own",
+// 			"requests:create:own",
+// 			"requests:update:own",
+// 			"requests:delete:own",
+// 			// items
+// 		],
+
+// 	// not role given (1)
+// 	noRole:
+// 		[
+// 			// users
+// 			"users:read:own",
+// 			"users:update:own",
+// 		],
+// };
 
 export const roleRank = {
 	headAdmin: 5,

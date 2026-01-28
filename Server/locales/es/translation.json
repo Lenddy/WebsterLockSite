@@ -232,10 +232,72 @@
 	"view-requests": "Ver solicitudes",
 	"will-be-updated": "Va a ser actualizada",
 	"connection-to-the-serve-was-lost-make-sure-that-you-are-connected-to-the-internet": "Se perdió la conexión con el servidor. Asegúrese de estar conectado a internet.",
-
 	"please-way-a-couple-of-minutes-then-please-refresh-to-continue": "Por favor, espere unos minutos y luego actualice/recargue la página para continuar.",
-
 	"to-get-live-data-and-to-not-potentially-lose-your-changes": "Para obtener datos en tiempo real y evitar la posible pérdida de los cambios que haya realizado.",
+	"if-this-problem-continues-please-contact-the-site-manager": "Si este problema persiste, por favor contacte al administrador de la pagina web.",
+	"permissionsList": {
+		"users": {
+			"read": {
+				"any": "Ver todos los usuarios",
+				"own": "Ver mi perfil"
+			},
+			"create": {
+				"any": "Crear usuarios"
+			},
+			"update": {
+				"any": "Editar cualquier usuario",
+				"own": "Editar mi perfil"
+			},
+			"delete": {
+				"any": "Eliminar cualquier usuario",
+				"own": "Eliminar mi cuenta"
+			}
+		},
 
-	"if-this-problem-continues-please-contact-the-site-manager": "Si este problema persiste, por favor contacte al administrador de la pagina web."
+		"peers": {
+			"update": {
+				"any": "Editar usuarios con el mismo rol"
+			}
+		},
+
+		"role": {
+			"change": {
+				"any": "Cambiar roles de usuario"
+			}
+		},
+
+		"requests": {
+			"read": {
+				"any": "Ver todas las solicitudes",
+				"own": "Ver mis solicitudes"
+			},
+			"create": {
+				"any": "Crear solicitudes para cualquiera",
+				"own": "Crear mis propias solicitudes"
+			},
+			"update": {
+				"any": "Editar cualquier solicitud",
+				"own": "Editar mis solicitudes"
+			},
+			"delete": {
+				"any": "Eliminar cualquier solicitud",
+				"own": "Eliminar mis solicitudes"
+			}
+		},
+
+		"items": {
+			"read": {
+				"any": "Ver todos los materiales"
+			},
+			"create": {
+				"any": "Crear materiales"
+			},
+			"update": {
+				"any": "Editar materiales"
+			},
+			"delete": {
+				"any": "Eliminar materiales"
+			}
+		}
+	}
 }

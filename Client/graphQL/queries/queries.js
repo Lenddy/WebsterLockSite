@@ -11,10 +11,6 @@ export const get_all_users = gql`
 			department
 			token
 			role
-			job {
-				title
-				description
-			}
 			permissions
 
 			# createdAt
@@ -34,10 +30,6 @@ export const get_one_user = gql`
 			department
 			role
 			token
-			job {
-				title
-				description
-			}
 			permissions
 		}
 	}

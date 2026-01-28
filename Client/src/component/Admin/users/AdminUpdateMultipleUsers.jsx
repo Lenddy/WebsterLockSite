@@ -19,13 +19,12 @@ import { toast } from "react-toastify";
 export default function AdminUpdateMultipleUsers() {
 	const { userToken, pageLoading, loading: userLoading } = useAuth();
 	const { users, loading, error } = useUsers();
+	const { userId } = useParams();
+	const { t } = useTranslation();
 
 	const [show, setShow] = useState(false);
-	// const [users, setUsers] = useState([]);
 	const [success, setSuccess] = useState();
-	// const { error, loading, data, refetch } = useQuery(get_all_users);
 	const [logUser, setLogUser] = useState({});
-
 	const [hasSubmitted, setHasSubmitted] = useState(false);
 	const [formReset, setFormReset] = useState(false);
 	const [toastOpen, setToastOpen] = useState(false);
@@ -33,10 +32,6 @@ export default function AdminUpdateMultipleUsers() {
 
 	const lastRowRef = useRef(null);
 	const location = useLocation();
-
-	const { userId } = useParams();
-
-	const { t } = useTranslation();
 	const navigate = useNavigate();
 
 	const decodedUser = useMemo(() => {
@@ -558,7 +553,7 @@ export default function AdminUpdateMultipleUsers() {
 										name="employeeNum"
 										value={row?.employeeNum}
 										onChange={(e) => {
-											handleRowChange(index, e), console.log(row?.employeeNum);
+											(handleRowChange(index, e), console.log(row?.employeeNum));
 										}}
 										disabled={blockInput}
 										placeholder={t("employee-number")}
@@ -572,7 +567,7 @@ export default function AdminUpdateMultipleUsers() {
 										name="department"
 										value={row?.department}
 										onChange={(e) => {
-											handleRowChange(index, e), console.log(row?.department);
+											(handleRowChange(index, e), console.log(row?.department));
 										}}
 										placeholder={t("department")}
 										disabled={blockInput}
@@ -637,15 +632,6 @@ export default function AdminUpdateMultipleUsers() {
 								{/* center right wrapper*/}
 								<div className="form-row-center-right">
 									<div className="form-row-center-right-wrapper">
-										<div>
-											<label>{t("new-job-title")}:</label>
-											<input type="text" name="title" value={row?.title} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} placeholder={t("new-job-title")} />
-										</div>
-
-										<div>
-											<label>{t("new-job-description")}:</label>
-											<textarea name="description" value={row?.description} disabled={blockInput} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-job-description")}></textarea>
-										</div>
 										{logUser?.permissions?.canChangeRole && (
 											<div>
 												<label>{t("new-role")}:</label>

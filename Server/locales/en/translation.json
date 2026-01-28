@@ -232,10 +232,68 @@
 	"view-requests": "View requests",
 	"will-be-updated": "Will be updated",
 	"connection-to-the-serve-was-lost-make-sure-that-you-are-connected-to-the-internet": "The connection to the server was lost. Make sure that you are connected to the internet",
-
 	"please-way-a-couple-of-minutes-then-please-refresh-to-continue": "Please way a couple of minutes then please refresh the page to continue",
-
 	"to-get-live-data-and-to-not-potentially-lose-your-changes": "To get live data and not to potentially lose the changes you have made.",
-
-	"if-this-problem-continues-please-contact-the-site-manager": "If this problem continues please contact the site manager"
+	"if-this-problem-continues-please-contact-the-site-manager": "If this problem continues please contact the site manager",
+	"permissionsList": {
+		"users": {
+			"read": {
+				"any": "View all users",
+				"own": "View my profile"
+			},
+			"create": {
+				"any": "Create users"
+			},
+			"update": {
+				"any": "Edit any user",
+				"own": "Edit my profile"
+			},
+			"delete": {
+				"any": "Delete any user",
+				"own": "Delete my account"
+			}
+		},
+		"peers": {
+			"update": {
+				"any": "Edit users with the same role"
+			}
+		},
+		"role": {
+			"change": {
+				"any": "Change user roles"
+			}
+		},
+		"requests": {
+			"read": {
+				"any": "View all requests",
+				"own": "View my requests"
+			},
+			"create": {
+				"any": "Create requests for anyone",
+				"own": "Create my own requests"
+			},
+			"update": {
+				"any": "Edit any request",
+				"own": "Edit my requests"
+			},
+			"delete": {
+				"any": "Delete any request",
+				"own": "Delete my requests"
+			}
+		},
+		"items": {
+			"read": {
+				"any": "View all items"
+			},
+			"create": {
+				"any": "Create items"
+			},
+			"update": {
+				"any": "Edit items"
+			},
+			"delete": {
+				"any": "Delete items"
+			}
+		}
+	}
 }

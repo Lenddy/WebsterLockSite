@@ -14,10 +14,6 @@ export const USER_CHANGE_SUBSCRIPTION = gql`
 				token
 				role
 				department
-				job {
-					title
-					description
-				}
 				permissions
 			}
 
@@ -29,17 +25,13 @@ export const USER_CHANGE_SUBSCRIPTION = gql`
 				role
 				employeeNum
 				department
-				# createdAt
-				# updatedAt
-				job {
-					title
-					description
-				}
 				permissions
 			}
 		}
 	}
 `;
+
+// TODO - you need to change the model for the material request because the users where change
 
 export const MATERIAL_REQUEST_CHANGE_SUBSCRIPTION = gql`
 	subscription OnMaterialRequestChange {

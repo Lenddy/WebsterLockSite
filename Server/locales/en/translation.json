@@ -295,5 +295,24 @@
 				"any": "Delete items"
 			}
 		}
-	}
+	},
+	"roles": {
+		"headAdmin": {
+			"description": "Can perform all actions."
+		},
+		"admin": {
+			"description": "Can manage all users, requests, items, and change roles."
+		},
+		"subAdmin": {
+			"description": "Can manage requests and update their profile."
+		},
+		"user": {
+			"description": "Can manage their own requests and update their profile."
+		},
+		"noRole": {
+			"description": "Limited access. Can only view and update profile."
+		}
+	},
+	"hide-permission": "Hide Permission",
+	"edit-permissions": "Edit Permission"
 }

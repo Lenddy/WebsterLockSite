@@ -5,7 +5,8 @@ export const ROLE_PERMISSIONS = {
 	// all permission (5)
 	headAdmin: {
 		permissions: ["*"],
-		description: "Is allowed to perform all actions.",
+		descriptionKey: "roles.headAdmin.description",
+		// description: "Is allowed to perform all actions.",
 	},
 	// mostly all permission (4)
 	admin: {
@@ -31,7 +32,8 @@ export const ROLE_PERMISSIONS = {
 			// roles
 			"role:change:any",
 		],
-		description: "Is allowed to create, update, and delete all users, requests, and items, and change roles by default.",
+		descriptionKey: "roles.admin.description",
+		// description: "Is allowed to create, update, and delete all users, requests, and items, and change roles by default.",
 	},
 
 	// permissions can be given (3)
@@ -47,7 +49,8 @@ export const ROLE_PERMISSIONS = {
 			// items
 		],
 
-		description: "Is allowed to view, create and update requests and update their profile by default.",
+		descriptionKey: "roles.subAdmin.description",
+		// description: "Is allowed to view, create and update requests and update their profile by default.",
 	},
 
 	// limited to own updates (2)
@@ -64,7 +67,8 @@ export const ROLE_PERMISSIONS = {
 			// items
 		],
 
-		description: "Is allowed to create, update, and delete their own requests and update their profile by default.",
+		descriptionKey: "roles.user.description",
+		// description: "Is allowed to create, update, and delete their own requests and update their profile by default.",
 	},
 
 	// not role given (1)
@@ -74,7 +78,9 @@ export const ROLE_PERMISSIONS = {
 			"users:read:own",
 			"users:update:own",
 		],
-		description: "Role to be determine later, can only update and view profile",
+
+		descriptionKey: "roles.noRole.description",
+		// description: "Role to be determine later, can only update and view profile",
 	},
 };
 

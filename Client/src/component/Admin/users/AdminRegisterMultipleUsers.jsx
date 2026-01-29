@@ -451,11 +451,13 @@ export default function AdminRegisterMultipleUsers() {
 											</select>
 										</div>
 
-										{row.role ? (
+										{row.role && ROLE_PERMISSIONS[row.role] && <p style={{ color: "red" }}>{t(ROLE_PERMISSIONS[row.role].descriptionKey)}</p>}
+
+										{/* {row.role ? (
 											<div>
 												<p style={{ color: "red" }}>{ROLE_PERMISSIONS[row.role].description}</p>
 											</div>
-										) : null}
+										) : null} */}
 
 										{/*//!! extra Permissions btn  */}
 										{can(decodedUser, "users:create:any") && can(decodedUser, "role:change:any") && row.role !== "" && row.role !== "headAdmin" && (
@@ -472,7 +474,7 @@ export default function AdminRegisterMultipleUsers() {
 															return newRows;
 														})
 													}>
-													{row.editPermission ? "Hide permission" : "Edit permissions"}
+													{row.editPermission ? t("hide-permission") : t("edit-permissions")}
 												</button>
 											</div>
 										)}

@@ -253,19 +253,16 @@
 				"own": "Eliminar mi cuenta"
 			}
 		},
-
 		"peers": {
 			"update": {
 				"any": "Editar usuarios con el mismo rol"
 			}
 		},
-
 		"role": {
 			"change": {
 				"any": "Cambiar roles de usuario"
 			}
 		},
-
 		"requests": {
 			"read": {
 				"any": "Ver todas las solicitudes",
@@ -284,7 +281,6 @@
 				"own": "Eliminar mis solicitudes"
 			}
 		},
-
 		"items": {
 			"read": {
 				"any": "Ver todos los materiales"
@@ -299,5 +295,24 @@
 				"any": "Eliminar materiales"
 			}
 		}
-	}
+	},
+	"roles": {
+		"headAdmin": {
+			"description": "Puede realizar todas las acciones."
+		},
+		"admin": {
+			"description": "Puede administrar usuarios, solicitudes, materiales, y cambiar roles."
+		},
+		"subAdmin": {
+			"description": "Puede manejar solicitudes y actualizar su perfil."
+		},
+		"user": {
+			"description": "Puede manejar sus propias solicitudes y actualizar su perfil."
+		},
+		"noRole": {
+			"description": "Acceso limitado. Solo puede ver y actualizar su perfil."
+		}
+	},
+	"hide-permission": "Ocultar permisos",
+	"edit-permissions": "Editar permisos"
 }

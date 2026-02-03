@@ -3,6 +3,7 @@ import { ROLE_PERMISSIONS } from "./role.config.js";
 export const can = (user, permission, { ownerId, targetRole } = {}) => {
 	// headAdmin has unrestricted access
 	if (user?.role === "headAdmin") return true;
+	console.log("this is the users info ", user);
 
 	const rolePerms = ROLE_PERMISSIONS[user?.role] || [];
 	const userPerms = user?.permissions || [];

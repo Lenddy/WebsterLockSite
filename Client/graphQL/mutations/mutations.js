@@ -9,10 +9,6 @@ export const register_User = gql`
 			employeeNum
 			department
 			role
-			job {
-				title
-				description
-			}
 			permissions
 		}
 	}
@@ -27,10 +23,6 @@ export const register_multiple_Users = gql`
 			employeeNum
 			department
 			role
-			job {
-				title
-				description
-			}
 			permissions
 		}
 	}
@@ -56,10 +48,6 @@ export const update_One_user = gql`
 			department
 			token
 			role
-			job {
-				title
-				description
-			}
 			permissions
 		}
 	}
@@ -75,10 +63,6 @@ export const admin_update_multiple_users = gql`
 			department
 			token
 			role
-			job {
-				title
-				description
-			}
 			permissions
 		}
 	}

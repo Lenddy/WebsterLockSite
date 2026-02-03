@@ -14,6 +14,7 @@ import { ROLE_PERMISSIONS, ALL_PERMISSIONS, scopeDisplayName, roleRank, PERMISSI
 export default function AdminRegisterMultipleUsers() {
 	const { userToken } = useAuth(); // get token from context
 	const { t } = useTranslation();
+
 	const navigate = useNavigate();
 	const lastRowRef = useRef(null);
 
@@ -132,20 +133,6 @@ export default function AdminRegisterMultipleUsers() {
 	};
 
 	const groupedPermissions = useMemo(() => groupPermissions(ALL_PERMISSIONS), []);
-
-	const translatePermissionKey = (key) => {
-		const keys = {
-			canViewAllUsers: "can-view-all-users",
-			canEditUsers: "can-edit-users",
-			canDeleteUsers: "can-delete-users",
-			canChangeRole: "can-change-role",
-			canViewSelf: "can-view-self",
-			canEditSelf: "can-edit-self",
-			canDeleteSelf: "can-delete-self",
-		};
-		// Use keys[key] if exists, otherwise fallback to the original key
-		return t(keys[key] || key);
-	};
 
 	const formatKey = (key) => {
 		return key
@@ -348,10 +335,20 @@ export default function AdminRegisterMultipleUsers() {
 
 	// Effects
 	useEffect(() => {
-		if (!canUserReview) {
+		// if (decodedUserCanView && ) {
+		// 		toast.warn(t("you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page"), {
+		// 			// autoClose: false,
+		// 		});
+		// 		navigate("/material/request/all");
+		// 	}
+
+		if (!canUserReview || !can(decodedUserCanView, "users:create:any")) {
+			toast.warn(t("you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page"), {
+				// autoClose: false,
+			});
 			navigate("/material/request/all", { replace: true });
 		}
-	}, [canUserReview, navigate]);
+	}, [canUserReview, navigate, decodedUserCanView]);
 
 	// Decode token and scroll to last row
 	useEffect(() => {
@@ -481,34 +478,7 @@ export default function AdminRegisterMultipleUsers() {
 									</div>
 								</div>
 
-								{/*//!! Permissions checkboxes */}
-								{/* {can(decodedUser, "role:change:any") && row.editPermission == true ? (
-									<div className="permissions-grid">
-										{Object.entries(groupedPermissions).map(([resource, actions]) => (
-											<div key={resource} className="permissions-column">
-												<h4 className="permissions-column-title">{t(resource)}</h4>
-
-												{Object.values(actions).map(({ action, perms }) => (
-													<div key={action} className="permissions-group">
-														<strong className="permissions-action-title">{t(action)}</strong>
-
-														<ul className="permissions-list">
-															{perms.map(({ perm, scope }) => (
-																<li key={perm}>
-																	<label className="permission-item">
-																		<input type="checkbox" name={perm} checked={row.permissions.includes(perm)} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
-																		<span>{scopeDisplayName(perm)}</span>
-																	</label>
-																</li>
-															))}
-														</ul>
-													</div>
-												))}
-											</div>
-										))}
-									</div>
-								) : null} */}
-
+								{/* {"come here"} */}
 								{can(decodedUser, "role:change:any") && row.editPermission === true && row.role !== "headAdmin" ? (
 									<div className="permissions-grid">
 										{Object.entries(groupPermissions(getVisiblePermissions(row.role, ALL_PERMISSIONS))).map(([resource, actions]) => (

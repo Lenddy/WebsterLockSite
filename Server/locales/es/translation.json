@@ -314,5 +314,6 @@
 		}
 	},
 	"hide-permission": "Ocultar permisos",
-	"edit-permissions": "Editar permisos"
+	"edit-permissions": "Editar permisos",
+	"you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page": "No tienes los permisos necesarios para ver o realizar las acciones necesarias en esta página."
 }

@@ -314,5 +314,6 @@
 		}
 	},
 	"hide-permission": "Hide Permission",
-	"edit-permissions": "Edit Permission"
+	"edit-permissions": "Edit Permission",
+	"you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page": "you dont have the necessary permission to view or perform the necessary actions on this page."
 }

@@ -20,7 +20,7 @@ export default function AuthSubscriptionBridge() {
 
 	// 		for (const updatedUser of changes || []) {
 	// 			if (updatedUser.id === currentUserId && updatedUser.token) {
-	// 				console.log("🔑 Token refreshed via subscription");
+	// 				console.log(" Token refreshed via subscription");
 	// 				setUserToken(updatedUser.token);
 
 	// 				if (updateBy !== currentUserId) {
@@ -34,7 +34,7 @@ export default function AuthSubscriptionBridge() {
 	// Listen for USER_CHANGE_SUBSCRIPTION (same event you use everywhere else)
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
 		onData: ({ data: subscriptionData }) => {
-			console.log("📡 [AuthContext] Subscription data:", subscriptionData);
+			console.log(" [AuthContext] Subscription data:", subscriptionData);
 
 			const changeEvent = subscriptionData?.data?.onUserChange;
 			if (!changeEvent) return;
@@ -54,7 +54,7 @@ export default function AuthSubscriptionBridge() {
 
 				//  Only update if the changed user is the logged-in one
 				if (currentUserId && updatedUserId === currentUserId && newToken) {
-					console.log("🔑 [AuthContext] Token updated via PubSub — refreshing context...");
+					console.log(" [AuthContext] Token updated via PubSub — refreshing context...");
 					setUserToken(newToken);
 					console.log("updateBy", updateBy);
 					if (updateBy !== currentUserId) {
@@ -70,7 +70,7 @@ export default function AuthSubscriptionBridge() {
 				// if (currentUserId && updatedUserId === currentUserId && newToken) {
 				// 	setUserToken(newToken);
 
-				// 	// 🔥 Force WebSocket reconnection
+				// 	//  Force WebSocket reconnection
 				// 	try {
 				// 		// wsLink.client?.dispose();
 				// 		wsClient.dispose();

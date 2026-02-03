@@ -26,6 +26,7 @@ export function UsersProvider({ children }) {
 
 		// Extract role safely whether it's: "admin" OR { role: "admin" }
 		const role = typeof token?.role === "string" ? token.role : token?.role?.role;
+		console.log("users info", jwtDecode(userToken));
 
 		// const hasReviewRole = ["headAdmin", "admin", "subAdmin"].includes(role) && can(token, "users:read:any");
 
@@ -49,6 +50,7 @@ export function UsersProvider({ children }) {
 		// fetchPolicy: "cache-first",
 		fetchPolicy: "cache-and-network",
 	});
+	console.log("this is the data example:", data?.getAllUsers[0]);
 
 	// Initial load
 	useEffect(() => {
@@ -240,6 +242,8 @@ export function UsersProvider({ children }) {
 
 	return <UsersContext.Provider value={{ users, loading: queryLoading || authLoading, error }}>{children}</UsersContext.Provider>;
 }
+
+// console.log(user);
 
 export function useUsers() {
 	return useContext(UsersContext);

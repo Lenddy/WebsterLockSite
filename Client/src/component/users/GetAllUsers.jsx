@@ -19,11 +19,28 @@ export default function GetAllUsers() {
 
 	const { users, loading, error } = useUsers();
 
+	console.log("this is the users example from the get all users ", users[0]);
+	console.log("example ");
+	console.log("example ");
+	console.log("example ");
+	console.log("example ");
+	console.log("example ");
+	console.log("example ");
+	console.log("example ");
+
 	// console.log("does the page needs a reload ? ", needReload);
 
-	// const { error, loading, data, refetch } = useQuery(get_all_users, {
-	// 	fetchPolicy: "cache-and-network",
-	// });
+	const {
+		error: testError,
+		loading: loadingTest,
+		data: dataTest,
+		refetch: refetchTest,
+	} = useQuery(get_all_users, {
+		fetchPolicy: "cache-and-network",
+	});
+
+	console.log("test data ", dataTest);
+
 	// const [users, setUsers] = useState([]);
 	const [filteredUsers, setFilteredUsers] = useState([]);
 	const [searchValue, setSearchValue] = useState("");

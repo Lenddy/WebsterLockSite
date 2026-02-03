@@ -15,6 +15,8 @@ import CloseEye from "../../../assets/closeEye.svg?react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../context/AuthContext";
 import { toast } from "react-toastify";
+import { can } from "../../utilities/can";
+import { ALL_PERMISSIONS, PERMISSION_DEPENDENCIES, ROLE_PERMISSIONS, roleRank, scopeDisplayName } from "../../utilities/role.config";
 
 export default function AdminUpdateMultipleUsers() {
 	const { userToken, pageLoading, loading: userLoading } = useAuth();
@@ -56,25 +58,19 @@ export default function AdminUpdateMultipleUsers() {
 	}, [decodedUser]);
 
 	useEffect(() => {
-		if (!canUserReview) {
+		if (!canUserReview || !can(decodedUser, "users:update:any")) {
 			toast.warn(t("you-dont-have-permission-to-edit-users"));
 			navigate("/material/request/all", { replace: true });
 		}
 	}, [canUserReview, navigate]);
 
-	const translatePermissionKey = (key) => {
-		const keys = {
-			canViewAllUsers: "can-view-all-users",
-			canEditUsers: "can-edit-users",
-			canDeleteUsers: "can-delete-users",
-			canChangeRole: "can-change-role",
-			canViewSelf: "can-view-self",
-			canEditSelf: "can-edit-self",
-			canDeleteSelf: "can-delete-self",
-		};
-		// Use keys[key] if exists, otherwise fallback to the original key
-		return t(keys[key] || key);
-	};
+	// if (!canUserReview || !can(decodedUserCanView, "users:create:any")) {
+	// 			toast.warn(t("you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page"), {
+	// 				// autoClose: false,
+	// 			});
+	// 			navigate("/material/request/all", { replace: true });
+	// 		}
+	// 	}, [canUserReview, navigate, decodedUserCanView]);
 
 	const [rows, setRows] = useState([
 		{
@@ -90,15 +86,8 @@ export default function AdminUpdateMultipleUsers() {
 			newRole: "",
 			employeeNum: "",
 			department: "",
-			newPermissions: {
-				canViewAllUsers: false,
-				canEditUsers: false,
-				canDeleteUsers: false,
-				canChangeRole: false,
-				canEditSelf: true,
-				canViewSelf: true,
-				canDeleteSelf: false,
-			},
+			newPermissions: [],
+			editPermission: false,
 			// locked: false, //ensure new rows are never locked
 		},
 	]);
@@ -121,6 +110,7 @@ export default function AdminUpdateMultipleUsers() {
 			// Auto-select user from params if found
 			if (userId) {
 				const selectedUser = users?.find((u) => u?.id === userId);
+				console.log("this is the selected userId", selectedUser);
 				if (selectedUser) {
 					setRows((prev) => {
 						const newRows = [...prev];
@@ -131,12 +121,15 @@ export default function AdminUpdateMultipleUsers() {
 							department: selectedUser.department || "",
 							previousEmail: selectedUser.email,
 							locked: true, // lock the row
+							editPermission: false,
 							// prefill existing role + permissions
-							newRole: selectedUser.role || "",
-							newPermissions: {
-								...newRows[0].newPermissions, // keep defaults
-								...selectedUser.permissions, // overwrite with actual perms
-							},
+							newRole: selectedUser.role || [],
+							// newPermissions: selectedUser.permissions || [],
+
+							// [
+							// 	// ...newRows[0].newPermissions, // keep defaults
+							// 	...selectedUser.permissions, // overwrite with actual perms
+							// ],
 						};
 						// setSuccess({ success: false });
 						return newRows;
@@ -176,20 +169,127 @@ export default function AdminUpdateMultipleUsers() {
 	};
 
 	//  Handle input changes
+	// const handleRowChange = (index, e) => {
+	// 	const { name, value, type, checked } = e.target;
+
+	// 	setRows((prev) => {
+	// 		const newRows = [...prev];
+	// 		if (type === "checkbox") {
+	// 			newRows[index].newPermissions[name] = checked;
+	// 		} else {
+	// 			newRows[index][name] = value;
+	// 		}
+	// 		return newRows;
+	// 	});
+	// 	// setSuccess({ success: false });
+	// 	setSuccess(null);
+	// };
+
+	// Permission and role related functions
+	const getPermissionBase = (perm) => {
+		// users:read:any → users:read
+		return perm.split(":").slice(0, 2).join(":");
+	};
+
+	const addPermissionWithDependencies = (currentPerms, perm) => {
+		const deps = PERMISSION_DEPENDENCIES[perm] || [];
+		const newPerms = new Set(currentPerms);
+
+		newPerms.add(perm);
+		deps.forEach((d) => newPerms.add(d));
+
+		return Array.from(newPerms);
+	};
+
+	// Row manipulation functions
+	// const handleRowChange = (index, e) => {
+	// 	const { name, value, type, checked } = e.target;
+	// 	console.log("inputs", { name, value, type, checked });
+
+	// 	setRows((prev) => {
+	// 		const newRows = [...prev];
+	// 		const row = { ...newRows[index] };
+
+	// 		// ROLE CHANGE → reset permissions
+	// 		if (name === "newRole") {
+	// 			row.newRole = value;
+	// 			row.newPermissions = ROLE_PERMISSIONS[value]?.permissions ? [...ROLE_PERMISSIONS[value].permissions] : [];
+	// 		}
+
+	// 		// CHECKBOX
+	// 		// else if (type === "checkbox") {
+	// 		// 	const permBase = getPermissionBase(name);
+
+	// 		// 	if (checked) {
+	// 		// 		// Remove other permissions with same base (any ↔ own)
+	// 		// 		row.permissions = row.permissions.filter((p) => getPermissionBase(p) !== permBase);
+
+	// 		// 		// Add the selected permission
+	// 		// 		row.permissions.push(name);
+	// 		// 	} else {
+	// 		// 		// Remove unchecked permission
+	// 		// 		row.permissions = row.permissions.filter((p) => p !== name);
+	// 		// 	}
+	// 		// }
+	// 		else if (type === "checkbox") {
+	// 			const permBase = getPermissionBase(name); // users:read, users:update, etc.
+
+	// 			if (checked) {
+	// 				//  Remove other scopes of same base (any ↔ own)
+	// 				row.newPermissions = row.newPermissions.filter((p) => getPermissionBase(p) !== permBase);
+
+	// 				//  Add permission + its dependencies
+	// 				row.newPermissions = addPermissionWithDependencies(row.newPermissions, name);
+	// 			} else {
+	// 				//  Allow unchecking freely
+	// 				row.newPermissions = row.newPermissions.filter((p) => p !== name);
+	// 			}
+	// 		}
+
+	// 		// NORMAL INPUT
+	// 		else {
+	// 			row[name] = value; // <-- this updates text inputs
+	// 		}
+
+	// 		newRows[index] = row;
+	// 		return newRows;
+	// 	});
+	// };
+
 	const handleRowChange = (index, e) => {
 		const { name, value, type, checked } = e.target;
 
 		setRows((prev) => {
 			const newRows = [...prev];
-			if (type === "checkbox") {
-				newRows[index].newPermissions[name] = checked;
-			} else {
-				newRows[index][name] = value;
+			const row = { ...newRows[index] };
+
+			// ROLE CHANGE → auto-apply defaults
+			if (name === "newRole") {
+				row.newRole = value;
+				row.newPermissions = ROLE_PERMISSIONS[value]?.permissions ? [...ROLE_PERMISSIONS[value].permissions] : [];
 			}
+
+			// PERMISSION CHECKBOX
+			else if (type === "checkbox") {
+				const permBase = getPermissionBase(name);
+
+				if (checked) {
+					row.newPermissions = row.newPermissions.filter((p) => getPermissionBase(p) !== permBase);
+
+					row.newPermissions = addPermissionWithDependencies(row.newPermissions, name);
+				} else {
+					row.newPermissions = row.newPermissions.filter((p) => p !== name);
+				}
+			}
+
+			// NORMAL INPUTS
+			else {
+				row[name] = value;
+			}
+
+			newRows[index] = row;
 			return newRows;
 		});
-		// setSuccess({ success: false });
-		setSuccess(null);
 	};
 
 	//  Add row
@@ -209,16 +309,9 @@ export default function AdminUpdateMultipleUsers() {
 				title: "",
 				description: "",
 				newRole: "",
-				newPermissions: {
-					canViewAllUsers: false,
-					canEditUsers: false,
-					canDeleteUsers: false,
-					canChangeRole: false,
-					canEditSelf: true,
-					canViewSelf: true,
-					canDeleteSelf: false,
-				},
+				newPermissions: [],
 				locked: false, // ensure new rows are never locked
+				editPermission: false,
 			},
 		]);
 		// setSuccess({ success: false });
@@ -249,7 +342,7 @@ export default function AdminUpdateMultipleUsers() {
 		}
 
 		// 4. If ID is selected but *no other field is changed*
-		const noChangesMade = !row.newEmail && !row.newPassword && !row?.confirmNewPassword && !row?.role && !row?.newPermissions && !row?.name && !row?.title && !row?.description && !row?.department && !row?.employeeNum;
+		const noChangesMade = !row.newEmail && !row.newPassword && !row?.confirmNewPassword && !row?.role && !row?.newPermissions && !row?.name && !row?.title && !row?.description;
 
 		if (row?.id && noChangesMade) {
 			console.warn(" Row has an ID but no other fields were changed.");
@@ -297,15 +390,7 @@ export default function AdminUpdateMultipleUsers() {
 				title: "",
 				description: "",
 				newRole: "",
-				newPermissions: {
-					canViewAllUsers: false,
-					canEditUsers: false,
-					canDeleteUsers: false,
-					canChangeRole: false,
-					canEditSelf: true,
-					canViewSelf: true,
-					canDeleteSelf: false,
-				},
+				newPermissions: [],
 				locked: false, // ensure new rows are never locked
 			},
 		]);
@@ -359,7 +444,7 @@ export default function AdminUpdateMultipleUsers() {
 		}
 
 		const inputs = rows.map((row) => {
-			const { __typename, ...cleanPermissions } = row?.newPermissions || {};
+			// const { __typename, ...cleanPermissions } = row?.newPermissions
 
 			return {
 				id: row?.id,
@@ -372,11 +457,7 @@ export default function AdminUpdateMultipleUsers() {
 				newRole: row?.newRole,
 				employeeNum: row?.employeeNum,
 				department: row?.department,
-				job: {
-					title: row?.title,
-					description: row?.description,
-				},
-				newPermissions: cleanPermissions,
+				newPermissions: row?.newPermissions,
 			};
 		});
 
@@ -444,6 +525,53 @@ export default function AdminUpdateMultipleUsers() {
 		// }
 	};
 
+	const isNonAdminRole = (role) => role === "user" || role === "noRole";
+
+	const getVisiblePermissions = (role, allPermissions) => {
+		// Non-admin → ONLY default permissions
+		if (isNonAdminRole(role)) {
+			return ROLE_PERMISSIONS[role]?.permissions || [];
+		}
+
+		// Admin roles → everything
+		return allPermissions;
+	};
+
+	const groupPermissions = (permissions) => {
+		const result = {};
+
+		permissions.forEach((perm) => {
+			let [resource, action, scope] = perm.split(":");
+			console.log("resource:", resource, "action:", action, "scope:", scope);
+			// role permissions belong to users column
+			if (resource === "role" || resource === "peers") {
+				resource = "users";
+			}
+
+			if (!result[resource]) {
+				result[resource] = {};
+			}
+
+			const actionKey = action;
+
+			if (!result[resource][actionKey]) {
+				result[resource][actionKey] = {
+					action,
+					perms: [],
+				};
+			}
+
+			result[resource][actionKey].perms.push({
+				perm,
+				scope,
+			});
+		});
+
+		return result;
+	};
+
+	const groupedPermissions = useMemo(() => groupPermissions(ALL_PERMISSIONS), []);
+
 	return (
 		// out side container
 		<div className="update-container">
@@ -466,6 +594,7 @@ export default function AdminUpdateMultipleUsers() {
 								{/* left side of the top container */}
 								<div className="form-row-top-left">
 									<label> {t("find-user")}</label>
+
 									<Select
 										className="form-row-top-select"
 										filterOption={customFilter}
@@ -490,10 +619,7 @@ export default function AdminUpdateMultipleUsers() {
 														updatedRow.title = selectedUser.job?.title || "";
 														updatedRow.description = selectedUser.job?.description || "";
 														updatedRow.newRole = selectedUser.role || "";
-														updatedRow.newPermissions = {
-															...updatedRow.newPermissions,
-															...(selectedUser.permissions || {}),
-														};
+														updatedRow.newPermissions = Array.isArray(selectedUser.permissions) ? [...selectedUser.permissions] : [];
 													}
 												} else {
 													// If cleared, reset to empty
@@ -505,15 +631,7 @@ export default function AdminUpdateMultipleUsers() {
 													updatedRow.title = "";
 													updatedRow.description = "";
 													updatedRow.newRole = "";
-													updatedRow.newPermissions = {
-														canViewAllUsers: false,
-														canEditUsers: false,
-														canDeleteUsers: false,
-														canChangeRole: false,
-														canEditSelf: true,
-														canViewSelf: true,
-														canDeleteSelf: false,
-													};
+													updatedRow.newPermissions = [];
 												}
 
 												newRows[index] = updatedRow;
@@ -538,6 +656,74 @@ export default function AdminUpdateMultipleUsers() {
 											}),
 										}}
 									/>
+
+									{/* <Select
+										className="form-row-top-select"
+										filterOption={customFilter}
+										classNamePrefix="update-form-row-select"
+										options={userOptions}
+										value={userOptions.find((opt) => opt.value === row?.id) || null}
+										onChange={(selected) => {
+											if (row?.locked) return; // Prevent changes if locked
+
+											setRows((prev) => {
+												const newRows = [...prev];
+												const updatedRow = { ...newRows[index] };
+
+												// Normalize first — guarantees array
+												updatedRow.newPermissions = Array.isArray(updatedRow.newPermissions) ? updatedRow.newPermissions : [];
+
+												if (selected) {
+													const selectedUser = users.find((u) => u.id === selected.value);
+
+													if (selectedUser) {
+														updatedRow.id = selectedUser.id;
+														updatedRow.previousEmail = selectedUser.email || "";
+														updatedRow.employeeNum = selectedUser.employeeNum || "";
+														updatedRow.department = selectedUser.department || "";
+														updatedRow.name = selectedUser.name || "";
+														updatedRow.title = selectedUser.job?.title || "";
+														updatedRow.description = selectedUser.job?.description || "";
+														updatedRow.newRole = selectedUser.role || "";
+
+														// ONLY selected user's permissions (array only)
+														updatedRow.newPermissions = Array.isArray(selectedUser.permissions) ? [...selectedUser.permissions] : [];
+													}
+												} else {
+													// If cleared, reset everything
+													updatedRow.id = "";
+													updatedRow.previousEmail = "";
+													updatedRow.employeeNum = "";
+													updatedRow.department = "";
+													updatedRow.name = "";
+													updatedRow.title = "";
+													updatedRow.description = "";
+													updatedRow.newRole = "";
+													updatedRow.newPermissions = [];
+												}
+
+												newRows[index] = updatedRow;
+												return newRows;
+											});
+										}}
+										placeholder={loading ? t("loading") : t("Select-user-by-name-email")}
+										isClearable={!row?.locked}
+										isSearchable={!row?.locked}
+										isDisabled={row?.locked || loading || blockInput}
+										styles={{
+											control: (base) => ({
+												...base,
+												borderRadius: "12px",
+												borderColor: row?.locked ? "gray" : "blue",
+												backgroundColor: row?.locked ? "#f5f5f5" : "white",
+											}),
+											option: (base, state) => ({
+												...base,
+												backgroundColor: state.isFocused ? "lightblue" : "white",
+												color: "black",
+											}),
+										}}
+									/> */}
 								</div>
 
 								{/* right side of the top container */}
@@ -632,89 +818,78 @@ export default function AdminUpdateMultipleUsers() {
 								{/* center right wrapper*/}
 								<div className="form-row-center-right">
 									<div className="form-row-center-right-wrapper">
-										{logUser?.permissions?.canChangeRole && (
+										<div>
+											<label>{t("new-role")}:</label>
+											{/* here */}
+											<select name="newRole" value={row?.newRole} disabled={blockInput || !can(decodedUser, "role:change:any")} onChange={(e) => handleRowChange(index, e)}>
+												<option value="" disabled>
+													{t("select-role")}
+												</option>
+
+												{roleRank[decodedUser.role] >= 5 && can(decodedUser, "peers:update:any") && <option value="headAdmin">{t("head-admin")}</option>}
+
+												{roleRank[decodedUser.role] >= 4 && can(decodedUser, "peers:update:any") && <option value="admin">{t("admin")}</option>}
+
+												{roleRank[decodedUser.role] >= 3 && can(decodedUser, "peers:update:any") && <option value="subAdmin">{t("sub-admin")}</option>}
+
+												{/* <option value="technician">{t("technician")}</option> */}
+												<option value="user">{t("user")} </option>
+												<option value="noRole">{t("no-role")}</option>
+											</select>
+										</div>
+
+										{row.newRole && ROLE_PERMISSIONS[row.newRole] && <p style={{ color: "red" }}>{t(ROLE_PERMISSIONS[row.newRole].descriptionKey)}</p>}
+
+										{/*//!! extra Permissions btn  */}
+										{can(decodedUser, "users:create:any") && can(decodedUser, "role:change:any") && row.newRole !== "" && row.newRole !== "headAdmin" && (
 											<div>
-												<label>{t("new-role")}:</label>
-												{/* here */}
-												<select name="newRole" value={row?.newRole} disabled={blockInput} onChange={(e) => handleRowChange(index, e)}>
-													<option value="" disabled>
-														{t("select-role")}
-													</option>
-													<option value="admin">{t("admin")}</option>
-													<option value="subAdmin">{t("sub-admin")} </option>
-													<option value="technician">{t("technician")}</option>
-													<option value="user">{t("user")} </option>
-													<option value="noRole">{t("no-role")}</option>
-												</select>
+												<button
+													type="button"
+													onClick={() =>
+														setRows((prev) => {
+															const newRows = [...prev];
+															newRows[index] = {
+																...newRows[index],
+																editPermission: !newRows[index].editPermission,
+															};
+															return newRows;
+														})
+													}>
+													{row.editPermission ? t("hide-permission") : t("edit-permissions")}
+												</button>
 											</div>
 										)}
 									</div>
 								</div>
 
-								<div className="form-row-center-bottom">
-									{logUser?.permissions?.canChangeRole && (
-										<div>
-											{/* <label>New Permissions:</label> */}
-											<div className="permissions-grid">
-												{/* User-related permissions */}
-												<div>
-													<label>{t("user-permissions")}</label>
-													<ul className="permissions-list">
-														{Object.keys(row?.newPermissions)
-															.filter((permKey) => permKey.includes("Users") || permKey.includes("Role"))
-															.map((permKey) => (
-																<li key={permKey}>
-																	<label>
-																		{/* {formatKey(permKey)} */}
-																		{translatePermissionKey(permKey)}
+								{/* {"come here"} */}
 
-																		<input onChange={(e) => handleRowChange(index, e)} disabled={blockInput} type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} />
+								{can(decodedUser, "role:change:any") && row.editPermission === true && row.newRole !== "headAdmin" ? (
+									<div className="permissions-grid">
+										{Object.entries(groupPermissions(getVisiblePermissions(row.newRole, ALL_PERMISSIONS))).map(([resource, actions]) => (
+											<div key={resource} className="permissions-column">
+												<h4 className="permissions-column-title">{t(resource)}</h4>
+
+												{Object.values(actions).map(({ action, perms }) => (
+													<div key={action} className="permissions-group">
+														<strong className="permissions-action-title">{t(action)}</strong>
+
+														<ul className="permissions-list">
+															{perms.map(({ perm }) => (
+																<li key={perm}>
+																	<label className="permission-item">
+																		<input type="checkbox" name={perm} checked={row.newPermissions.includes(perm)} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
+																		<span>{scopeDisplayName(perm, t)}</span>
 																	</label>
 																</li>
 															))}
-													</ul>
-												</div>
-
-												{/* make sure that the permissions works  they are not being updated when they are click */}
-
-												{/* Self-related permissions */}
-												<div>
-													<label>{t("self-permissions")}</label>
-													<ul className="permissions-list">
-														{
-															/** make sure that the permissions works  they are not being updated when they are click */
-															Object.keys(row?.newPermissions)
-																.filter((permKey) => permKey.includes("Self"))
-																.map((permKey) => (
-																	// find a way to use the whole link  as the btn no just the checkbox
-																	<li key={permKey}>
-																		<label>
-																			{/* {formatKey(permKey)}*/}
-																			{translatePermissionKey(permKey)}
-																			<input type="checkbox" name={permKey} disabled={blockInput} checked={row?.newPermissions[permKey]} onChange={(e) => handleRowChange(index, e)} />
-																		</label>
-																	</li>
-																))
-														}
-													</ul>
-
-													{/* <ul className="permissions-list">
-														{Object.keys(row?.newPermissions)
-															.filter((permKey) => permKey.includes("Users") || permKey.includes("Role"))
-															.map((permKey) => (
-																<li key={permKey}>
-																	<label>
-																		{translatePermissionKey(permKey)}
-																		<input onChange={(e) => handleRowChange(index, e)} type="checkbox" name={permKey} checked={row?.newPermissions[permKey]} />
-																	</label>
-																</li>
-															))}
-													</ul> */}
-												</div>
+														</ul>
+													</div>
+												))}
 											</div>
-										</div>
-									)}
-								</div>
+										))}
+									</div>
+								) : null}
 							</div>
 
 							{rows.length > 1 && (

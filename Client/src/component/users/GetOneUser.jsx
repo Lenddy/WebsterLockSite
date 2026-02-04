@@ -100,7 +100,7 @@ export default function GetOneUser() {
 
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
 		onData: ({ data: subscriptionData, client }) => {
-			console.log("📡 Subscription raw data:", subscriptionData);
+			console.log("Subscription raw data:", subscriptionData);
 
 			const changeEvent = subscriptionData?.data?.onUserChange;
 			if (!changeEvent) return;
@@ -112,7 +112,7 @@ export default function GetOneUser() {
 
 			if (!changesArray.length) return;
 
-			console.log(`📡 User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+			console.log(`User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
 
 			// --- Update local state for the current user view ---
 			if (userId) {
@@ -164,22 +164,20 @@ export default function GetOneUser() {
 												name
 												email
 												role
-												permissions {
-													canEditUsers
-													canViewUsers
-													canDeleteUsers
-													canChangeRole
-													canEditSelf
-													canViewSelf
-													canViewAllUsers
-													canNotBeDeleted
-													canNotBeUpdated
-													canRegisterUser
-												}
-												job {
-													title
-													description
-												}
+												permissions
+												#  {
+												# 	canEditUsers
+												# 	canViewUsers
+												# 	canDeleteUsers
+												# 	canChangeRole
+												# 	canEditSelf
+												# 	canViewSelf
+												# 	canViewAllUsers
+												# 	canNotBeDeleted
+												# 	canNotBeUpdated
+												# 	canRegisterUser
+												# }
+
 												employeeNum
 												department
 												token
@@ -195,22 +193,20 @@ export default function GetOneUser() {
 												name
 												email
 												role
-												permissions {
-													canEditUsers
-													canViewUsers
-													canDeleteUsers
-													canChangeRole
-													canEditSelf
-													canViewSelf
-													canViewAllUsers
-													canNotBeDeleted
-													canNotBeUpdated
-													canRegisterUser
-												}
-												job {
-													title
-													description
-												}
+												permissions
+												# {
+												# 	canEditUsers
+												# 	canViewUsers
+												# 	canDeleteUsers
+												# 	canChangeRole
+												# 	canEditSelf
+												# 	canViewSelf
+												# 	canViewAllUsers
+												# 	canNotBeDeleted
+												# 	canNotBeUpdated
+												# 	canRegisterUser
+												# }
+
 												employeeNum
 												department
 												token
@@ -226,7 +222,7 @@ export default function GetOneUser() {
 					},
 				});
 			} catch (cacheErr) {
-				console.warn("⚠️ Cache update skipped:", cacheErr.message);
+				console.warn(" Cache update skipped:", cacheErr.message);
 			}
 		},
 
@@ -280,22 +276,24 @@ export default function GetOneUser() {
 									<div>
 										<h3>{t("user-actions")}:</h3>
 										<ul>
-											{Object.entries(user?.permissions || {})
+											this could be the issue
+											{/* {Object.entries(user?.permissions || {})
 												.filter(([k, v]) => k !== "__typename" && v === true && k.includes("Users"))
 												.map(([k]) => (
 													<li key={k}>{formatKey(k) || "N/A"}</li>
-												))}
+												))} */}
 										</ul>
 									</div>
 
 									<div>
 										<h3>{t("self-actions")}:</h3>
 										<ul>
-											{Object.entries(user?.permissions || {})
+											this could be the issue
+											{/* {Object.entries(user?.permissions || {})
 												.filter(([k, v]) => k !== "__typename" && v === true && k.includes("Self"))
 												.map(([k]) => (
 													<li key={k}>{formatKey(k)}</li>
-												))}
+												))} */}
 										</ul>
 									</div>
 								</div>

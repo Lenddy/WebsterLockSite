@@ -47,17 +47,18 @@ export default function AdminCreateMultipleMaterialRequests() {
 				role: "",
 				employeeNum: "",
 				department: "",
-				permissions: {
-					canEditUsers: false,
-					canDeleteUsers: false,
-					canChangeRole: false,
-					canViewUsers: false,
-					canViewAllUsers: false,
-					canEditSelf: false,
-					canViewSelf: false,
-					canDeleteSelf: false,
-					canRegisterUser: false,
-				},
+				permissions: [],
+				//  {
+				// 	canEditUsers: false,
+				// 	canDeleteUsers: false,
+				// 	canChangeRole: false,
+				// 	canViewUsers: false,
+				// 	canViewAllUsers: false,
+				// 	canEditSelf: false,
+				// 	canViewSelf: false,
+				// 	canDeleteSelf: false,
+				// 	canRegisterUser: false,
+				// },
 			},
 		},
 	]);
@@ -127,17 +128,18 @@ export default function AdminCreateMultipleMaterialRequests() {
 					role: "",
 					employeeNum: "",
 					department: "",
-					permissions: {
-						canEditUsers: false,
-						canDeleteUsers: false,
-						canChangeRole: false,
-						canViewUsers: false,
-						canViewAllUsers: false,
-						canEditSelf: false,
-						canViewSelf: false,
-						canDeleteSelf: false,
-						canRegisterUser: false,
-					},
+					permissions: [],
+					// {
+					// 	canEditUsers: false,
+					// 	canDeleteUsers: false,
+					// 	canChangeRole: false,
+					// 	canViewUsers: false,
+					// 	canViewAllUsers: false,
+					// 	canEditSelf: false,
+					// 	canViewSelf: false,
+					// 	canDeleteSelf: false,
+					// 	canRegisterUser: false,
+					// },
 				},
 			},
 		]);
@@ -197,7 +199,8 @@ export default function AdminCreateMultipleMaterialRequests() {
 			role: user.role,
 			employeeNum: user.employeeNum,
 			department: user.department,
-			permissions: { ...user.permissions },
+			// permissions: { ...user.permissions },
+			permissions: [...user.permissions],
 		},
 	}));
 
@@ -299,17 +302,18 @@ export default function AdminCreateMultipleMaterialRequests() {
 					role: "",
 					employeeNum: "",
 					department: "",
-					permissions: {
-						canEditUsers: false,
-						canDeleteUsers: false,
-						canChangeRole: false,
-						canViewUsers: false,
-						canViewAllUsers: false,
-						canEditSelf: false,
-						canViewSelf: false,
-						canDeleteSelf: false,
-						canRegisterUser: false,
-					},
+					permissions: [],
+					//  {
+					// 	canEditUsers: false,
+					// 	canDeleteUsers: false,
+					// 	canChangeRole: false,
+					// 	canViewUsers: false,
+					// 	canViewAllUsers: false,
+					// 	canEditSelf: false,
+					// 	canViewSelf: false,
+					// 	canDeleteSelf: false,
+					// 	canRegisterUser: false,
+					// },
 				},
 			},
 		]); // or your initial requests state
@@ -563,7 +567,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 										// value={req.date || null}
 										value={requests[reqIdx]?.addedDate ?? ""}
 										onChange={(e) => {
-											handleRequestChange(reqIdx, "addedDate", e.target.value), console.log("initial date", e.target.value, "formatted Date", dayjs(e.target.value).toISOString());
+											(handleRequestChange(reqIdx, "addedDate", e.target.value), console.log("initial date", e.target.value, "formatted Date", dayjs(e.target.value).toISOString()));
 										}}
 									/>
 								</div>

@@ -79,26 +79,14 @@ export default function ApolloWrapper({ children }) {
 			link: splitLink,
 			cache: new InMemoryCache({
 				typePolicies: {
-					User: {
-						fields: {
-							permissions: {
-								merge(existing = {}, incoming) {
-									if (!incoming || Object.keys(incoming).length === 0) return existing;
-
-									const allowed = ["canEditUsers", "canDeleteUsers", "canChangeRole", "canViewUsers", "canViewAllUsers", "canEditSelf", "canViewSelf", "canDeleteSelf"];
-
-									// return Object.fromEntries(Object.entries(incoming || {}).filter(([key]) => allowed.includes(key)));
-									const filtered = Object.keys(incoming)
-										.filter((key) => allowed.includes(key))
-										.reduce((obj, key) => {
-											obj[key] = incoming[key];
-											return obj;
-										}, {});
-									return { ...existing, ...filtered };
-								},
-							},
-						},
-					},
+					//
+					// User: {
+					// 	fields: {
+					// 		permissions: {
+					// 			merge: false,
+					// 		},
+					// 	},
+					// },
 
 					UserSnapshot: { keyFields: ["userId"] },
 

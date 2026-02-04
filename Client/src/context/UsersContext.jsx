@@ -26,7 +26,7 @@ export function UsersProvider({ children }) {
 
 		// Extract role safely whether it's: "admin" OR { role: "admin" }
 		const role = typeof token?.role === "string" ? token.role : token?.role?.role;
-		console.log("users info", jwtDecode(userToken));
+		// console.log("users info", jwtDecode(userToken));
 
 		// const hasReviewRole = ["headAdmin", "admin", "subAdmin"].includes(role) && can(token, "users:read:any");
 
@@ -50,11 +50,12 @@ export function UsersProvider({ children }) {
 		// fetchPolicy: "cache-first",
 		fetchPolicy: "cache-and-network",
 	});
-	console.log("this is the data example:", data?.getAllUsers[0]);
+	// console.log("this is the data example:", data);
 
 	// Initial load
 	useEffect(() => {
 		if (data?.getAllUsers) {
+			console.log("get all data from the users context", data?.getAllUsers);
 			setUsers(data.getAllUsers);
 		}
 	}, [data]);
@@ -63,7 +64,7 @@ export function UsersProvider({ children }) {
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
 		skip: authLoading || !userToken || !canReview(), // <-- skip subscription until token ready
 		onData: ({ data: subscriptionData, client }) => {
-			console.log("📡 Subscription raw data:", subscriptionData);
+			// console.log("📡 Subscription raw data:", subscriptionData);
 
 			const changeEvent = subscriptionData?.data?.onUserChange;
 			if (!changeEvent) return;
@@ -75,7 +76,7 @@ export function UsersProvider({ children }) {
 
 			if (!changesArray.length) return;
 
-			console.log(`📡 User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+			// console.log(`📡 User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
 
 			// --- Update local state ---
 			setUsers((prevUsers) => {
@@ -196,7 +197,6 @@ export function UsersProvider({ children }) {
 													email
 													role
 													permissions
-													job
 													employeeNum
 													department
 													token
@@ -213,7 +213,6 @@ export function UsersProvider({ children }) {
 													email
 													role
 													permissions
-													job
 													employeeNum
 													department
 													token

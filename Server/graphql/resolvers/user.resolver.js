@@ -29,10 +29,18 @@ const userResolver = {
 					throw new ApolloError("Unauthorized: You do not have permission to view all users."); // Check permissions
 				}
 
-				const users = await User.find(); // Fetch all users from DB
+				// const users = await User.find(); // Fetch all users from DB
+
+				const users = await User.find().lean();
+
 				console.log("all the users", users);
+				return users.map((u) => ({
+					...u,
+					id: u._id.toString(),
+					permissions: Array.isArray(u.permissions) ? u.permissions : [],
+				}));
 				// console.log("Users fetched by caller:", users); // Log fetched users
-				return users; // Return users
+				// return users; // Return users
 			} catch (error) {
 				console.error("Error fetching all users:", error); // Log error
 				throw error; // Rethrow error
@@ -826,10 +834,13 @@ const userResolver = {
 
 					// TODO ADD EH
 					const restrictedFields = ["employeeNum", "department"];
-					if ((!isSelf && restrictedFields.some((f) => f in input) && user.role !== "headAdmin") || user.role !== "admin") {
+					// if ((!isSelf && restrictedFields.some((f) => f in input) && user.role !== "headAdmin") || user.role !== "admin") {
+					// 	throw new ApolloError("Unauthorized: Restricted fields cannot be updated. (EmployeeNum / Department)");
+					// }
+
+					if (!isSelf && restrictedFields.some((f) => f in input) && user.role !== "headAdmin" && user.role !== "admin") {
 						throw new ApolloError("Unauthorized: Restricted fields cannot be updated. (EmployeeNum / Department)");
 					}
-
 					/*
 			|--------------------------------------------------------------------------
 			| Email update validation

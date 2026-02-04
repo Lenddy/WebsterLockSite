@@ -10,7 +10,6 @@ import { setContext } from "@apollo/client/link/context";
 console.log("started apollo Client at", new Date());
 const token = localStorage.getItem("userToken");
 // const token = localStorage.getItem("UserToken");
-const allowedPermissionKeys = ["canEditUsers", "canDeleteUsers", "canChangeRole", "canViewUsers", "canViewAllUsers", "canEditSelf", "canViewSelf", "canDeleteSelf"];
 
 export const wsConnectionState = {
 	connected: false,
@@ -128,7 +127,15 @@ const client = new ApolloClient({
 			// 	},
 			// },
 
-			UserSnapshot: { keyFields: ["userId"] },
+			// UserSnapshot: { keyFields: ["userId"] },
+
+			// User: {
+			// 	fields: {
+			// 		permissions: {
+			// 			merge: false, // 🚨 force overwrite, no merging
+			// 		},
+			// 	},
+			// },
 
 			MaterialRequest: {
 				keyFields: ["id"],

@@ -20,7 +20,8 @@ const userTypeDef = gql`
 		department: String
 		job: Job # Nested job object
 		# permissions: Permissions # Nested permissions object
-		permissions: [String!] # Nested permissions object
+		permissions: [String!]! # Nested permissions object
+		# permissions: [] # Nested permissions object
 		createdAt: DateTime # Timestamp for when user was created
 		updatedAt: DateTime # Timestamp for last update to user profile
 	}

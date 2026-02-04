@@ -18,6 +18,8 @@ import { toast } from "react-toastify";
 import { can } from "../../utilities/can";
 import { ALL_PERMISSIONS, PERMISSION_DEPENDENCIES, ROLE_PERMISSIONS, roleRank, scopeDisplayName } from "../../utilities/role.config";
 
+import { useApolloClient } from "@apollo/client";
+
 export default function AdminUpdateMultipleUsers() {
 	const { userToken, pageLoading, loading: userLoading } = useAuth();
 	const { users, loading, error } = useUsers();
@@ -124,7 +126,7 @@ export default function AdminUpdateMultipleUsers() {
 							editPermission: false,
 							// prefill existing role + permissions
 							newRole: selectedUser.role || [],
-							// newPermissions: selectedUser.permissions || [],
+							newPermissions: [...selectedUser.permissions],
 
 							// [
 							// 	// ...newRows[0].newPermissions, // keep defaults
@@ -457,6 +459,7 @@ export default function AdminUpdateMultipleUsers() {
 				newRole: row?.newRole,
 				employeeNum: row?.employeeNum,
 				department: row?.department,
+				// REVIEW this oen could be a potential (cause not likely)
 				newPermissions: row?.newPermissions,
 			};
 		});
@@ -572,6 +575,18 @@ export default function AdminUpdateMultipleUsers() {
 
 	const groupedPermissions = useMemo(() => groupPermissions(ALL_PERMISSIONS), []);
 
+	console.log("this is groupedPermissions from the update multiple ", groupedPermissions);
+
+	// const client = useApolloClient();
+
+	// console.log("apollo cache", client.cache.extract());
+
+	// client.clearStore();
+
+	// client.resetStore();
+
+	// console.log("apollo cache", client.cache.extract());
+
 	return (
 		// out side container
 		<div className="update-container">
@@ -609,17 +624,23 @@ export default function AdminUpdateMultipleUsers() {
 
 												if (selected) {
 													const selectedUser = users.find((u) => u.id === selected.value);
-
+													console.log("this is the selectedUser", selectedUser);
 													if (selectedUser) {
 														updatedRow.id = selectedUser.id;
 														updatedRow.previousEmail = selectedUser.email || "";
 														updatedRow.employeeNum = selectedUser.employeeNum || "";
 														updatedRow.department = selectedUser.department || "";
 														updatedRow.name = selectedUser.name || "";
-														updatedRow.title = selectedUser.job?.title || "";
-														updatedRow.description = selectedUser.job?.description || "";
+														// updatedRow.title = selectedUser.job?.title || "";
+														// updatedRow.description = selectedUser.job?.description || "";
 														updatedRow.newRole = selectedUser.role || "";
-														updatedRow.newPermissions = Array.isArray(selectedUser.permissions) ? [...selectedUser.permissions] : [];
+														// console.log("this is the selectedUser.permissions");
+														// console.log("this is the selectedUser.permissions");
+														// console.log("this is the selectedUser.permissions", Array.isArray(selectedUser.permissions) ? [...selectedUser.permissions] : []);
+														// console.log("this is the selectedUser.permissions");
+														// console.log("this is the selectedUser.permissions");
+														// updatedRow.newPermissions = Array.isArray(selectedUser.permissions) ? [...selectedUser.permissions] : [];
+														updatedRow.newPermissions = [...selectedUser.permissions];
 													}
 												} else {
 													// If cleared, reset to empty

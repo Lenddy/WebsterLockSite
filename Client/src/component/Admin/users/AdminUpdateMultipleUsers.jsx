@@ -203,61 +203,6 @@ export default function AdminUpdateMultipleUsers() {
 		return Array.from(newPerms);
 	};
 
-	// Row manipulation functions
-	// const handleRowChange = (index, e) => {
-	// 	const { name, value, type, checked } = e.target;
-	// 	console.log("inputs", { name, value, type, checked });
-
-	// 	setRows((prev) => {
-	// 		const newRows = [...prev];
-	// 		const row = { ...newRows[index] };
-
-	// 		// ROLE CHANGE → reset permissions
-	// 		if (name === "newRole") {
-	// 			row.newRole = value;
-	// 			row.newPermissions = ROLE_PERMISSIONS[value]?.permissions ? [...ROLE_PERMISSIONS[value].permissions] : [];
-	// 		}
-
-	// 		// CHECKBOX
-	// 		// else if (type === "checkbox") {
-	// 		// 	const permBase = getPermissionBase(name);
-
-	// 		// 	if (checked) {
-	// 		// 		// Remove other permissions with same base (any ↔ own)
-	// 		// 		row.permissions = row.permissions.filter((p) => getPermissionBase(p) !== permBase);
-
-	// 		// 		// Add the selected permission
-	// 		// 		row.permissions.push(name);
-	// 		// 	} else {
-	// 		// 		// Remove unchecked permission
-	// 		// 		row.permissions = row.permissions.filter((p) => p !== name);
-	// 		// 	}
-	// 		// }
-	// 		else if (type === "checkbox") {
-	// 			const permBase = getPermissionBase(name); // users:read, users:update, etc.
-
-	// 			if (checked) {
-	// 				//  Remove other scopes of same base (any ↔ own)
-	// 				row.newPermissions = row.newPermissions.filter((p) => getPermissionBase(p) !== permBase);
-
-	// 				//  Add permission + its dependencies
-	// 				row.newPermissions = addPermissionWithDependencies(row.newPermissions, name);
-	// 			} else {
-	// 				//  Allow unchecking freely
-	// 				row.newPermissions = row.newPermissions.filter((p) => p !== name);
-	// 			}
-	// 		}
-
-	// 		// NORMAL INPUT
-	// 		else {
-	// 			row[name] = value; // <-- this updates text inputs
-	// 		}
-
-	// 		newRows[index] = row;
-	// 		return newRows;
-	// 	});
-	// };
-
 	const handleRowChange = (index, e) => {
 		const { name, value, type, checked } = e.target;
 
@@ -577,16 +522,6 @@ export default function AdminUpdateMultipleUsers() {
 
 	console.log("this is groupedPermissions from the update multiple ", groupedPermissions);
 
-	// const client = useApolloClient();
-
-	// console.log("apollo cache", client.cache.extract());
-
-	// client.clearStore();
-
-	// client.resetStore();
-
-	// console.log("apollo cache", client.cache.extract());
-
 	return (
 		// out side container
 		<div className="update-container">
@@ -618,46 +553,39 @@ export default function AdminUpdateMultipleUsers() {
 										value={userOptions.find((opt) => opt.value === row?.id) || null}
 										onChange={(selected) => {
 											if (row?.locked) return; // Prevent changes if locked
-											setRows((prev) => {
-												const newRows = [...prev];
-												const updatedRow = { ...newRows[index] };
+											setRows();
+											// 	(prev) => {
+											// 	const newRows = [...prev];
+											// 	const updatedRow = { ...newRows[index] };
 
-												if (selected) {
-													const selectedUser = users.find((u) => u.id === selected.value);
-													console.log("this is the selectedUser", selectedUser);
-													if (selectedUser) {
-														updatedRow.id = selectedUser.id;
-														updatedRow.previousEmail = selectedUser.email || "";
-														updatedRow.employeeNum = selectedUser.employeeNum || "";
-														updatedRow.department = selectedUser.department || "";
-														updatedRow.name = selectedUser.name || "";
-														// updatedRow.title = selectedUser.job?.title || "";
-														// updatedRow.description = selectedUser.job?.description || "";
-														updatedRow.newRole = selectedUser.role || "";
-														// console.log("this is the selectedUser.permissions");
-														// console.log("this is the selectedUser.permissions");
-														// console.log("this is the selectedUser.permissions", Array.isArray(selectedUser.permissions) ? [...selectedUser.permissions] : []);
-														// console.log("this is the selectedUser.permissions");
-														// console.log("this is the selectedUser.permissions");
-														// updatedRow.newPermissions = Array.isArray(selectedUser.permissions) ? [...selectedUser.permissions] : [];
-														updatedRow.newPermissions = [...selectedUser.permissions];
-													}
-												} else {
-													// If cleared, reset to empty
-													updatedRow.id = "";
-													updatedRow.previousEmail = "";
-													updatedRow.employeeNum = "";
-													updatedRow.department = "";
-													updatedRow.name = "";
-													updatedRow.title = "";
-													updatedRow.description = "";
-													updatedRow.newRole = "";
-													updatedRow.newPermissions = [];
-												}
+											// 	if (selected) {
+											// 		const selectedUser = users.find((u) => u.id === selected.value);
+											// 		console.log("this is the selectedUser", selectedUser);
+											// 		if (selectedUser) {
+											// 			updatedRow.id = selectedUser.id;
+											// 			updatedRow.previousEmail = selectedUser.email || "";
+											// 			updatedRow.employeeNum = selectedUser.employeeNum || "";
+											// 			updatedRow.department = selectedUser.department || "";
+											// 			updatedRow.name = selectedUser.name || "";
+											// 			updatedRow.newRole = selectedUser.role || "";
+											// 			updatedRow.newPermissions = [...selectedUser.permissions];
+											// 		}
+											// 	} else {
+											// 		// If cleared, reset to empty
+											// 		updatedRow.id = "";
+											// 		updatedRow.previousEmail = "";
+											// 		updatedRow.employeeNum = "";
+											// 		updatedRow.department = "";
+											// 		updatedRow.name = "";
+											// 		updatedRow.title = "";
+											// 		updatedRow.description = "";
+											// 		updatedRow.newRole = "";
+											// 		updatedRow.newPermissions = [];
+											// 	}
 
-												newRows[index] = updatedRow;
-												return newRows;
-											});
+											// 	newRows[index] = updatedRow;
+											// 	return newRows;
+											// }
 										}}
 										placeholder={loading ? t("loading") : t("Select-user-by-name-email")}
 										isClearable={!row?.locked} //  Don't allow clearing if locked
@@ -677,74 +605,6 @@ export default function AdminUpdateMultipleUsers() {
 											}),
 										}}
 									/>
-
-									{/* <Select
-										className="form-row-top-select"
-										filterOption={customFilter}
-										classNamePrefix="update-form-row-select"
-										options={userOptions}
-										value={userOptions.find((opt) => opt.value === row?.id) || null}
-										onChange={(selected) => {
-											if (row?.locked) return; // Prevent changes if locked
-
-											setRows((prev) => {
-												const newRows = [...prev];
-												const updatedRow = { ...newRows[index] };
-
-												// Normalize first — guarantees array
-												updatedRow.newPermissions = Array.isArray(updatedRow.newPermissions) ? updatedRow.newPermissions : [];
-
-												if (selected) {
-													const selectedUser = users.find((u) => u.id === selected.value);
-
-													if (selectedUser) {
-														updatedRow.id = selectedUser.id;
-														updatedRow.previousEmail = selectedUser.email || "";
-														updatedRow.employeeNum = selectedUser.employeeNum || "";
-														updatedRow.department = selectedUser.department || "";
-														updatedRow.name = selectedUser.name || "";
-														updatedRow.title = selectedUser.job?.title || "";
-														updatedRow.description = selectedUser.job?.description || "";
-														updatedRow.newRole = selectedUser.role || "";
-
-														// ONLY selected user's permissions (array only)
-														updatedRow.newPermissions = Array.isArray(selectedUser.permissions) ? [...selectedUser.permissions] : [];
-													}
-												} else {
-													// If cleared, reset everything
-													updatedRow.id = "";
-													updatedRow.previousEmail = "";
-													updatedRow.employeeNum = "";
-													updatedRow.department = "";
-													updatedRow.name = "";
-													updatedRow.title = "";
-													updatedRow.description = "";
-													updatedRow.newRole = "";
-													updatedRow.newPermissions = [];
-												}
-
-												newRows[index] = updatedRow;
-												return newRows;
-											});
-										}}
-										placeholder={loading ? t("loading") : t("Select-user-by-name-email")}
-										isClearable={!row?.locked}
-										isSearchable={!row?.locked}
-										isDisabled={row?.locked || loading || blockInput}
-										styles={{
-											control: (base) => ({
-												...base,
-												borderRadius: "12px",
-												borderColor: row?.locked ? "gray" : "blue",
-												backgroundColor: row?.locked ? "#f5f5f5" : "white",
-											}),
-											option: (base, state) => ({
-												...base,
-												backgroundColor: state.isFocused ? "lightblue" : "white",
-												color: "black",
-											}),
-										}}
-									/> */}
 								</div>
 
 								{/* right side of the top container */}
@@ -753,17 +613,19 @@ export default function AdminUpdateMultipleUsers() {
 									<input type="text" name="previousEmail" value={row?.previousEmail} onChange={(e) => handleRowChange(index, e)} disabled={loading || blockInput} placeholder={t("Previous Email")} />
 								</div>
 
+								{/* you got to find a why to allow some sub admins to allow to edit departments and numbers (not a priority)  */}
+
 								<div className="form-row-top-left">
 									<label htmlFor="employeeNun">{t("employee-number")}</label>
 									<input
 										type="text"
 										name="employeeNum"
-										value={row?.employeeNum}
+										// value={row?.employeeNum}
 										onChange={(e) => {
 											(handleRowChange(index, e), console.log(row?.employeeNum));
 										}}
 										disabled={blockInput}
-										placeholder={t("employee-number")}
+										placeholder={row?.employeeNum || t("employee-number")}
 									/>
 								</div>
 
@@ -772,11 +634,11 @@ export default function AdminUpdateMultipleUsers() {
 									<input
 										type="text"
 										name="department"
-										value={row?.department}
+										// value={row?.department}
 										onChange={(e) => {
 											(handleRowChange(index, e), console.log(row?.department));
 										}}
-										placeholder={t("department")}
+										placeholder={row?.department || t("department")}
 										disabled={blockInput}
 									/>
 								</div>

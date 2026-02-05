@@ -31,16 +31,17 @@ const userResolver = {
 
 				// const users = await User.find(); // Fetch all users from DB
 
-				const users = await User.find().lean();
+				const users = await User.find();
+				// .lean();
 
 				console.log("all the users", users);
-				return users.map((u) => ({
-					...u,
-					id: u._id.toString(),
-					permissions: Array.isArray(u.permissions) ? u.permissions : [],
-				}));
+				// return users.map((u) => ({
+				// 	...u,
+				// 	id: u._id.toString(),
+				// 	permissions: Array.isArray(u.permissions) ? u.permissions : [],
+				// }));
 				// console.log("Users fetched by caller:", users); // Log fetched users
-				// return users; // Return users
+				return users; // Return users
 			} catch (error) {
 				console.error("Error fetching all users:", error); // Log error
 				throw error; // Rethrow error

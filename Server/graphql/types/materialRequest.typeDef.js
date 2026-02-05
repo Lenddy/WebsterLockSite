@@ -117,7 +117,7 @@ const materialRequestTypeDef = gql`
 		employeeNum: String
 		department: String
 		role: String
-		permissions: PermissionSnapshot
+		permissions: [String!]
 	}
 
 	type UserReviewerSnapshot { # Frozen reviewer info
@@ -127,36 +127,37 @@ const materialRequestTypeDef = gql`
 		employeeNum: String
 		department: String
 		role: String
-		permissions: PermissionSnapshot
+		permissions: [String!]
+		# permissions: PermissionSnapshot
 		comment: String
 		reviewedAt: String
 	}
 
-	# --- Permissions ---
-	type PermissionSnapshot { # Permissions at time of request
-		canEditUsers: Boolean
-		canDeleteUsers: Boolean
-		canChangeRole: Boolean
-		canViewUsers: Boolean
-		canViewAllUsers: Boolean
-		canEditSelf: Boolean
-		canViewSelf: Boolean
-		canDeleteSelf: Boolean
-		canRegisterUser: Boolean
-	}
+	# # --- Permissions ---
+	# type PermissionSnapshot { # Permissions at time of request
+	# 	canEditUsers: Boolean
+	# 	canDeleteUsers: Boolean
+	# 	canChangeRole: Boolean
+	# 	canViewUsers: Boolean
+	# 	canViewAllUsers: Boolean
+	# 	canEditSelf: Boolean
+	# 	canViewSelf: Boolean
+	# 	canDeleteSelf: Boolean
+	# 	canRegisterUser: Boolean
+	# }
 
-	input PermissionSnapshotInput { # Permissions at time of request
-		canEditUsers: Boolean
-		canDeleteUsers: Boolean
-		canChangeRole: Boolean
-		canViewUsers: Boolean
-		canViewAllUsers: Boolean
-		canEditSelf: Boolean
-		canViewSelf: Boolean
-		canDeleteSelf: Boolean
-		canNotBeUpdated: Boolean
-		canRegisterUser: Boolean
-	}
+	# input PermissionSnapshotInput { # Permissions at time of request
+	# 	canEditUsers: Boolean
+	# 	canDeleteUsers: Boolean
+	# 	canChangeRole: Boolean
+	# 	canViewUsers: Boolean
+	# 	canViewAllUsers: Boolean
+	# 	canEditSelf: Boolean
+	# 	canViewSelf: Boolean
+	# 	canDeleteSelf: Boolean
+	# 	canNotBeUpdated: Boolean
+	# 	canRegisterUser: Boolean
+	# }
 
 	# --- Action input ---
 	input Action { # Action to perform on item
@@ -172,7 +173,8 @@ const materialRequestTypeDef = gql`
 		employeeNum: String
 		department: String
 		role: String!
-		permissions: PermissionSnapshotInput
+		# permissions: PermissionSnapshotInput
+		permissions: [String!]
 	}
 
 	input createdManyMaterialRequestInput {

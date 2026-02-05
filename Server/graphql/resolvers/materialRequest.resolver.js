@@ -5,6 +5,8 @@ import pubsub from "../pubsub.js"; // PubSub instance for subscriptions
 import dayjs from "dayjs";
 import { withFilter } from "graphql-subscriptions";
 import cloneDeep from "lodash.clonedeep";
+import { can } from "../../isAdmin.js";
+import { roleRank } from "../../role.config.js";
 
 /**
  * GraphQL resolvers for MaterialRequest operations.
@@ -41,38 +43,54 @@ const materialRequestResolvers = {
 
 		getAllMaterialRequests: async (_, __, { user }) => {
 			try {
-				if (!user) throw new Error("Unauthorized: No user token was found.");
+				if (!user) {
+					throw new Error("Unauthorized: No user token was found.");
+				}
 
-				// Admins can view all
-				const isAdmin = ["headAdmin", "admin", "subAdmin"].includes(user.role);
+				// Admins with permission can read all
+				if (roleRank[user.role] >= 3 && can(user, "requests:read:any")) {
+					return await MaterialRequest.find();
+				}
 
-				const query = isAdmin ? {} : { "requester.userId": user.userId };
+				// Non-admins (or admins without read:any) can only read their own
+				if (can(user, "requests:read:own", { ownerId: user.userId })) {
+					return await MaterialRequest.find({
+						"requester.userId": user.userId,
+					});
+				}
 
-				const materialRequests = await MaterialRequest.find(query);
-
-				return materialRequests;
+				throw new ApolloError("Unauthorized: Cannot view material requests.");
 			} catch (error) {
-				console.log("Error fetching user's material requests:", error);
+				console.log("Error fetching material requests:", error);
 				throw error;
 			}
 		},
 
 		getOneMaterialRequest: async (_, { id }, { user }) => {
 			try {
-				if (!user) throw new Error("Unauthorized: No user token was found.");
-
-				const materialRequest = await MaterialRequest.findById(id);
-				if (!materialRequest) throw new Error("Material Request not found.");
-
-				const isAdmin = ["headAdmin", "admin", "subAdmin"].includes(user.role);
-
-				// Convert both sides to string for a reliable match
-				if (!isAdmin && String(materialRequest.requester.userId) !== String(user.userId)) {
-					throw new Error("Unauthorized: You do not have permission to view this request.");
+				if (!user) {
+					throw new Error("Unauthorized: No user token was found.");
 				}
 
-				// console.log("Authorized user, returning request:", materialRequest);
-				return materialRequest;
+				const materialRequest = await MaterialRequest.findById(id);
+				if (!materialRequest) {
+					throw new Error("Material Request not found.");
+				}
+
+				// const isAdmin = ["headAdmin", "admin", "subAdmin"].includes(user.role);
+				const ownerId = materialRequest.requester?.userId;
+
+				// Admins with read:any can view any request
+				if (roleRank[user.role] >= 3 && can(user, "requests:read:any")) {
+					return materialRequest;
+				}
+
+				// Owners with read:own can view their own request
+				if (can(user, "requests:read:own", { ownerId }) && String(ownerId) === String(user.userId)) {
+					return materialRequest;
+				}
+
+				throw new ApolloError("Unauthorized: You do not have permission to view this request.");
 			} catch (error) {
 				console.error("Error fetching one Material Request:", error);
 				throw error;
@@ -83,11 +101,22 @@ const materialRequestResolvers = {
 	// Mutation resolvers
 	Mutation: {
 		createOneMaterialRequest: async (_, { input: { description, items } }, { user }) => {
-			// return new ApolloError("testing error");
+			console.log("this is the users context ", user);
+			if (!user) {
+				throw new ApolloError("Unauthorized: no user context given.");
+			}
 
-			// Check if user context is provided (authentication)
-			if (!user) throw new ApolloError("Unauthorized: no user context given.");
+			//  Role-rank gate (cheap, fast check)
+			if (roleRank[user.role] < roleRank.user) {
+				throw new ApolloError("Unauthorized: insufficient role rank to create requests.");
+			}
 
+			// Permission gate (authoritative)
+			const canCreate = can(user, "requests:create:any") || can(user, "requests:create:own", { ownerId: user.userId });
+
+			if (!canCreate) {
+				throw new ApolloError("Unauthorized: you cannot create material requests.");
+			}
 			try {
 				// Normalize items array: create new objects for each item with itemName and quantity
 				const normalizedItems = items.map((item) => ({
@@ -110,7 +139,7 @@ const materialRequestResolvers = {
 					employeeNum: user.employeeNum,
 					department: user.department,
 					role: user.role, // Role of requester
-					permissions: { ...user.permissions }, // Permissions of requester (shallow copy)
+					permissions: [...user.permissions], // Permissions of requester (shallow copy)
 				};
 
 				// Create a new MaterialRequest document
@@ -162,7 +191,19 @@ const materialRequestResolvers = {
 		},
 
 		createMultipleMaterialRequests: async (_, { inputs }, { user }) => {
-			if (!user) throw new ApolloError("Unauthorized: no user context given.");
+			if (!user) {
+				throw new ApolloError("Unauthorized: no user context given.");
+			}
+
+			//  Role-rank gate (bulk operations are admin-only)
+			if (roleRank[user.role] < 3) {
+				throw new ApolloError("Unauthorized: insufficient role rank for bulk creation.");
+			}
+
+			//  Permission gate (must be create:any)
+			if (!can(user, "requests:create:any")) {
+				throw new ApolloError("Unauthorized: you cannot create multiple material requests.");
+			}
 
 			try {
 				const materialRequests = inputs.map(({ requester, description, items, addedDate }) => {
@@ -183,7 +224,7 @@ const materialRequestResolvers = {
 							employeeNum: requester.employeeNum,
 							department: requester.department,
 							role: requester.role,
-							permissions: { ...requester.permissions },
+							permissions: [...requester.permissions],
 						},
 						reviewers: [],
 						description,
@@ -234,238 +275,260 @@ const materialRequestResolvers = {
 			}
 		},
 
+		// updateOneMaterialRequest: async (_, { input: { id, description, items, approvalStatus, comment, requesterId } }, { user, pubsub }) => {
+		// 	console.log("users id ", user.userId);
+		// 	console.log("requesters info", requesterId);
+		// 	try {
+		// 		if (!user) throw new ApolloError("Unauthorized: No user context.");
+
+		// 		//! here it is saying that even if the id of the users and the requester match it will not work because  of the validation checking if they have permission to edit other users      find a solution to this
+
+		// 		// (!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole" || (!user.permissions.canEditUsers &&
+
+		// 		// console.log(user.userId !== requesterId);
+		// 		// console.log(!user?.permissions?.canEditUsers);
+
+		// 		// if (user.userId !== requesterId || user?.permissions?.canEditUsers === false) {
+		// 		// 	throw new ApolloError("Unauthorized: You lack permission.");
+		// 		// }
+
+		// 		const isOwner = user.userId.toString() === requesterId.toString();
+		// 		const canUpdate = user.permissions?.canEditUsers === true && ["headAdmin", "admin", "subAdmin"].includes(user.role);
+
+		// 		if (!isOwner && !canUpdate) {
+		// 			throw new ApolloError("Unauthorized: You lack permission.");
+		// 		}
+
+		// 		const target = await MaterialRequest.findById(id);
+		// 		if (!target) throw new ApolloError("Material request was not found");
+
+		// 		let shouldSave = false;
+
+		// 		if (description) {
+		// 			target.description = description;
+		// 			shouldSave = true;
+		// 		}
+
+		// 		if ((approvalStatus?.isApproved !== null && approvalStatus?.isApproved === false) || approvalStatus?.isApproved === true) {
+		// 			console.log(`request was ${approvalStatus?.isApproved === false ? "Denied" : "Approved"} `, approvalStatus?.isApproved);
+		// 			target.approvalStatus.approvedBy.userId = user.userId;
+		// 			target.approvalStatus.approvedBy.name = user.name;
+		// 			target.approvalStatus.approvedBy.email = user.email;
+		// 			target.approvalStatus.approvedBy.employeeNum = user.employeeNum;
+		// 			target.approvalStatus.approvedBy.department = user.department;
+		// 			target.approvalStatus.approvedAt = target.approvalStatus.approvedAt ? target.approvalStatus.approvedAt : dayjs().toISOString();
+		// 			target.approvalStatus.isApproved = approvalStatus.isApproved;
+		// 			shouldSave = true;
+		// 		}
+
+		// 		// ensure reviewer is tracked or update their comment
+		// 		const existingReviewer = target.reviewers.find((r) => r.userId.toString() === user.userId.toString());
+
+		// 		// If reviewer is new
+		// 		if (!existingReviewer) {
+		// 			target.reviewers.push({
+		// 				userId: user.userId,
+		// 				email: user.email,
+		// 				name: user.name,
+		// 				role: user.role,
+		// 				permissions: [...user.permissions ],
+		// 				comment: comment ? comment : undefined,
+		// 				reviewedAt: new Date(), //  set when first added
+		// 			});
+		// 			shouldSave = true;
+		// 		} else {
+		// 			// If reviewer exists and updates comment
+		// 			if (comment) {
+		// 				existingReviewer.comment = comment;
+		// 				existingReviewer.reviewedAt = new Date(); //  update reviewedAt on comment
+		// 				shouldSave = true;
+		// 			}
+		// 		}
+
+		// 		// permissions check
+		// 		const isReviewer = target.reviewers.some((r) => r.userId.toString() === user.userId.toString());
+
+		// 		//  you need to make sure that if the  material request is approved the techs (none admins cant keeps changing their request)
+		// 		// the condition bellow must be change so that it checks if the  request has been approved or not  to check if the users id is === to the requesters id
+		// 		const isAdmin = user.UserId === requesterId || user.permissions.canEditUsers || user.role === "headAdmin";
+		// 		if (!isReviewer && !isAdmin) {
+		// 			throw new ApolloError("Unauthorized: You lack permission to update this request.");
+		// 		}
+
+		// 		const bulkOps = [];
+
+		// 		if (Array.isArray(items)) {
+		// 			for (const item of items) {
+		// 				const { id: itemId, itemName, quantity, itemDescription, color, side, size, action } = item;
+
+		// 				if (action.toBeAdded === true) {
+		// 					bulkOps.push({
+		// 						updateOne: {
+		// 							filter: { _id: id },
+		// 							update: { $push: { items: { quantity, itemName, itemDescription, color, side, size } } },
+		// 						},
+		// 					});
+		// 				} else if (action.toBeUpdated === true && itemId) {
+		// 					bulkOps.push({
+		// 						updateOne: {
+		// 							filter: { _id: id, "items._id": itemId },
+		// 							update: { $set: { "items.$.quantity": quantity, "items.$.itemName": itemName, "items.$.itemDescription": itemDescription, "items.$.color": color, "items.$.side": side, "items.$.size": size } },
+		// 						},
+		// 					});
+		// 				} else if (action.toBeDeleted === true && itemId) {
+		// 					bulkOps.push({
+		// 						updateOne: {
+		// 							filter: { _id: id },
+		// 							update: { $pull: { items: { _id: itemId } } },
+		// 						},
+		// 					});
+		// 				}
+		// 			}
+		// 		}
+
+		// 		console.dir(target, { depth: null });
+
+		// 		await Promise.all([shouldSave ? target.save() : null, bulkOps.length > 0 ? MaterialRequest.bulkWrite(bulkOps) : null]);
+
+		// 		// Fetch updated document
+		// 		const updatedTarget = await MaterialRequest.findById(id);
+
+		// 		// Convert it to a pure JSON-safe object
+		// 		const payload = {
+		// 			...updatedTarget.toObject(),
+		// 			id: updatedTarget._id.toString(),
+		// 			items: updatedTarget.items.map((item) => ({
+		// 				id: item._id.toString(),
+		// 				itemName: item.itemName,
+		// 				quantity: item.quantity,
+		// 				itemDescription: item.itemDescription ?? null,
+		// 				color: item.color ?? null,
+		// 				side: item.side ?? null,
+		// 				size: item.size ?? null,
+		// 			})),
+		// 		};
+
+		// 		// Publish the update event through RedisPubSub
+		// 		await pubsub.publish("MATERIAL_REQUEST_UPDATED", {
+		// 			onMaterialRequestChange: {
+		// 				eventType: "updated",
+		// 				changeType: "single",
+		// 				change: payload,
+		// 			},
+		// 		});
+
+		// 		return updatedTarget;
+		// 	} catch (error) {
+		// 		console.error("Error updating material request:", error);
+		// 		throw error;
+		// 	}
+		// },
+
 		updateOneMaterialRequest: async (_, { input: { id, description, items, approvalStatus, comment, requesterId } }, { user, pubsub }) => {
-			console.log("users id ", user.userId);
+			console.log("users id ", user?.userId);
 			console.log("requesters info", requesterId);
+
 			try {
 				if (!user) throw new ApolloError("Unauthorized: No user context.");
-
-				//! here it is saying that even if the id of the users and the requester match it will not work because  of the validation checking if they have permission to edit other users      find a solution to this
-
-				// (!user.permissions.canEditUsers && user.role === "user") || user.role === "noRole" || (!user.permissions.canEditUsers &&
-
-				// console.log(user.userId !== requesterId);
-				// console.log(!user?.permissions?.canEditUsers);
-
-				// if (user.userId !== requesterId || user?.permissions?.canEditUsers === false) {
-				// 	throw new ApolloError("Unauthorized: You lack permission.");
-				// }
-
-				const isOwner = user.userId.toString() === requesterId.toString();
-				const canUpdate = user.permissions?.canEditUsers === true && ["headAdmin", "admin", "subAdmin"].includes(user.role);
-
-				if (!isOwner && !canUpdate) {
-					throw new ApolloError("Unauthorized: You lack permission.");
-				}
 
 				const target = await MaterialRequest.findById(id);
 				if (!target) throw new ApolloError("Material request was not found");
 
+				// ===============================
+				//  PERMISSION FLAGS (FIXED)
+				// ===============================
+				const isOwner = user.userId;
+				// .toString() === requesterId.toString();
+
+				const isAdmin = roleRank >= 3 && can("requests:update:any");
+
+				const isApproved = target.approvalStatus?.isApproved === true;
+
+				//  Techs cannot modify after approval
+				if (isApproved && isOwner && !isAdmin) {
+					throw new ApolloError("This request has already been approved and can no longer be modified.");
+				}
+
+				// Non-owner & non-admin blocked
+				if (!isOwner && !isAdmin) {
+					throw new ApolloError("Unauthorized: You lack permission.");
+				}
+
 				let shouldSave = false;
 
+				// ===============================
+				//  DESCRIPTION UPDATE
+				// ===============================
 				if (description) {
 					target.description = description;
 					shouldSave = true;
 				}
 
-				if ((approvalStatus?.isApproved !== null && approvalStatus?.isApproved === false) || approvalStatus?.isApproved === true) {
-					console.log(`request was ${approvalStatus?.isApproved === false ? "Denied" : "Approved"} `, approvalStatus?.isApproved);
-					target.approvalStatus.approvedBy.userId = user.userId;
-					target.approvalStatus.approvedBy.name = user.name;
-					target.approvalStatus.approvedBy.email = user.email;
-					target.approvalStatus.approvedBy.employeeNum = user.employeeNum;
-					target.approvalStatus.approvedBy.department = user.department;
-					target.approvalStatus.approvedAt = target.approvalStatus.approvedAt ? target.approvalStatus.approvedAt : dayjs().toISOString();
+				// ===============================
+				//  APPROVAL UPDATE (ADMIN / REVIEWER)
+				// ===============================
+				if (approvalStatus && typeof approvalStatus.isApproved === "boolean") {
+					console.log(`request was ${approvalStatus.isApproved ? "Approved" : "Denied"}`);
+
+					target.approvalStatus.approvedBy = {
+						userId: user.userId,
+						name: user.name,
+						email: user.email,
+						employeeNum: user.employeeNum,
+						department: user.department,
+					};
+
+					target.approvalStatus.approvedAt = target.approvalStatus.approvedAt || dayjs().toISOString();
+
 					target.approvalStatus.isApproved = approvalStatus.isApproved;
 					shouldSave = true;
 				}
 
-				// ensure reviewer is tracked or update their comment
+				// ===============================
+				//  REVIEWER TRACKING / COMMENT
+				// ===============================
 				const existingReviewer = target.reviewers.find((r) => r.userId.toString() === user.userId.toString());
 
-				// If reviewer is new
 				if (!existingReviewer) {
 					target.reviewers.push({
 						userId: user.userId,
 						email: user.email,
 						name: user.name,
 						role: user.role,
-						permissions: { ...user.permissions },
-						comment: comment ? comment : undefined,
-						reviewedAt: new Date(), //  set when first added
-					});
-					shouldSave = true;
-				} else {
-					// If reviewer exists and updates comment
-					if (comment) {
-						existingReviewer.comment = comment;
-						existingReviewer.reviewedAt = new Date(); //  update reviewedAt on comment
-						shouldSave = true;
-					}
-				}
-
-				// permissions check
-				const isReviewer = target.reviewers.some((r) => r.userId.toString() === user.userId.toString());
-
-				//  you need to make sure that if the  material request is approved the techs (none admins cant keeps changing their request)
-				// the condition bellow must be change so that it checks if the  request has been approved or not  to check if the users id is === to the requesters id
-				const isAdmin = user.UserId === requesterId || user.permissions.canEditUsers || user.role === "headAdmin";
-				if (!isReviewer && !isAdmin) {
-					throw new ApolloError("Unauthorized: You lack permission to update this request.");
-				}
-
-				const bulkOps = [];
-
-				if (Array.isArray(items)) {
-					for (const item of items) {
-						const { id: itemId, itemName, quantity, itemDescription, color, side, size, action } = item;
-
-						if (action.toBeAdded === true) {
-							bulkOps.push({
-								updateOne: {
-									filter: { _id: id },
-									update: { $push: { items: { quantity, itemName, itemDescription, color, side, size } } },
-								},
-							});
-						} else if (action.toBeUpdated === true && itemId) {
-							bulkOps.push({
-								updateOne: {
-									filter: { _id: id, "items._id": itemId },
-									update: { $set: { "items.$.quantity": quantity, "items.$.itemName": itemName, "items.$.itemDescription": itemDescription, "items.$.color": color, "items.$.side": side, "items.$.size": size } },
-								},
-							});
-						} else if (action.toBeDeleted === true && itemId) {
-							bulkOps.push({
-								updateOne: {
-									filter: { _id: id },
-									update: { $pull: { items: { _id: itemId } } },
-								},
-							});
-						}
-					}
-				}
-
-				console.dir(target, { depth: null });
-
-				await Promise.all([shouldSave ? target.save() : null, bulkOps.length > 0 ? MaterialRequest.bulkWrite(bulkOps) : null]);
-
-				// Fetch updated document
-				const updatedTarget = await MaterialRequest.findById(id);
-
-				// Convert it to a pure JSON-safe object
-				const payload = {
-					...updatedTarget.toObject(),
-					id: updatedTarget._id.toString(),
-					items: updatedTarget.items.map((item) => ({
-						id: item._id.toString(),
-						itemName: item.itemName,
-						quantity: item.quantity,
-						itemDescription: item.itemDescription ?? null,
-						color: item.color ?? null,
-						side: item.side ?? null,
-						size: item.size ?? null,
-					})),
-				};
-
-				// Publish the update event through RedisPubSub
-				await pubsub.publish("MATERIAL_REQUEST_UPDATED", {
-					onMaterialRequestChange: {
-						eventType: "updated",
-						changeType: "single",
-						change: payload,
-					},
-				});
-
-				return updatedTarget;
-			} catch (error) {
-				console.error("Error updating material request:", error);
-				throw error;
-			}
-		},
-
-		updateMultipleMaterialRequests: async (_, { inputs }, { user, pubsub }) => {
-			// !!!!!!!! use dayjs  for dates
-
-			if (!user) throw new ApolloError("Unauthorized: No user context.");
-
-			if (!Array.isArray(inputs) || inputs.length === 0) {
-				throw new ApolloError("No inputs provided for update.");
-			}
-
-			const bulkOps = [];
-			const requestIds = inputs.map((i) => i.id);
-
-			// Fetch all targets in one go
-			const targets = await MaterialRequest.find({ _id: { $in: requestIds } });
-			const targetsMap = Object.fromEntries(targets.map((t) => [t._id.toString(), t]));
-
-			for (const input of inputs) {
-				const { id, description, items, approvalStatus, comment } = input;
-				const target = targetsMap[id];
-				if (!target) continue;
-
-				// Prepare $set updates for description, approvalStatus, reviewers
-				const updateSet = {};
-
-				// Description update
-				if (description) updateSet.description = description;
-
-				// Approval update
-
-				if ((approvalStatus.isApproved !== null && approvalStatus.isApproved === false) || approvalStatus.isApproved === true) {
-					console.log(`request was ${approvalStatus?.isApproved === false ? "Denied" : "Approved"} `, approvalStatus?.isApproved);
-
-					// if (approvalStatus?.isApproved) {
-					updateSet.approvalStatus.isApproved = approvalStatus?.isApproved;
-					updateSet.approvalStatus.approvedBy.userId = user.userId;
-					updateSet.approvalStatus.approvedBy.name = user.name;
-					updateSet.approvalStatus.approvedBy.email = user.email;
-					updateSet.approvalStatus.approvedBy.employeeNum = user.employeeNum;
-					updateSet.approvalStatus.approvedBy.department = user.department;
-					updateSet.approvalStatus.approvedAt = Date.now();
-				}
-
-				// Reviewers: merge existing and new comment/reviewer
-				const existingReviewer = target.reviewers.find((r) => r.userId.toString() === user.userId.toString());
-				const updatedReviewers = [...target.reviewers];
-
-				if (!existingReviewer) {
-					updatedReviewers.push({
-						userId: user.userId,
-						email: user.email,
-						name: user.name,
-						role: user.role,
-						employeeNum: user.employeeNum,
-						department: user.department,
-						permissions: { ...user.permissions },
+						permissions: [...user.permissions],
 						comment: comment || undefined,
 						reviewedAt: new Date(),
 					});
+					shouldSave = true;
 				} else if (comment) {
 					existingReviewer.comment = comment;
 					existingReviewer.reviewedAt = new Date();
+					shouldSave = true;
 				}
 
-				updateSet.reviewers = updatedReviewers;
+				// ===============================
+				// ITEMS UPDATE (LOCKED IF APPROVED)
+				// ===============================
+				const bulkOps = [];
 
-				// First, handle description/reviewer/approval updates
-				bulkOps.push({
-					updateOne: { filter: { _id: id }, update: { $set: updateSet } },
-				});
-
-				// Handle items: add/update/delete
-				if (Array.isArray(items)) {
+				if (!isApproved && Array.isArray(items)) {
 					for (const item of items) {
-						const { id: itemId, itemName, quantity, color, side, size, itemDescription, action } = item;
+						const { id: itemId, itemName, quantity, itemDescription, color, side, size, action } = item;
 
-						if (action.toBeAdded) {
+						if (action?.toBeAdded) {
 							bulkOps.push({
 								updateOne: {
 									filter: { _id: id },
-									update: { $push: { items: { quantity, itemName, itemDescription, color, side, size } } },
+									update: {
+										$push: {
+											items: { quantity, itemName, itemDescription, color, side, size },
+										},
+									},
 								},
 							});
-						} else if (action.toBeUpdated && itemId) {
+						}
+
+						if (action?.toBeUpdated && itemId) {
 							bulkOps.push({
 								updateOne: {
 									filter: { _id: id, "items._id": itemId },
@@ -481,7 +544,9 @@ const materialRequestResolvers = {
 									},
 								},
 							});
-						} else if (action.toBeDeleted && itemId) {
+						}
+
+						if (action?.toBeDeleted && itemId) {
 							bulkOps.push({
 								updateOne: {
 									filter: { _id: id },
@@ -491,18 +556,378 @@ const materialRequestResolvers = {
 						}
 					}
 				}
+
+				console.dir(target, { depth: null });
+
+				await Promise.all([shouldSave ? target.save() : null, bulkOps.length ? MaterialRequest.bulkWrite(bulkOps) : null]);
+
+				const updatedTarget = await MaterialRequest.findById(id);
+
+				const payload = {
+					...updatedTarget.toObject(),
+					id: updatedTarget._id.toString(),
+					items: updatedTarget.items.map((item) => ({
+						id: item._id.toString(),
+						itemName: item.itemName,
+						quantity: item.quantity,
+						itemDescription: item.itemDescription ?? null,
+						color: item.color ?? null,
+						side: item.side ?? null,
+						size: item.size ?? null,
+					})),
+				};
+
+				await pubsub.publish("MATERIAL_REQUEST_UPDATED", {
+					onMaterialRequestChange: {
+						eventType: "updated",
+						changeType: "single",
+						change: payload,
+					},
+				});
+
+				return updatedTarget;
+			} catch (error) {
+				console.error("Error updating material request:", error);
+				throw error;
+			}
+		},
+
+		// updateMultipleMaterialRequests: async (_, { inputs }, { user, pubsub }) => {
+		// 	// !!!!!!!! use dayjs  for dates
+
+		// 	if (!user) throw new ApolloError("Unauthorized: No user context.");
+
+		// 	if (!Array.isArray(inputs) || inputs.length === 0) {
+		// 		throw new ApolloError("No inputs provided for update.");
+		// 	}
+
+		// 	const bulkOps = [];
+		// 	const requestIds = inputs.map((i) => i.id);
+
+		// 	// Fetch all targets in one go
+		// 	const targets = await MaterialRequest.find({ _id: { $in: requestIds } });
+		// 	const targetsMap = Object.fromEntries(targets.map((t) => [t._id.toString(), t]));
+
+		// 	for (const input of inputs) {
+		// 		const { id, description, items, approvalStatus, comment } = input;
+		// 		const target = targetsMap[id];
+		// 		if (!target) continue;
+
+		// 		// Prepare $set updates for description, approvalStatus, reviewers
+		// 		const updateSet = {};
+
+		// 		// Description update
+		// 		if (description) updateSet.description = description;
+
+		// 		// Approval update
+
+		// 		if ((approvalStatus.isApproved !== null && approvalStatus.isApproved === false) || approvalStatus.isApproved === true) {
+		// 			console.log(`request was ${approvalStatus?.isApproved === false ? "Denied" : "Approved"} `, approvalStatus?.isApproved);
+
+		// 			// if (approvalStatus?.isApproved) {
+		// 			updateSet.approvalStatus.isApproved = approvalStatus?.isApproved;
+		// 			updateSet.approvalStatus.approvedBy.userId = user.userId;
+		// 			updateSet.approvalStatus.approvedBy.name = user.name;
+		// 			updateSet.approvalStatus.approvedBy.email = user.email;
+		// 			updateSet.approvalStatus.approvedBy.employeeNum = user.employeeNum;
+		// 			updateSet.approvalStatus.approvedBy.department = user.department;
+		// 			updateSet.approvalStatus.approvedAt = Date.now();
+		// 		}
+
+		// 		// Reviewers: merge existing and new comment/reviewer
+		// 		const existingReviewer = target.reviewers.find((r) => r.userId.toString() === user.userId.toString());
+		// 		const updatedReviewers = [...target.reviewers];
+
+		// 		if (!existingReviewer) {
+		// 			updatedReviewers.push({
+		// 				userId: user.userId,
+		// 				email: user.email,
+		// 				name: user.name,
+		// 				role: user.role,
+		// 				employeeNum: user.employeeNum,
+		// 				department: user.department,
+		// 				permissions: { ...user.permissions },
+		// 				comment: comment || undefined,
+		// 				reviewedAt: new Date(),
+		// 			});
+		// 		} else if (comment) {
+		// 			existingReviewer.comment = comment;
+		// 			existingReviewer.reviewedAt = new Date();
+		// 		}
+
+		// 		updateSet.reviewers = updatedReviewers;
+
+		// 		// First, handle description/reviewer/approval updates
+		// 		bulkOps.push({
+		// 			updateOne: { filter: { _id: id }, update: { $set: updateSet } },
+		// 		});
+
+		// 		// Handle items: add/update/delete
+		// 		if (Array.isArray(items)) {
+		// 			for (const item of items) {
+		// 				const { id: itemId, itemName, quantity, color, side, size, itemDescription, action } = item;
+
+		// 				if (action.toBeAdded) {
+		// 					bulkOps.push({
+		// 						updateOne: {
+		// 							filter: { _id: id },
+		// 							update: { $push: { items: { quantity, itemName, itemDescription, color, side, size } } },
+		// 						},
+		// 					});
+		// 				} else if (action.toBeUpdated && itemId) {
+		// 					bulkOps.push({
+		// 						updateOne: {
+		// 							filter: { _id: id, "items._id": itemId },
+		// 							update: {
+		// 								$set: {
+		// 									"items.$.quantity": quantity,
+		// 									"items.$.itemName": itemName,
+		// 									"items.$.itemDescription": itemDescription,
+		// 									"items.$.color": color,
+		// 									"items.$.side": side,
+		// 									"items.$.size": size,
+		// 								},
+		// 							},
+		// 						},
+		// 					});
+		// 				} else if (action.toBeDeleted && itemId) {
+		// 					bulkOps.push({
+		// 						updateOne: {
+		// 							filter: { _id: id },
+		// 							update: { $pull: { items: { _id: itemId } } },
+		// 						},
+		// 					});
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+
+		// 	if (bulkOps.length > 0) {
+		// 		await MaterialRequest.bulkWrite(bulkOps); // SINGLE call for all requests
+		// 	} else {
+		// 		throw new ApolloError("No updates were required.");
+		// 	}
+
+		// 	// Fetch updated records in one query
+		// 	const updatedRequests = await MaterialRequest.find({ _id: { $in: requestIds } });
+
+		// 	// Prepare payload array (JSON-safe)
+		// 	const payloadArray = updatedRequests.map((r) => ({
+		// 		...r.toObject(),
+		// 		id: r._id.toString(),
+		// 		items: r.items.map((item) => ({
+		// 			id: item._id.toString(),
+		// 			itemName: item.itemName,
+		// 			quantity: item.quantity,
+		// 			itemDescription: item.itemDescription ?? null,
+		// 			color: item.color ?? null,
+		// 			side: item.side ?? null,
+		// 			size: item.size ?? null,
+		// 		})),
+		// 	}));
+
+		// 	const changeType = updatedRequests.length > 1 ? "multiple" : "single";
+		// 	// console.log("length", changeType);
+		// 	// console.log("this is the info", payloadArray);
+
+		// 	const changes = changeType === "multiple" ? payloadArray : payloadArray[0];
+
+		// 	// Publish as a single bulk event
+		// 	await pubsub.publish("MATERIAL_REQUEST_UPDATED", {
+		// 		onMaterialRequestChange: {
+		// 			eventType: "updated",
+		// 			changeType: changeType,
+		// 			...(changeType === "multiple" ? { changes: changes } : { change: changes }),
+		// 		},
+		// 	});
+
+		// 	return updatedRequests;
+		// },
+
+		// TODO  THE RESOLVER IS WORKING BUT IT STILL LETS A USER THAT IS NOT A ADMIN  EDIT
+		updateMultipleMaterialRequests: async (_, { inputs }, { user, pubsub }) => {
+			console.log("this is the users context", user);
+			if (!user) throw new ApolloError("Unauthorized: No user context.");
+
+			if (!Array.isArray(inputs) || inputs.length === 0) {
+				throw new ApolloError("No inputs provided for update.");
 			}
 
-			if (bulkOps.length > 0) {
-				await MaterialRequest.bulkWrite(bulkOps); // SINGLE call for all requests
-			} else {
+			const requestIds = inputs.map((i) => i.id);
+
+			const targets = await MaterialRequest.find({
+				_id: { $in: requestIds },
+			});
+
+			const targetsMap = Object.fromEntries(targets.map((t) => [t._id.toString(), t]));
+			console.log("this are the target", targetsMap);
+
+			const bulkOps = [];
+
+			for (const input of inputs) {
+				const { id, description, items, approvalStatus, comment } = input;
+				const target = targetsMap[id];
+				if (!target) continue;
+
+				// ===============================
+				// PERMISSIONS (SAME AS SINGLE)
+				// ===============================
+				const isOwner = user.userId.toString() === target.requester.userId.toString();
+
+				const isAdmin = roleRank[user.role] >= 3 && can(user, "requests:update:any");
+				console.log("THIS IS ADMIN", isAdmin);
+
+				const isApproved = target.approvalStatus?.isApproved === true;
+
+				if (isApproved && !isOwner && !isAdmin) {
+					throw new ApolloError(`Request ${id} is already approved and cannot be modified.`);
+				}
+
+				// if (isApproved && !isAdmin) {
+				// 	throw new ApolloError(`Request ${id} is already approved and cannot be modified.`);
+				// }
+
+				if (!isOwner && !isAdmin) {
+					throw new ApolloError(`Unauthorized to update request ${id}.`);
+				}
+
+				const updateSet = {};
+				let hasUpdate = false;
+
+				// ===============================
+				// DESCRIPTION
+				// ===============================
+				if (description) {
+					updateSet.description = description;
+					hasUpdate = true;
+				}
+
+				// ===============================
+				// APPROVAL (ADMIN ONLY)
+				// ===============================
+				if (approvalStatus && typeof approvalStatus.isApproved === "boolean") {
+					if (!isAdmin) {
+						throw new ApolloError("Only admins can approve or deny requests.");
+					}
+
+					updateSet.approvalStatus = {
+						isApproved: approvalStatus.isApproved,
+						approvedBy: {
+							userId: user.userId,
+							name: user.name,
+							email: user.email,
+							employeeNum: user.employeeNum,
+							department: user.department,
+						},
+						approvedAt: target.approvalStatus?.approvedAt || dayjs().toISOString(),
+					};
+
+					hasUpdate = true;
+				}
+
+				// ===============================
+				// REVIEWERS
+				// ===============================
+				const reviewers = [...target.reviewers];
+				const existingReviewer = reviewers.find((r) => r.userId.toString() === user.userId.toString());
+
+				if (!existingReviewer) {
+					reviewers.push({
+						userId: user.userId,
+						email: user.email,
+						name: user.name,
+						role: user.role,
+						permissions: [...user.permissions],
+						comment: comment || undefined,
+						reviewedAt: new Date(),
+					});
+					hasUpdate = true;
+				} else if (comment) {
+					existingReviewer.comment = comment;
+					existingReviewer.reviewedAt = new Date();
+					hasUpdate = true;
+				}
+
+				if (hasUpdate) {
+					updateSet.reviewers = reviewers;
+
+					bulkOps.push({
+						updateOne: {
+							filter: { _id: id },
+							update: { $set: updateSet },
+						},
+					});
+				}
+
+				// ===============================
+				// ITEMS (BLOCKED IF APPROVED)
+				// ===============================
+				if (!isApproved && Array.isArray(items)) {
+					for (const item of items) {
+						const { id: itemId, itemName, quantity, itemDescription, color, side, size, action } = item;
+
+						if (action?.toBeAdded) {
+							bulkOps.push({
+								updateOne: {
+									filter: { _id: id },
+									update: {
+										$push: {
+											items: {
+												quantity,
+												itemName,
+												itemDescription,
+												color,
+												side,
+												size,
+											},
+										},
+									},
+								},
+							});
+						}
+
+						if (action?.toBeUpdated && itemId) {
+							bulkOps.push({
+								updateOne: {
+									filter: { _id: id, "items._id": itemId },
+									update: {
+										$set: {
+											"items.$.quantity": quantity,
+											"items.$.itemName": itemName,
+											"items.$.itemDescription": itemDescription,
+											"items.$.color": color,
+											"items.$.side": side,
+											"items.$.size": size,
+										},
+									},
+								},
+							});
+						}
+
+						if (action?.toBeDeleted && itemId) {
+							bulkOps.push({
+								updateOne: {
+									filter: { _id: id },
+									update: {
+										$pull: { items: { _id: itemId } },
+									},
+								},
+							});
+						}
+					}
+				}
+			}
+
+			if (!bulkOps.length) {
 				throw new ApolloError("No updates were required.");
 			}
 
-			// Fetch updated records in one query
-			const updatedRequests = await MaterialRequest.find({ _id: { $in: requestIds } });
+			await MaterialRequest.bulkWrite(bulkOps);
 
-			// Prepare payload array (JSON-safe)
+			const updatedRequests = await MaterialRequest.find({
+				_id: { $in: requestIds },
+			});
+
 			const payloadArray = updatedRequests.map((r) => ({
 				...r.toObject(),
 				id: r._id.toString(),
@@ -517,18 +942,11 @@ const materialRequestResolvers = {
 				})),
 			}));
 
-			const changeType = updatedRequests.length > 1 ? "multiple" : "single";
-			// console.log("length", changeType);
-			// console.log("this is the info", payloadArray);
-
-			const changes = changeType === "multiple" ? payloadArray : payloadArray[0];
-
-			// Publish as a single bulk event
 			await pubsub.publish("MATERIAL_REQUEST_UPDATED", {
 				onMaterialRequestChange: {
 					eventType: "updated",
-					changeType: changeType,
-					...(changeType === "multiple" ? { changes: changes } : { change: changes }),
+					changeType: "multiple",
+					changes: payloadArray,
 				},
 			});
 

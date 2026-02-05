@@ -10,6 +10,7 @@ import { useAuth } from "../../context/AuthContext"; // <-- use context
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
+import { scopeDisplayName } from "../utilities/role.config";
 // import { useUsers } from "../../../context/UsersContext";
 
 export default function GetOneUser() {
@@ -276,26 +277,18 @@ export default function GetOneUser() {
 									<div>
 										<h3>{t("user-actions")}:</h3>
 										<ul>
-											this could be the issue
-											{/* {Object.entries(user?.permissions || {})
-												.filter(([k, v]) => k !== "__typename" && v === true && k.includes("Users"))
-												.map(([k]) => (
-													<li key={k}>{formatKey(k) || "N/A"}</li>
-												))} */}
+											{user?.permissions?.map((perm) => {
+												return <li key={perm}>{scopeDisplayName(perm, t)}</li>;
+											})}
 										</ul>
 									</div>
 
-									<div>
+									{/* <div>
 										<h3>{t("self-actions")}:</h3>
 										<ul>
-											this could be the issue
-											{/* {Object.entries(user?.permissions || {})
-												.filter(([k, v]) => k !== "__typename" && v === true && k.includes("Self"))
-												.map(([k]) => (
-													<li key={k}>{formatKey(k)}</li>
-												))} */}
+										
 										</ul>
-									</div>
+									</div> */}
 								</div>
 							</div>
 						</div>

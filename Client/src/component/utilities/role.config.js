@@ -46,6 +46,7 @@ export const ROLE_PERMISSIONS = {
 			"requests:read:any",
 			"requests:create:any",
 			"requests:update:any",
+			"requests:delete:own",
 			// items
 		],
 

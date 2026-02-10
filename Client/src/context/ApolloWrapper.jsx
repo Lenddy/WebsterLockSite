@@ -133,37 +133,6 @@ export default function ApolloWrapper({ children }) {
 									});
 								},
 							},
-
-							// items: {
-							// 	merge(existing = [], incoming, { readField }) {
-							// 		// If no incoming data, keep existing
-							// 		if (!incoming || incoming.length === 0) return existing;
-
-							// 		const mergedMap = new Map();
-
-							// 		// 1️ Start by adding all existing items
-							// 		for (const item of existing) {
-							// 			const id = readField("id", item) || item.id;
-							// 			if (id) mergedMap.set(id, item);
-							// 		}
-
-							// 		// 2️ Merge or add incoming items
-							// 		for (const item of incoming) {
-							// 			const id = readField("id", item) || item.id;
-							// 			if (!id) continue; // skip items without IDs
-							// 			mergedMap.set(id, { ...mergedMap.get(id), ...item });
-							// 		}
-
-							// 		// 3️ Remove any items not present in the incoming list
-							// 		const incomingIds = new Set(incoming.map((item) => readField("id", item) || item.id));
-							// 		for (const id of mergedMap.keys()) {
-							// 			if (!incomingIds.has(id)) mergedMap.delete(id);
-							// 		}
-
-							// 		// 4️ Return merged array (preserves order from incoming)
-							// 		return incoming.map((item) => mergedMap.get(readField("id", item) || item.id));
-							// 	},
-							// },
 						},
 					},
 

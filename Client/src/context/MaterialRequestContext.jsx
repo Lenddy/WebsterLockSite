@@ -83,27 +83,6 @@ export function MaterialRequestsProvider({ children }) {
 
 								const idx = newRefs.findIndex((ref) => readField("id", ref) === item.id);
 								if (idx > -1 && eventType === "updated") {
-									// newRefs[idx] = client.cache.writeFragment({
-									// 	data: item,
-									// 	fragment: gql`
-									// 		fragment UpdatedRequest on MaterialRequest {
-									// 			id
-									// 			items {
-									// 				id
-									// 				itemName
-									// 				quantity
-									// 			}
-									// 			requester {
-									// 				userId
-									// 				name
-									// 			}
-									// 			approvalStatus {
-									// 				isApproved
-									// 			}
-									// 		}
-									// 	`,
-									// });
-
 									newRefs = newRefs.map((ref) =>
 										readField("id", ref) === item.id
 											? client.cache.writeFragment({
@@ -141,7 +120,7 @@ export function MaterialRequestsProvider({ children }) {
 															}
 														}
 													`,
-											  })
+												})
 											: ref
 									);
 								} else if (eventType === "created") {
@@ -181,7 +160,6 @@ export function MaterialRequestsProvider({ children }) {
 											}
 										`,
 									});
-									// newRefs.push(newRef);
 									newRefs = [...newRefs, newRefFragment];
 								}
 							}

@@ -440,7 +440,7 @@ const materialRequestResolvers = {
 				const isOwner = (user.userId = requesterId);
 				// .toString() === requesterId.toString();
 
-				const isAdmin = roleRank >= 3 && can("requests:update:any");
+				const isAdmin = roleRank[user.role] >= 3 && can("requests:update:any");
 
 				const isApproved = target.approvalStatus?.isApproved === true;
 
@@ -592,7 +592,7 @@ const materialRequestResolvers = {
 			}
 		},
 
-		// TODO THE RESOLVER IS WORKING BUT IT STILL LETS A USER THAT IS NOT A ADMIN EDIT
+		// TODO , i try this it work but test this again
 		updateMultipleMaterialRequests: async (_, { inputs }, { user, pubsub }) => {
 			console.log("this is the users context", user);
 			if (!user) throw new ApolloError("Unauthorized: No user context.");
@@ -801,25 +801,30 @@ const materialRequestResolvers = {
 			return updatedRequests;
 		},
 
-		//TODO - this are next
-		// Delete a material request (admin only)
-		deleteOneMaterialRequest: async (_, { id }, { user }) => {
-			if (!user) throw new ApolloError("Unauthorized: No context provided."); // Require authentication
-			// if (!user.permissions.canDeleteUsers) throw new ApolloError("You lack permission to delete Material request."); // Require permission
+		deleteOneMaterialRequest: async (_, { input: { id, requesterID, isApproved } }, { user }) => {
+			if (!user) {
+				throw new ApolloError("Unauthorized: No context provided.");
+			}
 
-			const isOwner = user.userId;
-			// .toString() === requesterId.toString();
-			const isAdmin = roleRank >= 3 && can("requests:delete:any");
+			const isOwner = user.userId === requesterID;
+			const isAdmin = roleRank[user.role] >= 3 && can(user, "requests:delete:any");
 
-			// Non-owner & non-admin blocked
+			// Must be owner or admin
 			if (!isOwner && !isAdmin) {
 				throw new ApolloError("Unauthorized: You lack permission.");
 			}
 
-			const deletedMaterialRequest = await MaterialRequest.findByIdAndDelete(id);
-			if (!deletedMaterialRequest) throw new ApolloError("Material Request not found");
+			// Owners cannot delete approved requests
+			if (isOwner && !isAdmin && isApproved && can(user, "requests:delete:own")) {
+				throw new ApolloError("This request is already approved. Only an admin can delete it.");
+			}
 
-			// Prepare JSON-safe payload
+			const deletedMaterialRequest = await MaterialRequest.findByIdAndDelete(id);
+
+			if (!deletedMaterialRequest) {
+				throw new ApolloError("Material Request not found");
+			}
+
 			const payload = {
 				...deletedMaterialRequest.toObject(),
 				id: deletedMaterialRequest._id.toString(),
@@ -834,7 +839,6 @@ const materialRequestResolvers = {
 				})),
 			};
 
-			// Publish deletion event for subscriptions
 			await pubsub.publish("MATERIAL_REQUEST_DELETED", {
 				onMaterialRequestChange: {
 					eventType: "deleted",
@@ -843,45 +847,8 @@ const materialRequestResolvers = {
 				},
 			});
 
-			// MaterialRequest;
-			return deletedMaterialRequest; // Return deleted request
+			return deletedMaterialRequest;
 		},
-
-		// // Delete a material request (admin only)
-		// deleteOneMaterialRequest: async (_, { id }, { user }) => {
-		// 	if (!user) throw new ApolloError("Unauthorized: No context provided."); // Require authentication
-		// 	// if (!user.permissions.canDeleteUsers) throw new ApolloError("You lack permission to delete Material request."); // Require permission
-
-		// 	const deletedMaterialRequest = await MaterialRequest.findByIdAndDelete(id);
-		// 	if (!deletedMaterialRequest) throw new ApolloError("Material Request not found");
-
-		// 	// Prepare JSON-safe payload
-		// 	const payload = {
-		// 		...deletedMaterialRequest.toObject(),
-		// 		id: deletedMaterialRequest._id.toString(),
-		// 		items: deletedMaterialRequest.items.map((item) => ({
-		// 			id: item._id.toString(),
-		// 			itemName: item.itemName,
-		// 			quantity: item.quantity,
-		// 			itemDescription: item.itemDescription ?? null,
-		// 			color: item.color ?? null,
-		// 			side: item.side ?? null,
-		// 			size: item.size ?? null,
-		// 		})),
-		// 	};
-
-		// 	// Publish deletion event for subscriptions
-		// 	await pubsub.publish("MATERIAL_REQUEST_DELETED", {
-		// 		onMaterialRequestChange: {
-		// 			eventType: "deleted",
-		// 			changeType: "single",
-		// 			change: payload,
-		// 		},
-		// 	});
-
-		// 	// MaterialRequest;
-		// 	return deletedMaterialRequest; // Return deleted request
-		// },
 
 		// Delete multiple material requests (admin only)
 		deleteMultipleMaterialRequests: async (_, { ids }, { user, pubsub }) => {
@@ -940,6 +907,70 @@ const materialRequestResolvers = {
 				console.error("Error deleting multiple material requests:", error);
 				throw error;
 			}
+		},
+
+		deleteMultipleMaterialRequests: async (_, { ids }, { user, pubsub }) => {
+			if (!user) {
+				throw new ApolloError("Unauthorized: No context provided.");
+			}
+
+			if (!Array.isArray(ids) || ids.length === 0) {
+				throw new ApolloError("No IDs provided for deletion.");
+			}
+
+			const isAdmin = roleRank[user.role] >= 3 && can(user, "requests:delete:any");
+
+			// Fetch requests first (needed for permission checks)
+			const requestsToDelete = await MaterialRequest.find({ _id: { $in: ids } });
+
+			if (requestsToDelete.length === 0) {
+				throw new ApolloError("No Material Requests found for the provided IDs.");
+			}
+
+			// Permission checks per request
+			for (const req of requestsToDelete) {
+				const isOwner = req.requesterID?.toString() === user.userId;
+
+				// Must be owner or admin
+				if (!isOwner && !isAdmin) {
+					throw new ApolloError(`Unauthorized: You lack permission to delete request ${req._id}`);
+				}
+
+				// Owners cannot delete approved requests
+				if (isOwner && !isAdmin && req.isApproved && can(user, "requests:delete:own")) {
+					throw new ApolloError(`Request ${req._id} is already approved. Only an admin can delete it.`);
+				}
+			}
+
+			// Perform deletion
+			await MaterialRequest.deleteMany({ _id: { $in: ids } });
+
+			// Prepare JSON-safe payloads
+			const payloadArray = requestsToDelete.map((req) => ({
+				...req.toObject(),
+				id: req._id.toString(),
+				items: req.items.map((item) => ({
+					id: item._id.toString(),
+					itemName: item.itemName,
+					quantity: item.quantity,
+					itemDescription: item.itemDescription ?? null,
+					color: item.color ?? null,
+					side: item.side ?? null,
+					size: item.size ?? null,
+				})),
+			}));
+
+			const changeType = payloadArray.length > 1 ? "multiple" : "single";
+
+			await pubsub.publish("MATERIAL_REQUEST_DELETED", {
+				onMaterialRequestChange: {
+					eventType: "deleted",
+					changeType,
+					...(changeType === "multiple" ? { changes: payloadArray } : { change: payloadArray[0] }),
+				},
+			});
+
+			return requestsToDelete;
 		},
 	},
 

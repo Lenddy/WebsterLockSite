@@ -47,17 +47,7 @@ export const MATERIAL_REQUEST_CHANGE_SUBSCRIPTION = gql`
 					employeeNum
 					department
 					role
-					permissions {
-						canEditUsers
-						canDeleteUsers
-						canChangeRole
-						canViewUsers
-						canViewAllUsers
-						canEditSelf
-						canViewSelf
-						canDeleteSelf
-						canRegisterUser
-					}
+					permissions
 				}
 				reviewers {
 					userId
@@ -66,17 +56,7 @@ export const MATERIAL_REQUEST_CHANGE_SUBSCRIPTION = gql`
 					employeeNum
 					department
 					role
-					permissions {
-						canEditUsers
-						canDeleteUsers
-						canChangeRole
-						canViewUsers
-						canViewAllUsers
-						canEditSelf
-						canViewSelf
-						canDeleteSelf
-						canRegisterUser
-					}
+					permissions
 					comment
 					reviewedAt
 				}

@@ -10,26 +10,6 @@ export default function AuthSubscriptionBridge() {
 
 	const currentUserId = userToken ? jwtDecode(userToken).userId : null;
 	const { t } = useTranslation();
-	// useSubscription(USER_CHANGE_SUBSCRIPTION, {
-	// 	onData: ({ data }) => {
-	// 		const payload = data?.data?.onUserChange;
-	// 		if (!payload) return;
-
-	// 		const { eventType, changes, updateBy } = payload;
-	// 		if (eventType !== "updated") return;
-
-	// 		for (const updatedUser of changes || []) {
-	// 			if (updatedUser.id === currentUserId && updatedUser.token) {
-	// 				console.log(" Token refreshed via subscription");
-	// 				setUserToken(updatedUser.token);
-
-	// 				if (updateBy !== currentUserId) {
-	// 					alert("Your profile was updated. Session refreshed.");
-	// 				}
-	// 			}
-	// 		}
-	// 	},
-	// });
 
 	// Listen for USER_CHANGE_SUBSCRIPTION (same event you use everywhere else)
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {

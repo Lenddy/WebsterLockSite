@@ -4,6 +4,8 @@ import pubsub from "../pubsub.js"; // PubSub for subscriptions
 import { ApolloError } from "apollo-server-errors"; // Apollo error handling
 import jwt from "jsonwebtoken"; // JWT for token creation
 import bcrypt from "bcrypt"; // Bcrypt for password hashing
+import { can } from "../../isAdmin.js";
+import { roleRank } from "../../role.config.js";
 
 // Resolver object for user-related operations
 const itemGroupResolver = {
@@ -23,7 +25,19 @@ const itemGroupResolver = {
 					throw new ApolloError("Unauthorized: No user token was found."); // Check authentication
 				}
 
+				// const isAdmin = roleRank[user.role] >= 3;
+				const canCreateAnyItem = can(user, "items:read:any");
+
+				// Admins with permission can read all
+				if (!canCreateAnyItem) {
+					throw new ApolloError("Unauthorized:you are not allowed to view items."); // Check authentication
+				}
+
 				const itemGroup = await ItemGroup.find(); // Fetch all itemGroup from DB
+
+				if (!itemGroup) {
+					throw new ApolloError("Item group not found."); // Check if user exists
+				}
 
 				return itemGroup; // Return ItemGroup
 			} catch (error) {
@@ -38,7 +52,15 @@ const itemGroupResolver = {
 				if (!user) {
 					throw new ApolloError("Unauthorized: No user token was found."); // Check authentication
 				}
-				// console.dir(user); // Log user info
+
+				// Admins with permission can read all
+				// const isAdmin = roleRank[user.role] >= 3;
+				const canCreateAnyItem = can(user, "items:read:any");
+				// !isAdmin ||
+				// Admins with permission can read all
+				if (!canCreateAnyItem) {
+					throw new ApolloError("Unauthorized:you are not allowed to view items."); // Check authentication
+				}
 
 				const itemGroup = await ItemGroup.findById(id); // Find itemGroup by ID
 				if (!itemGroup) {
@@ -60,11 +82,11 @@ const itemGroupResolver = {
 
 		createOneItemGroup: async (_, { input: { brand, itemsList } }, { user }) => {
 			try {
-				// console.log("this is the user ", user);
+				const isAdmin = roleRank[user.role] >= 3;
+				const canCreateAnyItem = can(user, "items:create:any");
 
-				//  Fix permissions check
-				if (user.role !== "headAdmin" && user.role !== "admin" && (user.role !== "subAdmin" || !user.permissions.canEditUsers)) {
-					throw new ApolloError("Unauthorized: You lack required permissions to add an item group.", "USER_LACK_PERMISSION");
+				if (!isAdmin || !canCreateAnyItem) {
+					throw new ApolloError("Unauthorized: You must be an admin and have permission to create item groups.", "USER_LACK_PERMISSION");
 				}
 
 				// console.log("brand name ", brand, "items names ", itemsList);
@@ -141,8 +163,12 @@ const itemGroupResolver = {
 		createMultipleItemGroups: async (_, { input }, { user, pubsub }) => {
 			try {
 				//  Role check: only headAdmin allowed
-				if (user.role !== "headAdmin" && user.role !== "Admin") {
-					throw new ApolloError("Unauthorized: Only headAdmin can create multiple item groups.", "USER_LACK_PERMISSION");
+
+				const isAdmin = roleRank[user.role] >= 3;
+				const canCreateAnyItem = can(user, "items:create:any");
+
+				if (!isAdmin || !canCreateAnyItem) {
+					throw new ApolloError("Unauthorized: You lack required permissions to add an item group.", "USER_LACK_PERMISSION");
 				}
 
 				//  Validate input is an array
@@ -166,25 +192,6 @@ const itemGroupResolver = {
 					const existingBrands = existing.map((e) => e.brand);
 					throw new ApolloError(`These brands already exist: ${existingBrands.join(", ")}`, "BRAND_ALREADY_EXISTS");
 				}
-
-				// //  Insert many at once
-				// const createdItemGroups = await ItemGroup.insertMany(
-				// 	input.map((ig) => ({
-				// 		brand: ig.brand,
-				// 		itemsList: ig.itemsList || [], //  allow no items
-				// 	}))
-				// );
-
-				// const forSub = createdItemGroups;
-
-				// forSub?.forEach((group) => {
-				// 	pubsub.publish("ITEMGROUP_ADDED", {
-				// 		onItemGroupChange: {
-				// 			eventType: "created",
-				// 			Changes: group,
-				// 		},
-				// 	});
-				// });
 
 				// Insert multiple ItemGroups at once
 				const createdItemGroups = await ItemGroup.insertMany(
@@ -232,12 +239,13 @@ const itemGroupResolver = {
 		updateMultipleItemGroups: async (_, { input }, { user, pubsub }) => {
 			// throw new Error("TEST ERROR: Forced failure");
 			try {
-				// console.log("this is the input ________________");
-				// console.dir(input, { depth: null });
 				if (!user) throw new ApolloError("no user token.");
-				// Only headAdmin can perform bulk updates
-				if (user.role !== "headAdmin" && user.role !== "Admin") {
-					throw new ApolloError("Not authorized. you dont have permission to make this update.");
+
+				const isAdmin = roleRank[user.role] >= 3;
+				const canCreateAnyItem = can(user, "items:update:any");
+
+				if (!isAdmin || !canCreateAnyItem) {
+					throw new ApolloError("Unauthorized: You lack required permissions to update item group.", "USER_LACK_PERMISSION");
 				}
 
 				// Must provide input
@@ -252,7 +260,7 @@ const itemGroupResolver = {
 
 					// Must have id
 					if (!id) {
-						throw new ApolloError("Brand _id is required. New brands cannot be created.");
+						throw new ApolloError("Brand id is required. New brands cannot be created.");
 					}
 
 					let hasValidAction = false;
@@ -407,8 +415,11 @@ const itemGroupResolver = {
 				// --- 1) Role check ---
 				if (!user) throw new AuthenticationError("no user token provided.");
 
-				if (user.role !== "headAdmin" && user.role !== "Admin") {
-					throw new AuthenticationError("Not authorized. Only headAdmin can delete item groups.");
+				const isAdmin = roleRank[user.role] >= 3;
+				const canCreateAnyItem = can(user, "items:delete:any");
+
+				if (!isAdmin || !canCreateAnyItem) {
+					throw new ApolloError("Unauthorized: You lack required permissions to delete item group.", "USER_LACK_PERMISSION");
 				}
 
 				// --- 2) Input validation ---
@@ -416,30 +427,6 @@ const itemGroupResolver = {
 					throw new UserInputError("No IDs provided. At least one ID is required.");
 				}
 
-				// --- 3) Find the groups first (so we can send them in subscription)
-				// const groupsToDelete = await ItemGroup.find({ _id: { $in: ids } });
-				// const forSub = groupsToDelete;
-
-				// // --- 4) Delete groups ---
-				// const result = await ItemGroup.deleteMany({ _id: { $in: ids } });
-
-				// // --- 5) Handle no matches ---
-				// if (result.deletedCount === 0) {
-				// 	throw new UserInputError("No matching ItemGroups found for deletion.");
-				// }
-
-				// // --- 6) Publish subscription events ---
-				// forSub.forEach((group) => {
-				// 	pubsub.publish("ITEMGROUP_DELETED", {
-				// 		onItemGroupChange: {
-				// 			eventType: "deleted",
-				// 			Changes: group,
-				// 		},
-				// 	});
-				// });
-
-				// // --- 7) Return deleted IDs ---
-				// return groupsToDelete;
 				//  Delete groups
 				const groupsToDelete = await ItemGroup.find({ _id: { $in: ids } });
 				if (!groupsToDelete.length) {

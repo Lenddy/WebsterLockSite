@@ -225,9 +225,15 @@ export const update_One_Material_Request = gql`
 	}
 `;
 
+// input deleteMaterialRequest {
+// 	id: ID!
+// 	requesterID: ID!
+// 	isApproved: Boolean!
+// }
+
 export const delete_one_material_request = gql`
-	mutation deleteOneMaterialRequest($id: ID!) {
-		deleteOneMaterialRequest(id: $id) {
+	mutation deleteOneMaterialRequest($input: deleteMaterialRequest!) {
+		deleteOneMaterialRequest(input: $input) {
 			id
 			description
 			items {

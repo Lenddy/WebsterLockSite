@@ -26,13 +26,6 @@ export function UsersProvider({ children }) {
 
 		// Extract role safely whether it's: "admin" OR { role: "admin" }
 		const role = typeof token?.role === "string" ? token.role : token?.role?.role;
-		// console.log("users info", jwtDecode(userToken));
-
-		// const hasReviewRole = ["headAdmin", "admin", "subAdmin"].includes(role) && can(token, "users:read:any");
-
-		// const hasPermission = token?.permissions?.canViewAllUsers === true;
-		// const hasPermission = can(token, "users:read:any");
-		// canViewAllUsers
 		//  hasReviewRole && hasPermission;
 		return ["headAdmin", "admin", "subAdmin"].includes(role) && can(token, "users:read:any");
 	};

@@ -460,13 +460,18 @@
 
 /* here  */
 .search-filter-wrapper {
-	margin-top: 30px;
+	margin-top: 10px;
 	display: flex;
-	justify-content: center;
+	/* justify-content: center; */
 	align-items: center;
-
-	width: 100%; /* full width container */
+	gap: 10px;
+	width: 99%; /* full width container */
 	/* gap: 10; */
+}
+
+.component-title {
+	/* background-color: red; */
+	margin-left: 10px;
 }
 
 /* Container around input + button */
@@ -539,50 +544,88 @@
 
 .table-wrapper {
 	width: 99%;
-	height: 90%; /* vertical scroll height */
+	height: 85%; /* vertical scroll height */
 	max-height: calc(100vh - 200px - 90px); /* always stop 50px before bottom */
-	overflow-x: auto; /* horizontal scroll */
-	overflow-y: auto; /* vertical scroll */
+
 	border: solid 1px var(--white);
 	border-radius: 10px;
 	background: var(--slate-dark-gray);
 	margin-bottom: 50px;
+	/* background-color: red; */
 }
 
 .table-title {
 	/* background-color: var(--brass); */
-	display: flex;
-	justify-content: start;
+
 	/* width: 100%; */
 }
 
-.table-title h2 {
-	position: sticky;
+.table-title-inner {
+	display: flex;
+	justify-content: start;
+	width: fit-content;
+	margin: 0 auto;
+}
+
+.table-title-inner h2 {
+	/* position: sticky;
 	top: 0;
-	left: 10px;
+	left: 10px; */
 	color: var(--blue);
-	/* color: var(--black); */
+}
+
+.tabs-wrapper-filter-btn {
+	display: flex;
+	gap: 5px;
+	margin: 0px 0px 3px 0px;
+	/* position: sticky; */
+	/* top: 0; */
+	/* left: 30px; */
+}
+
+.tab-btn {
+	padding: 8px 16px;
+	border: none;
+	cursor: pointer;
+	background: #e5e5e5;
+	border-radius: 6px;
+	font-weight: 500;
+}
+
+.tab-btn.active {
+	background: #007bff;
+	color: white;
 }
 
 /* Scrollbar styling (only inside .table-wrapper) */
-.table-wrapper::-webkit-scrollbar {
+
+.table-scroll {
+	/* flex: 1; */
+	height: calc(100% - 37px);
+	overflow-x: auto; /* horizontal scroll */
+	overflow-y: auto; /* vertical scroll */
+	border: solid 1px var(--white);
+	border-radius: 10px;
+}
+
+.table-scroll::-webkit-scrollbar {
 	width: 12px;
 	height: 12px;
 }
 
-.table-wrapper::-webkit-scrollbar-track {
+.table-scroll::-webkit-scrollbar-track {
 	background: var(--slate-dark-gray);
 	border: 2px solid var(--white); /* border around the track */
 	border-radius: 10px;
 }
 
-.table-wrapper::-webkit-scrollbar-thumb {
+.table-scroll::-webkit-scrollbar-thumb {
 	background: var(--slate-gray); /* scrollbar handle color */
 	border: 2px solid var(--white); /* border around the thumb */
 	border-radius: 10px;
 }
 
-.table-wrapper::-webkit-scrollbar-thumb:hover {
+.table-scroll::-webkit-scrollbar-thumb:hover {
 	background: var(--white);
 }
 
@@ -611,12 +654,27 @@
 	border-bottom: solid 1px var(--white);
 }
 
+/* .clickable-th {
+	cursor: pointer;
+	user-select: none;
+	
+}
+
+.clickable-th:hover {
+	text-decoration: underline;
+} */
+
 .clickable-th {
 	cursor: pointer;
 	user-select: none;
 }
 
 .clickable-th:hover {
+	text-decoration: underline;
+}
+
+/* This keeps the active sorted column underlined */
+.active-sort {
 	text-decoration: underline;
 }
 

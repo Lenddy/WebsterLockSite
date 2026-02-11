@@ -17,6 +17,105 @@ export default function GetAllMaterialRequest() {
 	// 	fetchPolicy: "cache-and-network",
 	// });
 
+	const [activeTab, setActiveTab] = useState("waiting");
+	// "waiting" | "approved" | "all"
+
+	const filterByTab = (list, tab) => {
+		switch (tab) {
+			case "waiting":
+				return list.filter((req) => req?.approvalStatus?.isApproved === null);
+
+			case "approved":
+				return list.filter((req) => req?.approvalStatus?.isApproved === true);
+
+			case "all":
+			default:
+				return list;
+		}
+	};
+
+	// Sorting storage keys
+	const SORT_KEY_STORAGE = "materialRequestsSortKey";
+	const SORT_DIR_STORAGE = "materialRequestsSortDir";
+
+	const [sortKey, setSortKey] = useState(() => {
+		return localStorage.getItem(SORT_KEY_STORAGE) || "addedDate";
+	});
+
+	const [sortDir, setSortDir] = useState(() => {
+		return localStorage.getItem(SORT_DIR_STORAGE) || "desc";
+	});
+
+	useEffect(() => {
+		localStorage.setItem(SORT_KEY_STORAGE, sortKey);
+		localStorage.setItem(SORT_DIR_STORAGE, sortDir);
+	}, [sortKey, sortDir]);
+
+	// const sortRequests = (list, key, dir) => {
+	// 	return [...list].sort((a, b) => {
+	// 		if (key === "addedDate") {
+	// 			const aDate = dayjs(a?.addedDate);
+	// 			const bDate = dayjs(b?.addedDate);
+
+	// 			if (!aDate.isValid()) return 1;
+	// 			if (!bDate.isValid()) return -1;
+
+	// 			return dir === "asc" ? aDate.valueOf() - bDate.valueOf() : bDate.valueOf() - aDate.valueOf();
+	// 		}
+
+	// 		return 0;
+	// 	});
+	// };
+
+	const sortRequests = (list, key, dir) => {
+		return [...list].sort((a, b) => {
+			if (key === "addedDate") {
+				const normalizeDate = (value) => {
+					if (!value) return 0;
+
+					// If it's already a number (timestamp)
+					if (!isNaN(Number(value))) {
+						return Number(value);
+					}
+
+					// Otherwise parse with dayjs and force ISO
+					const parsed = dayjs(value);
+					return parsed.isValid() ? parsed.valueOf() : 0;
+				};
+
+				const aTime = normalizeDate(a?.addedDate);
+				const bTime = normalizeDate(b?.addedDate);
+
+				return dir === "asc" ? aTime - bTime : bTime - aTime;
+			}
+
+			if (key === "requesterName") {
+				const aName = a?.requester?.name ?? "";
+				const bName = b?.requester?.name ?? "";
+
+				return dir === "asc" ? aName.localeCompare(bName) : bName.localeCompare(aName);
+			}
+
+			if (key === "employeeNum") {
+				const aNum = Number(a?.requester?.employeeNum) || 0;
+				const bNum = Number(b?.requester?.employeeNum) || 0;
+
+				return dir === "asc" ? aNum - bNum : bNum - aNum;
+			}
+
+			return 0;
+		});
+	};
+
+	const handleSort = (key) => {
+		if (sortKey === key) {
+			setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+		} else {
+			setSortKey(key);
+			setSortDir("asc");
+		}
+	};
+
 	const { requests: mRequests, loading, error } = useMaterialRequests();
 
 	// const [mRequests, setMRequests] = useState([]);
@@ -36,8 +135,6 @@ export default function GetAllMaterialRequest() {
 	// }, [data, loading, setPageLoading]);
 
 	// const sortRequests = (arr) => {
-	// 	const today = dayjs().startOf("day");
-
 	// 	return [...arr].sort((a, b) => {
 	// 		const aStatus = a?.approvalStatus?.isApproved;
 	// 		const bStatus = b?.approvalStatus?.isApproved;
@@ -45,38 +142,14 @@ export default function GetAllMaterialRequest() {
 	// 		const aDate = dayjs(a?.addedDate);
 	// 		const bDate = dayjs(b?.addedDate);
 
-	// 		const aIsFutureOrToday = aDate.isSame(today, "day") || aDate.isAfter(today);
-	// 		const bIsFutureOrToday = bDate.isSame(today, "day") || bDate.isAfter(today);
-
-	// 		// 1️ Date ≥ today should come first
-	// 		if (aIsFutureOrToday && !bIsFutureOrToday) return -1;
-	// 		if (!aIsFutureOrToday && bIsFutureOrToday) return 1;
-
-	// 		// 2️ Null approvalStatus goes to the top
+	// 		// 1️ Null approvalStatus goes to the top
 	// 		if (aStatus === null && bStatus !== null) return -1;
 	// 		if (aStatus !== null && bStatus === null) return 1;
 
-	// 		// 3️ For both null OR both non-null → sort by newest date
+	// 		// 2️ Same group → sort by newest date first
 	// 		return bDate.valueOf() - aDate.valueOf();
 	// 	});
 	// };
-
-	const sortRequests = (arr) => {
-		return [...arr].sort((a, b) => {
-			const aStatus = a?.approvalStatus?.isApproved;
-			const bStatus = b?.approvalStatus?.isApproved;
-
-			const aDate = dayjs(a?.addedDate);
-			const bDate = dayjs(b?.addedDate);
-
-			// 1️ Null approvalStatus goes to the top
-			if (aStatus === null && bStatus !== null) return -1;
-			if (aStatus !== null && bStatus === null) return 1;
-
-			// 2️ Same group → sort by newest date first
-			return bDate.valueOf() - aDate.valueOf();
-		});
-	};
 
 	// Fuse.js fuzzy search
 	const applyFuse = (list, search) => {
@@ -89,13 +162,30 @@ export default function GetAllMaterialRequest() {
 	};
 
 	// Combine search + new sorting
-	const searchAndSort = (list, search = "") => {
-		const filtered = search ? applyFuse(list, search) : list;
-		return sortRequests(filtered);
-	};
+	// const searchAndSort = (list, search = "") => {
+	// 	const filtered = search ? applyFuse(list, search) : list;
+	// 	// return sortRequests(filtered);
+	// 	// this is new for the sorting
+	// 	const searched = searchValue ? applyFuse(tabFiltered, searchValue) : tabFiltered;
+
+	// 	return sortRequests(searched, sortKey, sortDir);
+	// };
+
+	const filteredMRequests = React.useMemo(() => {
+		const tabFiltered = filterByTab(mRequests, activeTab);
+
+		const searched = searchValue ? applyFuse(tabFiltered, searchValue) : tabFiltered;
+
+		return sortRequests(searched, sortKey, sortDir);
+	}, [mRequests, searchValue, activeTab, sortKey, sortDir]);
 
 	// Memoized sorted + filtered list
-	const filteredMRequests = React.useMemo(() => searchAndSort(mRequests, searchValue), [mRequests, searchValue]);
+	// const filteredMRequests = React.useMemo(() => searchAndSort(mRequests, searchValue), [mRequests, searchValue]);
+
+	// const filteredMRequests = React.useMemo(() => {
+	// 	const tabFiltered = filterByTab(mRequests, activeTab);
+	// 	return searchAndSort(tabFiltered, searchValue);
+	// }, [mRequests, searchValue, activeTab]);
 
 	const handleSearchChange = (e) => {
 		setSearchValue(e.target.value);
@@ -122,6 +212,9 @@ export default function GetAllMaterialRequest() {
 
 	// TODO - if a request has been approved by some one else alert the the users that one of their request  has been approved / denied
 
+	// there is a small problem some items are where they are not supposed to be for example i see that one item that is from 2026 that is second  whne one that is from 2025 is above and the others are bellow  if it is descending it should go by the yea-month-day
+	//  so the the higher the year-month-day should be on top  example 2026-02-1 should be on top of  2026-01-31  be cause the the month if higher and if they are in the same year and month is base by the day  the higher the day is going to be on top of lower days 10 is going to be on top of 9 n 9 is going to be on top of 8 and the oposite will happen if it is ascending
+
 	return (
 		<>
 			{loading ? (
@@ -130,8 +223,14 @@ export default function GetAllMaterialRequest() {
 				</div>
 			) : (
 				<div className="list-get-all-content">
+					{/* <h2>{t("material-requests")}</h2> */}
+
 					{/* Search */}
 					<div className="search-filter-wrapper">
+						<div className="component-title">
+							<h2>{t("material-requests")}</h2>
+						</div>
+
 						<div className="search-filter-container">
 							<input type="text" className="search-filter-input" placeholder={t("search-by")} value={searchValue} onChange={handleSearchChange} autoComplete="off" />
 							{/* "Search users by Name,Email,#,Dep" */}
@@ -141,78 +240,140 @@ export default function GetAllMaterialRequest() {
 						</div>
 					</div>
 
+					{/* 
+				
+				
+				//TODO -  make sure that the selected tab has an underline in users and the others also the  ad the filter to items if need you need to modify it any ways  adding the table scroll clase
+				
+				
+				
+				*/}
+
+					{/* Tabs */}
+
 					{/* Table */}
 					<div className="table-wrapper">
 						<div className="table-title">
-							<h2>{t("material-requests")}</h2>
-							{/* <h2>Requests</h2> */}
+							<div className="table-title-inner">
+								{/* <h2>{t("material-requests")}</h2> */}
+								{/* <h2>Requests</h2> */}
+
+								<div className="tabs-wrapper-filter-btn">
+									<button
+										//  className={`     tab-btn  ${activeTab === "waiting" ? "active" : ""}`}
+										className={`filter-btn  ${activeTab === "waiting" ? "selected-filter" : ""}`}
+										onClick={() => setActiveTab("waiting")}>
+										Waiting
+									</button>
+
+									<button
+										// className={`tab-btn ${activeTab === "approved" ? "active" : ""}`}
+										className={`filter-btn ${activeTab === "approved" ? "selected-filter" : ""}`}
+										onClick={() => setActiveTab("approved")}>
+										Approved
+									</button>
+
+									<button
+										// className={`tab-btn ${activeTab === "all" ? "active" : ""}`}
+										className={`filter-btn ${activeTab === "all" ? "selected-filter" : ""}`}
+										onClick={() => setActiveTab("all")}>
+										All
+									</button>
+								</div>
+							</div>
 						</div>
-						<table>
-							<thead>
-								<tr>
-									{jwtDecode(userToken)?.role == "headAdmin" && <th>ID</th>}
-									<th>#</th>
-									<th>{t("requestors-name")}</th>
-									<th>{t("description")}</th>
-									<th>{t("approval")}</th>
-									<th>{t("requested-date")}</th>
-									<th>{t("amount-of-items")}</th>
-									<th>{t("action")}</th>
-								</tr>
-							</thead>
-							<tbody>
-								{filteredMRequests.length !== 0 ? (
-									filteredMRequests.map((request) => (
-										<tr key={request?.id}>
-											{jwtDecode(userToken)?.role == "headAdmin" && (
+
+						<div className="table-scroll">
+							<table>
+								<thead>
+									<tr>
+										{jwtDecode(userToken)?.role == "headAdmin" && <th>ID</th>}
+
+										{/* <th onClick={() => handleSort("employeeNum")} className="clickable-th">
+											# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
+										</th> */}
+
+										<th onClick={() => handleSort("employeeNum")} className={`clickable-th ${sortKey === "employeeNum" ? "active-sort" : ""}`}>
+											# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
+										</th>
+
+										{/* <th>#</th> */}
+
+										<th onClick={() => handleSort("requesterName")} className={`clickable-th ${sortKey === "requesterName" ? "active-sort" : ""}`}>
+											{t("requestors-name")} {sortKey === "requesterName" && (sortDir === "asc" ? "▾" : "▴")}
+										</th>
+
+										{/* <th onClick={() => handleSort("addedDate")} className="clickable-th">
+											{t("requested-date")} {sortKey === "addedDate" && (sortDir === "asc" ? "▾" : "▴")}
+										</th> */}
+
+										<th onClick={() => handleSort("addedDate")} className={`clickable-th ${sortKey === "addedDate" ? "active-sort" : ""}`}>
+											{t("requested-date")} {sortKey === "addedDate" && (sortDir === "asc" ? "▾" : "▴")}
+										</th>
+
+										{/* <th>{t("requestors-name")}</th> */}
+										<th>{t("approval")}</th>
+										<th>{t("description")}</th>
+
+										{/* <th>{t("requested-date")}</th> */}
+										{/* <th>{t("amount-of-items")}</th> */}
+										<th>{t("action")}</th>
+									</tr>
+								</thead>
+								<tbody>
+									{filteredMRequests.length !== 0 ? (
+										filteredMRequests.map((request) => (
+											<tr key={request?.id}>
+												{jwtDecode(userToken)?.role == "headAdmin" && (
+													<td>
+														<Link to={`/material/request/${request?.id}`}>{request?.id}</Link>
+													</td>
+												)}
 												<td>
-													<Link to={`/material/request/${request?.id}`}>{request?.id}</Link>
+													<Link to={`/material/request/${request?.id}`}>{request?.requester?.employeeNum ? request?.requester?.employeeNum : "N/A"}</Link>
 												</td>
-											)}
-											<td>
-												<Link to={`/material/request/${request?.id}`}>{request?.requester?.employeeNum ? request?.requester?.employeeNum : "N/A"}</Link>
-											</td>
-											<td>
-												<Link to={`/material/request/${request?.id}`}>{request?.requester?.name}</Link>
-											</td>
-											<td>{request?.description}</td>
-											<td>
-												<p className={`${request?.approvalStatus?.isApproved === null ? "waiting-approval" : request?.approvalStatus?.isApproved === true ? "approved" : "denied"}`}>{request?.approvalStatus?.isApproved === null ? t("waiting-for-approval") : request?.approvalStatus?.isApproved === true ? t("Approved") : t("Denied")}</p>
-											</td>
+												<td>
+													<Link to={`/material/request/${request?.id}`}>{request?.requester?.name}</Link>
+												</td>
+												<td>{formatDate(request?.addedDate)}</td>
 
-											{/* <td>{dayjs(Number(request?.addedDate)).format("YYYY-MM-DD")}</td> */}
+												<td>
+													<p className={`${request?.approvalStatus?.isApproved === null ? "waiting-approval" : request?.approvalStatus?.isApproved === true ? "approved" : "denied"}`}>{request?.approvalStatus?.isApproved === null ? t("waiting-for-approval") : request?.approvalStatus?.isApproved === true ? t("Approved") : t("Denied")}</p>
+												</td>
+												<td>{request?.description}</td>
 
-											<td>{formatDate(request?.addedDate)}</td>
+												{/* <td>{dayjs(Number(request?.addedDate)).format("YYYY-MM-DD")}</td> */}
 
-											<td>{request?.items?.length}</td>
-											<td>
-												<div className="table-action-wrapper">
-													{canReview() ? (
-														<Link to={`/material/request/${request?.id}/update`}>
-															<span className="table-action first">{t("review")}</span>
-														</Link>
-													) : request?.approvalStatus?.isApproved === null ? (
-														<Link to={`/material/request/${request?.id}/update`}>
-															<span className="table-action first">{t("update request")}</span>
-														</Link>
-													) : (
-														<Link to={`/material/request/${request?.id}`}>
-															<span className="table-action second">{t("view")}</span>
-														</Link>
-													)}
-												</div>
+												{/* <td>{request?.items?.length}</td> */}
+												<td>
+													<div className="table-action-wrapper">
+														{canReview() ? (
+															<Link to={`/material/request/${request?.id}/update`}>
+																<span className="table-action first">{t("review")}</span>
+															</Link>
+														) : request?.approvalStatus?.isApproved === null ? (
+															<Link to={`/material/request/${request?.id}/update`}>
+																<span className="table-action first">{t("update request")}</span>
+															</Link>
+														) : (
+															<Link to={`/material/request/${request?.id}`}>
+																<span className="table-action second">{t("view")}</span>
+															</Link>
+														)}
+													</div>
+												</td>
+											</tr>
+										))
+									) : (
+										<tr>
+											<td colSpan={7} style={{ textAlign: "center" }}>
+												<h1>N/A</h1>
 											</td>
 										</tr>
-									))
-								) : (
-									<tr>
-										<td colSpan={7} style={{ textAlign: "center" }}>
-											<h1>N/A</h1>
-										</td>
-									</tr>
-								)}
-							</tbody>
-						</table>
+									)}
+								</tbody>
+							</table>
+						</div>
 					</div>
 				</div>
 			)}

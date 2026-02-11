@@ -19,15 +19,6 @@ export default function GetAllUsers() {
 
 	const { users, loading, error } = useUsers();
 
-	console.log("this is the users example from the get all users ", users[0]);
-	console.log("example ");
-	console.log("example ");
-	console.log("example ");
-	console.log("example ");
-	console.log("example ");
-	console.log("example ");
-	console.log("example ");
-
 	// console.log("does the page needs a reload ? ", needReload);
 
 	const {
@@ -246,66 +237,71 @@ export default function GetAllUsers() {
 				<div className="list-get-all-content">
 					{/* Search */}
 					<div className="search-filter-wrapper">
-						<div className="search-filter-container">
-							<input type="text" className="search-filter-input" placeholder={t("search-users-by-name-or-email")} value={searchValue} onChange={handleSearchChange} autoComplete="false" />
-							<button className="search-clear-btn" onClick={clearSearch} disabled={!searchValue}>
-								✕
-							</button>
+						<div className="search-filter-wrapper">
+							<div className="component-title">
+								<h2>{t("users")}</h2>
+							</div>
+
+							<div className="search-filter-container">
+								<input type="text" className="search-filter-input" placeholder={t("search-users-by-name-or-email")} value={searchValue} onChange={handleSearchChange} autoComplete="false" />
+								<button className="search-clear-btn" onClick={clearSearch} disabled={!searchValue}>
+									✕
+								</button>
+							</div>
 						</div>
 					</div>
 					<div className="table-wrapper">
-						<div className="table-title">
-							<h2>{t("users")}</h2>
-						</div>
-						<table>
-							<thead>
-								<tr>
-									{logUser?.role == "headAdmin" && <th>ID</th>}
+						<div className="table-title">{/* <h2>{t("users")}</h2> */}</div>
+						<div className="table-scroll">
+							<table>
+								<thead>
+									<tr>
+										{logUser?.role == "headAdmin" && <th>ID</th>}
 
-									{/* <th>#</th>
+										{/* <th>#</th>
 									<th>{t("name")}</th>
 									<th>{t("email")}</th> */}
 
-									<th onClick={() => handleSort("employeeNum")} className="clickable-th">
-										# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
-									</th>
+										<th onClick={() => handleSort("employeeNum")} className="clickable-th">
+											# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
+										</th>
 
-									<th onClick={() => handleSort("name")} className="clickable-th">
-										{t("name")} {sortKey === "name" && (sortDir === "asc" ? "▾" : "▴")}
-									</th>
+										<th onClick={() => handleSort("name")} className="clickable-th">
+											{t("name")} {sortKey === "name" && (sortDir === "asc" ? "▾" : "▴")}
+										</th>
 
-									<th onClick={() => handleSort("email")} className="clickable-th">
-										{t("email")} {sortKey === "email" && (sortDir === "asc" ? "▾" : "▴")}
-									</th>
+										<th onClick={() => handleSort("email")} className="clickable-th">
+											{t("email")} {sortKey === "email" && (sortDir === "asc" ? "▾" : "▴")}
+										</th>
 
-									<th>{t("role")}</th>
-									<th>{t("department")}</th>
-									<th>{t("action")}</th>
-								</tr>
-							</thead>
+										<th>{t("role")}</th>
+										<th>{t("department")}</th>
+										<th>{t("action")}</th>
+									</tr>
+								</thead>
 
-							<tbody>
-								{filteredUsers.map((user) => (
-									<tr key={user.id}>
-										{logUser?.role == "headAdmin" && (
+								<tbody>
+									{filteredUsers.map((user) => (
+										<tr key={user.id}>
+											{logUser?.role == "headAdmin" && (
+												<td>
+													<Link to={`/user/${user?.id}`}>{user?.id}</Link>
+												</td>
+											)}
+
+											<td>{user.employeeNum ? <Link to={`/user/${user?.id}`}>{user?.employeeNum}</Link> : "N/A"}</td>
+
 											<td>
-												<Link to={`/user/${user?.id}`}>{user?.id}</Link>
+												<Link to={`/user/${user?.id}`}>{user?.name}</Link>
 											</td>
-										)}
+											<td>
+												<Link to={`/user/${user?.id}`}>{user?.email}</Link>
+											</td>
+											<td>{user?.role}</td>
 
-										<td>{user.employeeNum ? <Link to={`/user/${user?.id}`}>{user?.employeeNum}</Link> : "N/A"}</td>
-
-										<td>
-											<Link to={`/user/${user?.id}`}>{user?.name}</Link>
-										</td>
-										<td>
-											<Link to={`/user/${user?.id}`}>{user?.email}</Link>
-										</td>
-										<td>{user?.role}</td>
-
-										<td>{user?.department ? user?.department : "N/A"}</td>
-										<td>
-											{/* <div className="table-action-wrapper">
+											<td>{user?.department ? user?.department : "N/A"}</td>
+											<td>
+												{/* <div className="table-action-wrapper">
 												{canEditUser(logUser, user) && (
 													<Link to={`/admin/user/${user?.id}/update`}>
 														<span className="table-action first">{t("update")}</span>
@@ -323,37 +319,38 @@ export default function GetAllUsers() {
 													</span>
 												)}
 											</div> */}
-											{logUser ? (
-												canEditUser(logUser, user) || canDeleteUser(logUser, user) ? (
-													<div className="table-action-wrapper">
-														{canEditUser(logUser, user) && (
-															<Link to={`/admin/user/${user.id}/update`}>
-																<span className="table-action first">{t("update")}</span>
-															</Link>
-														)}
+												{logUser ? (
+													canEditUser(logUser, user) || canDeleteUser(logUser, user) ? (
+														<div className="table-action-wrapper">
+															{canEditUser(logUser, user) && (
+																<Link to={`/admin/user/${user.id}/update`}>
+																	<span className="table-action first">{t("update")}</span>
+																</Link>
+															)}
 
-														{canDeleteUser(logUser, user) && (
-															<span
-																className="table-action last"
-																onClick={() => {
-																	setSelectedUser(user);
-																	setIsOpen(true);
-																}}>
-																{t("delete")}
-															</span>
-														)}
-													</div>
+															{canDeleteUser(logUser, user) && (
+																<span
+																	className="table-action last"
+																	onClick={() => {
+																		setSelectedUser(user);
+																		setIsOpen(true);
+																	}}>
+																	{t("delete")}
+																</span>
+															)}
+														</div>
+													) : (
+														"N/A"
+													)
 												) : (
 													"N/A"
-												)
-											) : (
-												"N/A"
-											)}
-										</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
+												)}
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
 					</div>
 					{/*  onClose={() => setIsOpen(false)} */}
 					{/* //NOTE - i lost connection to then subs when i use the new code to close the modal after deletion  if i go back tot he old code it works normaly but the modal does not close  so figure out how to close the modal with out  breaking the subs  */}

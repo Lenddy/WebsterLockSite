@@ -45,7 +45,7 @@
 	"add-item": "Add Item",
 	"please-fill-out-all-required-fields": "Please Fill Out All Required Fields",
 	"search-by": "Search By Name, Email, #, Dep",
-	"requestors-name": "Requestor's Name",
+	"requestors-name": "Requested by",
 	"approval": "Approval",
 	"requested-date": "Requested Date",
 	"amount-of-items": "Amount Of Items",

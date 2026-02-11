@@ -20,11 +20,7 @@ export function ItemGroupsProvider({ children }) {
 		// Extract role safely whether it's: "admin" OR { role: "admin" }
 		const role = typeof token?.role === "string" ? token.role : token?.role?.role;
 
-		const hasPermission = token?.permissions?.canViewAllUsers === true;
-		// canViewAllUsers
-
 		return ["headAdmin", "admin", "subAdmin", "user"].includes(role) && can(token, "items:read:any");
-		// return hasReviewRole && hasPermission;
 	};
 
 	const {

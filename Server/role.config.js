@@ -32,12 +32,15 @@ export const ROLE_PERMISSIONS = {
 		// users
 		"users:read:own",
 		"users:update:own",
+
 		// requests
 		"requests:read:any",
 		"requests:create:any",
 		"requests:update:any",
 		"requests:delete:own",
+
 		// items
+		"items:read:any",
 	],
 
 	// limited to own updates (2)
@@ -45,12 +48,15 @@ export const ROLE_PERMISSIONS = {
 		// users
 		"users:read:own",
 		"users:update:own",
+
 		// requests
 		"requests:read:own",
 		"requests:create:own",
 		"requests:update:own",
 		"requests:delete:own",
+
 		// items
+		"items:read:any",
 	],
 
 	// not role given (1)

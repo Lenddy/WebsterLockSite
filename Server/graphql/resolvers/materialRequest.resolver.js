@@ -1031,44 +1031,6 @@ const materialRequestResolvers = {
 				return cloned;
 			},
 		},
-
-		// onMaterialRequestChange: {
-		// 	subscribe: withFilter(
-		// 		() => pubsub.asyncIterator(["MATERIAL_REQUEST_ADDED", "MATERIAL_REQUEST_UPDATED", "MATERIAL_REQUEST_DELETED"]),
-		// 		(payload, variables, context) => {
-		// 			const { user } = context;
-		// 			if (!user) return false;
-
-		// 			// clone to avoid cross-reference mutations
-		// 			const eventData = cloneDeep(payload.onMaterialRequestChange);
-
-		// 			//  Admins always see everything
-		// 			if (["headAdmin", "admin", "subAdmin"].includes(user.role)) return true;
-
-		// 			//  Normalize single vs array payloads
-		// 			const changes = Array.isArray(eventData.changes) ? eventData.changes : eventData.change ? [eventData.change] : [];
-
-		// 			//  Non-admins: only see events with their own userId
-		// 			return changes.some((req) => req?.requester?.userId === user.userId);
-		// 		}
-		// 	),
-
-		// 	resolve: (payload, args, context) => {
-		// 		const { user } = context;
-		// 		const cloned = cloneDeep(payload.onMaterialRequestChange);
-
-		// 		if (["headAdmin", "admin", "subAdmin"].includes(user.role)) return cloned;
-
-		// 		const allChanges = Array.isArray(cloned.changes) ? cloned.changes : cloned.change ? [cloned.change] : [];
-
-		// 		cloned.changes = allChanges.filter((req) => req?.requester?.userId === user.userId);
-
-		// 		// Always return a valid object
-		// 		if (!cloned.changes.length) cloned.changes = [];
-
-		// 		return cloned;
-		// 	},
-		// },
 	},
 
 	// Field resolvers for MaterialRequest type

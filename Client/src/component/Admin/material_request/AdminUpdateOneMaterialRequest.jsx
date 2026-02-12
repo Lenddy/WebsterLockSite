@@ -19,6 +19,7 @@ import { useDebounce } from "use-debounce";
 import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
+import { useItemGroups } from "../../../context/ItemGroupContext";
 
 function AdminUpdateOneMaterialRequest() {
 	const { userToken, loading: authLoading, setWsDisconnected } = useAuth();
@@ -32,9 +33,10 @@ function AdminUpdateOneMaterialRequest() {
 	const [blockInput, setBlockInput] = useState(false);
 
 	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
+
 	const [isOpen, setIsOpen] = useState(false);
 	const [mRequest, setMRequest] = useState();
-	const [itemGroups, setItemGroups] = useState([]);
+	// const [itemGroups, setItemGroups] = useState([]);
 	const [requestApproved, setRequestApproved] = useState(false);
 	const [searchValue, setSearchValue] = useState("");
 	const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
@@ -43,12 +45,95 @@ function AdminUpdateOneMaterialRequest() {
 	const [approval, setApproval] = useState(false);
 	const [updating, setUpdating] = useState(false);
 
-	const { data: iGData } = useQuery(get_all_item_groups);
+	// const { data: iGData } = useQuery(get_all_item_groups);
+	const { items: itemGroups, loading: iGLoading, error: iGError } = useItemGroups();
+
 	const { data: mRData, loading: mRLoading } = useQuery(get_one_material_request, {
 		variables: { id: requestId },
 	});
 	const [updatedMaterialRequest, { loading }] = useMutation(update_One_Material_Request);
-	const [deletedMaterialRequest, { loading: deletedLoading }] = useMutation(delete_one_material_request, { variables: { id: requestId } });
+	const [deletedMaterialRequest, { loading: deletedLoading }] = useMutation(
+		delete_one_material_request
+		// 		{
+		// 			 variables: {
+		// 		 id: requestId
+
+		// 	}
+		// }
+	);
+
+	console.log("this is the mr data", mRData.getOneMaterialRequest.approvalStatus.isApproved);
+
+	console.log("this is the mr data", mRData.getOneMaterialRequest.requester.userId);
+
+	// TODO find out why the delete one material request is not working
+	const deleteRequest = async (e) => {
+		// console.log("deleting request");
+		// console.log(e);
+		e.preventDefault();
+
+		// e.preventDefault();
+		skipNextSub.current = true;
+		if (!userToken) return toast.warn("please-login"); //"Please log in first.");
+		// client.clearStore();
+		// await client.cache.reset();
+		// try {
+		const decoded = jwtDecode(userToken);
+
+		const mutationPromise = deletedMaterialRequest({
+			variables: {
+				input: {
+					id: requestId,
+					requesterID: mRData.getOneMaterialRequest.requester.userId,
+					isApproved: mRData.getOneMaterialRequest.approvalStatus.isApproved,
+				},
+			},
+
+			onCompleted: (res) => {
+				// console.log("user update ", jwtDecode(userToken).userId == requestersID);
+				// console.log("Mutation success:", res?.updateOneMaterialRequest);
+				// console.log("this is the client / caches", client.cache.extract());
+				// ("Material request has been deleted successfully!");
+				navigate(`/material/request/all`);
+			},
+		});
+		// } catch (err) {
+		// 	console.error("Submit error:", err);
+		// }
+		toast.promise(mutationPromise, {
+			pending: t("deleting-request"),
+
+			success: {
+				render({ closeToast }) {
+					setIsOpen(false);
+					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} deleting={true} />;
+				},
+			},
+
+			error: {
+				render({ data }) {
+					const err = data;
+					if (err?.graphQLErrors?.length) {
+						return err.graphQLErrors.map((e) => e.message).join(", ");
+					}
+					// come here
+					if (err?.networkError) return t("network-error-try-again");
+					return t("something-went-wrong");
+				},
+				autoClose: false,
+			},
+		});
+		mutationPromise
+			.then(() => {
+				setHasSubmitted(true);
+				setBlockInput(true);
+			})
+			.catch(() => {
+				setHasSubmitted(false);
+			});
+	};
+
+	// TODO HERE YOU HAVE TO PUT THE APPROVAL AND THE REQUESTERS NAME
 
 	// ----- Color / Side / Size options -----
 	const colorOptions = [
@@ -139,8 +224,8 @@ function AdminUpdateOneMaterialRequest() {
 	}
 
 	const filteredAllItems = useMemo(() => {
-		console.log("🔍 debouncedSearch:", debouncedSearch);
-		console.log("📦 allItems:", allItems);
+		console.log(" debouncedSearch:", debouncedSearch);
+		console.log(" allItems:", allItems);
 
 		if (!debouncedSearch) {
 			console.log("➡ Returning all items (no search)");
@@ -158,15 +243,15 @@ function AdminUpdateOneMaterialRequest() {
 			const results = fuse.search(debouncedSearch);
 			// const results = fuse.search(debouncedSearch).some((r) => r.item.value);
 
-			console.log("🎯 Fuse raw results:", results);
+			console.log(" Fuse raw results:", results);
 
 			const mapped = results.map((r) => r.item);
 			// const mapped = results.some((r) => r.item);
-			console.log("📌 Mapped results:", mapped);
+			console.log(" Mapped results:", mapped);
 
 			return mapped;
 		} catch (err) {
-			console.error("❌ Fuzzy error:", err);
+			console.error(" Fuzzy error:", err);
 			return allItems;
 		}
 	}, [allItems, debouncedSearch]);
@@ -187,11 +272,11 @@ function AdminUpdateOneMaterialRequest() {
 	*/
 
 	// ----- Load item groups -----
-	useEffect(() => {
-		if (iGData?.getAllItemGroups) {
-			setItemGroups(iGData.getAllItemGroups);
-		}
-	}, [iGData]);
+	// useEffect(() => {
+	// 	if (iGData?.getAllItemGroups) {
+	// 		setItemGroups(iGData.getAllItemGroups);
+	// 	}
+	// }, [iGData]);
 
 	useEffect(() => {
 		if (mRData?.getOneMaterialRequest) {
@@ -257,7 +342,7 @@ function AdminUpdateOneMaterialRequest() {
 
 			if (!changesArray.length) return;
 
-			console.log(`📡 Material Request subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+			console.log(` Material Request subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
 
 			if (requestId) {
 				const targetChange = changesArray.find((c) => c.id === requestId);
@@ -494,64 +579,69 @@ function AdminUpdateOneMaterialRequest() {
 			});
 	};
 
-	const deleteRequest = async (e) => {
-		// console.log("deleting request");
-		// console.log(e);
-		e.preventDefault();
+	// const deleteRequest = async (e) => {
+	// 	// console.log("deleting request");
+	// 	// console.log(e);
+	// 	e.preventDefault();
 
-		// e.preventDefault();
-		skipNextSub.current = true;
-		if (!userToken) return toast.warn("please-login"); //"Please log in first.");
-		// client.clearStore();
-		// await client.cache.reset();
-		// try {
-		const decoded = jwtDecode(userToken);
+	// 	// e.preventDefault();
+	// 	skipNextSub.current = true;
+	// 	if (!userToken) return toast.warn("please-login"); //"Please log in first.");
+	// 	// client.clearStore();
+	// 	// await client.cache.reset();
+	// 	// try {
+	// 	const decoded = jwtDecode(userToken);
 
-		const mutationPromise = deletedMaterialRequest({
-			variables: { id: requestId },
-			onCompleted: (res) => {
-				// console.log("user update ", jwtDecode(userToken).userId == requestersID);
-				// console.log("Mutation success:", res?.updateOneMaterialRequest);
-				// console.log("this is the client / caches", client.cache.extract());
-				// ("Material request has been deleted successfully!");
-				navigate(`/material/request/all`);
-			},
-		});
-		// } catch (err) {
-		// 	console.error("Submit error:", err);
-		// }
-		toast.promise(mutationPromise, {
-			pending: t("deleting-request"),
+	// 	const mutationPromise = deletedMaterialRequest({
+	// 		variables: {
+	// 			id: requestId,
+	// 			requesterID: requestId,
+	// 			isApproved: approval,
+	// 		},
 
-			success: {
-				render({ closeToast }) {
-					setIsOpen(false);
-					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} deleting={true} />;
-				},
-			},
+	// 		onCompleted: (res) => {
+	// 			// console.log("user update ", jwtDecode(userToken).userId == requestersID);
+	// 			// console.log("Mutation success:", res?.updateOneMaterialRequest);
+	// 			// console.log("this is the client / caches", client.cache.extract());
+	// 			// ("Material request has been deleted successfully!");
+	// 			navigate(`/material/request/all`);
+	// 		},
+	// 	});
+	// 	// } catch (err) {
+	// 	// 	console.error("Submit error:", err);
+	// 	// }
+	// 	toast.promise(mutationPromise, {
+	// 		pending: t("deleting-request"),
 
-			error: {
-				render({ data }) {
-					const err = data;
-					if (err?.graphQLErrors?.length) {
-						return err.graphQLErrors.map((e) => e.message).join(", ");
-					}
-					// come here
-					if (err?.networkError) return t("network-error-try-again");
-					return t("something-went-wrong");
-				},
-				autoClose: false,
-			},
-		});
-		mutationPromise
-			.then(() => {
-				setHasSubmitted(true);
-				setBlockInput(true);
-			})
-			.catch(() => {
-				setHasSubmitted(false);
-			});
-	};
+	// 		success: {
+	// 			render({ closeToast }) {
+	// 				setIsOpen(false);
+	// 				return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} deleting={true} />;
+	// 			},
+	// 		},
+
+	// 		error: {
+	// 			render({ data }) {
+	// 				const err = data;
+	// 				if (err?.graphQLErrors?.length) {
+	// 					return err.graphQLErrors.map((e) => e.message).join(", ");
+	// 				}
+	// 				// come here
+	// 				if (err?.networkError) return t("network-error-try-again");
+	// 				return t("something-went-wrong");
+	// 			},
+	// 			autoClose: false,
+	// 		},
+	// 	});
+	// 	mutationPromise
+	// 		.then(() => {
+	// 			setHasSubmitted(true);
+	// 			setBlockInput(true);
+	// 		})
+	// 		.catch(() => {
+	// 			setHasSubmitted(false);
+	// 		});
+	// };
 
 	const isFormValid = rows.every((r) => r.item && r.quantity !== "" && Number(r.quantity) > 0);
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useQuery, useSubscription, gql } from "@apollo/client";
 import { get_all_material_requests } from "../../../graphQL/queries/queries";
 import { Link } from "react-router-dom";
@@ -9,6 +9,7 @@ import { useAuth } from "../../context/AuthContext";
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
 import { useMaterialRequests } from "../../../src/context/MaterialRequestContext";
+import { STORAGE_KEYS } from "../utilities/activeTabs";
 
 export default function GetAllMaterialRequest() {
 	const { userToken, setPageLoading } = useAuth();
@@ -17,8 +18,29 @@ export default function GetAllMaterialRequest() {
 	// 	fetchPolicy: "cache-and-network",
 	// });
 
-	const [activeTab, setActiveTab] = useState("waiting");
-	// "waiting" | "approved" | "all"
+	// 	const STORAGE_KEYS = {
+	//   SORT_KEY: "materialRequestsSortKey",
+	//   SORT_DIR: "materialRequestsSortDir",
+	//   ACTIVE_TAB: "materialRequestsActiveTab",
+	// };
+
+	const TAB_STORAGE_KEY = "materialRequestsActiveTab";
+	// 	const [activeTab, setActiveTab] = useState( ()=>{
+	// 		return localStorage.getItem(TAB_STORAGE_KEY) ||"waiting"
+	// 	});// "waiting" | "approved" | "all"
+
+	const [activeTab, setActiveTab] = useState(() => {
+		const savedTab = localStorage.getItem(STORAGE_KEYS.MATERIAL_REQUESTS.ACTIVE_TAB);
+
+		// Validate value (prevents corrupted storage bugs)
+		if (["waiting", "approved", "all"].includes(savedTab)) {
+			return savedTab;
+		}
+
+		return "waiting";
+	});
+
+	useEffect(() => {}, [activeTab]);
 
 	const filterByTab = (list, tab) => {
 		switch (tab) {
@@ -39,17 +61,18 @@ export default function GetAllMaterialRequest() {
 	const SORT_DIR_STORAGE = "materialRequestsSortDir";
 
 	const [sortKey, setSortKey] = useState(() => {
-		return localStorage.getItem(SORT_KEY_STORAGE) || "addedDate";
+		return localStorage.getItem(STORAGE_KEYS.MATERIAL_REQUESTS.SORT_KEY) || "addedDate";
 	});
 
 	const [sortDir, setSortDir] = useState(() => {
-		return localStorage.getItem(SORT_DIR_STORAGE) || "desc";
+		return localStorage.getItem(STORAGE_KEYS.MATERIAL_REQUESTS.SORT_DIR) || "desc";
 	});
 
 	useEffect(() => {
-		localStorage.setItem(SORT_KEY_STORAGE, sortKey);
-		localStorage.setItem(SORT_DIR_STORAGE, sortDir);
-	}, [sortKey, sortDir]);
+		localStorage.setItem(STORAGE_KEYS.MATERIAL_REQUESTS.ACTIVE_TAB, activeTab);
+		localStorage.setItem(STORAGE_KEYS.MATERIAL_REQUESTS.SORT_KEY, sortKey);
+		localStorage.setItem(STORAGE_KEYS.MATERIAL_REQUESTS.SORT_DIR, sortDir);
+	}, [activeTab, sortKey, sortDir]);
 
 	// const sortRequests = (list, key, dir) => {
 	// 	return [...list].sort((a, b) => {
@@ -243,9 +266,12 @@ export default function GetAllMaterialRequest() {
 					{/* 
 				
 				
-				//TODO -  make sure that the selected tab has an underline in users and the others also the  ad the filter to items if need you need to modify it any ways  adding the table scroll clase
+				//TODO - make sure that the selected tab has an underline in users and the others    also the ad the filter to items if need you need to modify it any ways  adding the table scroll clase
 				
-				
+						ADD THE UNDERLINE TO THE TABS IN THE USERS SIDE AND ALSO MAKE SURE THEY HAVE THE TABLE SCROLL CLASE(THE TABLE NOT THE TABS)
+
+
+
 				
 				*/}
 

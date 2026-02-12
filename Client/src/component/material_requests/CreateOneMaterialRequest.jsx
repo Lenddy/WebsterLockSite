@@ -15,6 +15,8 @@ import { List, useDynamicRowHeight } from "react-window";
 import { useDebounce } from "use-debounce";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
+import { useItemGroups } from "../../context/ItemGroupContext";
+
 // import FixedSizeList from "react-window";
 
 // import {FixedSizeList} from "react-window"
@@ -22,7 +24,15 @@ import { toast } from "react-toastify";
 export default function CreateOneMaterialRequest() {
 	const { userToken, loading: authLoading } = useAuth(); //  use context instead of prop
 	const [rows, setRows] = useState([{ brand: "", item: "", quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
-	const [itemGroups, setItemGroups] = useState([]);
+
+	const { items: itemGroups, loading: iGLoading, error: iGError } = useItemGroups();
+	// const { items, loading: iGLoading, error: iGError } = useItemGroups();
+	// const itemGroups = [];
+
+	console.log("this are the item groups", itemGroups);
+	// console.log("this are the item groups , using items", items);
+
+	// const [itemGroups, setItemGroups] = useState([]);
 	const [logUser, setLogUser] = useState(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const [showDoorHanding, setShowDoorHanding] = useState(false);
@@ -34,15 +44,13 @@ export default function CreateOneMaterialRequest() {
 
 	const navigate = useNavigate();
 	const [NewMaterialRequest] = useMutation(create_one_material_request);
-	const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
+	// const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
 
 	const [searchValue, setSearchValue] = useState("");
 	const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
 
 	const [isItemsReady, setIsItemsReady] = useState(false);
 	const { t } = useTranslation();
-
-	// const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms delay
 
 	//  Decode token only if it exists and once AuthContext is ready
 	useEffect(() => {
@@ -56,10 +64,10 @@ export default function CreateOneMaterialRequest() {
 		}
 	}, [userToken, authLoading]);
 
-	useEffect(() => {
-		if (iGData) setItemGroups(iGData?.getAllItemGroups || []);
-		if (iGError) console.log("Error fetching item groups:", iGError);
-	}, [iGData, iGError]);
+	// useEffect(() => {
+	// 	// if (iGData) setItemGroups(iGData?.getAllItemGroups || []);
+	// 	// if (iGError) console.log("Error fetching item groups:", iGError);
+	// }, [iGData, iGError]);
 
 	const colorOptions = [
 		{ value: "605/US3 - Bright Brass", label: "605/US3 - Bright Brass", hex: "#FFD700" },
@@ -462,7 +470,7 @@ export default function CreateOneMaterialRequest() {
 														options={sideOptions}
 														value={sideOptions.find((opt) => opt.value === row.side)}
 														onChange={(val) => {
-															handleRowChange(idx, "side", val?.value || null), setShowDoorHanding(true);
+															(handleRowChange(idx, "side", val?.value || null), setShowDoorHanding(true));
 														}}
 														placeholder={t("select-side")}
 														isClearable

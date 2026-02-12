@@ -12,14 +12,12 @@ import { useUsers } from "../../context/UsersContext";
 // import { needReload } from "../../../graphQL/apolloClient";
 import { can } from "../../../../Server/isAdmin";
 import { roleRank } from "../utilities/role.config";
+import { STORAGE_KEYS } from "../utilities/activeTabs";
 
 export default function GetAllUsers() {
 	const { userToken, setPageLoading } = useAuth(); // Get current user token from context
 	const [logUser, setLogUser] = useState(null);
-
 	const { users, loading, error } = useUsers();
-
-	// console.log("does the page needs a reload ? ", needReload);
 
 	const {
 		error: testError,
@@ -39,20 +37,17 @@ export default function GetAllUsers() {
 	const [selectedUser, setSelectedUser] = useState(null);
 
 	// sorting
-	const SORT_KEY_STORAGE = "usersTableSortKey";
-	const SORT_DIR_STORAGE = "usersTableSortDir";
 
 	const [sortKey, setSortKey] = useState(() => {
-		return localStorage.getItem(SORT_KEY_STORAGE) || "name";
+		return localStorage.getItem(STORAGE_KEYS.USERS.SORT_KEY) || "name";
 	});
-
 	const [sortDir, setSortDir] = useState(() => {
-		return localStorage.getItem(SORT_DIR_STORAGE) || "asc";
+		return localStorage.getItem(STORAGE_KEYS.USERS.SORT_DIR) || "asc";
 	});
 
 	useEffect(() => {
-		localStorage.setItem(SORT_KEY_STORAGE, sortKey);
-		localStorage.setItem(SORT_DIR_STORAGE, sortDir);
+		localStorage.setItem(STORAGE_KEYS.USERS.SORT_KEY, sortKey);
+		localStorage.setItem(STORAGE_KEYS.USERS.SORT_DIR, sortDir);
 	}, [sortKey, sortDir]);
 
 	const sortUsers = (list, key, dir) => {
@@ -258,19 +253,21 @@ export default function GetAllUsers() {
 									<tr>
 										{logUser?.role == "headAdmin" && <th>ID</th>}
 
-										{/* <th>#</th>
-									<th>{t("name")}</th>
-									<th>{t("email")}</th> */}
-
-										<th onClick={() => handleSort("employeeNum")} className="clickable-th">
+										<th onClick={() => handleSort("employeeNum")} className={`clickable-th ${sortKey === "employeeNum" ? "active-sort" : ""}`}>
 											# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
 										</th>
 
-										<th onClick={() => handleSort("name")} className="clickable-th">
+										<th
+											onClick={() => handleSort("name")}
+											//  className="clickable-th"
+											className={`clickable-th ${sortKey === "name" ? "active-sort" : ""}`}>
 											{t("name")} {sortKey === "name" && (sortDir === "asc" ? "▾" : "▴")}
 										</th>
 
-										<th onClick={() => handleSort("email")} className="clickable-th">
+										<th
+											onClick={() => handleSort("email")}
+											// className="clickable-th"
+											className={`clickable-th ${sortKey === "email" ? "active-sort" : ""}`}>
 											{t("email")} {sortKey === "email" && (sortDir === "asc" ? "▾" : "▴")}
 										</th>
 

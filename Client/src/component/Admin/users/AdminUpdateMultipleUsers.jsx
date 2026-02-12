@@ -553,39 +553,38 @@ export default function AdminUpdateMultipleUsers() {
 										value={userOptions.find((opt) => opt.value === row?.id) || null}
 										onChange={(selected) => {
 											if (row?.locked) return; // Prevent changes if locked
-											setRows();
-											// 	(prev) => {
-											// 	const newRows = [...prev];
-											// 	const updatedRow = { ...newRows[index] };
+											setRows((prev) => {
+												const newRows = [...prev];
+												const updatedRow = { ...newRows[index] };
 
-											// 	if (selected) {
-											// 		const selectedUser = users.find((u) => u.id === selected.value);
-											// 		console.log("this is the selectedUser", selectedUser);
-											// 		if (selectedUser) {
-											// 			updatedRow.id = selectedUser.id;
-											// 			updatedRow.previousEmail = selectedUser.email || "";
-											// 			updatedRow.employeeNum = selectedUser.employeeNum || "";
-											// 			updatedRow.department = selectedUser.department || "";
-											// 			updatedRow.name = selectedUser.name || "";
-											// 			updatedRow.newRole = selectedUser.role || "";
-											// 			updatedRow.newPermissions = [...selectedUser.permissions];
-											// 		}
-											// 	} else {
-											// 		// If cleared, reset to empty
-											// 		updatedRow.id = "";
-											// 		updatedRow.previousEmail = "";
-											// 		updatedRow.employeeNum = "";
-											// 		updatedRow.department = "";
-											// 		updatedRow.name = "";
-											// 		updatedRow.title = "";
-											// 		updatedRow.description = "";
-											// 		updatedRow.newRole = "";
-											// 		updatedRow.newPermissions = [];
-											// 	}
+												if (selected) {
+													const selectedUser = users.find((u) => u.id === selected.value);
+													console.log("this is the selectedUser", selectedUser);
+													if (selectedUser) {
+														updatedRow.id = selectedUser.id;
+														updatedRow.previousEmail = selectedUser.email || "";
+														updatedRow.employeeNum = selectedUser.employeeNum || "";
+														updatedRow.department = selectedUser.department || "";
+														updatedRow.name = selectedUser.name || "";
+														updatedRow.newRole = selectedUser.role || "";
+														updatedRow.newPermissions = [...selectedUser.permissions];
+													}
+												} else {
+													// If cleared, reset to empty
+													updatedRow.id = "";
+													updatedRow.previousEmail = "";
+													updatedRow.employeeNum = "";
+													updatedRow.department = "";
+													updatedRow.name = "";
+													updatedRow.title = "";
+													updatedRow.description = "";
+													updatedRow.newRole = "";
+													updatedRow.newPermissions = [];
+												}
 
-											// 	newRows[index] = updatedRow;
-											// 	return newRows;
-											// }
+												newRows[index] = updatedRow;
+												return newRows;
+											});
 										}}
 										placeholder={loading ? t("loading") : t("Select-user-by-name-email")}
 										isClearable={!row?.locked} //  Don't allow clearing if locked

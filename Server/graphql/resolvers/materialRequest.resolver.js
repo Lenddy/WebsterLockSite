@@ -815,7 +815,7 @@ const materialRequestResolvers = {
 			}
 
 			// Owners cannot delete approved requests
-			if (isOwner && !isAdmin && isApproved && can(user, "requests:delete:own")) {
+			if (isOwner && !isAdmin && isApproved !== null && can(user, "requests:delete:own")) {
 				throw new ApolloError("This request is already approved. Only an admin can delete it.");
 			}
 
@@ -851,63 +851,63 @@ const materialRequestResolvers = {
 		},
 
 		// Delete multiple material requests (admin only)
-		deleteMultipleMaterialRequests: async (_, { ids }, { user, pubsub }) => {
-			try {
-				// Authentication check
-				if (!user) throw new ApolloError("Unauthorized: No context provided.");
-				if (!user.permissions.canDeleteUsers) throw new ApolloError("You lack permission to delete Material requests.");
+		// deleteMultipleMaterialRequests: async (_, { ids }, { user, pubsub }) => {
+		// 	try {
+		// 		// Authentication check
+		// 		if (!user) throw new ApolloError("Unauthorized: No context provided.");
+		// 		if (!user.permissions.canDeleteUsers) throw new ApolloError("You lack permission to delete Material requests.");
 
-				if (!Array.isArray(ids) || ids.length === 0) {
-					throw new ApolloError("No IDs provided for deletion.");
-				}
+		// 		if (!Array.isArray(ids) || ids.length === 0) {
+		// 			throw new ApolloError("No IDs provided for deletion.");
+		// 		}
 
-				// Fetch all material requests to delete
-				const requestsToDelete = await MaterialRequest.find({ _id: { $in: ids } });
+		// 		// Fetch all material requests to delete
+		// 		const requestsToDelete = await MaterialRequest.find({ _id: { $in: ids } });
 
-				if (requestsToDelete.length === 0) {
-					throw new ApolloError("No Material Requests found for the provided IDs.");
-				}
+		// 		if (requestsToDelete.length === 0) {
+		// 			throw new ApolloError("No Material Requests found for the provided IDs.");
+		// 		}
 
-				// Delete all at once
-				await MaterialRequest.deleteMany({ _id: { $in: ids } });
+		// 		// Delete all at once
+		// 		await MaterialRequest.deleteMany({ _id: { $in: ids } });
 
-				// Prepare JSON-safe payloads
-				const payloadArray = requestsToDelete.map((req) => ({
-					...req.toObject(),
-					id: req._id.toString(),
-					items: req.items.map((item) => ({
-						id: item._id.toString(),
-						itemName: item.itemName,
-						quantity: item.quantity,
-						itemDescription: item.itemDescription ?? null,
-						color: item.color ?? null,
-						side: item.side ?? null,
-						size: item.size ?? null,
-					})),
-				}));
+		// 		// Prepare JSON-safe payloads
+		// 		const payloadArray = requestsToDelete.map((req) => ({
+		// 			...req.toObject(),
+		// 			id: req._id.toString(),
+		// 			items: req.items.map((item) => ({
+		// 				id: item._id.toString(),
+		// 				itemName: item.itemName,
+		// 				quantity: item.quantity,
+		// 				itemDescription: item.itemDescription ?? null,
+		// 				color: item.color ?? null,
+		// 				side: item.side ?? null,
+		// 				size: item.size ?? null,
+		// 			})),
+		// 		}));
 
-				const changeType = MaterialRequest.length > 1 ? "multiple" : "single";
-				// console.log("length", changeType);
-				// console.log("this is the info", payloadArray);
+		// 		const changeType = MaterialRequest.length > 1 ? "multiple" : "single";
+		// 		// console.log("length", changeType);
+		// 		// console.log("this is the info", payloadArray);
 
-				const changes = changeType === "multiple" ? payloadArray : payloadArray[0];
+		// 		const changes = changeType === "multiple" ? payloadArray : payloadArray[0];
 
-				// Publish one event for all deletions
-				await pubsub.publish("MATERIAL_REQUEST_DELETED", {
-					onMaterialRequestChange: {
-						eventType: "deleted",
-						changeType: changeType,
-						...(changeType === "multiple" ? { changes: changes } : { change: changes }),
-					},
-				});
+		// 		// Publish one event for all deletions
+		// 		await pubsub.publish("MATERIAL_REQUEST_DELETED", {
+		// 			onMaterialRequestChange: {
+		// 				eventType: "deleted",
+		// 				changeType: changeType,
+		// 				...(changeType === "multiple" ? { changes: changes } : { change: changes }),
+		// 			},
+		// 		});
 
-				// Return the deleted requests
-				return requestsToDelete;
-			} catch (error) {
-				console.error("Error deleting multiple material requests:", error);
-				throw error;
-			}
-		},
+		// 		// Return the deleted requests
+		// 		return requestsToDelete;
+		// 	} catch (error) {
+		// 		console.error("Error deleting multiple material requests:", error);
+		// 		throw error;
+		// 	}
+		// },
 
 		deleteMultipleMaterialRequests: async (_, { ids }, { user, pubsub }) => {
 			if (!user) {

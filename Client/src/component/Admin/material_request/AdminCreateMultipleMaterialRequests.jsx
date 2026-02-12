@@ -17,6 +17,7 @@ import { useItemGroups } from "../../../context/ItemGroupContext";
 // const [items, setItems] = useState([]);
 import { useAuth } from "../../../context/AuthContext";
 import { toast } from "react-toastify";
+import { can } from "../../utilities/can";
 
 export default function AdminCreateMultipleMaterialRequests() {
 	const { userToken, pageLoading, loading: userLoading } = useAuth();
@@ -48,17 +49,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 				employeeNum: "",
 				department: "",
 				permissions: [],
-				//  {
-				// 	canEditUsers: false,
-				// 	canDeleteUsers: false,
-				// 	canChangeRole: false,
-				// 	canViewUsers: false,
-				// 	canViewAllUsers: false,
-				// 	canEditSelf: false,
-				// 	canViewSelf: false,
-				// 	canDeleteSelf: false,
-				// 	canRegisterUser: false,
-				// },
 			},
 		},
 	]);
@@ -89,10 +79,9 @@ export default function AdminCreateMultipleMaterialRequests() {
 
 		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
 
-		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
 		// const isOwner = decodedUser.userId === userId;
 
-		return hasRole;
+		return ["headAdmin", "admin", "subAdmin"].includes(role) && can(decodedUser, "requests:read:any");
 	}, [decodedUser]);
 
 	useEffect(() => {
@@ -129,17 +118,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 					employeeNum: "",
 					department: "",
 					permissions: [],
-					// {
-					// 	canEditUsers: false,
-					// 	canDeleteUsers: false,
-					// 	canChangeRole: false,
-					// 	canViewUsers: false,
-					// 	canViewAllUsers: false,
-					// 	canEditSelf: false,
-					// 	canViewSelf: false,
-					// 	canDeleteSelf: false,
-					// 	canRegisterUser: false,
-					// },
 				},
 			},
 		]);
@@ -472,9 +450,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 	}
 
 	const filteredAllItems = useMemo(() => {
-		// console.log("🔍 debouncedSearch:", debouncedSearch);
-		// console.log("📦 allItems:", allItems);
-
 		if (!debouncedSearch) {
 			// console.log("➡ Returning all items (no search)");
 			return allItems;
@@ -491,15 +466,13 @@ export default function AdminCreateMultipleMaterialRequests() {
 			const results = fuse.search(debouncedSearch);
 			// const results = fuse.search(debouncedSearch).some((r) => r.item.value);
 
-			// console.log("🎯 Fuse raw results:", results);
-
 			const mapped = results.map((r) => r.item);
 			// const mapped = results.some((r) => r.item);
-			// console.log("📌 Mapped results:", mapped);
+			// console.log(" Mapped results:", mapped);
 
 			return mapped;
 		} catch (err) {
-			// console.error("❌ Fuzzy error:", err);
+			// console.error(" Fuzzy error:", err);
 			return allItems;
 		}
 	}, [allItems, debouncedSearch]);

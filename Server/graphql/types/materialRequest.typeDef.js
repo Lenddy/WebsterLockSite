@@ -160,7 +160,7 @@ const materialRequestTypeDef = gql`
 	input deleteMaterialRequest {
 		id: ID!
 		requesterID: ID!
-		isApproved: Boolean!
+		isApproved: Boolean
 	}
 
 	# --- Queries ---

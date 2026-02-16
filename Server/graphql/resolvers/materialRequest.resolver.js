@@ -440,7 +440,7 @@ const materialRequestResolvers = {
 				const isOwner = (user.userId = requesterId);
 				// .toString() === requesterId.toString();
 
-				const isAdmin = roleRank[user.role] >= 3 && can("requests:update:any");
+				const isAdmin = roleRank[user.role] >= 3 && can(user, "requests:update:any");
 
 				const isApproved = target.approvalStatus?.isApproved === true;
 

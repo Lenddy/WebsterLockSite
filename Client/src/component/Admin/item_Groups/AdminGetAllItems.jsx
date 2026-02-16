@@ -121,6 +121,10 @@ export default function AdminGetAllItems() {
 			) : (
 				<div className="list-get-all-content">
 					<div className="search-filter-wrapper">
+						<div className="component-title">
+							<h2>{t("items")}</h2>
+						</div>
+
 						<div className="search-filter-container">
 							<input type="text" className="search-filter-input" placeholder={t("search-brand-by-brand-name")} value={searchValue} onChange={handleSearchChange} autoComplete="off" />
 							<button className="search-clear-btn" onClick={clearSearch} disabled={!searchValue}>
@@ -130,52 +134,56 @@ export default function AdminGetAllItems() {
 					</div>
 
 					<div className="table-wrapper">
-						<div className="table-title">
+						{/* <div className="table-title">
 							<h2>{t("items")}</h2>
-						</div>
-						<table>
-							<thead>
-								<tr>
-									{logUser?.role == "headAdmin" && <th>ID</th>}
-									<th>{t("brand")}</th>
-									<th>{t("item-amount")}</th>
-									<th>{t("some-items")}</th>
-									<th>{t("action")}</th>
-								</tr>
-							</thead>
-							<tbody>
-								{filteredItems.map((ig) => (
-									<tr key={ig.id}>
-										{logUser?.role == "headAdmin" && (
-											<td>
-												<Link to={`/admin/material/item/${ig?.id}`}>{ig?.id}</Link>
-											</td>
-										)}
-										<td>
-											<Link to={`/admin/material/item/${ig?.id}`}>{ig?.brand}</Link>
-										</td>
-										<td>{ig?.itemsList?.length}</td>
-										<td>
-											{ig?.itemsList?.slice(0, 3).map((item, idx, arr) => (
-												<span key={item.id}>
-													{item.itemName}
-													{idx < arr.length - 1 ? ", " : ""}
-												</span>
-											))}
-										</td>
-										<td>
-											<div>
-												<Link to={`/admin/material/item/${ig?.id}/update`}>
-													<span className="table-action first">{t("update")}</span>
-												</Link>
-												{/* Uncomment for delete modal */}
-												{/* <span className="table-action last" onClick={() => { setSelectedItem(ig); setIsOpen(true); }}>Delete</span> */}
-											</div>
-										</td>
+						</div> */}
+
+						<div className="table-title">{/* <h2>{t("items")}</h2> */}</div>
+						<div className="table-scroll">
+							<table>
+								<thead>
+									<tr>
+										{logUser?.role == "headAdmin" && <th>ID</th>}
+										<th>{t("brand")}</th>
+										<th>{t("item-amount")}</th>
+										<th>{t("some-items")}</th>
+										<th>{t("action")}</th>
 									</tr>
-								))}
-							</tbody>
-						</table>
+								</thead>
+								<tbody>
+									{filteredItems.map((ig) => (
+										<tr key={ig.id}>
+											{logUser?.role == "headAdmin" && (
+												<td>
+													<Link to={`/admin/material/item/${ig?.id}`}>{ig?.id}</Link>
+												</td>
+											)}
+											<td>
+												<Link to={`/admin/material/item/${ig?.id}`}>{ig?.brand}</Link>
+											</td>
+											<td>{ig?.itemsList?.length}</td>
+											<td>
+												{ig?.itemsList?.slice(0, 3).map((item, idx, arr) => (
+													<span key={item.id}>
+														{item.itemName}
+														{idx < arr.length - 1 ? ", " : ""}
+													</span>
+												))}
+											</td>
+											<td>
+												<div>
+													<Link to={`/admin/material/item/${ig?.id}/update`}>
+														<span className="table-action first">{t("update")}</span>
+													</Link>
+													{/* Uncomment for delete modal */}
+													{/* <span className="table-action last" onClick={() => { setSelectedItem(ig); setIsOpen(true); }}>Delete</span> */}
+												</div>
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
 					</div>
 					{/* <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={selectedItem} userToken={userToken} /> */}
 				</div>

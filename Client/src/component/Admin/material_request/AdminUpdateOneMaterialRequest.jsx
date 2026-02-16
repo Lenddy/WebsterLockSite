@@ -550,7 +550,8 @@ function AdminUpdateOneMaterialRequest() {
 
 			success: {
 				render({ closeToast }) {
-					setIsOpen(false);
+					// in this line is telling me that it cant update the component (state) but it did set the state to false (the modal closes when the confirm btn is click so that by be why) find what happen
+					// setIsOpen(false);
 					return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} />;
 				},
 				autoClose: false,
@@ -571,6 +572,7 @@ function AdminUpdateOneMaterialRequest() {
 		});
 		mutationPromise
 			.then(() => {
+				setIsOpen(false);
 				setHasSubmitted(true);
 				setBlockInput(true);
 			})

@@ -30,7 +30,7 @@ export const ROLE_PERMISSIONS = {
 	// permissions can be given (3)
 	subAdmin: [
 		// users
-		"users:read:own",
+		"users:read:any",
 		"users:update:own",
 
 		// requests

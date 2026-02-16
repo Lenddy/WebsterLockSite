@@ -9,6 +9,8 @@ import { useTranslation } from "react-i18next";
 import { useItemGroups } from "../../../context/ItemGroupContext";
 import { useAuth } from "../../../context/AuthContext";
 import { toast } from "react-toastify";
+import { roleRank } from "../../utilities/role.config";
+import { can } from "../../utilities/can";
 
 export default function AdminUpdateMultipleItemsGroups() {
 	const { userToken, setPageLoading } = useAuth(); // get token from context
@@ -63,10 +65,12 @@ export default function AdminUpdateMultipleItemsGroups() {
 
 		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
 
-		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
 		// const isOwner = decodedUser.userId === userId;
 
-		return hasRole;
+		return roleRank[role] >= 3 && can(decodedUser, "items:update:any");
+
+		// return hasRole;
 	}, [decodedUser]);
 
 	useEffect(() => {

@@ -10,9 +10,9 @@ import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
 import { useUsers } from "../../context/UsersContext";
 // import { needReload } from "../../../graphQL/apolloClient";
-import { can } from "../../../../Server/isAdmin";
 import { roleRank } from "../utilities/role.config";
 import { STORAGE_KEYS } from "../utilities/activeTabs";
+import { can } from "../utilities/can";
 
 export default function GetAllUsers() {
 	const { userToken, setPageLoading } = useAuth(); // Get current user token from context
@@ -99,10 +99,12 @@ export default function GetAllUsers() {
 
 		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
 
-		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// can(decodedUser,"items:read:any")
 		// const isOwner = decodedUser.userId === userId;
 
-		return hasRole;
+		// return hasRole;
+		return can(decodedUser, "items:read:any");
 	}, [decodedUser]);
 
 	useEffect(() => {
@@ -245,6 +247,7 @@ export default function GetAllUsers() {
 							</div>
 						</div>
 					</div>
+
 					<div className="table-wrapper">
 						<div className="table-title">{/* <h2>{t("users")}</h2> */}</div>
 						<div className="table-scroll">

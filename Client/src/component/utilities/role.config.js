@@ -40,7 +40,7 @@ export const ROLE_PERMISSIONS = {
 	subAdmin: {
 		permissions: [
 			// users
-			"users:read:own",
+			"users:read:any",
 			"users:update:own",
 			// requests
 			"requests:read:any",

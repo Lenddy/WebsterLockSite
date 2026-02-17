@@ -87,16 +87,18 @@ export default function RegisterUser() {
 						title: job.title,
 						description: job.description,
 					},
-					permissions: {
-						canEditUsers: permission.canEditUsers || false,
-						canDeleteUsers: permission.canDeleteUsers || false,
-						canChangeRole: permission.canChangeRole || false,
-						canViewUsers: permission.canViewUsers || false,
-						canViewAllUsers: permission.canViewAllUsers || false,
-						canEditSelf: permission.canEditSelf || true,
-						canViewSelf: permission.canViewSelf || true,
-						canDeleteSelf: permission.canDeleteSelf || false,
-					},
+					// permissions
+					// :  {
+					// 	canEditUsers: permission.canEditUsers || false,
+					// 	canDeleteUsers: permission.canDeleteUsers || false,
+					// 	canChangeRole: permission.canChangeRole || false,
+					// 	canViewUsers: permission.canViewUsers || false,
+					// 	canViewAllUsers: permission.canViewAllUsers || false,
+					// 	canEditSelf: permission.canEditSelf || true,
+					// 	canViewSelf: permission.canViewSelf || true,
+					// 	canDeleteSelf: permission.canDeleteSelf || false,
+					// }
+					// ,
 				},
 			},
 		})

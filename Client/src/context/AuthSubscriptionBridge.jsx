@@ -10,31 +10,11 @@ export default function AuthSubscriptionBridge() {
 
 	const currentUserId = userToken ? jwtDecode(userToken).userId : null;
 	const { t } = useTranslation();
-	// useSubscription(USER_CHANGE_SUBSCRIPTION, {
-	// 	onData: ({ data }) => {
-	// 		const payload = data?.data?.onUserChange;
-	// 		if (!payload) return;
-
-	// 		const { eventType, changes, updateBy } = payload;
-	// 		if (eventType !== "updated") return;
-
-	// 		for (const updatedUser of changes || []) {
-	// 			if (updatedUser.id === currentUserId && updatedUser.token) {
-	// 				console.log("🔑 Token refreshed via subscription");
-	// 				setUserToken(updatedUser.token);
-
-	// 				if (updateBy !== currentUserId) {
-	// 					alert("Your profile was updated. Session refreshed.");
-	// 				}
-	// 			}
-	// 		}
-	// 	},
-	// });
 
 	// Listen for USER_CHANGE_SUBSCRIPTION (same event you use everywhere else)
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
 		onData: ({ data: subscriptionData }) => {
-			console.log("📡 [AuthContext] Subscription data:", subscriptionData);
+			// console.log(" [AuthContext] Subscription data:", subscriptionData);
 
 			const changeEvent = subscriptionData?.data?.onUserChange;
 			if (!changeEvent) return;
@@ -54,9 +34,9 @@ export default function AuthSubscriptionBridge() {
 
 				//  Only update if the changed user is the logged-in one
 				if (currentUserId && updatedUserId === currentUserId && newToken) {
-					console.log("🔑 [AuthContext] Token updated via PubSub — refreshing context...");
+					// console.log(" [AuthContext] Token updated via PubSub — refreshing context...");
 					setUserToken(newToken);
-					console.log("updateBy", updateBy);
+					// console.log("updateBy", updateBy);
 					if (updateBy !== currentUserId) {
 						// TODO - add translations
 						// toast.update("User profile has been updated (from the context)");
@@ -70,7 +50,7 @@ export default function AuthSubscriptionBridge() {
 				// if (currentUserId && updatedUserId === currentUserId && newToken) {
 				// 	setUserToken(newToken);
 
-				// 	// 🔥 Force WebSocket reconnection
+				// 	//  Force WebSocket reconnection
 				// 	try {
 				// 		// wsLink.client?.dispose();
 				// 		wsClient.dispose();
@@ -82,7 +62,7 @@ export default function AuthSubscriptionBridge() {
 		},
 
 		onError: (err) => {
-			console.error("Subscription error:", err);
+			// console.error("Subscription error:", err);
 			if (err?.message?.includes("Socket closed") || err?.networkError) {
 				setWsDisconnected(true);
 			}

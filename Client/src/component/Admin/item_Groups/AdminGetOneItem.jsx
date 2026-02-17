@@ -62,7 +62,7 @@ export default function AdminGetOneItem() {
 	useEffect(() => {
 		if (data?.getOneItemGroup) {
 			const group = data.getOneItemGroup;
-			console.log(group);
+			// console.log(group);
 			setItemGroup(group);
 			setFilteredItems(sortByItemName(group.itemsList || []));
 		}

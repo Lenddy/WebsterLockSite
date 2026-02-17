@@ -66,7 +66,7 @@ export default function LogIn({ screenWidth }) {
 				// Check if a token already exists
 				const existingToken = localStorage.getItem("userToken");
 				if (existingToken) {
-					console.log("removing old token from log in ", new Date());
+					// console.log("removing old token from log in ", new Date());
 					// Automatically log out the previous user
 					localStorage.removeItem("userToken");
 					setUserToken(null); // reset context
@@ -76,7 +76,7 @@ export default function LogIn({ screenWidth }) {
 				}
 
 				// Save new token
-				console.log("adding new token from log in ", new Date());
+				// console.log("adding new token from log in ", new Date());
 				localStorage.setItem("userToken", token);
 				setUserToken(token);
 

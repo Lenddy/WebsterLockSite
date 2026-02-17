@@ -14,23 +14,7 @@ export const USER_CHANGE_SUBSCRIPTION = gql`
 				token
 				role
 				department
-				job {
-					title
-					description
-				}
-				permissions {
-					canEditUsers
-					canDeleteUsers
-					canChangeRole
-					canViewUsers
-					canViewAllUsers
-					canEditSelf
-					canViewSelf
-					canDeleteSelf
-					canRegisterUser
-					canNotBeDeleted
-					canNotBeUpdated
-				}
+				permissions
 			}
 
 			changes {
@@ -41,29 +25,13 @@ export const USER_CHANGE_SUBSCRIPTION = gql`
 				role
 				employeeNum
 				department
-				# createdAt
-				# updatedAt
-				job {
-					title
-					description
-				}
-				permissions {
-					canEditUsers
-					canDeleteUsers
-					canChangeRole
-					canViewUsers
-					canViewAllUsers
-					canEditSelf
-					canViewSelf
-					canDeleteSelf
-					canRegisterUser
-					canNotBeDeleted
-					canNotBeUpdated
-				}
+				permissions
 			}
 		}
 	}
 `;
+
+// TODO - you need to change the model for the material request because the users where change
 
 export const MATERIAL_REQUEST_CHANGE_SUBSCRIPTION = gql`
 	subscription OnMaterialRequestChange {
@@ -79,17 +47,7 @@ export const MATERIAL_REQUEST_CHANGE_SUBSCRIPTION = gql`
 					employeeNum
 					department
 					role
-					permissions {
-						canEditUsers
-						canDeleteUsers
-						canChangeRole
-						canViewUsers
-						canViewAllUsers
-						canEditSelf
-						canViewSelf
-						canDeleteSelf
-						canRegisterUser
-					}
+					permissions
 				}
 				reviewers {
 					userId
@@ -98,17 +56,7 @@ export const MATERIAL_REQUEST_CHANGE_SUBSCRIPTION = gql`
 					employeeNum
 					department
 					role
-					permissions {
-						canEditUsers
-						canDeleteUsers
-						canChangeRole
-						canViewUsers
-						canViewAllUsers
-						canEditSelf
-						canViewSelf
-						canDeleteSelf
-						canRegisterUser
-					}
+					permissions
 					comment
 					reviewedAt
 				}

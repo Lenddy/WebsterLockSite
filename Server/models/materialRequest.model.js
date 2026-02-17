@@ -41,17 +41,7 @@ const MaterialRequestSchema = new Schema(
 			department: String,
 
 			role: String,
-			permissions: {
-				canEditUsers: Boolean,
-				canDeleteUsers: Boolean,
-				canChangeRole: Boolean,
-				canViewUsers: Boolean,
-				canViewAllUsers: Boolean,
-				canEditSelf: Boolean,
-				canViewSelf: Boolean,
-				canDeleteSelf: Boolean,
-				canRegisterUser: { type: Boolean, default: false },
-			},
+			permissions: { type: [String], default: [] },
 		},
 
 		//  reviewers snapshot (array because multiple reviewers)
@@ -75,15 +65,8 @@ const MaterialRequestSchema = new Schema(
 				department: String,
 				role: String,
 				permissions: {
-					canEditUsers: Boolean,
-					canDeleteUsers: Boolean,
-					canChangeRole: Boolean,
-					canViewUsers: Boolean,
-					canViewAllUsers: Boolean,
-					canEditSelf: Boolean,
-					canViewSelf: Boolean,
-					canDeleteSelf: Boolean,
-					canRegisterUser: { type: Boolean, default: false },
+					type: [String],
+					default: [],
 				},
 				comment: String,
 				reviewedAt: Date,

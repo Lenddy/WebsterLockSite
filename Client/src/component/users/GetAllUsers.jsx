@@ -10,23 +10,76 @@ import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
 import { useUsers } from "../../context/UsersContext";
 // import { needReload } from "../../../graphQL/apolloClient";
+import { roleRank } from "../utilities/role.config";
+import { STORAGE_KEYS } from "../utilities/activeTabs";
+import { can } from "../utilities/can";
 
 export default function GetAllUsers() {
 	const { userToken, setPageLoading } = useAuth(); // Get current user token from context
 	const [logUser, setLogUser] = useState(null);
-
 	const { users, loading, error } = useUsers();
 
-	// console.log("does the page needs a reload ? ", needReload);
-
-	// const { error, loading, data, refetch } = useQuery(get_all_users, {
+	// const {
+	// 	error: testError,
+	// 	loading: loadingTest,
+	// 	data: dataTest,
+	// 	refetch: refetchTest,
+	// } = useQuery(get_all_users, {
 	// 	fetchPolicy: "cache-and-network",
 	// });
+
+	// console.log("test data ", dataTest);
+
 	// const [users, setUsers] = useState([]);
 	const [filteredUsers, setFilteredUsers] = useState([]);
 	const [searchValue, setSearchValue] = useState("");
 	const [isOpen, setIsOpen] = useState(false);
 	const [selectedUser, setSelectedUser] = useState(null);
+
+	// sorting
+
+	const [sortKey, setSortKey] = useState(() => {
+		return localStorage.getItem(STORAGE_KEYS.USERS.SORT_KEY) || "name";
+	});
+	const [sortDir, setSortDir] = useState(() => {
+		return localStorage.getItem(STORAGE_KEYS.USERS.SORT_DIR) || "asc";
+	});
+
+	useEffect(() => {
+		localStorage.setItem(STORAGE_KEYS.USERS.SORT_KEY, sortKey);
+		localStorage.setItem(STORAGE_KEYS.USERS.SORT_DIR, sortDir);
+	}, [sortKey, sortDir]);
+
+	const sortUsers = (list, key, dir) => {
+		return [...list].sort((a, b) => {
+			let aVal = a[key];
+			let bVal = b[key];
+
+			// Explicit numeric sort for employeeNum
+			if (key === "employeeNum") {
+				const aNum = Number(aVal);
+				const bNum = Number(bVal);
+
+				// Handle missing / invalid numbers safely
+				if (Number.isNaN(aNum)) return 1;
+				if (Number.isNaN(bNum)) return -1;
+
+				return dir === "asc" ? aNum - bNum : bNum - aNum;
+			}
+
+			// Default string sort
+			return dir === "asc" ? String(aVal ?? "").localeCompare(String(bVal ?? "")) : String(bVal ?? "").localeCompare(String(aVal ?? ""));
+		});
+	};
+
+	const handleSort = (key) => {
+		if (sortKey === key) {
+			setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+		} else {
+			setSortKey(key);
+			setSortDir("asc");
+		}
+	};
 
 	const { t } = useTranslation();
 	const navigate = useNavigate();
@@ -46,10 +99,12 @@ export default function GetAllUsers() {
 
 		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
 
-		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// can(decodedUser,"items:read:any")
 		// const isOwner = decodedUser.userId === userId;
 
-		return hasRole;
+		// return hasRole;
+		return can(decodedUser, "items:read:any");
 	}, [decodedUser]);
 
 	useEffect(() => {
@@ -70,18 +125,26 @@ export default function GetAllUsers() {
 	}, [userToken]);
 
 	// Initialize users and filtered users
+	// !!!!! old
+	// useEffect(() => {
+	// 	setPageLoading(loading);
+	// 	setFilteredUsers(users);
+
+	// 	// if (data) {
+	// 	// 	console.log(data.getAllUsers);
+	// 	// 	setUsers(data.getAllUsers);
+	// 	// 	setFilteredUsers(data.getAllUsers);
+	// 	// }
+
+	// 	// data, loading, setPageLoading
+	// }, [loading, setPageLoading, users]);
+
 	useEffect(() => {
 		setPageLoading(loading);
-		setFilteredUsers(users);
 
-		// if (data) {
-		// 	console.log(data.getAllUsers);
-		// 	setUsers(data.getAllUsers);
-		// 	setFilteredUsers(data.getAllUsers);
-		// }
-
-		// data, loading, setPageLoading
-	}, [loading, setPageLoading, users]);
+		const sorted = sortUsers(users, sortKey, sortDir);
+		setFilteredUsers(sorted);
+	}, [loading, users, sortKey, sortDir, setPageLoading]);
 
 	const applyFuse = (list, search) => {
 		if (!search) return list;
@@ -105,41 +168,55 @@ export default function GetAllUsers() {
 	const canEditUser = (logUser, targetUser) => {
 		if (!logUser || !targetUser) return false;
 
-		const logRole = getRoleString(logUser.role);
-		const targetRole = getRoleString(targetUser.role);
-		const perms = logUser.permissions || {};
+		const isSelf = String(logUser.userId) === String(targetUser.id);
+		const logRank = roleRank[logUser.role] ?? 0;
+		const targetRank = roleRank[targetUser.role] ?? 0;
 
-		// 1️ Self-edit always comes first
-		if (logUser.userId === targetUser.id) return perms.canEditSelf ?? true;
+		//  Self update
+		if (isSelf) {
+			return can(logUser, "users:update:own", { ownerId: logUser?.userId });
+		}
 
-		// 2️ Must have global permission to edit other users
-		if (!perms.canEditUsers) return false;
+		//  Must have some non-own permission
+		const canAny = can(logUser, "users:update:any");
+		const canPeer = can(logUser, "peers:update:any", { targetRole: targetUser?.role });
 
-		// 3️Role hierarchy for editing others
-		if (logRole === "headAdmin") return !targetUser.permissions?.canNotBeUpdated;
-		if (logRole === "admin") return ["subAdmin", "technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeUpdated;
-		if (logRole === "subAdmin") return ["technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeUpdated;
+		if (!canAny && !canPeer) return false;
 
+		//  Higher role → allowed with ANY
+		if (logRank > targetRank) {
+			return canAny;
+		}
+
+		//  Same role → PEER required
+		if (logRank === targetRank) {
+			return canPeer;
+		}
+
+		//  Lower role → never
 		return false;
 	};
 
 	const canDeleteUser = (logUser, targetUser) => {
 		if (!logUser || !targetUser) return false;
 
-		const logRole = getRoleString(logUser.role);
-		const targetRole = getRoleString(targetUser.role);
-		const perms = logUser.permissions || {};
+		const isSelf = String(logUser.userId) === String(targetUser.id);
+		const logRank = roleRank[logUser.role] ?? 0;
+		const targetRank = roleRank[targetUser.role] ?? 0;
 
-		// 1️Self-delete always comes first
-		if (logUser.userId === targetUser.id) return perms.canDeleteSelf ?? false;
+		if (isSelf) {
+			return can(logUser, "users:delete:own");
+		}
 
-		// 2 Must have global permission to delete other users
-		if (!perms.canDeleteUsers) return false;
+		const canAny = can(logUser, "users:delete:any");
+		const canPeer = can(logUser, "peers:update:any", { targetRole: targetUser?.role });
+		// const canDelete = can(logUser, "users:delete:any");
 
-		// 3️Role hierarchy for deleting others
-		if (logRole === "headAdmin") return !targetUser.permissions?.canNotBeDeleted;
-		if (logRole === "admin") return ["subAdmin", "technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeDeleted;
-		if (logRole === "subAdmin") return ["technician", "user", "noRole"].includes(targetRole) && !targetUser.permissions?.canNotBeDeleted;
+		if (!canAny && !canPeer) return false;
+
+		if (logRank > targetRank) return canAny;
+
+		if (logRank === targetRank && !canAny && !canPeer) return canAny && canPeer;
 
 		return false;
 	};
@@ -156,81 +233,124 @@ export default function GetAllUsers() {
 			) : (
 				<div className="list-get-all-content">
 					{/* Search */}
-
 					<div className="search-filter-wrapper">
-						<div className="search-filter-container">
-							<input type="text" className="search-filter-input" placeholder={t("search-users-by-name-or-email")} value={searchValue} onChange={handleSearchChange} autoComplete="false" />
-							<button className="search-clear-btn" onClick={clearSearch} disabled={!searchValue}>
-								✕
-							</button>
+						<div className="search-filter-wrapper">
+							<div className="component-title">
+								<h2>{t("users")}</h2>
+							</div>
+
+							<div className="search-filter-container">
+								<input type="text" className="search-filter-input" placeholder={t("search-users-by-name-or-email")} value={searchValue} onChange={handleSearchChange} autoComplete="false" />
+								<button className="search-clear-btn" onClick={clearSearch} disabled={!searchValue}>
+									✕
+								</button>
+							</div>
 						</div>
 					</div>
 
 					<div className="table-wrapper">
-						<div className="table-title">
-							<h2>{t("users")}</h2>
-						</div>
-						<table>
-							<thead>
-								<tr>
-									{logUser?.role == "headAdmin" && <th>ID</th>}
+						<div className="table-title">{/* <h2>{t("users")}</h2> */}</div>
+						<div className="table-scroll">
+							<table>
+								<thead>
+									<tr>
+										{logUser?.role == "headAdmin" && <th>ID</th>}
 
-									<th>#</th>
-									<th>{t("name")}</th>
-									<th>{t("email")}</th>
-									<th>{t("role")}</th>
-									<th>{t("department")}</th>
-									<th>{t("action")}</th>
-								</tr>
-							</thead>
+										<th onClick={() => handleSort("employeeNum")} className={`clickable-th ${sortKey === "employeeNum" ? "active-sort" : ""}`}>
+											# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
+										</th>
 
-							<tbody>
-								{filteredUsers.map((user) => (
-									<tr key={user.id}>
-										{logUser?.role == "headAdmin" && (
-											<td>
-												<Link to={`/user/${user?.id}`}>{user?.id}</Link>
-											</td>
-										)}
+										<th
+											onClick={() => handleSort("name")}
+											//  className="clickable-th"
+											className={`clickable-th ${sortKey === "name" ? "active-sort" : ""}`}>
+											{t("name")} {sortKey === "name" && (sortDir === "asc" ? "▾" : "▴")}
+										</th>
 
-										<td>{user.employeeNum ? <Link to={`/user/${user?.id}`}>{user?.employeeNum}</Link> : "N/A"}</td>
+										<th
+											onClick={() => handleSort("email")}
+											// className="clickable-th"
+											className={`clickable-th ${sortKey === "email" ? "active-sort" : ""}`}>
+											{t("email")} {sortKey === "email" && (sortDir === "asc" ? "▾" : "▴")}
+										</th>
 
-										<td>
-											<Link to={`/user/${user?.id}`}>{user?.name}</Link>
-										</td>
-										<td>
-											<Link to={`/user/${user?.id}`}>{user?.email}</Link>
-										</td>
-										<td>{user?.role}</td>
-
-										<td>{user?.department ? user?.department : "N/A"}</td>
-										<td>
-											{(canEditUser(logUser, user) || canDeleteUser(logUser, user)) && logUser ? (
-												<div className="table-action-wrapper">
-													{canEditUser(logUser, user) && (
-														<Link to={`/admin/user/${user?.id}/update`}>
-															<span className="table-action first">{t("update")}</span>
-														</Link>
-													)}
-													{canDeleteUser(logUser, user) && (
-														<span
-															className="table-action last"
-															onClick={() => {
-																setSelectedUser(user);
-																setIsOpen(true);
-															}}>
-															{t("delete")}
-														</span>
-													)}
-												</div>
-											) : (
-												"N/A"
-											)}
-										</td>
+										<th>{t("role")}</th>
+										<th>{t("department")}</th>
+										<th>{t("action")}</th>
 									</tr>
-								))}
-							</tbody>
-						</table>
+								</thead>
+
+								<tbody>
+									{filteredUsers.map((user) => (
+										<tr key={user.id}>
+											{logUser?.role == "headAdmin" && (
+												<td>
+													<Link to={`/user/${user?.id}`}>{user?.id}</Link>
+												</td>
+											)}
+
+											<td>{user.employeeNum ? <Link to={`/user/${user?.id}`}>{user?.employeeNum}</Link> : "N/A"}</td>
+
+											<td>
+												<Link to={`/user/${user?.id}`}>{user?.name}</Link>
+											</td>
+											<td>
+												<Link to={`/user/${user?.id}`}>{user?.email}</Link>
+											</td>
+											<td>{user?.role}</td>
+
+											<td>{user?.department ? user?.department : "N/A"}</td>
+											<td>
+												{/* <div className="table-action-wrapper">
+												{canEditUser(logUser, user) && (
+													<Link to={`/admin/user/${user?.id}/update`}>
+														<span className="table-action first">{t("update")}</span>
+													</Link>
+												)}
+
+												{canDeleteUser(logUser, user) && (
+													<span
+														className="table-action last"
+														onClick={() => {
+															setSelectedUser(user);
+															setIsOpen(true);
+														}}>
+														{t("delete")}
+													</span>
+												)}
+											</div> */}
+												{logUser ? (
+													canEditUser(logUser, user) || canDeleteUser(logUser, user) ? (
+														<div className="table-action-wrapper">
+															{canEditUser(logUser, user) && (
+																<Link to={`/admin/user/${user.id}/update`}>
+																	<span className="table-action first">{t("update")}</span>
+																</Link>
+															)}
+
+															{canDeleteUser(logUser, user) && (
+																<span
+																	className="table-action last"
+																	onClick={() => {
+																		setSelectedUser(user);
+																		setIsOpen(true);
+																	}}>
+																	{t("delete")}
+																</span>
+															)}
+														</div>
+													) : (
+														"N/A"
+													)
+												) : (
+													"N/A"
+												)}
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
 					</div>
 					{/*  onClose={() => setIsOpen(false)} */}
 					{/* //NOTE - i lost connection to then subs when i use the new code to close the modal after deletion  if i go back tot he old code it works normaly but the modal does not close  so figure out how to close the modal with out  breaking the subs  */}

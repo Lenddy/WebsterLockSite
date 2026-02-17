@@ -4,6 +4,7 @@ import { get_all_item_groups } from "../../graphQL/queries/queries";
 import { ITEM_GROUP_CHANGE_SUBSCRIPTION } from "../../graphQL/subscriptions/subscriptions";
 import { useAuth } from "./AuthContext";
 import { jwtDecode } from "jwt-decode";
+import { can } from "../component/utilities/can";
 
 const ItemGroupsContext = createContext();
 
@@ -19,11 +20,7 @@ export function ItemGroupsProvider({ children }) {
 		// Extract role safely whether it's: "admin" OR { role: "admin" }
 		const role = typeof token?.role === "string" ? token.role : token?.role?.role;
 
-		const hasReviewRole = ["headAdmin", "admin", "subAdmin"].includes(role);
-
-		const hasPermission = token?.permissions?.canViewAllUsers === true;
-		// canViewAllUsers
-		return hasReviewRole && hasPermission;
+		return ["headAdmin", "admin", "subAdmin", "user"].includes(role) && can(token, "items:read:any");
 	};
 
 	const {
@@ -32,8 +29,8 @@ export function ItemGroupsProvider({ children }) {
 		error,
 	} = useQuery(get_all_item_groups, {
 		skip: authLoading || !userToken || !canReview(),
-		fetchPolicy: "cache-first",
-		// fetchPolicy: "cache-and-network",
+		// fetchPolicy: "cache-first",
+		fetchPolicy: "cache-and-network",
 	});
 
 	// Initial load
@@ -51,6 +48,7 @@ export function ItemGroupsProvider({ children }) {
 	useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
 		skip: authLoading || !userToken || !canReview(),
 		onData: ({ data: subscriptionData, client }) => {
+			console.log("Subscription raw data:", subscriptionData);
 			const changeEvent = subscriptionData?.data?.onItemGroupChange;
 			if (!changeEvent) return;
 
@@ -122,11 +120,11 @@ export function ItemGroupsProvider({ children }) {
 					},
 				});
 			} catch (err) {
-				console.warn("⚠️ Cache update skipped:", err.message);
+				console.warn(" Cache update skipped:", err.message);
 			}
 		},
 		onError: (err) => {
-			console.error("Subscription error:", err);
+			// console.error("Subscription error:", err);
 			if (err?.message?.includes("Socket closed") || err?.networkError) {
 				setWsDisconnected(true);
 			}

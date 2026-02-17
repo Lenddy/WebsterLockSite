@@ -31,6 +31,7 @@ export function MaterialRequestsProvider({ children }) {
 	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
 		skip: authLoading || !userToken, // skip subscription until token ready
 		onData: ({ data: subscriptionData, client }) => {
+			console.log("Subscription raw data:", subscriptionData);
 			const changeEvent = subscriptionData?.data?.onMaterialRequestChange;
 			if (!changeEvent) return;
 
@@ -83,27 +84,6 @@ export function MaterialRequestsProvider({ children }) {
 
 								const idx = newRefs.findIndex((ref) => readField("id", ref) === item.id);
 								if (idx > -1 && eventType === "updated") {
-									// newRefs[idx] = client.cache.writeFragment({
-									// 	data: item,
-									// 	fragment: gql`
-									// 		fragment UpdatedRequest on MaterialRequest {
-									// 			id
-									// 			items {
-									// 				id
-									// 				itemName
-									// 				quantity
-									// 			}
-									// 			requester {
-									// 				userId
-									// 				name
-									// 			}
-									// 			approvalStatus {
-									// 				isApproved
-									// 			}
-									// 		}
-									// 	`,
-									// });
-
 									newRefs = newRefs.map((ref) =>
 										readField("id", ref) === item.id
 											? client.cache.writeFragment({
@@ -141,7 +121,7 @@ export function MaterialRequestsProvider({ children }) {
 															}
 														}
 													`,
-											  })
+												})
 											: ref
 									);
 								} else if (eventType === "created") {
@@ -181,7 +161,6 @@ export function MaterialRequestsProvider({ children }) {
 											}
 										`,
 									});
-									// newRefs.push(newRef);
 									newRefs = [...newRefs, newRefFragment];
 								}
 							}
@@ -190,11 +169,11 @@ export function MaterialRequestsProvider({ children }) {
 					},
 				});
 			} catch (err) {
-				console.warn("⚠️ Cache update skipped:", err.message);
+				console.warn(" Cache update skipped:", err.message);
 			}
 		},
 		onError: (err) => {
-			console.error("Subscription error:", err);
+			// console.error("Subscription error:", err);
 			if (err?.message?.includes("Socket closed") || err?.networkError) {
 				setWsDisconnected(true);
 			}

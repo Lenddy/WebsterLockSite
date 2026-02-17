@@ -4,6 +4,7 @@ import { get_all_users } from "../../graphQL/queries/queries";
 import { USER_CHANGE_SUBSCRIPTION } from "../../graphQL/subscriptions/subscriptions";
 import { useAuth } from "./AuthContext"; // <-- import your auth context
 import { jwtDecode } from "jwt-decode";
+import { can } from "../component/utilities/can.js";
 
 const UsersContext = createContext();
 
@@ -25,12 +26,8 @@ export function UsersProvider({ children }) {
 
 		// Extract role safely whether it's: "admin" OR { role: "admin" }
 		const role = typeof token?.role === "string" ? token.role : token?.role?.role;
-
-		const hasReviewRole = ["headAdmin", "admin", "subAdmin"].includes(role);
-
-		const hasPermission = token?.permissions?.canViewAllUsers === true;
-		// canViewAllUsers
-		return hasReviewRole && hasPermission;
+		//  hasReviewRole && hasPermission;
+		return ["headAdmin", "admin", "subAdmin"].includes(role) && can(token, "users:read:any");
 	};
 
 	// if(canReview) {return}
@@ -46,10 +43,12 @@ export function UsersProvider({ children }) {
 		// fetchPolicy: "cache-first",
 		fetchPolicy: "cache-and-network",
 	});
+	// console.log("this is the data example:", data);
 
 	// Initial load
 	useEffect(() => {
 		if (data?.getAllUsers) {
+			// console.log("get all data from the users context", data?.getAllUsers);
 			setUsers(data.getAllUsers);
 		}
 	}, [data]);
@@ -58,7 +57,7 @@ export function UsersProvider({ children }) {
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
 		skip: authLoading || !userToken || !canReview(), // <-- skip subscription until token ready
 		onData: ({ data: subscriptionData, client }) => {
-			console.log("📡 Subscription raw data:", subscriptionData);
+			console.log("Subscription raw data:", subscriptionData);
 
 			const changeEvent = subscriptionData?.data?.onUserChange;
 			if (!changeEvent) return;
@@ -70,7 +69,7 @@ export function UsersProvider({ children }) {
 
 			if (!changesArray.length) return;
 
-			console.log(`📡 User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+			// console.log(` User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
 
 			// --- Update local state ---
 			setUsers((prevUsers) => {
@@ -191,7 +190,6 @@ export function UsersProvider({ children }) {
 													email
 													role
 													permissions
-													job
 													employeeNum
 													department
 													token
@@ -208,7 +206,6 @@ export function UsersProvider({ children }) {
 													email
 													role
 													permissions
-													job
 													employeeNum
 													department
 													token
@@ -224,11 +221,11 @@ export function UsersProvider({ children }) {
 					},
 				});
 			} catch (err) {
-				console.warn("⚠️ Cache update skipped:", err.message);
+				console.warn(" Cache update skipped:", err.message);
 			}
 		},
 		onError: (err) => {
-			console.error("Subscription error:", err);
+			// console.error("Subscription error:", err);
 			if (err?.message?.includes("Socket closed") || err?.networkError) {
 				setWsDisconnected(true);
 			}
@@ -237,6 +234,8 @@ export function UsersProvider({ children }) {
 
 	return <UsersContext.Provider value={{ users, loading: queryLoading || authLoading, error }}>{children}</UsersContext.Provider>;
 }
+
+// console.log(user);
 
 export function useUsers() {
 	return useContext(UsersContext);

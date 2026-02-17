@@ -7,10 +7,9 @@ import { setContext } from "@apollo/client/link/context";
 // import {} from "./subscriptions/subscriptions"
 
 // import {  useAuth } from "../src/context/AuthContext";
-console.log("started apollo Client at", new Date());
+// console.log("started apollo Client at", new Date());
 const token = localStorage.getItem("userToken");
 // const token = localStorage.getItem("UserToken");
-const allowedPermissionKeys = ["canEditUsers", "canDeleteUsers", "canChangeRole", "canViewUsers", "canViewAllUsers", "canEditSelf", "canViewSelf", "canDeleteSelf"];
 
 export const wsConnectionState = {
 	connected: false,
@@ -57,39 +56,6 @@ const authLink = setContext((_, { headers }) => {
 		},
 	};
 });
-
-// const wsClient = createClient({
-// 	url: import.meta.env.VITE_WS_URL,
-
-// 	connectionParams: () => ({
-// 		authorization: localStorage.getItem("userToken") ? `Bearer ${localStorage.getItem("userToken")}` : "",
-// 	}),
-
-// 	on: {
-// 		connected: () => {
-// 			console.log("🟢 WS connected");
-
-// 			const wasDisconnected = wsConnectionState.everConnected && !wsConnectionState.connected;
-
-// 			wsConnectionState.connected = true;
-// 			wsConnectionState.everConnected = true;
-
-// 			if (wasDisconnected) {
-// 				alert("Live updates were disconnected and reconnected. Please reload the page to restore real-time data.");
-// 			}
-// 		},
-
-// 		closed: () => {
-// 			console.warn("🔴 WS disconnected");
-// 			wsConnectionState.connected = false;
-// 		},
-
-// 		error: (err) => {
-// 			console.error("❌ WS error", err);
-// 			wsConnectionState.connected = false;
-// 		},
-// 	},
-// });
 
 // --- WebSocket link (subscriptions)
 const wsLink = new GraphQLWsLink(
@@ -143,25 +109,33 @@ const client = new ApolloClient({
 	link: splitLink,
 	cache: new InMemoryCache({
 		typePolicies: {
-			User: {
-				fields: {
-					permissions: {
-						merge(existing = {}, incoming) {
-							if (!incoming || Object.keys(incoming).length === 0) return existing;
+			// User: {
+			// 	fields: {
+			// 		permissions: {
+			// 			merge(existing = {}, incoming) {
+			// 				if (!incoming || Object.keys(incoming).length === 0) return existing;
 
-							const filtered = Object.keys(incoming)
-								.filter((key) => allowedPermissionKeys.includes(key))
-								.reduce((obj, key) => {
-									obj[key] = incoming[key];
-									return obj;
-								}, {});
-							return { ...existing, ...filtered };
-						},
-					},
-				},
-			},
+			// 				const filtered = Object.keys(incoming)
+			// 					.filter((key) => allowedPermissionKeys.includes(key))
+			// 					.reduce((obj, key) => {
+			// 						obj[key] = incoming[key];
+			// 						return obj;
+			// 					}, {});
+			// 				return { ...existing, ...filtered };
+			// 			},
+			// 		},
+			// 	},
+			// },
 
-			UserSnapshot: { keyFields: ["userId"] },
+			// UserSnapshot: { keyFields: ["userId"] },
+
+			// User: {
+			// 	fields: {
+			// 		permissions: {
+			// 			merge: false, // 🚨 force overwrite, no merging
+			// 		},
+			// 	},
+			// },
 
 			MaterialRequest: {
 				keyFields: ["id"],

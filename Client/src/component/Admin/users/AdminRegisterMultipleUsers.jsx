@@ -8,18 +8,21 @@ import CloseEye from "../../../assets/closeEye.svg?react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { can } from "../../utilities/can";
+import { ROLE_PERMISSIONS, ALL_PERMISSIONS, scopeDisplayName, roleRank, PERMISSION_DEPENDENCIES } from "../../utilities/role.config";
 
 export default function AdminRegisterMultipleUsers() {
 	const { userToken } = useAuth(); // get token from context
-	const [show, setShow] = useState(false);
-	const [success, setSuccess] = useState(false);
+	const { t } = useTranslation();
+
 	const navigate = useNavigate();
 	const lastRowRef = useRef(null);
+
+	const [show, setShow] = useState(false);
+	const [success, setSuccess] = useState(false);
 	const [hasSubmitted, setHasSubmitted] = useState(false);
 	const [formReset, setFormReset] = useState(false);
 	const [blockInput, setBlockInput] = useState(false);
-
-	const { t } = useTranslation();
 
 	const decodedUserCanView = useMemo(() => {
 		if (!userToken) return null;
@@ -30,6 +33,23 @@ export default function AdminRegisterMultipleUsers() {
 			return null;
 		}
 	}, [userToken]);
+
+	const [rows, setRows] = useState([
+		{
+			name: "",
+			email: "",
+			password: "",
+			confirmPassword: "",
+			employeeNum: "",
+			...(decodedUserCanView.role === "subAdmin" && !can(decodedUserCanView, "role:change:any") ? { role: "user" } : { role: "" }),
+			department: "",
+			permissions: [],
+			editPermission: false,
+		},
+	]);
+
+	const decodedUser = userToken ? jwtDecode(userToken) : null;
+	const isSubAdmin = decodedUser?.role === "subAdmin";
 
 	const canUserReview = useMemo(() => {
 		if (!decodedUserCanView) return false;
@@ -42,75 +62,139 @@ export default function AdminRegisterMultipleUsers() {
 		return hasRole;
 	}, [decodedUserCanView]);
 
-	useEffect(() => {
-		if (!canUserReview) {
-			navigate("/material/request/all", { replace: true });
-		}
-	}, [canUserReview, navigate]);
-
-	const translatePermissionKey = (key) => {
-		const keys = {
-			canViewAllUsers: "can-view-all-users",
-			canEditUsers: "can-edit-users",
-			canDeleteUsers: "can-delete-users",
-			canChangeRole: "can-change-role",
-			canViewSelf: "can-view-self",
-			canEditSelf: "can-edit-self",
-			canDeleteSelf: "can-delete-self",
-		};
-		// Use keys[key] if exists, otherwise fallback to the original key
-		return t(keys[key] || key);
-	};
-
-	const [rows, setRows] = useState([
-		{
-			name: "",
-			email: "",
-			password: "",
-			confirmPassword: "",
-			employeeNum: "",
-			description: "",
-			title: "",
-			role: "",
-			department: "",
-			permissions: {
-				canViewAllUsers: false,
-				canEditUsers: false,
-				canDeleteUsers: false,
-				canChangeRole: false,
-				canEditSelf: true,
-				canViewSelf: true,
-				canDeleteSelf: false,
-			},
-		},
-	]);
-
-	// Decode token and scroll to last row
-	useEffect(() => {
-		if (lastRowRef.current) {
-			lastRowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-		}
-	}, [rows]);
-
-	const decodedUser = userToken ? jwtDecode(userToken) : null;
-
 	const [adminRegisterMultipleUserProfiles, { loading, error: updateError }] = useMutation(register_multiple_Users);
 
-	// Update text, select, or checkbox values for a specific row
+	// Validation helpers
+	const requiredFieldsFilled = rows.every((r) => r.name && r.email && r.password && r.confirmPassword && r.role);
+
+	const emailList = rows.map((r) => r.email.trim().toLowerCase()).filter(Boolean);
+	const duplicates = emailList.filter((e, i) => emailList.indexOf(e) !== i);
+	const hasDuplicates = duplicates.length > 0;
+
+	// Permission and role related functions
+	const getPermissionBase = (perm) => {
+		// users:read:any → users:read
+		return perm.split(":").slice(0, 2).join(":");
+	};
+
+	const addPermissionWithDependencies = (currentPerms, perm) => {
+		const deps = PERMISSION_DEPENDENCIES[perm] || [];
+		const newPerms = new Set(currentPerms);
+
+		newPerms.add(perm);
+		deps.forEach((d) => newPerms.add(d));
+
+		return Array.from(newPerms);
+	};
+
+	const isNonAdminRole = (role) => role === "user" || role === "noRole";
+
+	const getVisiblePermissions = (role, allPermissions) => {
+		// Non-admin → ONLY default permissions
+		if (isNonAdminRole(role)) {
+			return ROLE_PERMISSIONS[role]?.permissions || [];
+		}
+
+		// Admin roles → everything
+		return allPermissions;
+	};
+
+	const groupPermissions = (permissions) => {
+		const result = {};
+
+		permissions.forEach((perm) => {
+			let [resource, action, scope] = perm.split(":");
+			console.log("resource:", resource, "action:", action, "scope:", scope);
+			// role permissions belong to users column
+			if (resource === "role" || resource === "peers") {
+				resource = "users";
+			}
+
+			if (!result[resource]) {
+				result[resource] = {};
+			}
+
+			const actionKey = action;
+
+			if (!result[resource][actionKey]) {
+				result[resource][actionKey] = {
+					action,
+					perms: [],
+				};
+			}
+
+			result[resource][actionKey].perms.push({
+				perm,
+				scope,
+			});
+		});
+
+		return result;
+	};
+
+	const groupedPermissions = useMemo(() => groupPermissions(ALL_PERMISSIONS), []);
+
+	const formatKey = (key) => {
+		return key
+			.replace(/([a-z])([A-Z])/g, "$1 $2") // add space before capital letters
+			.replace(/^./, (str) => str.toUpperCase()); // capitalize first letter
+	};
+
+	// Row manipulation functions
 	const handleRowChange = (index, e) => {
 		const { name, value, type, checked } = e.target;
+		console.log("inputs", { name, value, type, checked });
 
 		setRows((prev) => {
 			const newRows = [...prev];
+			const row = { ...newRows[index] };
 
-			if (type === "checkbox") newRows[index].permissions[name] = checked;
-			else newRows[index][name] = value;
+			// ROLE CHANGE → reset permissions
+			if (name === "role") {
+				row.role = value;
+				// row.permissions = ROLE_PERMISSIONS[value] ? [...ROLE_PERMISSIONS[value]] : [];
+				row.permissions = ROLE_PERMISSIONS[value]?.permissions ? [...ROLE_PERMISSIONS[value].permissions] : [];
+			}
+			// CHECKBOX
+			// else if (type === "checkbox") {
+			// 	const permBase = getPermissionBase(name);
 
+			// 	if (checked) {
+			// 		// Remove other permissions with same base (any ↔ own)
+			// 		row.permissions = row.permissions.filter((p) => getPermissionBase(p) !== permBase);
+
+			// 		// Add the selected permission
+			// 		row.permissions.push(name);
+			// 	} else {
+			// 		// Remove unchecked permission
+			// 		row.permissions = row.permissions.filter((p) => p !== name);
+			// 	}
+			// }
+			else if (type === "checkbox") {
+				const permBase = getPermissionBase(name); // users:read, users:update, etc.
+
+				if (checked) {
+					//  Remove other scopes of same base (any ↔ own)
+					row.permissions = row.permissions.filter((p) => getPermissionBase(p) !== permBase);
+
+					//  Add permission + its dependencies
+					row.permissions = addPermissionWithDependencies(row.permissions, name);
+				} else {
+					//  Allow unchecking freely
+					row.permissions = row.permissions.filter((p) => p !== name);
+				}
+			}
+
+			// NORMAL INPUT
+			else {
+				row[name] = value; // <-- this updates text inputs
+			}
+
+			newRows[index] = row;
 			return newRows;
 		});
 	};
 
-	// Add a new row
 	const addRow = () => {
 		setRows((prev) => [
 			...prev,
@@ -121,18 +205,19 @@ export default function AdminRegisterMultipleUsers() {
 				confirmPassword: "",
 				employeeNum: "",
 				department: "",
-				title: "",
-				description: "",
+				// title: "",
+				// description: "",
 				role: "",
-				permissions: {
-					canViewAllUsers: false,
-					canEditUsers: false,
-					canDeleteUsers: false,
-					canChangeRole: false,
-					canEditSelf: true,
-					canViewSelf: true,
-					canDeleteSelf: false,
-				},
+				permissions: [],
+				//  {
+				// 	canViewAllUsers: false,
+				// 	canEditUsers: false,
+				// 	canDeleteUsers: false,
+				// 	canChangeRole: false,
+				// 	canEditSelf: true,
+				// 	canViewSelf: true,
+				// 	canDeleteSelf: false,
+				// },
 			},
 		]);
 	};
@@ -140,19 +225,6 @@ export default function AdminRegisterMultipleUsers() {
 	// Remove a row
 	const removeRow = (index) => {
 		setRows((prevRows) => prevRows.filter((_, i) => i !== index));
-	};
-
-	// Validation helpers
-	const requiredFieldsFilled = rows.every((r) => r.name && r.email && r.password && r.confirmPassword && r.role);
-
-	const emailList = rows.map((r) => r.email.trim().toLowerCase()).filter(Boolean);
-	const duplicates = emailList.filter((e, i) => emailList.indexOf(e) !== i);
-	const hasDuplicates = duplicates.length > 0;
-
-	const formatKey = (key) => {
-		return key
-			.replace(/([a-z])([A-Z])/g, "$1 $2") // add space before capital letters
-			.replace(/^./, (str) => str.toUpperCase()); // capitalize first letter
 	};
 
 	const resetForm = () => {
@@ -163,19 +235,9 @@ export default function AdminRegisterMultipleUsers() {
 				password: "",
 				confirmPassword: "",
 				employeeNum: "",
-				description: "",
-				title: "",
 				role: "",
 				department: "",
-				permissions: {
-					canViewAllUsers: false,
-					canEditUsers: false,
-					canDeleteUsers: false,
-					canChangeRole: false,
-					canEditSelf: true,
-					canViewSelf: true,
-					canDeleteSelf: false,
-				},
+				permissions: [],
 			},
 		]); // or your initial requests state
 		// setSelectedGroups([]);
@@ -183,12 +245,7 @@ export default function AdminRegisterMultipleUsers() {
 		setFormReset(true);
 	};
 
-	// TODO - notify user if mutation pass/fail
-	// TODO - block inputs
-	// TODO - block  duplicated requests
-	// TODO - give navegation btns to go see all or to stay
-	// TODO - if user stays reset the form
-
+	// Toast component
 	const SuccessToast = ({ closeToast, resetForm }) => (
 		<div>
 			<p>{t("material-requests-have-been-requested-successfully")}</p>
@@ -215,15 +272,12 @@ export default function AdminRegisterMultipleUsers() {
 					{t("register-more-users")}
 				</button>
 			</div>
-
-			{/* <p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("duplicate-request")}</p> */}
 		</div>
 	);
 
-	// Submit all rows in one mutation
+	// Submit handler
 	const submit = async (e) => {
 		e.preventDefault();
-		// TODO -  come here
 		if (hasSubmitted === true) {
 			toast.warn(t("duplicate-request-warning"), {
 				// autoClose: false,
@@ -236,13 +290,9 @@ export default function AdminRegisterMultipleUsers() {
 			email: row.email,
 			password: row.password,
 			confirmPassword: row.confirmPassword,
-			role: row.role,
+			role: isSubAdmin ? "user" : row.role,
 			employeeNum: row?.employeeNum,
 			department: row?.department,
-			job: {
-				title: row.title,
-				description: row.description,
-			},
 			permissions: row.permissions,
 		}));
 
@@ -281,25 +331,46 @@ export default function AdminRegisterMultipleUsers() {
 			.catch(() => {
 				setHasSubmitted(false);
 			});
-
-		// onCompleted: (res) => {
-		// 	console.log("Mutation success:", res?.registerMultipleUsers);
-		// 	toast.success(t("users-added-successfully"));
-		// 	setSuccess(true);
-		// },
-		// onError: (errRes) => {
-		// 	console.log("Mutation error:", errRes);
-		// },
-		// });
-
-		// console.log("Users registered");
-		// } catch (err) {
-		// 	console.error("Error registering users:", err);
-		// }
 	};
+
+	// Effects
+	useEffect(() => {
+		// if (decodedUserCanView && ) {
+		// 		toast.warn(t("you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page"), {
+		// 			// autoClose: false,
+		// 		});
+		// 		navigate("/material/request/all");
+		// 	}
+
+		if (!canUserReview || !can(decodedUserCanView, "users:create:any")) {
+			toast.warn(t("you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page"), {
+				// autoClose: false,
+			});
+			navigate("/material/request/all", { replace: true });
+		}
+	}, [canUserReview, navigate, decodedUserCanView]);
+
+	// Decode token and scroll to last row
+	useEffect(() => {
+		if (lastRowRef.current) {
+			// lastRowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+		}
+	}, [rows]);
+
+	console.log("groupedPermissions", groupedPermissions);
 
 	// Show nothing if token isn't loaded
 	if (!decodedUser) return null;
+
+	// console.log("this are the rows", rows);
+
+	// TODO - FIX THE BTN THAT SHOW THE EXTRA PERMISSIONS
+
+	console.log("this are the rows", roleRank[decodedUser.role]);
+	console.log("this are the rows", roleRank[decodedUser.role] >= 3);
+
+	console.log("this are the rows", can(decodedUser, "peers:update:any"));
+	console.log("this are the rows", decodedUser);
 
 	return (
 		<div className="register-container">
@@ -314,16 +385,6 @@ export default function AdminRegisterMultipleUsers() {
 							</h3>
 
 							<div className="form-row-top-container">
-								{/* <div className="form-row-top-left">
-									<label>Name:</label>
-									<input type="text" name="name" value={row.name} onChange={(e) => handleRowChange(index, e)} placeholder="Name" />
-								</div>
-
-								<div className="form-row-top-right">
-									<label>Email:</label>
-									<input type="text" name="email" value={row.email} onChange={(e) => handleRowChange(index, e)} placeholder="Email" />
-								</div> */}
-
 								<div className="form-row-top-left">
 									<label htmlFor="name">{t("name")}:</label>
 									<input type="text" name="name" onChange={(e) => handleRowChange(index, e)} placeholder={t("name")} disabled={blockInput} value={row.name || ""} />
@@ -372,72 +433,86 @@ export default function AdminRegisterMultipleUsers() {
 
 								<div className="form-row-center-right">
 									<div className="form-row-center-right-wrapper">
+										{/* if user  can create and change role  allow them to be able to change the rolle */}
+
+										{/*//!! role dropdown */}
+										{/* Only show role selection if user has permission */}
+
 										<div>
-											<label>{t("job-title")}:</label>
-											<input type="text" name="title" value={row.title} onChange={(e) => handleRowChange(index, e)} placeholder="Job Title" disabled={blockInput} />
-										</div>
-										<div>
-											<label>{t("job-description")}:</label>
-											<textarea name="description" value={row.description} onChange={(e) => handleRowChange(index, e)} placeholder={t("job-description")} disabled={blockInput}></textarea>
+											<label>{t("role")}:</label>
+											<select name="role" value={row.role} onChange={(e) => handleRowChange(index, e)} disabled={blockInput || !can(decodedUser, "role:change:any")}>
+												<option value="" disabled>
+													{t("select-role")}
+												</option>
+
+												{roleRank[decodedUser.role] >= 5 && can(decodedUser, "peers:update:any", { targetRole: decodedUser.role }) && <option value="headAdmin">{t("head-admin")}</option>}
+												{roleRank[decodedUser.role] >= 4 && can(decodedUser, "peers:update:any", { targetRole: decodedUser.role }) && <option value="admin">{t("admin")}</option>}
+												{roleRank[decodedUser.role] >= 3 && can(decodedUser, "peers:update:any", { targetRole: decodedUser.role }) && <option value="subAdmin">{t("sub-admin")}</option>}
+
+												{/* <option value="subAdmin">{t("sub-admin")}</option> */}
+
+												<option value="user">{t("user")}</option>
+												<option value="noRole">{t("no-role")}</option>
+											</select>
 										</div>
 
-										{/* Only show role selection if user has permission */}
-										{decodedUser?.permissions?.canChangeRole && (
+										{row.role && ROLE_PERMISSIONS[row.role] && <p style={{ color: "red" }}>{t(ROLE_PERMISSIONS[row.role].descriptionKey)}</p>}
+
+										{/* {row.role ? (
 											<div>
-												<label>{t("role")}:</label>
-												<select name="role" value={row.role} onChange={(e) => handleRowChange(index, e)} disabled={blockInput}>
-													<option value="">{t("select-role")}</option>
-													{decodedUser.role === "headAdmin" && <option value="headAdmin">{t("head-admin")}</option>}
-													<option value="admin">{t("admin")}</option>
-													<option value="subAdmin">{t("sub-admin")}</option>
-													<option value="technician">{t("technician")}</option>
-													<option value="user">{t("user")}</option>
-													<option value="noRole">{t("no-role")}</option>
-												</select>
+												<p style={{ color: "red" }}>{ROLE_PERMISSIONS[row.role].description}</p>
+											</div>
+										) : null} */}
+
+										{/*//!! extra Permissions btn  */}
+										{can(decodedUser, "users:create:any") && can(decodedUser, "role:change:any") && row.role !== "" && row.role !== "headAdmin" && (
+											<div>
+												<button
+													type="button"
+													onClick={() =>
+														setRows((prev) => {
+															const newRows = [...prev];
+															newRows[index] = {
+																...newRows[index],
+																editPermission: !newRows[index].editPermission,
+															};
+															return newRows;
+														})
+													}>
+													{row.editPermission ? t("hide-permission") : t("edit-permissions")}
+												</button>
 											</div>
 										)}
 									</div>
 								</div>
 
-								{/* Permissions checkboxes */}
-								{decodedUser?.permissions?.canChangeRole && (
-									<div className="form-row-center-bottom">
-										<label>{t("permissions")}:</label>
-										<div className="permissions-grid">
-											<div>
-												<ul className="permissions-list">
-													{Object.keys(row?.permissions)
-														.filter((permKey) => permKey.includes("Users") || permKey.includes("Role"))
-														.map((permKey) => (
-															<li key={permKey}>
-																<label>
-																	{/* {formatKey(permKey)} */}
-																	{translatePermissionKey(permKey)}
-																	<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
-																</label>
-															</li>
-														))}
-												</ul>
-											</div>
+								{/* {"come here"} */}
+								{can(decodedUser, "role:change:any") && row.editPermission === true && row.role !== "headAdmin" ? (
+									<div className="permissions-grid">
+										{Object.entries(groupPermissions(getVisiblePermissions(row.role, ALL_PERMISSIONS))).map(([resource, actions]) => (
+											<div key={resource} className="permissions-column">
+												<h4 className="permissions-column-title">{t(resource)}</h4>
 
-											<div>
-												<ul className="permissions-list">
-													{Object.keys(row?.permissions)
-														.filter((permKey) => permKey.includes("Self"))
-														.map((permKey) => (
-															<li key={permKey}>
-																<label>
-																	{/* {formatKey(permKey)} */}
-																	{translatePermissionKey(permKey)}
-																	<input type="checkbox" name={permKey} checked={row?.permissions[permKey]} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
-																</label>
-															</li>
-														))}
-												</ul>
+												{Object.values(actions).map(({ action, perms }) => (
+													<div key={action} className="permissions-group">
+														<strong className="permissions-action-title">{t(action)}</strong>
+
+														<ul className="permissions-list">
+															{perms.map(({ perm }) => (
+																<li key={perm}>
+																	<label className="permission-item">
+																		<input type="checkbox" name={perm} checked={row.permissions.includes(perm)} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} />
+																		<span>{scopeDisplayName(perm, t)}</span>
+																	</label>
+																</li>
+															))}
+														</ul>
+													</div>
+												))}
 											</div>
-										</div>
+										))}
 									</div>
-								)}
+								) : null}
 							</div>
 
 							{rows.length > 1 && (

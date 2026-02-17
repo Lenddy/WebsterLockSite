@@ -45,7 +45,7 @@
 	"add-item": "Add Item",
 	"please-fill-out-all-required-fields": "Please Fill Out All Required Fields",
 	"search-by": "Search By Name, Email, #, Dep",
-	"requestors-name": "Requestor's Name",
+	"requestors-name": "Requested by",
 	"approval": "Approval",
 	"requested-date": "Requested Date",
 	"amount-of-items": "Amount Of Items",
@@ -232,10 +232,88 @@
 	"view-requests": "View requests",
 	"will-be-updated": "Will be updated",
 	"connection-to-the-serve-was-lost-make-sure-that-you-are-connected-to-the-internet": "The connection to the server was lost. Make sure that you are connected to the internet",
-
-	"please-way-a-couple-of-minutes-then-please-refresh-to-continue": "Actualice /Recargue la página para continuar",
-
+	"please-way-a-couple-of-minutes-then-please-refresh-to-continue": "Please way a couple of minutes then please refresh the page to continue",
 	"to-get-live-data-and-to-not-potentially-lose-your-changes": "To get live data and not to potentially lose the changes you have made.",
-
-	"if-this-problem-continues-please-contact-the-site-manager": "If this problem continues please contact the site manager"
+	"if-this-problem-continues-please-contact-the-site-manager": "If this problem continues please contact the site manager",
+	"permissionsList": {
+		"users": {
+			"read": {
+				"any": "View all users",
+				"own": "View my profile"
+			},
+			"create": {
+				"any": "Create users"
+			},
+			"update": {
+				"any": "Edit any user",
+				"own": "Edit my profile"
+			},
+			"delete": {
+				"any": "Delete any user",
+				"own": "Delete my account"
+			}
+		},
+		"peers": {
+			"update": {
+				"any": "Edit users with the same role"
+			}
+		},
+		"role": {
+			"change": {
+				"any": "Change user roles"
+			}
+		},
+		"requests": {
+			"read": {
+				"any": "View all requests",
+				"own": "View my requests"
+			},
+			"create": {
+				"any": "Create requests for anyone",
+				"own": "Create my own requests"
+			},
+			"update": {
+				"any": "Edit any request",
+				"own": "Edit my requests"
+			},
+			"delete": {
+				"any": "Delete any request",
+				"own": "Delete my requests"
+			}
+		},
+		"items": {
+			"read": {
+				"any": "View all items"
+			},
+			"create": {
+				"any": "Create items"
+			},
+			"update": {
+				"any": "Edit items"
+			},
+			"delete": {
+				"any": "Delete items"
+			}
+		}
+	},
+	"roles": {
+		"headAdmin": {
+			"description": "Can perform all actions."
+		},
+		"admin": {
+			"description": "Can manage all users, requests, items, and change roles."
+		},
+		"subAdmin": {
+			"description": "Can manage requests and update their profile."
+		},
+		"user": {
+			"description": "Can manage their own requests and update their profile."
+		},
+		"noRole": {
+			"description": "Limited access. Can only view and update profile."
+		}
+	},
+	"hide-permission": "Hide Permission",
+	"edit-permissions": "Edit Permission",
+	"you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page": "you dont have the necessary permission to view or perform the necessary actions on this page."
 }

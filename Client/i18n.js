@@ -61,6 +61,6 @@ i18n.use(initReactI18next)
 // 		},
 // 	});
 
-console.log("this is  the language route", `${import.meta.env.VITE_TRANSLATION_URL}/locales/{{lng}}/{{ns}}.json`);
+// console.log("this is  the language route", `${import.meta.env.VITE_TRANSLATION_URL}/locales/{{lng}}/{{ns}}.json`);
 
 export default i18n;

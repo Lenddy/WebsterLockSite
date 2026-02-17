@@ -21,7 +21,7 @@ export default ({ mode }) => {
 
 	// const API_ORIGIN = new URL(env.VITE_API_URL).origin;
 
-	console.log("from the vite config ");
+	// console.log("from the vite config ");
 	// console.log("API URL:", env.VITE_API_URL);
 	// console.log("API URL ori :", API_ORIGIN);
 

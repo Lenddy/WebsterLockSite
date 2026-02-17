@@ -27,7 +27,7 @@ export default function ApolloWrapper({ children }) {
 	// )
 
 	const client = useMemo(() => {
-		console.log("🚀 Creating Apollo Client with userToken at :", new Date(), "\n", userToken);
+		// console.log("🚀 Creating Apollo Client with userToken at :", new Date(), "\n", userToken);
 
 		// ---- AUTH LINK ----
 		const authLink = setContext((_, { headers }) => ({
@@ -79,26 +79,14 @@ export default function ApolloWrapper({ children }) {
 			link: splitLink,
 			cache: new InMemoryCache({
 				typePolicies: {
-					User: {
-						fields: {
-							permissions: {
-								merge(existing = {}, incoming) {
-									if (!incoming || Object.keys(incoming).length === 0) return existing;
-
-									const allowed = ["canEditUsers", "canDeleteUsers", "canChangeRole", "canViewUsers", "canViewAllUsers", "canEditSelf", "canViewSelf", "canDeleteSelf"];
-
-									// return Object.fromEntries(Object.entries(incoming || {}).filter(([key]) => allowed.includes(key)));
-									const filtered = Object.keys(incoming)
-										.filter((key) => allowed.includes(key))
-										.reduce((obj, key) => {
-											obj[key] = incoming[key];
-											return obj;
-										}, {});
-									return { ...existing, ...filtered };
-								},
-							},
-						},
-					},
+					//
+					// User: {
+					// 	fields: {
+					// 		permissions: {
+					// 			merge: false,
+					// 		},
+					// 	},
+					// },
 
 					UserSnapshot: { keyFields: ["userId"] },
 
@@ -145,37 +133,6 @@ export default function ApolloWrapper({ children }) {
 									});
 								},
 							},
-
-							// items: {
-							// 	merge(existing = [], incoming, { readField }) {
-							// 		// If no incoming data, keep existing
-							// 		if (!incoming || incoming.length === 0) return existing;
-
-							// 		const mergedMap = new Map();
-
-							// 		// 1️ Start by adding all existing items
-							// 		for (const item of existing) {
-							// 			const id = readField("id", item) || item.id;
-							// 			if (id) mergedMap.set(id, item);
-							// 		}
-
-							// 		// 2️ Merge or add incoming items
-							// 		for (const item of incoming) {
-							// 			const id = readField("id", item) || item.id;
-							// 			if (!id) continue; // skip items without IDs
-							// 			mergedMap.set(id, { ...mergedMap.get(id), ...item });
-							// 		}
-
-							// 		// 3️ Remove any items not present in the incoming list
-							// 		const incomingIds = new Set(incoming.map((item) => readField("id", item) || item.id));
-							// 		for (const id of mergedMap.keys()) {
-							// 			if (!incomingIds.has(id)) mergedMap.delete(id);
-							// 		}
-
-							// 		// 4️ Return merged array (preserves order from incoming)
-							// 		return incoming.map((item) => mergedMap.get(readField("id", item) || item.id));
-							// 	},
-							// },
 						},
 					},
 

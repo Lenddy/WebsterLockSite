@@ -45,7 +45,7 @@
 	"add-item": "Agregar material",
 	"please-fill-out-all-required-fields": "Por favor completa todos los campos requeridos",
 	"search-by": "Buscar por,Nombre,correo,#,Depart",
-	"requestors-name": "Nombre del solicitante",
+	"requestors-name": "Solicitado por",
 	"approval": "Aprobación",
 	"requested-date": "Fecha solicitada",
 	"amount-of-items": "Cantidad de materiales",
@@ -232,10 +232,88 @@
 	"view-requests": "Ver solicitudes",
 	"will-be-updated": "Va a ser actualizada",
 	"connection-to-the-serve-was-lost-make-sure-that-you-are-connected-to-the-internet": "Se perdió la conexión con el servidor. Asegúrese de estar conectado a internet.",
-
 	"please-way-a-couple-of-minutes-then-please-refresh-to-continue": "Por favor, espere unos minutos y luego actualice/recargue la página para continuar.",
-
 	"to-get-live-data-and-to-not-potentially-lose-your-changes": "Para obtener datos en tiempo real y evitar la posible pérdida de los cambios que haya realizado.",
-
-	"if-this-problem-continues-please-contact-the-site-manager": "Si este problema persiste, por favor contacte al administrador de la pagina web."
+	"if-this-problem-continues-please-contact-the-site-manager": "Si este problema persiste, por favor contacte al administrador de la pagina web.",
+	"permissionsList": {
+		"users": {
+			"read": {
+				"any": "Ver todos los usuarios",
+				"own": "Ver mi perfil"
+			},
+			"create": {
+				"any": "Crear usuarios"
+			},
+			"update": {
+				"any": "Editar cualquier usuario",
+				"own": "Editar mi perfil"
+			},
+			"delete": {
+				"any": "Eliminar cualquier usuario",
+				"own": "Eliminar mi cuenta"
+			}
+		},
+		"peers": {
+			"update": {
+				"any": "Editar usuarios con el mismo rol"
+			}
+		},
+		"role": {
+			"change": {
+				"any": "Cambiar roles de usuario"
+			}
+		},
+		"requests": {
+			"read": {
+				"any": "Ver todas las solicitudes",
+				"own": "Ver mis solicitudes"
+			},
+			"create": {
+				"any": "Crear solicitudes para cualquiera",
+				"own": "Crear mis propias solicitudes"
+			},
+			"update": {
+				"any": "Editar cualquier solicitud",
+				"own": "Editar mis solicitudes"
+			},
+			"delete": {
+				"any": "Eliminar cualquier solicitud",
+				"own": "Eliminar mis solicitudes"
+			}
+		},
+		"items": {
+			"read": {
+				"any": "Ver todos los materiales"
+			},
+			"create": {
+				"any": "Crear materiales"
+			},
+			"update": {
+				"any": "Editar materiales"
+			},
+			"delete": {
+				"any": "Eliminar materiales"
+			}
+		}
+	},
+	"roles": {
+		"headAdmin": {
+			"description": "Puede realizar todas las acciones."
+		},
+		"admin": {
+			"description": "Puede administrar usuarios, solicitudes, materiales, y cambiar roles."
+		},
+		"subAdmin": {
+			"description": "Puede manejar solicitudes y actualizar su perfil."
+		},
+		"user": {
+			"description": "Puede manejar sus propias solicitudes y actualizar su perfil."
+		},
+		"noRole": {
+			"description": "Acceso limitado. Solo puede ver y actualizar su perfil."
+		}
+	},
+	"hide-permission": "Ocultar permisos",
+	"edit-permissions": "Editar permisos",
+	"you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page": "No tienes los permisos necesarios para ver o realizar las acciones necesarias en esta página."
 }

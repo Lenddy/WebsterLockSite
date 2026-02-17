@@ -9,20 +9,7 @@ export const register_User = gql`
 			employeeNum
 			department
 			role
-			job {
-				title
-				description
-			}
-			permissions {
-				canEditUsers
-				canDeleteUsers
-				canChangeRole
-				canViewUsers
-				canViewAllUsers
-				canEditSelf
-				canViewSelf
-				canDeleteSelf
-			}
+			permissions
 		}
 	}
 `;
@@ -36,20 +23,7 @@ export const register_multiple_Users = gql`
 			employeeNum
 			department
 			role
-			job {
-				title
-				description
-			}
-			permissions {
-				canEditUsers
-				canDeleteUsers
-				canChangeRole
-				canViewUsers
-				canViewAllUsers
-				canEditSelf
-				canViewSelf
-				canDeleteSelf
-			}
+			permissions
 		}
 	}
 `;
@@ -74,20 +48,7 @@ export const update_One_user = gql`
 			department
 			token
 			role
-			job {
-				title
-				description
-			}
-			permissions {
-				canEditUsers
-				canDeleteUsers
-				canChangeRole
-				canViewUsers
-				canViewAllUsers
-				canEditSelf
-				canViewSelf
-				canDeleteSelf
-			}
+			permissions
 		}
 	}
 `;
@@ -102,20 +63,7 @@ export const admin_update_multiple_users = gql`
 			department
 			token
 			role
-			job {
-				title
-				description
-			}
-			permissions {
-				canEditUsers
-				canDeleteUsers
-				canChangeRole
-				canViewUsers
-				canViewAllUsers
-				canEditSelf
-				canViewSelf
-				canDeleteSelf
-			}
+			permissions
 		}
 	}
 `;
@@ -277,9 +225,15 @@ export const update_One_Material_Request = gql`
 	}
 `;
 
+// input deleteMaterialRequest {
+// 	id: ID!
+// 	requesterID: ID!
+// 	isApproved: Boolean!
+// }
+
 export const delete_one_material_request = gql`
-	mutation deleteOneMaterialRequest($id: ID!) {
-		deleteOneMaterialRequest(id: $id) {
+	mutation deleteOneMaterialRequest($input: deleteMaterialRequest!) {
+		deleteOneMaterialRequest(input: $input) {
 			id
 			description
 			items {

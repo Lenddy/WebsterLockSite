@@ -9,6 +9,7 @@ import Select from "react-select";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
+import { useItemGroups } from "../../context/ItemGroupContext";
 
 export default function GetOneMaterialRequest() {
 	const { userToken, authLoading, setWsDisconnected } = useAuth(); // get token from context
@@ -19,7 +20,7 @@ export default function GetOneMaterialRequest() {
 	const navigate = useNavigate();
 
 	const [rows, setRows] = useState([]);
-	const [itemGroups, setItemGroups] = useState([]);
+	// const [itemGroups, setItemGroups] = useState([]);
 	const [mRequest, setMRequest] = useState({});
 
 	const { t } = useTranslation();
@@ -28,7 +29,7 @@ export default function GetOneMaterialRequest() {
 	// console.log("material data", data);
 
 	const { data: iGData } = useQuery(get_all_item_groups);
-
+	const { items: itemGroups, loading: iGLoading, error: iGError } = useItemGroups();
 	// const canEdit = decodedUser?.permissions?.canEditUsers;
 
 	const decodedUser = useMemo(() => {
@@ -93,9 +94,9 @@ export default function GetOneMaterialRequest() {
 	}, [itemGroups]);
 
 	// Load item groups
-	useEffect(() => {
-		if (iGData) setItemGroups(iGData.getAllItemGroups || []);
-	}, [iGData]);
+	// useEffect(() => {
+	// 	if (iGData) setItemGroups(iGData.getAllItemGroups || []);
+	// }, [iGData]);
 
 	// Load material request and map rows
 	useEffect(() => {
@@ -126,7 +127,7 @@ export default function GetOneMaterialRequest() {
 
 	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
 		onData: ({ data: subscriptionData, client }) => {
-			console.log("📡 Subscription raw data:", subscriptionData);
+			// console.log(" Subscription raw data:", subscriptionData);
 
 			const changeEvent = subscriptionData?.data?.onMaterialRequestChange;
 			if (!changeEvent) return;
@@ -138,7 +139,7 @@ export default function GetOneMaterialRequest() {
 
 			if (!changesArray.length) return;
 
-			console.log(`📡 Material Request subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+			// console.log(`Material Request subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
 
 			// --- Update local state for detailed request view (setRows) ---
 			if (requestId) {
@@ -183,7 +184,7 @@ export default function GetOneMaterialRequest() {
 		},
 
 		onError: (err) => {
-			console.error("Subscription error:", err);
+			// console.error("Subscription error:", err);
 			if (err?.message?.includes("Socket closed") || err?.networkError) {
 				setWsDisconnected(true);
 			}

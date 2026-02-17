@@ -9,7 +9,7 @@ function RefetchButton({ refetch, label }) {
 
 	const handleRefetch = async () => {
 		if (typeof refetch !== "function") {
-			console.warn("No valid refetch function provided.");
+			// console.warn("No valid refetch function provided.");
 			setStatus("error");
 			setTimeout(() => setStatus("idle"), 2000);
 			return;
@@ -23,7 +23,7 @@ function RefetchButton({ refetch, label }) {
 				setTimeout(() => setStatus("idle"), 2000);
 			}
 		} catch (err) {
-			console.error("Refetch failed:", err);
+			// console.error("Refetch failed:", err);
 			setStatus("error");
 			setTimeout(() => setStatus("idle"), 2000);
 		}

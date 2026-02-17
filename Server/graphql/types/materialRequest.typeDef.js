@@ -117,7 +117,7 @@ const materialRequestTypeDef = gql`
 		employeeNum: String
 		department: String
 		role: String
-		permissions: PermissionSnapshot
+		permissions: [String!]
 	}
 
 	type UserReviewerSnapshot { # Frozen reviewer info
@@ -127,35 +127,9 @@ const materialRequestTypeDef = gql`
 		employeeNum: String
 		department: String
 		role: String
-		permissions: PermissionSnapshot
+		permissions: [String!]
 		comment: String
 		reviewedAt: String
-	}
-
-	# --- Permissions ---
-	type PermissionSnapshot { # Permissions at time of request
-		canEditUsers: Boolean
-		canDeleteUsers: Boolean
-		canChangeRole: Boolean
-		canViewUsers: Boolean
-		canViewAllUsers: Boolean
-		canEditSelf: Boolean
-		canViewSelf: Boolean
-		canDeleteSelf: Boolean
-		canRegisterUser: Boolean
-	}
-
-	input PermissionSnapshotInput { # Permissions at time of request
-		canEditUsers: Boolean
-		canDeleteUsers: Boolean
-		canChangeRole: Boolean
-		canViewUsers: Boolean
-		canViewAllUsers: Boolean
-		canEditSelf: Boolean
-		canViewSelf: Boolean
-		canDeleteSelf: Boolean
-		canNotBeUpdated: Boolean
-		canRegisterUser: Boolean
 	}
 
 	# --- Action input ---
@@ -172,7 +146,8 @@ const materialRequestTypeDef = gql`
 		employeeNum: String
 		department: String
 		role: String!
-		permissions: PermissionSnapshotInput
+		# permissions: PermissionSnapshotInput
+		permissions: [String!]
 	}
 
 	input createdManyMaterialRequestInput {
@@ -182,12 +157,20 @@ const materialRequestTypeDef = gql`
 		addedDate: String
 	}
 
+	input deleteMaterialRequest {
+		id: ID!
+		requesterID: ID!
+		isApproved: Boolean
+	}
+
 	# --- Queries ---
 	type Query {
 		hello2: String # Test query
 		getAllMaterialRequests: [MaterialRequest]! # Get all requests
 		getOneMaterialRequest(id: ID!): MaterialRequest! # Get one request by ID
 	}
+
+	# for deletion i need the id of the request the id of the requester and the approval statues
 
 	# --- Mutations ---
 	type Mutation {
@@ -196,7 +179,7 @@ const materialRequestTypeDef = gql`
 		updateOneMaterialRequest(input: UpdateMaterialRequestInput!): MaterialRequest! # Update request
 		updateMultipleMaterialRequests(inputs: [UpdateMaterialRequestInput!]!): [MaterialRequest!]! # Update request
 		updateOneMaterialRequestItemDescription(input: UpdateMaterialRequestItemDescriptionInput): MaterialRequest! # Update request
-		deleteOneMaterialRequest(id: ID!): MaterialRequest! # Delete request
+		deleteOneMaterialRequest(input: deleteMaterialRequest!): MaterialRequest! # Delete request
 		deleteMultipleMaterialRequests(ids: [ID!]): [MaterialRequest!]! # Delete request
 	}
 

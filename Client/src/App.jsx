@@ -35,7 +35,7 @@ import CreateOneMaterialRequest from "./component/material_requests/CreateOneMat
 import NotFound from "./component/NotFound";
 
 function App() {
-	console.log(window.location.hostname);
+	// console.log(window.location.hostname);
 	const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
 	useEffect(() => {

@@ -46,16 +46,16 @@ createRoot(document.getElementById("root")).render(
 		<BrowserRouter>
 			<ApolloWrapper>
 				<AuthSubscriptionBridge />
-				<StrictMode>
-					<UsersProvider>
-						<ItemGroupsProvider>
-							<MaterialRequestsProvider>
-								<App />
-								{/* client={client} */}
-							</MaterialRequestsProvider>
-						</ItemGroupsProvider>
-					</UsersProvider>
-				</StrictMode>
+				{/* <StrictMode> */}
+				<UsersProvider>
+					<ItemGroupsProvider>
+						<MaterialRequestsProvider>
+							<App />
+							{/* client={client} */}
+						</MaterialRequestsProvider>
+					</ItemGroupsProvider>
+				</UsersProvider>
+				{/* </StrictMode> */}
 			</ApolloWrapper>
 		</BrowserRouter>
 	</AuthProvider>

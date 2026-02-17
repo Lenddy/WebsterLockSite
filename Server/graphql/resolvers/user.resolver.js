@@ -953,12 +953,23 @@ const userResolver = {
 						},
 					});
 
+					// updatedUsers.push({
+					// 	id: targetUser._id,
+					// 	name: targetUser.name,
+					// 	email: targetUser.email,
+					// 	role: targetUser.role,
+					// 	permissions: targetUser.permissions,
+					// 	token: newToken,
+					// });
+
 					updatedUsers.push({
-						id: targetUser._id,
+						id: targetUser._id.toString(),
+						employeeNum: targetUser.employeeNum,
 						name: targetUser.name,
 						email: targetUser.email,
 						role: targetUser.role,
 						permissions: targetUser.permissions,
+						department: targetUser.department,
 						token: newToken,
 					});
 				}

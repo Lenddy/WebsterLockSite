@@ -9,6 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Modal from "../../Modal";
 import { useTranslation } from "react-i18next";
 import { useItemGroups } from "../../../context/ItemGroupContext";
+import { can } from "../../utilities/can";
 
 export default function AdminGetAllItems() {
 	const { userToken, setPageLoading } = useAuth(); // get token from context
@@ -46,6 +47,7 @@ export default function AdminGetAllItems() {
 		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
 		// const isOwner = decodedUser.userId === userId;
 
+		// can(decodedUser,"items:read:any")
 		return hasRole;
 	}, [decodedUser]);
 

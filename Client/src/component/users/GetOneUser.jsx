@@ -78,7 +78,7 @@ export default function GetOneUser() {
 		setLogUser(jwtDecode(userToken));
 		setPageLoading(loading);
 		if (data) {
-			console.log("Fetched user:", data.getOneUser);
+			// console.log("Fetched user:", data.getOneUser);
 			setUser(data.getOneUser);
 		}
 	}, [data, setPageLoading, loading, userToken]);
@@ -101,7 +101,7 @@ export default function GetOneUser() {
 
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
 		onData: ({ data: subscriptionData, client }) => {
-			console.log("Subscription raw data:", subscriptionData);
+			// console.log("Subscription raw data:", subscriptionData);
 
 			const changeEvent = subscriptionData?.data?.onUserChange;
 			if (!changeEvent) return;
@@ -113,7 +113,7 @@ export default function GetOneUser() {
 
 			if (!changesArray.length) return;
 
-			console.log(`User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+			// console.log(`User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
 
 			// --- Update local state for the current user view ---
 			if (userId) {
@@ -228,7 +228,7 @@ export default function GetOneUser() {
 		},
 
 		onError: (err) => {
-			console.error("Subscription error:", err);
+			// console.error("Subscription error:", err);
 			if (err?.message?.includes("Socket closed") || err?.networkError) {
 				setWsDisconnected(true);
 			}

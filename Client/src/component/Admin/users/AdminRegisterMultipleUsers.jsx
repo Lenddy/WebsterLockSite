@@ -366,6 +366,12 @@ export default function AdminRegisterMultipleUsers() {
 
 	// TODO - FIX THE BTN THAT SHOW THE EXTRA PERMISSIONS
 
+	console.log("this are the rows", roleRank[decodedUser.role]);
+	console.log("this are the rows", roleRank[decodedUser.role] >= 3);
+
+	console.log("this are the rows", can(decodedUser, "peers:update:any"));
+	console.log("this are the rows", decodedUser);
+
 	return (
 		<div className="register-container">
 			<form className="register-form" onSubmit={submit}>
@@ -439,9 +445,11 @@ export default function AdminRegisterMultipleUsers() {
 													{t("select-role")}
 												</option>
 
-												{roleRank[decodedUser.role] >= 5 && can(decodedUser, "peers:update:any") && <option value="headAdmin">{t("head-admin")}</option>}
-												{roleRank[decodedUser.role] >= 4 && can(decodedUser, "peers:update:any") && <option value="admin">{t("admin")}</option>}
-												{roleRank[decodedUser.role] >= 3 && can(decodedUser, "peers:update:any") && <option value="subAdmin">{t("sub-admin")}</option>}
+												{roleRank[decodedUser.role] >= 5 && can(decodedUser, "peers:update:any", { targetRole: decodedUser.role }) && <option value="headAdmin">{t("head-admin")}</option>}
+												{roleRank[decodedUser.role] >= 4 && can(decodedUser, "peers:update:any", { targetRole: decodedUser.role }) && <option value="admin">{t("admin")}</option>}
+												{roleRank[decodedUser.role] >= 3 && can(decodedUser, "peers:update:any", { targetRole: decodedUser.role }) && <option value="subAdmin">{t("sub-admin")}</option>}
+
+												{/* <option value="subAdmin">{t("sub-admin")}</option> */}
 
 												<option value="user">{t("user")}</option>
 												<option value="noRole">{t("no-role")}</option>

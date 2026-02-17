@@ -127,7 +127,7 @@ export default function GetOneMaterialRequest() {
 
 	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
 		onData: ({ data: subscriptionData, client }) => {
-			console.log("📡 Subscription raw data:", subscriptionData);
+			// console.log(" Subscription raw data:", subscriptionData);
 
 			const changeEvent = subscriptionData?.data?.onMaterialRequestChange;
 			if (!changeEvent) return;
@@ -139,7 +139,7 @@ export default function GetOneMaterialRequest() {
 
 			if (!changesArray.length) return;
 
-			console.log(`📡 Material Request subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+			// console.log(`Material Request subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
 
 			// --- Update local state for detailed request view (setRows) ---
 			if (requestId) {
@@ -184,7 +184,7 @@ export default function GetOneMaterialRequest() {
 		},
 
 		onError: (err) => {
-			console.error("Subscription error:", err);
+			// console.error("Subscription error:", err);
 			if (err?.message?.includes("Socket closed") || err?.networkError) {
 				setWsDisconnected(true);
 			}

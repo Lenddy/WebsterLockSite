@@ -16,8 +16,8 @@ const Modal = ({ isOpen, onClose, data, setIsOpen, setSelectedUser, onConFirm, l
 	const logUser = jwtDecode(userToken);
 
 	const { t } = useTranslation();
-	console.log("modal open");
-	console.log("modal data", data);
+	// console.log("modal open");
+	// console.log("modal data", data);
 	// console.log("log user", logUser);
 	// console.log("is open", isOpen, "close", onClose, "data", data);
 

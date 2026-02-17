@@ -19,16 +19,16 @@ export default function GetAllUsers() {
 	const [logUser, setLogUser] = useState(null);
 	const { users, loading, error } = useUsers();
 
-	const {
-		error: testError,
-		loading: loadingTest,
-		data: dataTest,
-		refetch: refetchTest,
-	} = useQuery(get_all_users, {
-		fetchPolicy: "cache-and-network",
-	});
+	// const {
+	// 	error: testError,
+	// 	loading: loadingTest,
+	// 	data: dataTest,
+	// 	refetch: refetchTest,
+	// } = useQuery(get_all_users, {
+	// 	fetchPolicy: "cache-and-network",
+	// });
 
-	console.log("test data ", dataTest);
+	// console.log("test data ", dataTest);
 
 	// const [users, setUsers] = useState([]);
 	const [filteredUsers, setFilteredUsers] = useState([]);

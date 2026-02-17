@@ -48,7 +48,7 @@ export function UsersProvider({ children }) {
 	// Initial load
 	useEffect(() => {
 		if (data?.getAllUsers) {
-			console.log("get all data from the users context", data?.getAllUsers);
+			// console.log("get all data from the users context", data?.getAllUsers);
 			setUsers(data.getAllUsers);
 		}
 	}, [data]);
@@ -57,7 +57,7 @@ export function UsersProvider({ children }) {
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
 		skip: authLoading || !userToken || !canReview(), // <-- skip subscription until token ready
 		onData: ({ data: subscriptionData, client }) => {
-			// console.log("📡 Subscription raw data:", subscriptionData);
+			console.log("Subscription raw data:", subscriptionData);
 
 			const changeEvent = subscriptionData?.data?.onUserChange;
 			if (!changeEvent) return;
@@ -69,7 +69,7 @@ export function UsersProvider({ children }) {
 
 			if (!changesArray.length) return;
 
-			// console.log(`📡 User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+			// console.log(` User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
 
 			// --- Update local state ---
 			setUsers((prevUsers) => {
@@ -221,11 +221,11 @@ export function UsersProvider({ children }) {
 					},
 				});
 			} catch (err) {
-				console.warn("⚠️ Cache update skipped:", err.message);
+				console.warn(" Cache update skipped:", err.message);
 			}
 		},
 		onError: (err) => {
-			console.error("Subscription error:", err);
+			// console.error("Subscription error:", err);
 			if (err?.message?.includes("Socket closed") || err?.networkError) {
 				setWsDisconnected(true);
 			}

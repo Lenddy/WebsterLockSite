@@ -17,8 +17,8 @@ function GetOneItemUsage() {
 	const { userToken, setPageLoading, setWsDisconnected } = useAuth(); // Get current user token from context
 	const { name: itemName } = useParams(); // item name from route
 	const decodedURl = decodeURIComponent(itemName);
-	console.log("url:", itemName);
-	console.log("decodedURl:", decodedURl);
+	// console.log("url:", itemName);
+	// console.log("decodedURl:", decodedURl);
 	// const { error, loading, data } = useQuery(get_all_material_requests);
 	const [mRequests, setMRequests] = useState([]);
 	const { requests: allMRequests, loading, error } = useMaterialRequests();
@@ -87,7 +87,7 @@ function GetOneItemUsage() {
 			});
 		},
 		onError: (err) => {
-			console.error("Subscription error:", err);
+			// console.error("Subscription error:", err);
 			if (err?.message?.includes("Socket closed") || err?.networkError) {
 				setWsDisconnected(true);
 			}
@@ -313,7 +313,10 @@ function GetOneItemUsage() {
 										<td>
 											{/* on click make this go to a page that show  the users that have requested this material and also  allow them to bi filter by name and by date */}
 											{/* /material/item/${name} */}
-											<Link to={`/admin/material/item/usage/${name}`} onClick={() => console.log(name)}>
+											<Link
+												to={`/admin/material/item/usage/${name}`}
+												// onClick={() => console.log(name)}
+											>
 												{name}
 											</Link>
 										</td>

@@ -9,14 +9,14 @@ function ApiTest() {
 
 	useEffect(() => {
 		if (loading) {
-			console.log("loading");
+			// console.log("loading");
 		}
 		if (data) {
-			console.log(data);
+			// console.log(data);
 			setUsers(data);
 		}
 		if (error) {
-			console.log("there was an error", error);
+			// console.log("there was an error", error);
 		}
 		const fetchData = async () => {
 			await refetch();

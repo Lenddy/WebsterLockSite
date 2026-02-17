@@ -93,7 +93,7 @@ export default function AdminUpdateMultipleUsers() {
 			// locked: false, //ensure new rows are never locked
 		},
 	]);
-	console.log("all rows", rows);
+	// console.log("all rows", rows);
 
 	useEffect(() => {
 		setLogUser(jwtDecode(userToken));
@@ -112,7 +112,7 @@ export default function AdminUpdateMultipleUsers() {
 			// Auto-select user from params if found
 			if (userId) {
 				const selectedUser = users?.find((u) => u?.id === userId);
-				console.log("this is the selected userId", selectedUser);
+				// console.log("this is the selected userId", selectedUser);
 				if (selectedUser) {
 					setRows((prev) => {
 						const newRows = [...prev];
@@ -292,7 +292,7 @@ export default function AdminUpdateMultipleUsers() {
 		const noChangesMade = !row.newEmail && !row.newPassword && !row?.confirmNewPassword && !row?.role && !row?.newPermissions && !row?.name && !row?.title && !row?.description;
 
 		if (row?.id && noChangesMade) {
-			console.warn(" Row has an ID but no other fields were changed.");
+			// console.warn(" Row has an ID but no other fields were changed.");
 			return true;
 		}
 		// setSuccess({ success: false });
@@ -490,7 +490,7 @@ export default function AdminUpdateMultipleUsers() {
 
 		permissions.forEach((perm) => {
 			let [resource, action, scope] = perm.split(":");
-			console.log("resource:", resource, "action:", action, "scope:", scope);
+			// console.log("resource:", resource, "action:", action, "scope:", scope);
 			// role permissions belong to users column
 			if (resource === "role" || resource === "peers") {
 				resource = "users";
@@ -520,7 +520,7 @@ export default function AdminUpdateMultipleUsers() {
 
 	const groupedPermissions = useMemo(() => groupPermissions(ALL_PERMISSIONS), []);
 
-	console.log("this is groupedPermissions from the update multiple ", groupedPermissions);
+	// console.log("this is groupedPermissions from the update multiple ", groupedPermissions);
 
 	return (
 		// out side container
@@ -559,7 +559,7 @@ export default function AdminUpdateMultipleUsers() {
 
 												if (selected) {
 													const selectedUser = users.find((u) => u.id === selected.value);
-													console.log("this is the selectedUser", selectedUser);
+													// console.log("this is the selectedUser", selectedUser);
 													if (selectedUser) {
 														updatedRow.id = selectedUser.id;
 														updatedRow.previousEmail = selectedUser.email || "";
@@ -621,7 +621,8 @@ export default function AdminUpdateMultipleUsers() {
 										name="employeeNum"
 										// value={row?.employeeNum}
 										onChange={(e) => {
-											(handleRowChange(index, e), console.log(row?.employeeNum));
+											handleRowChange(index, e);
+											//  console.log(row?.employeeNum)
 										}}
 										disabled={blockInput}
 										placeholder={row?.employeeNum || t("employee-number")}
@@ -635,7 +636,8 @@ export default function AdminUpdateMultipleUsers() {
 										name="department"
 										// value={row?.department}
 										onChange={(e) => {
-											(handleRowChange(index, e), console.log(row?.department));
+											handleRowChange(index, e);
+											//  console.log(row?.department);
 										}}
 										placeholder={row?.department || t("department")}
 										disabled={blockInput}
@@ -708,11 +710,11 @@ export default function AdminUpdateMultipleUsers() {
 													{t("select-role")}
 												</option>
 
-												{roleRank[decodedUser.role] >= 5 && can(decodedUser, "peers:update:any") && <option value="headAdmin">{t("head-admin")}</option>}
+												{roleRank[decodedUser.role] >= 5 && can(decodedUser, "peers:update:any", { targetRole: decodedUser.role }) && <option value="headAdmin">{t("head-admin")}</option>}
 
-												{roleRank[decodedUser.role] >= 4 && can(decodedUser, "peers:update:any") && <option value="admin">{t("admin")}</option>}
+												{roleRank[decodedUser.role] >= 4 && can(decodedUser, "peers:update:any", { targetRole: decodedUser.role }) && <option value="admin">{t("admin")}</option>}
 
-												{roleRank[decodedUser.role] >= 3 && can(decodedUser, "peers:update:any") && <option value="subAdmin">{t("sub-admin")}</option>}
+												{roleRank[decodedUser.role] >= 3 && can(decodedUser, "peers:update:any", { targetRole: decodedUser.role }) && <option value="subAdmin">{t("sub-admin")}</option>}
 
 												{/* <option value="technician">{t("technician")}</option> */}
 												<option value="user">{t("user")} </option>

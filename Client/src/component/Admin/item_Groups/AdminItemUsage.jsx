@@ -81,7 +81,7 @@ export default function AdminItemUsage() {
 			});
 		},
 		onError: (err) => {
-			console.error("Subscription error:", err);
+			// console.error("Subscription error:", err);
 			if (err?.message?.includes("Socket closed") || err?.networkError) {
 				setWsDisconnected(true);
 			}
@@ -296,9 +296,7 @@ export default function AdminItemUsage() {
 										<td>
 											{/* on click make this go to a page that show  the users that have requested this material and also  allow them to bi filter by name and by date */}
 											{/* /material/item/${name} */}
-											<Link to={`/admin/material/item/usage/${encodeURIComponent(name)}`} onClick={() => console.log(name)}>
-												{name}
-											</Link>
+											<Link to={`/admin/material/item/usage/${encodeURIComponent(name)}`}>{name}</Link>
 										</td>
 										<td>{total}</td>
 									</tr>

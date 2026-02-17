@@ -7,7 +7,7 @@ import { setContext } from "@apollo/client/link/context";
 // import {} from "./subscriptions/subscriptions"
 
 // import {  useAuth } from "../src/context/AuthContext";
-console.log("started apollo Client at", new Date());
+// console.log("started apollo Client at", new Date());
 const token = localStorage.getItem("userToken");
 // const token = localStorage.getItem("UserToken");
 

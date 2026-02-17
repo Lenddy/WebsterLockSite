@@ -7,12 +7,16 @@ import Burger from "../assets/burgerMenu.svg?react";
 import X from "../assets/x.svg?react";
 import Settings from "../assets/settings.svg?react";
 import { get_one_user, get_all_users, get_all_material_requests, get_all_item_groups } from "../../graphQL/queries/queries";
+
 import { useQuery } from "@apollo/client";
 import RefetchButton from "./utilities/RefetchButton";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 import { can } from "./utilities/can";
 import { roleRank } from "./utilities/role.config";
+// import { useUsers } from "../../context/UsersContext";
+// import { useMaterialRequests } from "../../../src/context/MaterialRequestContext";
+// import { useItemGroups } from "../../../context/ItemGroupContext";
 
 export default function NavBar({ children, screenWidth }) {
 	const { userToken, setUserToken, loading: authLoading, pageLoading } = useAuth();
@@ -21,6 +25,10 @@ export default function NavBar({ children, screenWidth }) {
 	const [configOpen, setConfigOpen] = useState(false);
 	const containerRef = useRef(null);
 	const location = useLocation();
+
+	// const { users, loading, error } = useUsers();
+	// const { requests: mRequests, loading:mRequestsLoading, error:mRequestsError } = useMaterialRequests();
+	// const { items, loading:itemLoading, error:itemError } = useItemGroups();
 
 	const { t } = useTranslation();
 
@@ -78,11 +86,13 @@ export default function NavBar({ children, screenWidth }) {
 	}, [configOpen]);
 
 	const role = decodedUser?.role;
-	const isAdmin = useMemo(() => ["headAdmin", "admin", "subAdmin"].includes(role), [role]);
+	// const isAdmin = useMemo(() => ["headAdmin", "admin", "subAdmin"].includes(role), [role]);
+	const isAdmin = useMemo(() => roleRank[role] >= 3, [role]);
 
 	// Choose which user query to run; skip until decodedUser is present.
 	const shouldUseAllUsers = !!decodedUser && isAdmin && decodedUser.permissions.includes("users:read:any");
 	const { refetch: allUsersRefetch } = useQuery(get_all_users, { skip: !shouldUseAllUsers || !decodedUser });
+	//! this one is fine
 	const { refetch: oneUserRefetch } = useQuery(get_one_user, {
 		skip: shouldUseAllUsers || !decodedUser,
 		variables: { id: decodedUser?.userId },
@@ -92,6 +102,9 @@ export default function NavBar({ children, screenWidth }) {
 	// Other queries (skipped until decodedUser to avoid unnecessary loads)
 	const { refetch: mRRefetch } = useQuery(get_all_material_requests, { skip: !decodedUser });
 	const { refetch: iGRefetch } = useQuery(get_all_item_groups, { skip: !decodedUser });
+
+	//REVIEW - so i already fetch users requests and items, so why am i refetching them in nav bar
+	// also find out why
 
 	const menuItems = useMemo(
 		() =>
@@ -140,6 +153,13 @@ export default function NavBar({ children, screenWidth }) {
 								{ name: t("request-material"), path: "/material/request/request" },
 							],
 						},
+						// {
+						// 	title: t("items"),
+						// 	links: [
+						// 		{ name: t("view-all"), path: "/admin/material/item/all" },
+						// 		{ name: t("items-usage"), path: "/admin/material/item/usage" },
+						// 	],
+						// },
 						// {
 						// 	title: "Language",
 						// 	links: [{ name: "English" }, { name: "Español" }],
@@ -242,6 +262,11 @@ export default function NavBar({ children, screenWidth }) {
 	// 		enabled: hasPermission && hasRank,
 	// 	};
 	// };
+
+	// ! tests the test enviroment for any problem
+	// also add the final requierments for the nav var so that if you dont have permission you cant go to the route
+	// and test everything
+	// and fix the last problem then updaload
 
 	const closeMenu = () => setMobileOpen(false);
 
@@ -364,7 +389,8 @@ export default function NavBar({ children, screenWidth }) {
 											// })
 
 											m.links.map((i) =>
-												role === "admin" || role === "subAdmin" ? (
+												// role === "admin" || role === "subAdmin"
+												isAdmin ? (
 													<Link
 														key={i.path}
 														to={i.path == "/admin/material/item/create" || i.path == "/admin/material/item/update" ? "" : i.path}

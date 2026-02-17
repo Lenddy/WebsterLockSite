@@ -48,6 +48,7 @@ export function ItemGroupsProvider({ children }) {
 	useSubscription(ITEM_GROUP_CHANGE_SUBSCRIPTION, {
 		skip: authLoading || !userToken || !canReview(),
 		onData: ({ data: subscriptionData, client }) => {
+			console.log("Subscription raw data:", subscriptionData);
 			const changeEvent = subscriptionData?.data?.onItemGroupChange;
 			if (!changeEvent) return;
 
@@ -119,11 +120,11 @@ export function ItemGroupsProvider({ children }) {
 					},
 				});
 			} catch (err) {
-				console.warn("⚠️ Cache update skipped:", err.message);
+				console.warn(" Cache update skipped:", err.message);
 			}
 		},
 		onError: (err) => {
-			console.error("Subscription error:", err);
+			// console.error("Subscription error:", err);
 			if (err?.message?.includes("Socket closed") || err?.networkError) {
 				setWsDisconnected(true);
 			}

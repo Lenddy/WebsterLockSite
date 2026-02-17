@@ -29,7 +29,7 @@ export default function CreateOneMaterialRequest() {
 	// const { items, loading: iGLoading, error: iGError } = useItemGroups();
 	// const itemGroups = [];
 
-	console.log("this are the item groups", itemGroups);
+	// console.log("this are the item groups", itemGroups);
 	// console.log("this are the item groups , using items", items);
 
 	// const [itemGroups, setItemGroups] = useState([]);
@@ -137,7 +137,7 @@ export default function CreateOneMaterialRequest() {
 		setRows((prev) => prev.filter((_, i) => i !== index));
 	};
 
-	console.log("this are the rows", rows);
+	// console.log("this are the rows", rows);
 
 	const resetForm = () => {
 		setRows([{ brand: "", item: "", quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
@@ -294,11 +294,11 @@ export default function CreateOneMaterialRequest() {
 	};
 
 	const filteredAllItems = useMemo(() => {
-		console.log("🔍 debouncedSearch:", debouncedSearch);
-		console.log("📦 allItems:", allItems);
+		// console.log("debouncedSearch:", debouncedSearch);
+		// console.log("allItems:", allItems);
 
 		if (!debouncedSearch) {
-			console.log("➡ Returning all items (no search)");
+			// console.log("➡ Returning all items (no search)");
 			return allItems;
 		}
 
@@ -313,15 +313,15 @@ export default function CreateOneMaterialRequest() {
 			const results = fuse.search(debouncedSearch);
 			// const results = fuse.search(debouncedSearch).some((r) => r.item.value);
 
-			console.log("🎯 Fuse raw results:", results);
+			// console.log("Fuse raw results:", results);
 
 			const mapped = results.map((r) => r?.item);
 			// const mapped = results.some((r) => r.item);
-			console.log("📌 Mapped results:", mapped);
+			// console.log("Mapped results:", mapped);
 
 			return mapped;
 		} catch (err) {
-			console.error("❌ Fuzzy error:", err);
+			// console.error("Fuzzy error:", err);
 			return allItems;
 		}
 	}, [allItems, debouncedSearch]);

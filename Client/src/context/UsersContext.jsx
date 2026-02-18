@@ -174,7 +174,8 @@ export function UsersProvider({ children }) {
 
 								return newRefs;
 							} else {
-								for (const u of changeEvent) {
+								const usersArray = changeType === "multiple" && Array.isArray(changeEvent.changes) ? changeEvent.changes : changeEvent.change ? [changeEvent.change] : [];
+								for (const u of usersArray) {
 									if (eventType === "deleted") {
 										newRefs = newRefs.filter((ref) => readField("id", ref) !== u.id);
 										continue;

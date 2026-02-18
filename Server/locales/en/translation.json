@@ -63,7 +63,7 @@
 	"select-color": "Select Color",
 	"select-side": "Select Side",
 	"select-size": "Select Size",
-	"description-for-the-item": "Description For The Item",
+	"description-for-the-item": "Job/fsm or item Description",
 	"remove-request": "Remove Request",
 	"add-request": "Add Request",
 	"all-required-fields-must-be-filled": "All Required Fields Must Be Filled",

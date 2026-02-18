@@ -90,10 +90,6 @@ function AdminUpdateOneMaterialRequest() {
 			},
 
 			onCompleted: (res) => {
-				// console.log("user update ", jwtDecode(userToken).userId == requestersID);
-				// console.log("Mutation success:", res?.updateOneMaterialRequest);
-				// console.log("this is the client / caches", client.cache.extract());
-				// ("Material request has been deleted successfully!");
 				navigate(`/material/request/all`);
 			},
 		});
@@ -132,8 +128,6 @@ function AdminUpdateOneMaterialRequest() {
 				setHasSubmitted(false);
 			});
 	};
-
-	// TODO HERE YOU HAVE TO PUT THE APPROVAL AND THE REQUESTERS NAME
 
 	// ----- Color / Side / Size options -----
 	const colorOptions = [
@@ -189,31 +183,21 @@ function AdminUpdateOneMaterialRequest() {
 	);
 
 	function VirtualizedMenuList({ options, children, maxHeight }) {
-		// // console.log("children data", children[0].props.data);
-		// console.log("options", options);
 		const childrenArray = React.Children.toArray(children || []);
-		// console.log("children array", childrenArray);
 		const rowHeight = useDynamicRowHeight({
 			defaultRowHeight: 50,
 		});
 
 		if (!childrenArray.length) {
-			// console.log("children array is null ");
 			return null;
 		}
 
-		// console.log("rendering the list ");
 		return (
 			<List
 				style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
 				rowCount={children.length || 0}
 				rowHeight={rowHeight} //old 35
 				rowProps={{}}
-				// rowComponent={({ index, style }) => {
-				// 	const item = children[index];
-				// 	// return <div style={style}>{item ? item.props.data.value : "none"}</div>;
-				// 	return <div style={style}>{item}</div>;
-				// }}
 				rowComponent={({ index, style, rowProps }) => {
 					const item = children[index];
 					// ?.props?.data?.label
@@ -232,8 +216,6 @@ function AdminUpdateOneMaterialRequest() {
 			return allItems;
 		}
 
-		// return fuse.search(inputValue).some((r) => r.item.value === option.value);
-
 		try {
 			const fuse = new Fuse(allItems, {
 				keys: ["label"],
@@ -241,13 +223,8 @@ function AdminUpdateOneMaterialRequest() {
 				ignoreLocation: true,
 			});
 			const results = fuse.search(debouncedSearch);
-			// const results = fuse.search(debouncedSearch).some((r) => r.item.value);
-
-			console.log(" Fuse raw results:", results);
 
 			const mapped = results.map((r) => r.item);
-			// const mapped = results.some((r) => r.item);
-			console.log(" Mapped results:", mapped);
 
 			return mapped;
 		} catch (err) {
@@ -263,20 +240,11 @@ function AdminUpdateOneMaterialRequest() {
 		return ["headAdmin", "admin", "subAdmin"].includes(role);
 	};
 
-	// console.log("this are the items on the material request rows ,", rows);
-
 	/* // TODO - when the update happens instead of resetting the form completely  just add the new changes to it  
 		if theres an update from the out side  it alertes the users  and add the updated request (done on the use sub)
 		 whe the use updates the request it notifies you that  it happen and it allow you to updated it again or go view
 
 	*/
-
-	// ----- Load item groups -----
-	// useEffect(() => {
-	// 	if (iGData?.getAllItemGroups) {
-	// 		setItemGroups(iGData.getAllItemGroups);
-	// 	}
-	// }, [iGData]);
 
 	useEffect(() => {
 		if (mRData?.getOneMaterialRequest) {
@@ -321,10 +289,6 @@ function AdminUpdateOneMaterialRequest() {
 			}
 		}
 	}, [mRData, allItems]);
-
-	// add this sub to the get one material request too
-
-	// TODO - fix the other problems  do yo get the same request twice from the new update that you did ?   make the modal close when the update happens  a an block inputs and fix the will be deny on the modal that show if you are updating
 
 	// NOTE - i see the update twice because the old update is still in place the form reset did not take effect so the old request  was still there there for if a new requests is send it has the new item that was added, updated or deleted still there  that why
 
@@ -581,70 +545,6 @@ function AdminUpdateOneMaterialRequest() {
 			});
 	};
 
-	// const deleteRequest = async (e) => {
-	// 	// console.log("deleting request");
-	// 	// console.log(e);
-	// 	e.preventDefault();
-
-	// 	// e.preventDefault();
-	// 	skipNextSub.current = true;
-	// 	if (!userToken) return toast.warn("please-login"); //"Please log in first.");
-	// 	// client.clearStore();
-	// 	// await client.cache.reset();
-	// 	// try {
-	// 	const decoded = jwtDecode(userToken);
-
-	// 	const mutationPromise = deletedMaterialRequest({
-	// 		variables: {
-	// 			id: requestId,
-	// 			requesterID: requestId,
-	// 			isApproved: approval,
-	// 		},
-
-	// 		onCompleted: (res) => {
-	// 			// console.log("user update ", jwtDecode(userToken).userId == requestersID);
-	// 			// console.log("Mutation success:", res?.updateOneMaterialRequest);
-	// 			// console.log("this is the client / caches", client.cache.extract());
-	// 			// ("Material request has been deleted successfully!");
-	// 			navigate(`/material/request/all`);
-	// 		},
-	// 	});
-	// 	// } catch (err) {
-	// 	// 	console.error("Submit error:", err);
-	// 	// }
-	// 	toast.promise(mutationPromise, {
-	// 		pending: t("deleting-request"),
-
-	// 		success: {
-	// 			render({ closeToast }) {
-	// 				setIsOpen(false);
-	// 				return <SuccessToast closeToast={closeToast} resetForm={resetForm} navigate={navigate} setHasSubmitted={setHasSubmitted} t={t} deleting={true} />;
-	// 			},
-	// 		},
-
-	// 		error: {
-	// 			render({ data }) {
-	// 				const err = data;
-	// 				if (err?.graphQLErrors?.length) {
-	// 					return err.graphQLErrors.map((e) => e.message).join(", ");
-	// 				}
-	// 				// come here
-	// 				if (err?.networkError) return t("network-error-try-again");
-	// 				return t("something-went-wrong");
-	// 			},
-	// 			autoClose: false,
-	// 		},
-	// 	});
-	// 	mutationPromise
-	// 		.then(() => {
-	// 			setHasSubmitted(true);
-	// 			setBlockInput(true);
-	// 		})
-	// 		.catch(() => {
-	// 			setHasSubmitted(false);
-	// 		});
-	// };
-
 	const isFormValid = rows.every((r) => r.item && r.quantity !== "" && Number(r.quantity) > 0);
 
 	if (authLoading || mRLoading) return <p>Loading...</p>;
@@ -656,8 +556,6 @@ function AdminUpdateOneMaterialRequest() {
 		}
 		setIsOpen(true);
 	};
-
-	// console.log("request", mRequest?.requester?.userId);
 
 	//TODO -  when i change the permission and role of a users and they try to update their own request it show that they are trying to denied them fix that
 

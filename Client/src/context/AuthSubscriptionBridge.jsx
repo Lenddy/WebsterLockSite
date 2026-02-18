@@ -38,7 +38,6 @@ export default function AuthSubscriptionBridge() {
 					setUserToken(newToken);
 					// console.log("updateBy", updateBy);
 					if (updateBy !== currentUserId) {
-						// TODO - add translations
 						// toast.update("User profile has been updated (from the context)");
 						alert(t("user-profile-has-been-updated"));
 					}

@@ -145,7 +145,7 @@ export function UsersProvider({ children }) {
 												email
 												role
 												permissions
-												job
+												# job
 												employeeNum
 												department
 												token

@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../context/AuthContext";
 import { toast } from "react-toastify";
 import { can } from "../../utilities/can";
-import { ALL_PERMISSIONS, PERMISSION_DEPENDENCIES, ROLE_PERMISSIONS, roleRank, scopeDisplayName } from "../../utilities/role.config";
+import { ALL_PERMISSIONS, PERMISSION_DEPENDENCIES, PERMISSION_HIERARCHY, ROLE_PERMISSIONS, roleRank, scopeDisplayName } from "../../utilities/role.config";
 
 import { useApolloClient } from "@apollo/client";
 
@@ -203,6 +203,18 @@ export default function AdminUpdateMultipleUsers() {
 		return Array.from(newPerms);
 	};
 
+	const normalizePermissions = (permissions) => {
+		const set = new Set(permissions);
+
+		PERMISSION_HIERARCHY.forEach(([anyPerm, ownPerm]) => {
+			if (set.has(anyPerm)) {
+				set.delete(ownPerm);
+			}
+		});
+
+		return Array.from(set);
+	};
+
 	const handleRowChange = (index, e) => {
 		const { name, value, type, checked } = e.target;
 
@@ -227,6 +239,7 @@ export default function AdminUpdateMultipleUsers() {
 				} else {
 					row.newPermissions = row.newPermissions.filter((p) => p !== name);
 				}
+				row.newPermissions = normalizePermissions(row.newPermissions);
 			}
 
 			// NORMAL INPUTS
@@ -378,6 +391,27 @@ export default function AdminUpdateMultipleUsers() {
 			{/* <p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("duplicate-request")}</p> */}
 		</div>
 	);
+
+	const inputs = rows.map((row) => {
+		// const { __typename, ...cleanPermissions } = row?.newPermissions
+
+		return {
+			id: row?.id,
+			name: row?.name,
+			previousEmail: row?.previousEmail,
+			newEmail: row?.newEmail,
+			previousPassword: row?.previousPassword,
+			newPassword: row?.newPassword,
+			confirmNewPassword: row?.confirmNewPassword,
+			newRole: row?.newRole,
+			employeeNum: row?.employeeNum,
+			department: row?.department,
+			// REVIEW this oen could be a potential (cause not likely)
+			newPermissions: row?.newPermissions,
+		};
+	});
+
+	console.log("this is the input", inputs);
 
 	// Submit
 	const submit = async (e) => {

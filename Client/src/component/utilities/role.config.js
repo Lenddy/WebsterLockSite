@@ -148,3 +148,16 @@ export const PERMISSION_DEPENDENCIES = {
 	"requests:update:own": ["requests:read:own"],
 	"requests:delete:own": ["requests:read:own", "requests:update:own"],
 };
+
+export const PERMISSION_HIERARCHY = [
+	["users:update:any", "users:update:own"],
+	["users:delete:any", "users:delete:own"],
+	["users:read:any", "users:read:own"],
+
+	["requests:update:any", "requests:update:own"],
+	["requests:delete:any", "requests:delete:own"],
+	["requests:read:any", "requests:read:own"],
+
+	["peers:update:any", "peers:update:own"],
+	["peers:delete:any", "peers:delete:own"],
+];

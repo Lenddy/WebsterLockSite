@@ -769,17 +769,32 @@ const userResolver = {
 			|--------------------------------------------------------------------------
 			*/
 
+					// if (Array.isArray(newPermissions)) {
+					// 	if (!can(user, "users:update:any")) {
+					// 		throw new ApolloError("Unauthorized: Cannot assign permissions.");
+					// 	}
+
+					// 	const allowedPrefixes = ["users:", "requests:", "items:", "role:", "peers:"];
+					// 	const isAllowed = (p) => allowedPrefixes.some((pre) => p.startsWith(pre));
+
+					// 	const filteredNewPermissions = newPermissions.filter(isAllowed);
+
+					// 	targetUser.permissions = mergePermissions(targetUser.permissions || [], filteredNewPermissions);
+					// }
+
 					if (Array.isArray(newPermissions)) {
 						if (!can(user, "users:update:any")) {
 							throw new ApolloError("Unauthorized: Cannot assign permissions.");
 						}
 
 						const allowedPrefixes = ["users:", "requests:", "items:", "role:", "peers:"];
+
 						const isAllowed = (p) => allowedPrefixes.some((pre) => p.startsWith(pre));
 
 						const filteredNewPermissions = newPermissions.filter(isAllowed);
 
-						targetUser.permissions = mergePermissions(targetUser.permissions || [], filteredNewPermissions);
+						//   THIS IS THE FIX
+						targetUser.permissions = filteredNewPermissions;
 					}
 
 					/*
@@ -852,47 +867,6 @@ const userResolver = {
 				// 	},
 				// });
 
-				// ! you just added this and it fix the problem of not being able to update the the token on the browser when the user was log in that add a new problem
-				//
-
-				// 				installHook.js:1 Missing field 'job' while writing result
-				// {id: '6995f471d3bd4de71252c96d', employeeNum: '', name: 'admin test user', email: 'admintestuser@websterlock.com', token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiO…DQzfQ.T5QvLv_7M22cG0uAsa5Y46HOWhvFnzkP7YS7ZMcYj1I', …}
-				// department
-				// :
-				// ""
-				// email
-				// :
-				// "admintestuser@websterlock.com"
-				// employeeNum
-				// :
-				// ""
-				// id
-				// :
-				// "6995f471d3bd4de71252c96d"
-				// name
-				// :
-				// "admin test user"
-				// permissions
-				// :
-				// (14) ['users:read:any', 'users:create:any', 'users:update:any', 'users:delete:any', 'requests:read:any', 'requests:create:any', 'requests:update:any', 'requests:delete:any', 'items:read:any', 'items:create:any', 'items:update:any', 'items:delete:any', 'role:change:any', 'peers:update:any']
-				// role
-				// :
-				// "admin"
-				// token
-				// :
-				// "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTk1ZjQ3MWQzYmQ0ZGU3MTI1MmM5NmQiLCJuYW1lIjoiYWRtaW4gdGVzdCB1c2VyIiwiZW1haWwiOiJhZG1pbnRlc3R1c2VyQHdlYnN0ZXJsb2NrLmNvbSIsInJvbGUiOiJhZG1pbiIsInBlcm1pc3Npb25zIjpbInVzZXJzOnJlYWQ6YW55IiwidXNlcnM6Y3JlYXRlOmFueSIsInVzZXJzOnVwZGF0ZTphbnkiLCJ1c2VyczpkZWxldGU6YW55IiwicmVxdWVzdHM6cmVhZDphbnkiLCJyZXF1ZXN0czpjcmVhdGU6YW55IiwicmVxdWVzdHM6dXBkYXRlOmFueSIsInJlcXVlc3RzOmRlbGV0ZTphbnkiLCJpdGVtczpyZWFkOmFueSIsIml0ZW1zOmNyZWF0ZTphbnkiLCJpdGVtczp1cGRhdGU6YW55IiwiaXRlbXM6ZGVsZXRlOmFueSIsInJvbGU6Y2hhbmdlOmFueSIsInBlZXJzOnVwZGF0ZTphbnkiXSwiaWF0IjoxNzcxNDQxODQzfQ.T5QvLv_7M22cG0uAsa5Y46HOWhvFnzkP7YS7ZMcYj1I"
-				// __typename
-				// :
-				// "User"
-				// [[Prototype]]
-				// :
-				// Object
-				// overrideMethod	@	installHook.js:1
-				// writeUserFragment	@	UsersContext.jsx:139
-				// getAllUsers	@	UsersContext.jsx:164
-				// onData	@	UsersContext.jsx:122
-
-				// !now you need to fix the permission now being able to be deleted from a user
 				await pubsub.publish("USER_UPDATED", {
 					onUserChange: {
 						eventType: "updated",

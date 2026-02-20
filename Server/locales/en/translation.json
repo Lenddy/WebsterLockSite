@@ -63,7 +63,7 @@
 	"select-color": "Select Color",
 	"select-side": "Select Side",
 	"select-size": "Select Size",
-	"description-for-the-item": "Description For The Item",
+	"description-for-the-item": "Job/fsm or item Description",
 	"remove-request": "Remove Request",
 	"add-request": "Add Request",
 	"all-required-fields-must-be-filled": "All Required Fields Must Be Filled",
@@ -256,6 +256,9 @@
 		"peers": {
 			"update": {
 				"any": "Edit users with the same role"
+			},
+			"delete": {
+				"any": "Delete users with the same role"
 			}
 		},
 		"role": {
@@ -315,5 +318,6 @@
 	},
 	"hide-permission": "Hide Permission",
 	"edit-permissions": "Edit Permission",
-	"you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page": "you dont have the necessary permission to view or perform the necessary actions on this page."
+	"you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page": "You dont have the necessary permission to view or perform the necessary actions on this page.",
+	"your-account-has-been-deleted": "Your Account has been deleted you are being redirected to the log in screen"
 }

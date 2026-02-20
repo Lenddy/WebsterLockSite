@@ -197,6 +197,37 @@ export default function GetAllUsers() {
 		return false;
 	};
 
+	// this needs to change (and also use the peers:delete:any , in the back end )
+
+	// const canDeleteUser = (logUser, targetUser) => {
+	// 	if (!logUser || !targetUser) return false;
+
+	// 	const isSelf = String(logUser.userId) === String(targetUser.id);
+	// 	const logRank = roleRank[logUser.role] ?? 0;
+	// 	const targetRank = roleRank[targetUser.role] ?? 0;
+
+	// 	if (isSelf) {
+	// 		return can(logUser, "users:delete:own");
+	// 	}
+
+	// 	const canAny = can(logUser, "users:delete:any");
+	// 	const canPeer = can(logUser, "peers:update:any", { targetRole: targetUser?.role });
+	// 	// const canDelete = can(logUser, "users:delete:any");
+
+	// 	if (!canAny && !canPeer) return false;
+
+	// 	if (logRank > targetRank) return canAny;
+
+	// 	if (logRank === targetRank && !canAny && !canPeer) return canAny && canPeer;
+
+	// 	return false;
+	// };
+
+	// console.log("this is the log users", jwtDecode(userToken));
+	// console.log("can delete self", can(jwtDecode(userToken), "users:delete:own"));
+	// console.log("can delete any", can(jwtDecode(userToken), "users:delete:any"));
+	// console.log("can delete peers", can(jwtDecode(userToken), "peers:delete:any"));
+
 	const canDeleteUser = (logUser, targetUser) => {
 		if (!logUser || !targetUser) return false;
 
@@ -204,19 +235,21 @@ export default function GetAllUsers() {
 		const logRank = roleRank[logUser.role] ?? 0;
 		const targetRank = roleRank[targetUser.role] ?? 0;
 
-		if (isSelf) {
-			return can(logUser, "users:delete:own");
-		}
+		const hasDeleteOwn = can(logUser, "users:delete:own");
+		const hasDeleteAny = can(logUser, "users:delete:any");
+		const hasPeerDelete = can(logUser, "peers:delete:any", { targetRole: targetUser?.role });
 
-		const canAny = can(logUser, "users:delete:any");
-		const canPeer = can(logUser, "peers:update:any", { targetRole: targetUser?.role });
-		// const canDelete = can(logUser, "users:delete:any");
+		// Self delete
+		if (isSelf) return hasDeleteOwn;
 
-		if (!canAny && !canPeer) return false;
+		// Must have explicit delete permission
+		if (!hasDeleteAny && !hasPeerDelete) return false;
 
-		if (logRank > targetRank) return canAny;
+		// Higher rank
+		if (logRank > targetRank) return hasDeleteAny;
 
-		if (logRank === targetRank && !canAny && !canPeer) return canAny && canPeer;
+		// Same rank
+		if (logRank === targetRank) return hasPeerDelete;
 
 		return false;
 	};
@@ -301,24 +334,6 @@ export default function GetAllUsers() {
 
 											<td>{user?.department ? user?.department : "N/A"}</td>
 											<td>
-												{/* <div className="table-action-wrapper">
-												{canEditUser(logUser, user) && (
-													<Link to={`/admin/user/${user?.id}/update`}>
-														<span className="table-action first">{t("update")}</span>
-													</Link>
-												)}
-
-												{canDeleteUser(logUser, user) && (
-													<span
-														className="table-action last"
-														onClick={() => {
-															setSelectedUser(user);
-															setIsOpen(true);
-														}}>
-														{t("delete")}
-													</span>
-												)}
-											</div> */}
 												{logUser ? (
 													canEditUser(logUser, user) || canDeleteUser(logUser, user) ? (
 														<div className="table-action-wrapper">
@@ -345,6 +360,34 @@ export default function GetAllUsers() {
 												) : (
 													"N/A"
 												)}
+
+												{/* 
+												{logUser ? (
+													canEditUser(logUser, user) || canDeleteUser(logUser, user) ? (
+														<div className="table-action-wrapper">
+															{canEditUser(logUser, user) && (
+																<Link to={`/admin/user/${user.id}/update`}>
+																	<span className="table-action first">{t("update")}</span>
+																</Link>
+															)}
+
+															{canDeleteUser(logUser, user) && (
+																<span
+																	className="table-action last"
+																	onClick={() => {
+																		setSelectedUser(user);
+																		setIsOpen(true);
+																	}}>
+																	{t("delete")}
+																</span>
+															)}
+														</div>
+													) : (
+														"N/A"
+													)
+												) : (
+													"N/A"
+												)} */}
 											</td>
 										</tr>
 									))}

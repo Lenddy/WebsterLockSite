@@ -13,27 +13,12 @@ import { STORAGE_KEYS } from "../utilities/activeTabs";
 
 export default function GetAllMaterialRequest() {
 	const { userToken, setPageLoading } = useAuth();
-	// const { error, loading, data } = useQuery(get_all_material_requests, {
-	// 	// fetchPolicy: "cache",
-	// 	fetchPolicy: "cache-and-network",
-	// });
-
-	// 	const STORAGE_KEYS = {
-	//   SORT_KEY: "materialRequestsSortKey",
-	//   SORT_DIR: "materialRequestsSortDir",
-	//   ACTIVE_TAB: "materialRequestsActiveTab",
-	// };
-
-	const TAB_STORAGE_KEY = "materialRequestsActiveTab";
-	// 	const [activeTab, setActiveTab] = useState( ()=>{
-	// 		return localStorage.getItem(TAB_STORAGE_KEY) ||"waiting"
-	// 	});// "waiting" | "approved" | "all"
 
 	const [activeTab, setActiveTab] = useState(() => {
 		const savedTab = localStorage.getItem(STORAGE_KEYS.MATERIAL_REQUESTS.ACTIVE_TAB);
 
 		// Validate value (prevents corrupted storage bugs)
-		if (["waiting", "approved", "all"].includes(savedTab)) {
+		if (["waiting", "approved", "denied"].includes(savedTab)) {
 			return savedTab;
 		}
 
@@ -44,21 +29,22 @@ export default function GetAllMaterialRequest() {
 
 	const filterByTab = (list, tab) => {
 		switch (tab) {
-			case "waiting":
-				return list.filter((req) => req?.approvalStatus?.isApproved === null);
-
 			case "approved":
 				return list.filter((req) => req?.approvalStatus?.isApproved === true);
 
-			case "all":
+			case "waiting":
+				return list.filter((req) => req?.approvalStatus?.isApproved === null);
+
+			case "denied":
+				return list.filter((req) => req?.approvalStatus?.isApproved === false);
+
+			// case "all":
 			default:
 				return list;
 		}
 	};
 
 	// Sorting storage keys
-	const SORT_KEY_STORAGE = "materialRequestsSortKey";
-	const SORT_DIR_STORAGE = "materialRequestsSortDir";
 
 	const [sortKey, setSortKey] = useState(() => {
 		return localStorage.getItem(STORAGE_KEYS.MATERIAL_REQUESTS.SORT_KEY) || "addedDate";
@@ -73,22 +59,6 @@ export default function GetAllMaterialRequest() {
 		localStorage.setItem(STORAGE_KEYS.MATERIAL_REQUESTS.SORT_KEY, sortKey);
 		localStorage.setItem(STORAGE_KEYS.MATERIAL_REQUESTS.SORT_DIR, sortDir);
 	}, [activeTab, sortKey, sortDir]);
-
-	// const sortRequests = (list, key, dir) => {
-	// 	return [...list].sort((a, b) => {
-	// 		if (key === "addedDate") {
-	// 			const aDate = dayjs(a?.addedDate);
-	// 			const bDate = dayjs(b?.addedDate);
-
-	// 			if (!aDate.isValid()) return 1;
-	// 			if (!bDate.isValid()) return -1;
-
-	// 			return dir === "asc" ? aDate.valueOf() - bDate.valueOf() : bDate.valueOf() - aDate.valueOf();
-	// 		}
-
-	// 		return 0;
-	// 	});
-	// };
 
 	const sortRequests = (list, key, dir) => {
 		return [...list].sort((a, b) => {
@@ -141,7 +111,6 @@ export default function GetAllMaterialRequest() {
 
 	const { requests: mRequests, loading, error } = useMaterialRequests();
 
-	// const [mRequests, setMRequests] = useState([]);
 	const [searchValue, setSearchValue] = useState("");
 
 	const { t } = useTranslation();
@@ -149,30 +118,8 @@ export default function GetAllMaterialRequest() {
 	// Fetch and set requests
 	useEffect(() => {
 		setPageLoading(loading);
-
-		// if (data?.getAllMaterialRequests) {
-		// 	console.log("requests", data?.getAllMaterialRequests);
-		// 	setMRequests(data.getAllMaterialRequests);
-		// }
 	}, [loading, setPageLoading]);
 	// }, [data, loading, setPageLoading]);
-
-	// const sortRequests = (arr) => {
-	// 	return [...arr].sort((a, b) => {
-	// 		const aStatus = a?.approvalStatus?.isApproved;
-	// 		const bStatus = b?.approvalStatus?.isApproved;
-
-	// 		const aDate = dayjs(a?.addedDate);
-	// 		const bDate = dayjs(b?.addedDate);
-
-	// 		// 1️ Null approvalStatus goes to the top
-	// 		if (aStatus === null && bStatus !== null) return -1;
-	// 		if (aStatus !== null && bStatus === null) return 1;
-
-	// 		// 2️ Same group → sort by newest date first
-	// 		return bDate.valueOf() - aDate.valueOf();
-	// 	});
-	// };
 
 	// Fuse.js fuzzy search
 	const applyFuse = (list, search) => {
@@ -184,16 +131,6 @@ export default function GetAllMaterialRequest() {
 		return fuse.search(search).map((r) => r.item);
 	};
 
-	// Combine search + new sorting
-	// const searchAndSort = (list, search = "") => {
-	// 	const filtered = search ? applyFuse(list, search) : list;
-	// 	// return sortRequests(filtered);
-	// 	// this is new for the sorting
-	// 	const searched = searchValue ? applyFuse(tabFiltered, searchValue) : tabFiltered;
-
-	// 	return sortRequests(searched, sortKey, sortDir);
-	// };
-
 	const filteredMRequests = React.useMemo(() => {
 		const tabFiltered = filterByTab(mRequests, activeTab);
 
@@ -201,14 +138,6 @@ export default function GetAllMaterialRequest() {
 
 		return sortRequests(searched, sortKey, sortDir);
 	}, [mRequests, searchValue, activeTab, sortKey, sortDir]);
-
-	// Memoized sorted + filtered list
-	// const filteredMRequests = React.useMemo(() => searchAndSort(mRequests, searchValue), [mRequests, searchValue]);
-
-	// const filteredMRequests = React.useMemo(() => {
-	// 	const tabFiltered = filterByTab(mRequests, activeTab);
-	// 	return searchAndSort(tabFiltered, searchValue);
-	// }, [mRequests, searchValue, activeTab]);
 
 	const handleSearchChange = (e) => {
 		setSearchValue(e.target.value);
@@ -224,19 +153,11 @@ export default function GetAllMaterialRequest() {
 		return ["headAdmin", "admin", "subAdmin"].includes(role);
 	};
 
-	// console.log("role", jwtDecode(userToken)?.role == "headAdmin");
-
 	const formatDate = (date) => {
 		if (!date) return "N/A";
 		const parsedDate = isNaN(Number(date)) ? dayjs(date) : dayjs(Number(date));
 		return parsedDate.isValid() ? parsedDate.format("YYYY-MM-DD") : "N/A";
 	};
-	// test
-
-	// TODO - if a request has been approved by some one else alert the the users that one of their request  has been approved / denied
-
-	// there is a small problem some items are where they are not supposed to be for example i see that one item that is from 2026 that is second  whne one that is from 2025 is above and the others are bellow  if it is descending it should go by the yea-month-day
-	//  so the the higher the year-month-day should be on top  example 2026-02-1 should be on top of  2026-01-31  be cause the the month if higher and if they are in the same year and month is base by the day  the higher the day is going to be on top of lower days 10 is going to be on top of 9 n 9 is going to be on top of 8 and the oposite will happen if it is ascending
 
 	return (
 		<>
@@ -263,18 +184,6 @@ export default function GetAllMaterialRequest() {
 						</div>
 					</div>
 
-					{/* 
-				
-				
-				//TODO - make sure that the selected tab has an underline in users and the others    also the ad the filter to items if need you need to modify it any ways  adding the table scroll clase
-				
-						ADD THE UNDERLINE TO THE TABS IN THE USERS SIDE AND ALSO MAKE SURE THEY HAVE THE TABLE SCROLL CLASE(THE TABLE NOT THE TABS)
-
-
-
-				
-				*/}
-
 					{/* Tabs */}
 
 					{/* Table */}
@@ -285,12 +194,7 @@ export default function GetAllMaterialRequest() {
 								{/* <h2>Requests</h2> */}
 
 								<div className="tabs-wrapper-filter-btn">
-									<button
-										//  className={`     tab-btn  ${activeTab === "waiting" ? "active" : ""}`}
-										className={`filter-btn  ${activeTab === "waiting" ? "selected-filter" : ""}`}
-										onClick={() => setActiveTab("waiting")}>
-										Waiting
-									</button>
+									{/*!!! add  add translations*/}
 
 									<button
 										// className={`tab-btn ${activeTab === "approved" ? "active" : ""}`}
@@ -300,10 +204,17 @@ export default function GetAllMaterialRequest() {
 									</button>
 
 									<button
+										//  className={`     tab-btn  ${activeTab === "waiting" ? "active" : ""}`}
+										className={`filter-btn  ${activeTab === "waiting" ? "selected-filter" : ""}`}
+										onClick={() => setActiveTab("waiting")}>
+										Waiting
+									</button>
+
+									<button
 										// className={`tab-btn ${activeTab === "all" ? "active" : ""}`}
-										className={`filter-btn ${activeTab === "all" ? "selected-filter" : ""}`}
-										onClick={() => setActiveTab("all")}>
-										All
+										className={`filter-btn ${activeTab === "denied" ? "selected-filter" : ""}`}
+										onClick={() => setActiveTab("denied")}>
+										Denied
 									</button>
 								</div>
 							</div>
@@ -315,34 +226,21 @@ export default function GetAllMaterialRequest() {
 									<tr>
 										{jwtDecode(userToken)?.role == "headAdmin" && <th>ID</th>}
 
-										{/* <th onClick={() => handleSort("employeeNum")} className="clickable-th">
-											# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
-										</th> */}
-
 										<th onClick={() => handleSort("employeeNum")} className={`clickable-th ${sortKey === "employeeNum" ? "active-sort" : ""}`}>
 											# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
 										</th>
-
-										{/* <th>#</th> */}
 
 										<th onClick={() => handleSort("requesterName")} className={`clickable-th ${sortKey === "requesterName" ? "active-sort" : ""}`}>
 											{t("requestors-name")} {sortKey === "requesterName" && (sortDir === "asc" ? "▾" : "▴")}
 										</th>
 
-										{/* <th onClick={() => handleSort("addedDate")} className="clickable-th">
-											{t("requested-date")} {sortKey === "addedDate" && (sortDir === "asc" ? "▾" : "▴")}
-										</th> */}
-
 										<th onClick={() => handleSort("addedDate")} className={`clickable-th ${sortKey === "addedDate" ? "active-sort" : ""}`}>
 											{t("requested-date")} {sortKey === "addedDate" && (sortDir === "asc" ? "▾" : "▴")}
 										</th>
 
-										{/* <th>{t("requestors-name")}</th> */}
 										<th>{t("approval")}</th>
 										<th>{t("description")}</th>
 
-										{/* <th>{t("requested-date")}</th> */}
-										{/* <th>{t("amount-of-items")}</th> */}
 										<th>{t("action")}</th>
 									</tr>
 								</thead>

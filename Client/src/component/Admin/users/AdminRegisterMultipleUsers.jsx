@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { can } from "../../utilities/can";
-import { ROLE_PERMISSIONS, ALL_PERMISSIONS, scopeDisplayName, roleRank, PERMISSION_DEPENDENCIES } from "../../utilities/role.config";
+import { ROLE_PERMISSIONS, ALL_PERMISSIONS, scopeDisplayName, roleRank, PERMISSION_DEPENDENCIES, PERMISSION_HIERARCHY } from "../../utilities/role.config";
 
 export default function AdminRegisterMultipleUsers() {
 	const { userToken } = useAuth(); // get token from context
@@ -140,6 +140,18 @@ export default function AdminRegisterMultipleUsers() {
 			.replace(/^./, (str) => str.toUpperCase()); // capitalize first letter
 	};
 
+	const normalizePermissions = (permissions) => {
+		const set = new Set(permissions);
+
+		PERMISSION_HIERARCHY.forEach(([anyPerm, ownPerm]) => {
+			if (set.has(anyPerm)) {
+				set.delete(ownPerm);
+			}
+		});
+
+		return Array.from(set);
+	};
+
 	// Row manipulation functions
 	const handleRowChange = (index, e) => {
 		const { name, value, type, checked } = e.target;
@@ -183,6 +195,7 @@ export default function AdminRegisterMultipleUsers() {
 					//  Allow unchecking freely
 					row.permissions = row.permissions.filter((p) => p !== name);
 				}
+				row.permissions = normalizePermissions(row.permissions);
 			}
 
 			// NORMAL INPUT

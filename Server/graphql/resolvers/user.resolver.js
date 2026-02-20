@@ -143,7 +143,7 @@ const userResolver = {
 						throw new ApolloError("You are not allowed to assign custom permissions.", "FORBIDDEN");
 					}
 
-					const allowedPrefixes = ["users:", "requests:", "items:", "role:"];
+					const allowedPrefixes = ["users:", "requests:", "items:", "role:", "peers:"];
 					const isAllowed = (p) => allowedPrefixes.some((pre) => p.startsWith(pre));
 
 					extraPermissions = permissions.filter(isAllowed);
@@ -314,7 +314,7 @@ const userResolver = {
 						}
 
 						// Safety filter: only allow known permission namespaces
-						const allowedPrefixes = ["users:", "requests:", "items:", "role:"];
+						const allowedPrefixes = ["users:", "requests:", "items:", "role:", "peers:"];
 						extraPermissions = permissions.filter((perm) => allowedPrefixes.some((prefix) => perm.startsWith(prefix)));
 					}
 
@@ -384,7 +384,8 @@ const userResolver = {
 					onUserChange: {
 						eventType: "created",
 						changeType: payloadArray.length > 1 ? "multiple" : "single",
-						changes: payloadArray,
+						// changes: payloadArray,
+						...(payloadArray.length > 1 ? { changes: payloadArray } : { change: payloadArray[0] }),
 					},
 				});
 
@@ -394,129 +395,6 @@ const userResolver = {
 				throw err;
 			}
 		},
-
-		// registerMultipleUsers: async (_, { inputs }, { user, pubsub }) => {
-		// 	try {
-		// 		console.log("Raw inputs received:", JSON.stringify(inputs, null, 2));
-
-		// 		// Permission check
-		// 		if (user.role !== "headAdmin" && user.role !== "admin" && (user.role !== "subAdmin" || !user.permissions.canRegisterUser)) {
-		// 			throw new ApolloError("Unauthorized: You lack required permissions to register users.", "USER_LACK_PERMISSION");
-		// 		}
-
-		// 		if (!Array.isArray(inputs) || inputs.length === 0) {
-		// 			throw new ApolloError("No users provided to register.");
-		// 		}
-
-		// 		const validRoles = ["headAdmin", "admin", "subAdmin", "user", "noRole", "technician"];
-
-		// 		//  Check duplicate emails in input
-		// 		const emails = inputs.map((i) => i.email.toLowerCase());
-		// 		const duplicates = emails.filter((e, i) => emails.indexOf(e) !== i);
-		// 		if (duplicates.length > 0) {
-		// 			throw new ApolloError(`Duplicate emails found in input: ${[...new Set(duplicates)].join(", ")}`, "DUPLICATE_EMAILS_INPUT");
-		// 		}
-
-		// 		//  Check DB for existing users
-		// 		const existingUsers = await User.find({ email: { $in: emails } });
-		// 		if (existingUsers.length > 0) {
-		// 			const existingEmails = existingUsers.map((u) => u.email);
-		// 			throw new ApolloError(`Users with these emails already exist: ${existingEmails.join(", ")}`, "USER_ALREADY_EXIST");
-		// 		}
-
-		// 		//  Prepare Mongoose documents
-		// 		const userDocs = inputs.map((input, idx) => {
-		// 			let { name, email, password, confirmPassword, role = "user", permissions, employeeNum, department } = input;
-
-		// 			if (!validRoles.includes(role)) {
-		// 				role = "noRole";
-		// 			}
-
-		// 			if (password !== confirmPassword) {
-		// 				throw new ApolloError(`Passwords do not match for ${email}`, "PASSWORD_MISMATCH");
-		// 			}
-
-		// 			const newUser = new User({
-		// 				name,
-		// 				email,
-		// 				password, // raw password; pre-save hook will hash
-		// 				confirmPassword, // for validation
-		// 				role,
-		// 				permissions: permissions || [],
-		// 				employeeNum,
-		// 				department,
-		// 			});
-
-		// 			// Temporary token (optional, will be overwritten if needed)
-		// 			newUser.token = jwt.sign({ name, email, role, permissions: newUser.permissions }, process.env.Secret_Key);
-
-		// 			return newUser;
-		// 		});
-
-		// 		console.log("Mongoose documents ready for bulkSave:", userDocs);
-
-		// 		//  Bulk save all documents
-		// 		// const bulkSaveResult = await User.bulkSave(userDocs, { ordered: true });
-		// 		// console.log("bulkSave result:", bulkSaveResult);
-
-		// 		// //  Convert result into an array of actual documents
-		// 		// // Since bulkSave returns the docs themselves in Mongoose v7+, you can do:
-		// 		// const savedUsersArray = Array.isArray(bulkSaveResult) ? bulkSaveResult : userDocs;
-
-		// 		// //  Publish subscription events
-		// 		// await Promise.all(
-		// 		// 	savedUsersArray.map((savedUser) =>
-		// 		// 		pubsub.publish("USER_ADDED", {
-		// 		// 			onUserChange: { eventType: "created", Changes: savedUser },
-		// 		// 		})
-		// 		// 	)
-		// 		// );
-		// 		// Bulk save all documents
-		// 		const bulkSaveResult = await User.bulkSave(userDocs, { ordered: true });
-
-		// 		// Convert result into an array of actual documents
-		// 		const savedUsersArray = Array.isArray(bulkSaveResult) ? bulkSaveResult : userDocs;
-
-		// 		// Build payload array (serialize each user properly)
-		// 		const payloadArray = savedUsersArray.map((user) => ({
-		// 			...user.toObject(),
-		// 			id: user._id.toString(),
-		// 			// Optional: normalize nested arrays if user has any, e.g., roles
-		// 			roles:
-		// 				user.roles?.map((role) => ({
-		// 					id: role._id?.toString() ?? role.id,
-		// 					name: role.name,
-		// 				})) ?? [],
-		// 		}));
-
-		// 		// Determine changeType
-		// 		const changeType = payloadArray.length > 1 ? "multiple" : "single";
-
-		// 		// Prepare changes
-		// 		const changes = changeType === "multiple" ? payloadArray : payloadArray[0];
-
-		// 		// Publish a single event with all users
-		// 		await pubsub.publish("USER_ADDED", {
-		// 			onUserChange: {
-		// 				eventType: "created",
-		// 				changeType: changeType,
-		// 				...(changeType === "multiple" ? { changes } : { change: changes }),
-		// 			},
-		// 		});
-
-		// 		//  Prepare final response
-		// 		const finalResult = savedUsersArray.map((u) => ({
-		// 			id: u._id,
-		// 			...u._doc,
-		// 		}));
-
-		// 		console.log("Final response to client:", finalResult);
-		// 		return finalResult;
-		// 	} catch (err) {
-		// 		console.error("Error registering multiple users:", err);
-		// 		throw err;
-		// 	}
-		// },
 
 		loginUser: async (_, { input: { email, password } }) => {
 			try {
@@ -713,7 +591,7 @@ const userResolver = {
 		|--------------------------------------------------------------------------
 		*/
 				const canUpdateAnyUser = can(user, "users:update:any");
-				const canUpdatePeer = can(user, "peer:update:any");
+				const canUpdatePeer = can(user, "peers:update:any");
 				const canUpdateOwnUser = can(user, "users:update:own");
 
 				if (!canUpdateAnyUser && !canUpdateOwnUser) {
@@ -891,30 +769,33 @@ const userResolver = {
 			| RBAC: Assign scoped permissions (string-based)
 			|--------------------------------------------------------------------------
 			*/
-					// if (newPermissions && Array.isArray(newPermissions)) {
+
+					// if (Array.isArray(newPermissions)) {
 					// 	if (!can(user, "users:update:any")) {
 					// 		throw new ApolloError("Unauthorized: Cannot assign permissions.");
 					// 	}
 
-					// 	const allowedPrefixes = ["users:", "requests:", "items:", "role:"];
-					// 	const filtered = newPermissions.filter((perm) => allowedPrefixes.some((prefix) => perm.startsWith(prefix)));
+					// 	const allowedPrefixes = ["users:", "requests:", "items:", "role:", "peers:"];
+					// 	const isAllowed = (p) => allowedPrefixes.some((pre) => p.startsWith(pre));
 
-					// 	targetUser.permissions = Array.from(new Set([...(targetUser.permissions || []), ...filtered]));
+					// 	const filteredNewPermissions = newPermissions.filter(isAllowed);
+
+					// 	targetUser.permissions = mergePermissions(targetUser.permissions || [], filteredNewPermissions);
 					// }
-
-					// TODO -put the merge permission  functions  where is spoused to go
 
 					if (Array.isArray(newPermissions)) {
 						if (!can(user, "users:update:any")) {
 							throw new ApolloError("Unauthorized: Cannot assign permissions.");
 						}
 
-						const allowedPrefixes = ["users:", "requests:", "items:", "role:"];
+						const allowedPrefixes = ["users:", "requests:", "items:", "role:", "peers:"];
+
 						const isAllowed = (p) => allowedPrefixes.some((pre) => p.startsWith(pre));
 
 						const filteredNewPermissions = newPermissions.filter(isAllowed);
 
-						targetUser.permissions = mergePermissions(targetUser.permissions || [], filteredNewPermissions);
+						//   THIS IS THE FIX
+						targetUser.permissions = filteredNewPermissions;
 					}
 
 					/*
@@ -978,12 +859,23 @@ const userResolver = {
 					await User.bulkWrite(bulkOps);
 				}
 
+				// await pubsub.publish("USER_UPDATED", {
+				// 	onUserChange: {
+				// 		eventType: "updated",
+				// 		changeType: updatedUsers.length > 1 ? "multiple" : "single",
+				// 		updateBy: user.userId,
+				// 		changes: updatedUsers,
+				// 	},
+				// });
+
 				await pubsub.publish("USER_UPDATED", {
 					onUserChange: {
 						eventType: "updated",
 						changeType: updatedUsers.length > 1 ? "multiple" : "single",
 						updateBy: user.userId,
-						changes: updatedUsers,
+						change: updatedUsers.length === 1 ? updatedUsers[0] : null,
+						changes: updatedUsers.length > 1 ? updatedUsers : null,
+						// ...(payloadArray.length > 1 ? { changes: payloadArray } : { change: payloadArray[0] }),
 					},
 				});
 
@@ -993,60 +885,6 @@ const userResolver = {
 				throw error;
 			}
 		},
-
-		// deleteOneUser: async (_, { id }, { user, pubsub }) => {
-		// 	try {
-		// 		if (!user) {
-		// 			throw new ApolloError("Unauthorized: No user context.", "UNAUTHENTICATED");
-		// 		}
-
-		// 		// const isSelf = String(user.userId) === String(id);
-
-		// 		// -----------------------
-		// 		// SELF DELETE
-		// 		// -----------------------
-		// 		// if (isSelf) {
-		// 		// 	if (!can(user, "users:delete:own", { ownerId: id })) {
-		// 		// 		throw new ApolloError(
-		// 		// 			"Unauthorized: You do not have permission to delete your account.",
-		// 		// 			"FORBIDDEN"
-		// 		// 		);
-		// 		// 	}
-		// 		// }
-		// 		// -----------------------
-		// 		// DELETE OTHER USER
-		// 		// -----------------------
-		// 		// else {
-		// 		if (!can(user, "users:delete:any")) {
-		// 			throw new ApolloError("Unauthorized: You do not have permission to delete other users.", "FORBIDDEN");
-		// 		}
-		// 		// }
-
-		// 		const deletedUser = await User.findByIdAndDelete(id);
-		// 		if (!deletedUser) {
-		// 			throw new ApolloError("User not found.", "USER_NOT_FOUND");
-		// 		}
-
-		// 		// -----------------------
-		// 		// PubSub event
-		// 		// -----------------------
-		// 		await pubsub.publish("USER_DELETED", {
-		// 			onUserChange: {
-		// 				eventType: "deleted",
-		// 				changeType: "single",
-		// 				change: {
-		// 					...deletedUser.toObject(),
-		// 					id: deletedUser._id.toString(),
-		// 				},
-		// 			},
-		// 		});
-
-		// 		return deletedUser;
-		// 	} catch (error) {
-		// 		console.error("Error deleting user:", error);
-		// 		throw error;
-		// 	}
-		// },
 
 		deleteOneUser: async (_, { id }, { user, pubsub }) => {
 			try {
@@ -1099,76 +937,6 @@ const userResolver = {
 				throw error;
 			}
 		},
-
-		// deleteMultipleUsers: async (_, { ids }, { user, pubsub }) => {
-		// 	try {
-		// 		if (!user) {
-		// 			throw new ApolloError("Unauthorized: No user context.", "UNAUTHENTICATED");
-		// 		}
-
-		// 		if (!Array.isArray(ids) || ids.length === 0) {
-		// 			throw new ApolloError("No user IDs provided.", "BAD_REQUEST");
-		// 		}
-
-		// 		const userIdStr = String(user.userId);
-		// 		const includesSelf = ids.some((id) => String(id) === userIdStr);
-		// 		const includesOthers = ids.some((id) => String(id) !== userIdStr);
-
-		// 		// -----------------------
-		// 		// RBAC checks
-		// 		// -----------------------
-		// 		if (includesSelf) {
-		// 			if (!can(user, "users:delete:any", { ownerId: user.userId })) {
-		// 				throw new ApolloError("Unauthorized: You cannot delete your own account.", "FORBIDDEN");
-		// 			}
-		// 		}
-
-		// 		if (includesOthers) {
-		// 			if (!can(user, "users:delete:any")) {
-		// 				throw new ApolloError("Unauthorized: You cannot delete other users.", "FORBIDDEN");
-		// 			}
-		// 		}
-
-		// 		// -----------------------
-		// 		// Fetch target users
-		// 		// -----------------------
-		// 		const targetUsers = await User.find({ _id: { $in: ids } });
-
-		// 		if (!targetUsers.length) {
-		// 			throw new ApolloError("No users found to delete.", "USER_NOT_FOUND");
-		// 		}
-
-		// 		// -----------------------
-		// 		// Bulk delete
-		// 		// -----------------------
-		// 		const bulkOps = ids.map((id) => ({
-		// 			deleteOne: { filter: { _id: id } },
-		// 		}));
-
-		// 		await User.bulkWrite(bulkOps);
-
-		// 		// -----------------------
-		// 		// PubSub payload
-		// 		// -----------------------
-		// 		const payloadArray = targetUsers.map((u) => ({
-		// 			...u.toObject(),
-		// 			id: u._id.toString(),
-		// 		}));
-
-		// 		await pubsub.publish("USER_DELETED", {
-		// 			onUserChange: {
-		// 				eventType: "deleted",
-		// 				changeType: payloadArray.length > 1 ? "multiple" : "single",
-		// 				...(payloadArray.length > 1 ? { changes: payloadArray } : { change: payloadArray[0] }),
-		// 			},
-		// 		});
-
-		// 		return targetUsers;
-		// 	} catch (error) {
-		// 		console.error("Error deleting multiple users:", error);
-		// 		throw error;
-		// 	}
-		// },
 
 		deleteMultipleUsers: async (_, { ids }, { user, pubsub }) => {
 			try {

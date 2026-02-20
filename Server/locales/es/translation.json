@@ -318,5 +318,6 @@
 	},
 	"hide-permission": "Ocultar permisos",
 	"edit-permissions": "Editar permisos",
-	"you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page": "No tienes los permisos necesarios para ver o realizar las acciones necesarias en esta página."
+	"you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page": "No tienes los permisos necesarios para ver o realizar las acciones necesarias en esta página.",
+	"your-account-has-been-deleted": "Su cuenta ha sido eliminada y está siendo redirigido a la pantalla de inicio de sesión."
 }

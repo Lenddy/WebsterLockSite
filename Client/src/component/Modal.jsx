@@ -113,6 +113,7 @@ const Modal = ({ isOpen, onClose, data, setIsOpen, setSelectedUser, onConFirm, l
 								<div>
 									<h4>{t("name")}:</h4> <p>{content.value.name}</p>
 								</div>
+
 								<div>
 									<h4>{t("email")}:</h4> <p>{content.value.email}</p>
 								</div>

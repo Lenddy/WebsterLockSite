@@ -18,7 +18,7 @@ import { toast } from "react-toastify";
 import { can } from "../../utilities/can";
 import { ALL_PERMISSIONS, PERMISSION_DEPENDENCIES, PERMISSION_HIERARCHY, ROLE_PERMISSIONS, roleRank, scopeDisplayName } from "../../utilities/role.config";
 
-import { useApolloClient } from "@apollo/client";
+// import { useApolloClient } from "@apollo/client";
 
 export default function AdminUpdateMultipleUsers() {
 	const { userToken, pageLoading, loading: userLoading } = useAuth();
@@ -60,7 +60,7 @@ export default function AdminUpdateMultipleUsers() {
 	}, [decodedUser]);
 
 	useEffect(() => {
-		if (!canUserReview || !can(decodedUser, "users:update:any")) {
+		if (!canUserReview && !can(decodedUser, "users:update:any") && !can(decodedUser, "users:update:own")) {
 			toast.warn(t("you-dont-have-permission-to-edit-users"));
 			navigate("/material/request/all", { replace: true });
 		}

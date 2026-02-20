@@ -256,6 +256,9 @@
 		"peers": {
 			"update": {
 				"any": "Edit users with the same role"
+			},
+			"delete": {
+				"any": "Delete users with the same role"
 			}
 		},
 		"role": {

@@ -95,7 +95,7 @@ export const roleRank = {
 	noRole: 1,
 };
 
-export const ALL_PERMISSIONS = ["users:read:any", "users:read:own", "users:create:any", "users:update:any", "users:update:own", "users:delete:any", "users:delete:own", "peers:update:any", "requests:read:any", "requests:read:own", "requests:create:any", "requests:create:own", "requests:update:any", "requests:update:own", "requests:delete:any", "requests:delete:own", "items:read:any", "items:create:any", "items:update:any", "items:delete:any", "role:change:any"];
+export const ALL_PERMISSIONS = ["users:read:any", "users:read:own", "users:create:any", "users:update:any", "users:update:own", "users:delete:any", "users:delete:own", "peers:update:any", "peers:delete:any", "requests:read:any", "requests:read:own", "requests:create:any", "requests:create:own", "requests:update:any", "requests:update:own", "requests:delete:any", "requests:delete:own", "items:read:any", "items:create:any", "items:update:any", "items:delete:any", "role:change:any"];
 
 export const scopeDisplayName = (scope, t) => {
 	const map = {
@@ -111,6 +111,7 @@ export const scopeDisplayName = (scope, t) => {
 		"users:delete:own": t("permissionsList.users.delete.own"),
 
 		"peers:update:any": t("permissionsList.peers.update.any"),
+		"peers:delete:any": t("permissionsList.peers.delete.any"),
 
 		"role:change:any": t("permissionsList.role.change.any"),
 

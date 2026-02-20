@@ -256,6 +256,9 @@
 		"peers": {
 			"update": {
 				"any": "Editar usuarios con el mismo rol"
+			},
+			"delete": {
+				"any": "Eliminar usuarios con el mismo rol"
 			}
 		},
 		"role": {

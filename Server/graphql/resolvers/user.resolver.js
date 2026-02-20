@@ -384,7 +384,8 @@ const userResolver = {
 					onUserChange: {
 						eventType: "created",
 						changeType: payloadArray.length > 1 ? "multiple" : "single",
-						changes: payloadArray,
+						// changes: payloadArray,
+						...(payloadArray.length > 1 ? { changes: payloadArray } : { change: payloadArray[0] }),
 					},
 				});
 
@@ -874,6 +875,7 @@ const userResolver = {
 						updateBy: user.userId,
 						change: updatedUsers.length === 1 ? updatedUsers[0] : null,
 						changes: updatedUsers.length > 1 ? updatedUsers : null,
+						// ...(payloadArray.length > 1 ? { changes: payloadArray } : { change: payloadArray[0] }),
 					},
 				});
 

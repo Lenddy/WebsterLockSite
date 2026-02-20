@@ -40,8 +40,8 @@ export function UsersProvider({ children }) {
 	} = useQuery(get_all_users, {
 		// skip: !userToken, // <-- SKIP until token is ready
 		skip: authLoading || !userToken || !canReview(), // <-- SKIP until token is ready
-		// fetchPolicy: "cache-first",
-		fetchPolicy: "cache-and-network",
+		fetchPolicy: "cache-first",
+		// fetchPolicy: "cache-and-network",
 	});
 	// console.log("this is the data example:", data);
 
@@ -69,9 +69,20 @@ export function UsersProvider({ children }) {
 
 			if (!changesArray.length) return;
 
+			// let changesArray = [];
+
+			// if (Array.isArray(changes) && changes.length > 0) {
+			//   changesArray = changes;
+			// } else if (change) {
+			//   changesArray = [change];
+			// }
+
+			// if (!changesArray.length) return;
+
 			// console.log(` User subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
 
 			// --- Update local state ---
+
 			setUsers((prevUsers) => {
 				let updated = [...prevUsers];
 
@@ -93,6 +104,23 @@ export function UsersProvider({ children }) {
 
 				return updated;
 			});
+
+			// setUsers((prevUsers) => {
+			// 	let updated = [...prevUsers];
+
+			// 	for (const change of changesArray) {
+			// 		if (eventType === "created") {
+			// 			const exists = updated.some((u) => u.id === change.id);
+			// 			if (!exists) updated = [change, ...updated];
+			// 		} else if (eventType === "updated") {
+			// 			updated = updated.map((u) => (u.id === change.id ? { ...u, ...change } : u));
+			// 		} else if (eventType === "deleted") {
+			// 			updated = updated.filter((u) => u.id !== change.id);
+			// 		}
+			// 	}
+
+			// 	return updated;
+			// });
 
 			// const evt = subscriptionData?.data?.onUserChange;
 			// if (!evt) return;
@@ -123,17 +151,13 @@ export function UsersProvider({ children }) {
 					fields: {
 						getAllUsers(existingRefs = [], { readField }) {
 							let newRefs = [...existingRefs];
-
 							if (changeType === "single") {
 								// Extract the single user from the subscription
 								const u = changeEvent.change;
 								if (!u) return existingRefs;
-
 								const id = u.id;
-
 								// Clone
 								let newRefs = [...existingRefs];
-
 								// Helper to write fragment
 								const writeUserFragment = (data) =>
 									client.cache.writeFragment({
@@ -152,26 +176,22 @@ export function UsersProvider({ children }) {
 											}
 										`,
 									});
-
 								// ---- DELETE (single) ----
 								if (eventType === "deleted") {
 									return newRefs.filter((ref) => readField("id", ref) !== id);
 								}
-
 								// ---- UPDATE (single) ----
 								const idx = newRefs.findIndex((ref) => readField("id", ref) === id);
 								if (idx > -1 && eventType === "updated") {
 									newRefs[idx] = writeUserFragment(u);
 									return newRefs;
 								}
-
 								// ---- CREATE (single) ----
 								if (eventType === "created") {
 									const newRef = writeUserFragment(u);
 									newRefs.push(newRef);
 									return newRefs;
 								}
-
 								return newRefs;
 							} else {
 								const usersArray = changeType === "multiple" && Array.isArray(changeEvent.changes) ? changeEvent.changes : changeEvent.change ? [changeEvent.change] : [];

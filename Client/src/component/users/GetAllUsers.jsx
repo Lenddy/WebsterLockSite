@@ -360,34 +360,6 @@ export default function GetAllUsers() {
 												) : (
 													"N/A"
 												)}
-
-												{/* 
-												{logUser ? (
-													canEditUser(logUser, user) || canDeleteUser(logUser, user) ? (
-														<div className="table-action-wrapper">
-															{canEditUser(logUser, user) && (
-																<Link to={`/admin/user/${user.id}/update`}>
-																	<span className="table-action first">{t("update")}</span>
-																</Link>
-															)}
-
-															{canDeleteUser(logUser, user) && (
-																<span
-																	className="table-action last"
-																	onClick={() => {
-																		setSelectedUser(user);
-																		setIsOpen(true);
-																	}}>
-																	{t("delete")}
-																</span>
-															)}
-														</div>
-													) : (
-														"N/A"
-													)
-												) : (
-													"N/A"
-												)} */}
 											</td>
 										</tr>
 									))}

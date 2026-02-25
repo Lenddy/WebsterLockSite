@@ -16,6 +16,7 @@ import { useDebounce } from "use-debounce";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useItemGroups } from "../../context/ItemGroupContext";
+import { colorOptions, sideOptions, sizeOptions } from "../utilities/color-side-size";
 
 // import FixedSizeList from "react-window";
 
@@ -68,28 +69,6 @@ export default function CreateOneMaterialRequest() {
 	// 	// if (iGData) setItemGroups(iGData?.getAllItemGroups || []);
 	// 	// if (iGError) console.log("Error fetching item groups:", iGError);
 	// }, [iGData, iGError]);
-
-	const colorOptions = [
-		{ value: "605/US3 - Bright Brass", label: "605/US3 - Bright Brass", hex: "#FFD700" },
-		{ value: "612/US10 - Satin Bronze", label: "612/US10 - Satin Bronze", hex: "#B08D57" },
-		{ value: "619/US15 - Satin Nickel", label: "619/US15 - Satin Nickel", hex: "#AFAFAF" },
-		{ value: "625/US26 - Bright Chrome", label: "625/US26 - Bright Chrome", hex: "#E5E4E2" },
-		{ value: "626/US26D - Satin Chrome", label: "626/US26D - Satin Chrome", hex: "#C0C0C0" },
-		{ value: "630/US32D - Satin Stainless Steel", label: "630/US32D - Satin Stainless Steel", hex: "#D6D6D6" },
-		{ value: "622/ - Black", label: "622/ - Black", hex: "#000000" },
-		{ value: "689/ - Aluminum", label: "689/ - Aluminum", hex: "#A9A9A9" },
-	];
-
-	const sideOptions = [
-		{ value: "Left Hand", label: "Left Hand" },
-		{ value: "Right Hand", label: "Right Hand" },
-	];
-
-	const sizeOptions = [
-		{ value: "Small", label: "Small" },
-		{ value: "Medium", label: "Medium" },
-		{ value: "Large", label: "Large" },
-	];
 
 	const brands = [...new Set(itemGroups?.map((g) => g.brand))]?.map((b) => ({
 		label: b,

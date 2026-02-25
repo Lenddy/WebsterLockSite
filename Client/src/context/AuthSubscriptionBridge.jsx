@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useSubscription } from "@apollo/client";
 import { jwtDecode } from "jwt-decode";
 import { USER_CHANGE_SUBSCRIPTION } from "../../graphQL/subscriptions/subscriptions";
@@ -5,6 +6,7 @@ import { useAuth } from "./AuthContext";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { useApolloClientInstance } from "../context/ApolloWrapper";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function AuthSubscriptionBridge() {
 	const { userToken, setUserToken, setWsDisconnected } = useAuth();
@@ -13,6 +15,19 @@ export default function AuthSubscriptionBridge() {
 	const { t } = useTranslation();
 
 	const client = useApolloClientInstance();
+
+	const location = useLocation();
+	const navigate = useNavigate();
+
+	// useEffect(() => {
+	//   if (!currentUser) return;
+
+	//   const hasAccess = checkRouteAccess(location.pathname, currentUser.permissions);
+
+	//   if (!hasAccess) {
+	//     navigate("/unauthorized", { replace: true });
+	//   }
+	// }, [location.pathname, currentUser]);
 
 	// Listen for USER_CHANGE_SUBSCRIPTION (same event you use everywhere else)
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
@@ -67,6 +82,20 @@ export default function AuthSubscriptionBridge() {
 				// Only care about current logged-in user
 				if (!currentUserId || updatedUserId !== currentUserId) continue;
 
+				// If user was updated → refresh token
+				if (eventType === "updated") {
+					const newToken = updatedUser?.token;
+
+					if (newToken) {
+						setUserToken(newToken);
+						localStorage.setItem("token", newToken);
+
+						if (updateBy !== currentUserId) {
+							alert(t("user-profile-has-been-updated"));
+						}
+					}
+				}
+
 				// If user was deleted → FORCE LOGOUT
 				if (eventType === "deleted") {
 					alert(t("your-account-has-been-deleted"));
@@ -92,20 +121,6 @@ export default function AuthSubscriptionBridge() {
 					window.location.href = "/login";
 
 					return;
-				}
-
-				// If user was updated → refresh token
-				if (eventType === "updated") {
-					const newToken = updatedUser?.token;
-
-					if (newToken) {
-						setUserToken(newToken);
-						localStorage.setItem("token", newToken);
-
-						if (updateBy !== currentUserId) {
-							alert(t("user-profile-has-been-updated"));
-						}
-					}
 				}
 			}
 		},

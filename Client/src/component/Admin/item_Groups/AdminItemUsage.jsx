@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useQuery, useSubscription } from "@apollo/client";
 import { get_all_material_requests } from "../../../../graphQL/queries/queries";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { MATERIAL_REQUEST_CHANGE_SUBSCRIPTION } from "../../../../graphQL/subscriptions/subscriptions";
 import Fuse from "fuse.js";
 import dayjs from "dayjs";
@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 dayjs.extend(isBetween);
 import { useMaterialRequests } from "../../../context/MaterialRequestContext";
 import { useAuth } from "../../../context/AuthContext";
+// import { } from "react-router-dom";
 
 export default function AdminItemUsage() {
 	const { userToken, setPageLoading, setWsDisconnected } = useAuth(); // get token from context
@@ -21,6 +22,12 @@ export default function AdminItemUsage() {
 	const [customStart, setCustomStart] = useState(""); // YYYY-MM-DD
 	const [customEnd, setCustomEnd] = useState(""); // YYYY-MM-DD
 	const [searchValue, setSearchValue] = useState("");
+	const { itemName, userId } = useParams();
+
+	console.log({ itemName, userId });
+
+	const isItemView = !!itemName && !userId;
+	const isUserView = !!itemName && !!userId;
 
 	const { t } = useTranslation();
 	const navigate = useNavigate();
@@ -137,10 +144,6 @@ export default function AdminItemUsage() {
 				return mRequests; // "All" case
 		}
 
-		// console.log("Filter:", filter);
-		// console.log("Start:", start?.format("YYYY-MM-DD HH:mm:ss"));
-		// console.log("End:", end?.format("YYYY-MM-DD HH:mm:ss"));
-
 		return mRequests.filter((req) => {
 			if (!req.addedDate) return false;
 
@@ -218,6 +221,98 @@ export default function AdminItemUsage() {
 		setFilter("all");
 	};
 
+	const usageData = useMemo(() => {
+		if (!filteredRequests?.length) return [];
+
+		// LEVEL 1
+		if (!itemName) {
+			const totals = {};
+			filteredRequests.forEach((req) => {
+				req.items.forEach((item) => {
+					totals[item.itemName] = (totals[item.itemName] || 0) + item.quantity;
+				});
+			});
+			return totals;
+		}
+
+		// LEVEL 2 → Group by USER for selected item
+		if (itemName && !userId) {
+			const totals = {};
+
+			filteredRequests.forEach((req) => {
+				req.items.forEach((item) => {
+					if (item.itemName === itemName) {
+						const userName = req.requester?.name;
+						const uid = req.requester?.userId;
+
+						if (!totals[uid]) {
+							totals[uid] = {
+								name: userName,
+								total: 0,
+							};
+						}
+
+						totals[uid].total += item.quantity;
+					}
+				});
+			});
+
+			return totals;
+		}
+
+		// LEVEL 3 → Individual entries
+		if (itemName && userId) {
+			const list = [];
+
+			filteredRequests.forEach((req) => {
+				if (req.requester?.userId !== userId) return;
+
+				req.items.forEach((item) => {
+					if (item.itemName === itemName) {
+						list.push({
+							name: req.requester?.name,
+							quantity: item.quantity,
+							date: req.addedDate,
+						});
+					}
+				});
+			});
+
+			return list;
+		}
+	}, [filteredRequests, itemName, userId]);
+
+	// const finalUsage = useMemo(() => {
+	// 	let baseList = filteredRequests;
+	// 	const totals = {};
+
+	// 	baseList.forEach((req) => {
+	// 		req.items.forEach((item) => {
+	// 			if (!totals[item.id]) {
+	// 				totals[item.id] = {
+	// 					name: item.itemName,
+	// 					total: 0,
+	// 				};
+	// 			}
+	// 			totals[item.id].total += item.quantity;
+	// 		});
+	// 	});
+
+	// 	return totals;
+	// }, [filteredRequests]);
+
+	{
+		/* {!itemName && <th>{t("item-name")}</th>}
+												{isItemView && <th>{t("name")}</th>}
+												{isUserView && <th>{t("name")}</th>}
+
+												{isUserView && <th>{t("date")}</th>}
+												{!isUserView && <th>{t("total-used")}</th>}
+												{isUserView && <th>{t("quantity")}</th>} */
+	}
+
+	// ! you need to find out why the url does not take the 2nd parameter
+
 	return (
 		<>
 			{loading ? (
@@ -283,26 +378,76 @@ export default function AdminItemUsage() {
 
 					{/* Results Table */}
 					<div className="table-wrapper">
-						<table>
-							<thead>
-								<tr>
-									<th>{t("item-name")}</th>
-									<th>{t("total-used")}</th>
-								</tr>
-							</thead>
-							<tbody>
-								{Object.entries(finalUsage).map(([name, total]) => (
-									<tr key={name}>
-										<td>
-											{/* on click make this go to a page that show  the users that have requested this material and also  allow them to bi filter by name and by date */}
-											{/* /material/item/${name} */}
-											<Link to={`/admin/material/item/usage/${encodeURIComponent(name)}`}>{name}</Link>
-										</td>
-										<td>{total}</td>
+						<div className="table-scroll">
+							<table>
+								<thead>
+									<tr>
+										{/* <th>{t("item-name")}</th>
+										<th>{t("total-used")}</th> */}
+
+										{/* <thead>
+											<tr> */}
+										{/* LEVEL 1 */}
+										{!itemName && (
+											<>
+												<th>{t("item-name")}</th>
+												<th>{t("total-used")}</th>
+											</>
+										)}
+										{/* LEVEL 2 */}
+										{isItemView && (
+											<>
+												<th>{t("name")}</th>
+												<th>{t("total-used")}</th>
+											</>
+										)}
+										{/* LEVEL 3 */}
+										{isUserView && (
+											<>
+												<th>{t("name")}</th>
+												<th>{t("quantity")}</th>
+												<th>{t("date")}</th>
+											</>
+										)}
+										{/* </tr>
+										</thead> */}
 									</tr>
-								))}
-							</tbody>
-						</table>
+								</thead>
+								<tbody>
+									{/* LEVEL 1 → Items */}
+									{!itemName &&
+										Object.entries(usageData || {}).map(([name, total]) => (
+											<tr key={name}>
+												<td>
+													<Link to={`/admin/material/item/usage/${encodeURIComponent(name)}`}>{name}</Link>
+												</td>
+												<td>{total}</td>
+											</tr>
+										))}
+
+									{/* LEVEL 2 → Users for that item */}
+									{isItemView &&
+										Object.entries(usageData || {}).map(([uid, data]) => (
+											<tr key={uid}>
+												<td>
+													<Link to={`/admin/material/item/usage/${encodeURIComponent(itemName)}/${uid}`}>{data.name}</Link>
+												</td>
+												<td>{data.total}</td>
+											</tr>
+										))}
+
+									{/* LEVEL 3 → Individual entries */}
+									{isUserView &&
+										(usageData || []).map((entry, index) => (
+											<tr key={index}>
+												<td>{entry.name}</td>
+												<td>{entry.quantity}</td>
+												<td>{dayjs(Number(entry.date)).format("YYYY-MM-DD")}</td>
+											</tr>
+										))}
+								</tbody>
+							</table>
+						</div>
 					</div>
 				</div>
 			)}
@@ -311,3 +456,14 @@ export default function AdminItemUsage() {
 		</>
 	);
 }
+
+// Object.entries(usageData).map(([name, total]) => (
+//   <tr key={name}>
+//     <td>
+//       <Link to={`/admin/material/item/usage/${encodeURIComponent(name)}`}>
+//         {name}
+//       </Link>
+//     </td>
+//     <td>{total}</td>
+//   </tr>
+// ))

@@ -24,7 +24,7 @@ import { colorOptions, sideOptions, sizeOptions } from "../utilities/color-side-
 
 export default function CreateOneMaterialRequest() {
 	const { userToken, loading: authLoading } = useAuth(); //  use context instead of prop
-	const [rows, setRows] = useState([{ brand: "", item: "", quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
+	const [rows, setRows] = useState([{ brand: "", search: "", item: "", quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
 
 	const { items: itemGroups, loading: iGLoading, error: iGError } = useItemGroups();
 	// const { items, loading: iGLoading, error: iGError } = useItemGroups();
@@ -47,8 +47,8 @@ export default function CreateOneMaterialRequest() {
 	const [NewMaterialRequest] = useMutation(create_one_material_request);
 	// const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
 
-	const [searchValue, setSearchValue] = useState("");
-	const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
+	// const [searchValue, setSearchValue] = useState("");
+	// const [debouncedSearch] = useDebounce(searchValue, 250); // 250ms debounce
 
 	const [isItemsReady, setIsItemsReady] = useState(false);
 	const { t } = useTranslation();
@@ -109,7 +109,7 @@ export default function CreateOneMaterialRequest() {
 	};
 
 	const addRow = () => {
-		setRows([...rows, { brand: "", item: "", quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
+		setRows([...rows, { brand: "", search: "", item: "", quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
 	};
 
 	const removeRow = (index) => {
@@ -272,38 +272,42 @@ export default function CreateOneMaterialRequest() {
 		return fuse.search(inputValue).some((r) => r.item.value === option.value);
 	};
 
+	// const filteredAllItems = useMemo(() => {
+	// 	// console.log("debouncedSearch:", debouncedSearch);
+	// 	// console.log("allItems:", allItems);
+
+	// 	if (!debouncedSearch) {
+	// 		// console.log("➡ Returning all items (no search)");
+	// 		return allItems;
+	// 	}
+
+	// 	// return fuse.search(inputValue).some((r) => r.item.value === option.value);
+
+	// 	try {
+	// 		const fuse = new Fuse(allItems, {
+	// 			keys: ["label"],
+	// 			threshold: 0.4,
+	// 			ignoreLocation: true,
+	// 		});
+	// 		const results = fuse.search(debouncedSearch);
+	// 		// const results = fuse.search(debouncedSearch).some((r) => r.item.value);
+
+	// 		// console.log("Fuse raw results:", results);
+
+	// 		const mapped = results.map((r) => r?.item);
+	// 		// const mapped = results.some((r) => r.item);
+	// 		// console.log("Mapped results:", mapped);
+
+	// 		return mapped;
+	// 	} catch (err) {
+	// 		// console.error("Fuzzy error:", err);
+	// 		return allItems;
+	// 	}
+	// }, [allItems, debouncedSearch]);
+
 	const filteredAllItems = useMemo(() => {
-		// console.log("debouncedSearch:", debouncedSearch);
-		// console.log("allItems:", allItems);
-
-		if (!debouncedSearch) {
-			// console.log("➡ Returning all items (no search)");
-			return allItems;
-		}
-
-		// return fuse.search(inputValue).some((r) => r.item.value === option.value);
-
-		try {
-			const fuse = new Fuse(allItems, {
-				keys: ["label"],
-				threshold: 0.4,
-				ignoreLocation: true,
-			});
-			const results = fuse.search(debouncedSearch);
-			// const results = fuse.search(debouncedSearch).some((r) => r.item.value);
-
-			// console.log("Fuse raw results:", results);
-
-			const mapped = results.map((r) => r?.item);
-			// const mapped = results.some((r) => r.item);
-			// console.log("Mapped results:", mapped);
-
-			return mapped;
-		} catch (err) {
-			// console.error("Fuzzy error:", err);
-			return allItems;
-		}
-	}, [allItems, debouncedSearch]);
+		return allItems;
+	}, [allItems]);
 
 	//  Handle loading state cleanly
 	if (authLoading || iGLoading) return <h1>Loading...</h1>;
@@ -315,7 +319,21 @@ export default function CreateOneMaterialRequest() {
 
 				<div className="update-form-wrapper">
 					{rows?.map((row, idx) => {
-						const filteredItems = row.brand?.value ? filteredAllItems.filter((i) => i.brand === row.brand.value) : filteredAllItems;
+						// const filteredItems = row.brand?.value ? filteredAllItems.filter((i) => i.brand === row.brand.value) : filteredAllItems;
+
+						let baseItems = row.brand?.value ? allItems.filter((i) => i.brand === row.brand.value) : allItems;
+
+						if (row.search) {
+							const fuse = new Fuse(baseItems, {
+								keys: ["label"],
+								threshold: 0.4,
+								ignoreLocation: true,
+							});
+
+							baseItems = fuse.search(row.search).map((r) => r.item);
+						}
+
+						const filteredItems = baseItems;
 
 						return (
 							<div key={idx} className="update-form-row">
@@ -373,14 +391,24 @@ export default function CreateOneMaterialRequest() {
 											// 	}
 											// }}
 											// onInputChange={(val) => setSearchValue(val)} // update debouncedSearch via useDebounce
-											inputValue={searchValue}
-											onMenuClose={() => setSearchValue("")}
+											// inputValue={searchValue}
+											inputValue={row.search}
+											onMenuClose={
+												() => handleRowChange(idx, "search", "")
+												// setSearchValue("")
+											}
 											onInputChange={(val, meta) => {
+												// if (meta.action === "input-change") {
+												// 	setSearchValue(val);
+												// }
+												// if (meta.action === "menu-close") {
+												// 	setSearchValue("");
+												// }
 												if (meta.action === "input-change") {
-													setSearchValue(val);
+													handleRowChange(idx, "search", val);
 												}
 												if (meta.action === "menu-close") {
-													setSearchValue("");
+													handleRowChange(idx, "search", "");
 												}
 											}}
 											filterOption={() => true}

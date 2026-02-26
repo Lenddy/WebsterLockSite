@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useQuery, useSubscription } from "@apollo/client";
 import { get_all_material_requests } from "../../../../graphQL/queries/queries";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import { MATERIAL_REQUEST_CHANGE_SUBSCRIPTION } from "../../../../graphQL/subscriptions/subscriptions";
 import Fuse from "fuse.js";
 import dayjs from "dayjs";
@@ -10,24 +10,31 @@ import { useTranslation } from "react-i18next";
 dayjs.extend(isBetween);
 import { useMaterialRequests } from "../../../context/MaterialRequestContext";
 import { useAuth } from "../../../context/AuthContext";
-// import { } from "react-router-dom";
+import { can } from "../../utilities/can";
 
 export default function AdminItemUsage() {
 	const { userToken, setPageLoading, setWsDisconnected } = useAuth(); // get token from context
 	// const { error, loading, data } = useQuery(get_all_material_requests);
 	const [mRequests, setMRequests] = useState([]);
 	const { requests: allMRequests, loading, error } = useMaterialRequests();
+	console.log("this is the request", mRequests);
 
 	const [filter, setFilter] = useState("all"); // all | day | week | month | year | custom
 	const [customStart, setCustomStart] = useState(""); // YYYY-MM-DD
 	const [customEnd, setCustomEnd] = useState(""); // YYYY-MM-DD
 	const [searchValue, setSearchValue] = useState("");
-	const { itemName, userId } = useParams();
+	const [sortKey, setSortKey] = useState("name");
+	const [sortDir, setSortDir] = useState("asc");
+	// const { itemName, userId } = useParams();
+	// console.log({ itemName, userId });
 
-	console.log({ itemName, userId });
+	const { itemName: rawItemName, userId } = useParams();
 
-	const isItemView = !!itemName && !userId;
-	const isUserView = !!itemName && !!userId;
+	const itemName = rawItemName ? decodeURIComponent(rawItemName) : null;
+	// console.log("this is the item name:", itemName);
+	useEffect(() => {
+		console.log("PARAMS CHANGED:", { itemName, userId });
+	}, [itemName, userId, rawItemName]);
 
 	const { t } = useTranslation();
 	const navigate = useNavigate();
@@ -45,12 +52,13 @@ export default function AdminItemUsage() {
 	const canUserReview = useMemo(() => {
 		if (!decodedUser) return false;
 
-		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+		// const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
 
-		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
 		// const isOwner = decodedUser.userId === userId;
 
-		return hasRole;
+		// return hasRole;
+		return can(decodedUser, "items:read:any");
 	}, [decodedUser]);
 
 	useEffect(() => {
@@ -107,6 +115,36 @@ export default function AdminItemUsage() {
 		return t(keys[key] || key);
 	};
 
+	//  Fuse.js searches
+	const applyFuse = (list, search) => {
+		if (!search) return list;
+
+		// Flatten items for searching by item name
+		const flatList = list.flatMap((req) =>
+			req.items.map((item) => ({
+				...item,
+				requestId: req.id,
+				addedDate: req.addedDate,
+			}))
+		);
+
+		const fuse = new Fuse(flatList, {
+			keys: ["itemName"],
+			threshold: 0.4,
+		});
+
+		return fuse.search(search).map((r) => r.item);
+	};
+
+	const handleSearchChange = (e) => {
+		const val = e.target.value;
+		setSearchValue(val);
+	};
+
+	const clearSearch = () => {
+		setSearchValue("");
+	};
+
 	const filteredRequests = useMemo(() => {
 		if (!mRequests?.length) return [];
 
@@ -160,35 +198,15 @@ export default function AdminItemUsage() {
 		});
 	}, [mRequests, filter, customStart, customEnd]);
 
-	//  Fuse.js searches
-	const applyFuse = (list, search) => {
-		if (!search) return list;
-
-		// Flatten items for searching by item name
-		const flatList = list.flatMap((req) =>
-			req.items.map((item) => ({
-				...item,
-				requestId: req.id,
-				addedDate: req.addedDate,
-			}))
-		);
-
-		const fuse = new Fuse(flatList, {
-			keys: ["itemName"],
-			threshold: 0.4,
-		});
-
-		return fuse.search(search).map((r) => r.item);
+	//  Clear filters
+	const clearFilters = () => {
+		setCustomStart("");
+		setCustomEnd("");
+		setFilter("all");
 	};
 
-	const handleSearchChange = (e) => {
-		const val = e.target.value;
-		setSearchValue(val);
-	};
-
-	const clearSearch = () => {
-		setSearchValue("");
-	};
+	const isItemView = !!itemName && !userId;
+	const isUserView = !!itemName && !!userId;
 
 	// Combine filters and search
 	const finalUsage = useMemo(() => {
@@ -214,13 +232,6 @@ export default function AdminItemUsage() {
 		return totals;
 	}, [filteredRequests, searchValue]);
 
-	//  Clear filters
-	const clearFilters = () => {
-		setCustomStart("");
-		setCustomEnd("");
-		setFilter("all");
-	};
-
 	const usageData = useMemo(() => {
 		if (!filteredRequests?.length) return [];
 
@@ -241,7 +252,7 @@ export default function AdminItemUsage() {
 
 			filteredRequests.forEach((req) => {
 				req.items.forEach((item) => {
-					if (item.itemName === itemName) {
+					if (item.itemName?.trim().toLowerCase() === itemName?.trim().toLowerCase()) {
 						const userName = req.requester?.name;
 						const uid = req.requester?.userId;
 
@@ -311,7 +322,65 @@ export default function AdminItemUsage() {
 												{isUserView && <th>{t("quantity")}</th>} */
 	}
 
-	// ! you need to find out why the url does not take the 2nd parameter
+	const handleSort = (key) => {
+		if (sortKey === key) {
+			setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+		} else {
+			setSortKey(key);
+			setSortDir("asc");
+		}
+	};
+
+	const normalizedData = useMemo(() => {
+		if (!usageData) return [];
+
+		// LEVEL 1
+		if (!itemName) {
+			return Object.entries(usageData).map(([name, total]) => ({
+				itemName: name,
+				total,
+			}));
+		}
+
+		// LEVEL 2
+		if (itemName && !userId) {
+			return Object.entries(usageData).map(([uid, data]) => ({
+				userId: uid,
+				name: data.name,
+				total: data.total,
+			}));
+		}
+
+		// LEVEL 3
+		if (itemName && userId) {
+			return usageData.map((entry) => ({
+				name: entry.name,
+				quantity: entry.quantity,
+				date: Number(entry.date),
+			}));
+		}
+
+		return [];
+	}, [usageData, itemName, userId]);
+
+	const sortedData = useMemo(() => {
+		const list = [...normalizedData];
+
+		return list.sort((a, b) => {
+			let aVal = a[sortKey];
+			let bVal = b[sortKey];
+
+			// Numeric sorting
+			if (["total", "quantity", "date"].includes(sortKey)) {
+				aVal = Number(aVal);
+				bVal = Number(bVal);
+				return sortDir === "asc" ? aVal - bVal : bVal - aVal;
+			}
+
+			// String sorting
+			return sortDir === "asc" ? String(aVal ?? "").localeCompare(String(bVal ?? "")) : String(bVal ?? "").localeCompare(String(aVal ?? ""));
+		});
+	}, [normalizedData, sortKey, sortDir]);
 
 	return (
 		<>
@@ -382,67 +451,77 @@ export default function AdminItemUsage() {
 							<table>
 								<thead>
 									<tr>
-										{/* <th>{t("item-name")}</th>
-										<th>{t("total-used")}</th> */}
-
-										{/* <thead>
-											<tr> */}
-										{/* LEVEL 1 */}
 										{!itemName && (
 											<>
-												<th>{t("item-name")}</th>
-												<th>{t("total-used")}</th>
+												<th onClick={() => handleSort("itemName")} className="clickable-th">
+													{t("item-name")} {sortKey === "itemName" && (sortDir === "asc" ? "▾" : "▴")}
+												</th>
+												<th onClick={() => handleSort("total")} className="clickable-th">
+													{t("total-used")} {sortKey === "total" && (sortDir === "asc" ? "▾" : "▴")}
+												</th>
 											</>
 										)}
+
 										{/* LEVEL 2 */}
 										{isItemView && (
 											<>
-												<th>{t("name")}</th>
-												<th>{t("total-used")}</th>
+												<th onClick={() => handleSort("name")} className="clickable-th">
+													{t("name")} {sortKey === "name" && (sortDir === "asc" ? "▾" : "▴")}
+												</th>
+												<th onClick={() => handleSort("total")} className="clickable-th">
+													{t("total-used")} {sortKey === "total" && (sortDir === "asc" ? "▾" : "▴")}
+												</th>
 											</>
 										)}
+
 										{/* LEVEL 3 */}
 										{isUserView && (
 											<>
 												<th>{t("name")}</th>
-												<th>{t("quantity")}</th>
-												<th>{t("date")}</th>
+												<th onClick={() => handleSort("quantity")} className="clickable-th">
+													{t("quantity")} {sortKey === "quantity" && (sortDir === "asc" ? "▾" : "▴")}
+												</th>
+												<th onClick={() => handleSort("date")} className="clickable-th">
+													{t("date")} {sortKey === "date" && (sortDir === "asc" ? "▾" : "▴")}
+												</th>
 											</>
 										)}
+
 										{/* </tr>
 										</thead> */}
 									</tr>
 								</thead>
+
 								<tbody>
 									{/* LEVEL 1 → Items */}
 									{!itemName &&
-										Object.entries(usageData || {}).map(([name, total]) => (
-											<tr key={name}>
+										sortedData.map((row) => (
+											<tr key={row.itemName}>
 												<td>
-													<Link to={`/admin/material/item/usage/${encodeURIComponent(name)}`}>{name}</Link>
+													<Link to={`/admin/material/item/usage/${encodeURIComponent(row.itemName)}`}>{row.itemName}</Link>
 												</td>
-												<td>{total}</td>
+												<td>{row.total}</td>
 											</tr>
 										))}
 
 									{/* LEVEL 2 → Users for that item */}
 									{isItemView &&
-										Object.entries(usageData || {}).map(([uid, data]) => (
-											<tr key={uid}>
+										sortedData.map((row) => (
+											<tr key={row.userId}>
 												<td>
-													<Link to={`/admin/material/item/usage/${encodeURIComponent(itemName)}/${uid}`}>{data.name}</Link>
+													<Link to={`/admin/material/item/usage/${encodeURIComponent(itemName)}/${row.userId}`}>{row.name}</Link>
 												</td>
-												<td>{data.total}</td>
+												<td>{row.total}</td>
 											</tr>
 										))}
 
 									{/* LEVEL 3 → Individual entries */}
 									{isUserView &&
-										(usageData || []).map((entry, index) => (
+										sortedData.map((row, index) => (
 											<tr key={index}>
-												<td>{entry.name}</td>
-												<td>{entry.quantity}</td>
-												<td>{dayjs(Number(entry.date)).format("YYYY-MM-DD")}</td>
+												<td>{row.name}</td>
+												<td>{row.quantity}</td>
+												<td>{dayjs(row.date).format("YYYY-MM-DD")}</td>
 											</tr>
 										))}
 								</tbody>

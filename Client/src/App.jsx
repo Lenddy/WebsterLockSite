@@ -75,7 +75,7 @@ function App() {
 					//LINK - /admin/material/item/:itemId?/update
 					<Route path="/admin/material/item/:itemId?/update" element={<AdminUpdateMultipleItemsGroups />} />
 					//LINK - /admin/material/item/usage
-					<Route path="/admin/material/item/usage" element={<AdminItemUsage />} />
+					<Route path="/admin/material/item/usage/:itemName?/:userId?" element={<AdminItemUsage />} />
 					{/* User routes */}
 					//LINK - /user/all
 					<Route path="/user/all" element={<GetAllUsers />} />
@@ -91,7 +91,8 @@ function App() {
 					//LINK - /material/request/request
 					<Route path="/material/request/request" element={<CreateOneMaterialRequest />} />
 					//LINK - /admin/material/item/usage/:name
-					<Route path="/admin/material/item/usage/:name" element={<GetOneItemUsage />} />
+					{/* is this even in use ?  */}
+					<Route path="/admin/material/item/usage/:itemName?/:userId?" element={<GetOneItemUsage />} />
 					{/* <Route path="/test" element={<Test />} /> */}
 					<Route path="*" element={<NotFound to="/404" replace />} />
 				</Route>

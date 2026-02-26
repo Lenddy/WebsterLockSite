@@ -18,6 +18,7 @@ import { useItemGroups } from "../../../context/ItemGroupContext";
 import { useAuth } from "../../../context/AuthContext";
 import { toast } from "react-toastify";
 import { can } from "../../utilities/can";
+import { colorOptions, sideOptions, sizeOptions } from "../../utilities/color-side-size";
 
 export default function AdminCreateMultipleMaterialRequests() {
 	const { userToken, pageLoading, loading: userLoading } = useAuth();
@@ -30,6 +31,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 			items: [
 				{
 					brand: "",
+					search: "",
 					quantity: "",
 					item: null,
 					color: null,
@@ -100,6 +102,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 				items: [
 					{
 						brand: "",
+						search: "",
 						quantity: "",
 						item: null,
 						color: null,
@@ -132,6 +135,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 		const updated = [...requests];
 		updated[reqIdx].items.push({
 			brand: "",
+			search: "",
 			quantity: "",
 			item: null,
 			color: null,
@@ -182,27 +186,27 @@ export default function AdminCreateMultipleMaterialRequests() {
 		},
 	}));
 
-	const colorOptions = [
-		{ value: "605/US3 - Bright Brass", label: "605/US3 - Bright Brass", hex: "#FFD700" }, // brass-ish
-		{ value: "612/US10 - Satin Bronze", label: "612/US10 - Satin Bronze", hex: "#B08D57" },
-		{ value: "619/US15 - Satin Nickel", label: "619/US15 - Satin Nickel", hex: "#AFAFAF" },
-		{ value: "625/US26 - Bright Chrome", label: "625/US26 - Bright Chrome", hex: "#E5E4E2" },
-		{ value: "626/US26D - Satin Chrome", label: "626/US26D - Satin Chrome", hex: "#C0C0C0" },
-		{ value: "630/US32D - Satin Stainless Steel", label: "630/US32D - Satin Stainless Steel", hex: "#D6D6D6" },
-		{ value: "622/ - Black", label: "622/ - Black", hex: "#000000" },
-		{ value: "689/ - Aluminum", label: "689/ - Aluminum", hex: "#A9A9A9" },
-	];
+	// const colorOptions = [
+	// 	{ value: "605/US3 - Bright Brass", label: "605/US3 - Bright Brass", hex: "#FFD700" }, // brass-ish
+	// 	{ value: "612/US10 - Satin Bronze", label: "612/US10 - Satin Bronze", hex: "#B08D57" },
+	// 	{ value: "619/US15 - Satin Nickel", label: "619/US15 - Satin Nickel", hex: "#AFAFAF" },
+	// 	{ value: "625/US26 - Bright Chrome", label: "625/US26 - Bright Chrome", hex: "#E5E4E2" },
+	// 	{ value: "626/US26D - Satin Chrome", label: "626/US26D - Satin Chrome", hex: "#C0C0C0" },
+	// 	{ value: "630/US32D - Satin Stainless Steel", label: "630/US32D - Satin Stainless Steel", hex: "#D6D6D6" },
+	// 	{ value: "622/ - Black", label: "622/ - Black", hex: "#000000" },
+	// 	{ value: "689/ - Aluminum", label: "689/ - Aluminum", hex: "#A9A9A9" },
+	// ];
 
-	const sideOptions = [
-		{ value: "Left Hand", label: "Left Hand" },
-		{ value: "Right Hand", label: "Right Hand" },
-	];
+	// const sideOptions = [
+	// 	{ value: "Left Hand", label: "Left Hand" },
+	// 	{ value: "Right Hand", label: "Right Hand" },
+	// ];
 
-	const sizeOptions = [
-		{ value: "Small", label: "Small" },
-		{ value: "Medium", label: "Medium" },
-		{ value: "Large", label: "Large" },
-	];
+	// const sizeOptions = [
+	// 	{ value: "Small", label: "Small" },
+	// 	{ value: "Medium", label: "Medium" },
+	// 	{ value: "Large", label: "Large" },
+	// ];
 
 	const brands = [...new Set(itemGroups?.map((g) => g.brand))]?.map((b) => ({
 		label: b,
@@ -263,6 +267,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 				items: [
 					{
 						brand: "",
+						search: "",
 						quantity: "",
 						item: null,
 						color: null,
@@ -281,17 +286,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 					employeeNum: "",
 					department: "",
 					permissions: [],
-					//  {
-					// 	canEditUsers: false,
-					// 	canDeleteUsers: false,
-					// 	canChangeRole: false,
-					// 	canViewUsers: false,
-					// 	canViewAllUsers: false,
-					// 	canEditSelf: false,
-					// 	canViewSelf: false,
-					// 	canDeleteSelf: false,
-					// 	canRegisterUser: false,
-					// },
 				},
 			},
 		]); // or your initial requests state
@@ -449,33 +443,37 @@ export default function AdminCreateMultipleMaterialRequests() {
 		);
 	}
 
+	// const filteredAllItems = useMemo(() => {
+	// 	if (!debouncedSearch) {
+	// 		// console.log("➡ Returning all items (no search)");
+	// 		return allItems;
+	// 	}
+
+	// 	// return fuse.search(inputValue).some((r) => r.item.value === option.value);
+
+	// 	try {
+	// 		const fuse = new Fuse(allItems, {
+	// 			keys: ["label"],
+	// 			threshold: 0.4,
+	// 			ignoreLocation: true,
+	// 		});
+	// 		const results = fuse.search(debouncedSearch);
+	// 		// const results = fuse.search(debouncedSearch).some((r) => r.item.value);
+
+	// 		const mapped = results.map((r) => r.item);
+	// 		// const mapped = results.some((r) => r.item);
+	// 		// console.log(" Mapped results:", mapped);
+
+	// 		return mapped;
+	// 	} catch (err) {
+	// 		// console.error(" Fuzzy error:", err);
+	// 		return allItems;
+	// 	}
+	// }, [allItems, debouncedSearch]);
+
 	const filteredAllItems = useMemo(() => {
-		if (!debouncedSearch) {
-			// console.log("➡ Returning all items (no search)");
-			return allItems;
-		}
-
-		// return fuse.search(inputValue).some((r) => r.item.value === option.value);
-
-		try {
-			const fuse = new Fuse(allItems, {
-				keys: ["label"],
-				threshold: 0.4,
-				ignoreLocation: true,
-			});
-			const results = fuse.search(debouncedSearch);
-			// const results = fuse.search(debouncedSearch).some((r) => r.item.value);
-
-			const mapped = results.map((r) => r.item);
-			// const mapped = results.some((r) => r.item);
-			// console.log(" Mapped results:", mapped);
-
-			return mapped;
-		} catch (err) {
-			// console.error(" Fuzzy error:", err);
-			return allItems;
-		}
-	}, [allItems, debouncedSearch]);
+		return allItems;
+	}, [allItems]);
 
 	return (
 		<div className="update-container">
@@ -549,8 +547,22 @@ export default function AdminCreateMultipleMaterialRequests() {
 							{/* Items inside request */}
 							{req.items.map((row, rowIdx) => {
 								// const filteredItems = row?.brand?.value ? allItems?.filter((i) => i?.brand === row?.brand?.value) : allItems;
-								const filteredItems = row.brand?.value ? filteredAllItems.filter((i) => i.brand === row.brand.value) : filteredAllItems;
 
+								// const filteredItems = row.brand?.value ? filteredAllItems.filter((i) => i.brand === row.brand.value) : filteredAllItems;
+
+								let baseItems = row.brand?.value ? allItems.filter((i) => i.brand === row.brand.value) : allItems;
+
+								if (row.search) {
+									const fuse = new Fuse(baseItems, {
+										keys: ["label"],
+										threshold: 0.4,
+										ignoreLocation: true,
+									});
+
+									baseItems = fuse.search(row.search).map((r) => r.item);
+								}
+
+								const filteredItems = baseItems;
 								return (
 									<div key={rowIdx} className="update-form-row">
 										{/* Brand select */}
@@ -615,14 +627,24 @@ export default function AdminCreateMultipleMaterialRequests() {
 													// 													onBlur={() => setSearchValue("")}
 													// onMenuClose={() => setSearchValue("")}
 
-													inputValue={searchValue}
-													onMenuClose={() => setSearchValue("")}
+													// inputValue={searchValue}
+													inputValue={row.search}
+													onMenuClose={
+														() => handleItemChange(reqIdx, rowIdx, "search", "")
+														// setSearchValue("")
+													}
 													onInputChange={(val, meta) => {
+														// if (meta.action === "input-change") {
+														// 	setSearchValue(val);
+														// }
+														// if (meta.action === "menu-close") {
+														// 	setSearchValue("");
+														// }
 														if (meta.action === "input-change") {
-															setSearchValue(val);
+															handleItemChange(reqIdx, rowIdx, "search", val);
 														}
 														if (meta.action === "menu-close") {
-															setSearchValue("");
+															handleItemChange(reqIdx, rowIdx, "search", "");
 														}
 													}}
 													components={{ MenuList: VirtualizedMenuList }}

@@ -20,6 +20,9 @@ export default function AdminGetAllItems() {
 	const [isOpen, setIsOpen] = useState(false);
 	const [selectedItem, setSelectedItem] = useState(null);
 	const [searchValue, setSearchValue] = useState("");
+	const [sortKey, setSortKey] = useState("name");
+	const [sortDir, setSortDir] = useState("asc");
+
 	// const { error, loading, data, refetch } = useQuery(get_all_item_groups, { fetchPolicy: "cache-and-network" });
 	// { fetchPolicy: "cache-and-network" }
 
@@ -104,12 +107,47 @@ export default function AdminGetAllItems() {
 		const val = e.target.value;
 		setSearchValue(val);
 		const filtered = applyFuse(items, val);
-		setFilteredItems(sortByBrand(filtered));
+		// setFilteredItems(sortByBrand(filtered));
+		setFilteredItems(filtered);
 	};
 
 	const clearSearch = () => {
 		setSearchValue("");
 		setFilteredItems(sortByBrand(items));
+	};
+
+	const sortedItems = useMemo(() => {
+		const list = [...filteredItems];
+
+		return list.sort((a, b) => {
+			let aVal;
+			let bVal;
+
+			if (sortKey === "brand") {
+				aVal = a.brand?.toLowerCase() || "";
+				bVal = b.brand?.toLowerCase() || "";
+			}
+
+			if (sortKey === "itemAmount") {
+				aVal = a.itemsList?.length || 0;
+				bVal = b.itemsList?.length || 0;
+			}
+
+			if (typeof aVal === "number") {
+				return sortDir === "asc" ? aVal - bVal : bVal - aVal;
+			}
+
+			return sortDir === "asc" ? String(aVal).localeCompare(String(bVal)) : String(bVal).localeCompare(String(aVal));
+		});
+	}, [filteredItems, sortKey, sortDir]);
+
+	const handleSort = (key) => {
+		if (sortKey === key) {
+			setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+		} else {
+			setSortKey(key);
+			setSortDir("asc");
+		}
 	};
 
 	if (!logUser) return null; // wait until token is decoded
@@ -144,16 +182,33 @@ export default function AdminGetAllItems() {
 						<div className="table-scroll">
 							<table>
 								<thead>
-									<tr>
+									{/* <tr>
 										{logUser?.role == "headAdmin" && <th>ID</th>}
 										<th>{t("brand")}</th>
 										<th>{t("item-amount")}</th>
 										<th>{t("some-items")}</th>
 										<th>{t("action")}</th>
+									</tr> */}
+
+									{/* <thead> */}
+									<tr>
+										{logUser?.role == "headAdmin" && <th>ID</th>}
+
+										<th onClick={() => handleSort("brand")} className="clickable-th">
+											{t("brand")} {sortKey === "brand" && (sortDir === "asc" ? "▾" : "▴")}
+										</th>
+
+										<th onClick={() => handleSort("itemAmount")} className="clickable-th">
+											{t("item-amount")} {sortKey === "itemAmount" && (sortDir === "asc" ? "▾" : "▴")}
+										</th>
+
+										<th>{t("some-items")}</th>
+										<th>{t("action")}</th>
 									</tr>
+									{/* </thead> */}
 								</thead>
 								<tbody>
-									{filteredItems.map((ig) => (
+									{sortedItems.map((ig) => (
 										<tr key={ig.id}>
 											{logUser?.role == "headAdmin" && (
 												<td>

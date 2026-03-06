@@ -31,10 +31,6 @@ export default function AdminItemUsage() {
 	const { itemName: rawItemName, userId } = useParams();
 
 	const itemName = rawItemName ? decodeURIComponent(rawItemName) : null;
-	// console.log("this is the item name:", itemName);
-	useEffect(() => {
-		console.log("PARAMS CHANGED:", { itemName, userId });
-	}, [itemName, userId, rawItemName]);
 
 	const { t } = useTranslation();
 	const navigate = useNavigate();
@@ -75,33 +71,33 @@ export default function AdminItemUsage() {
 	}, [allMRequests]);
 
 	//  Live subscription updates
-	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
-		onData: ({ data: subscriptionData }) => {
-			const change = subscriptionData?.data?.onMaterialRequestChange;
-			if (!change) return;
+	// useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
+	// 	onData: ({ data: subscriptionData }) => {
+	// 		const change = subscriptionData?.data?.onMaterialRequestChange;
+	// 		if (!change) return;
 
-			const { eventType, Changes } = change;
+	// 		const { eventType, Changes } = change;
 
-			setMRequests((prev) => {
-				switch (eventType) {
-					case "created":
-						return [...prev, Changes];
-					case "updated":
-						return prev.map((req) => (req.id === Changes.id ? Changes : req));
-					case "deleted":
-						return prev.filter((req) => req.id !== Changes.id);
-					default:
-						return prev;
-				}
-			});
-		},
-		onError: (err) => {
-			// console.error("Subscription error:", err);
-			if (err?.message?.includes("Socket closed") || err?.networkError) {
-				setWsDisconnected(true);
-			}
-		},
-	});
+	// 		setMRequests((prev) => {
+	// 			switch (eventType) {
+	// 				case "created":
+	// 					return [...prev, Changes];
+	// 				case "updated":
+	// 					return prev.map((req) => (req.id === Changes.id ? Changes : req));
+	// 				case "deleted":
+	// 					return prev.filter((req) => req.id !== Changes.id);
+	// 				default:
+	// 					return prev;
+	// 			}
+	// 		});
+	// 	},
+	// 	onError: (err) => {
+	// 		// console.error("Subscription error:", err);
+	// 		if (err?.message?.includes("Socket closed") || err?.networkError) {
+	// 			setWsDisconnected(true);
+	// 		}
+	// 	},
+	// });
 
 	const translateFilterKey = (key) => {
 		const keys = {
@@ -116,21 +112,49 @@ export default function AdminItemUsage() {
 	};
 
 	//  Fuse.js searches
+	// const applyFuse = (list, search) => {
+	// 	if (!search) return list;
+
+	// 	// Flatten items for searching by item name
+	// 	const flatList = list.flatMap((req) =>
+	// 		req.items.map((item) => ({
+	// 			...item,
+	// 			requestId: req.id,
+	// 			addedDate: req.addedDate,
+	// 		}))
+	// 	);
+
+	// 	const fuse = new Fuse(flatList, {
+	// 		keys: ["itemName"],
+	// 		threshold: 0.4,
+	// 	});
+
+	// 	return fuse.search(search).map((r) => r.item);
+	// };
+
 	const applyFuse = (list, search) => {
 		if (!search) return list;
 
-		// Flatten items for searching by item name
-		const flatList = list.flatMap((req) =>
-			req.items.map((item) => ({
-				...item,
-				requestId: req.id,
-				addedDate: req.addedDate,
-			}))
-		);
+		let keys = [];
 
-		const fuse = new Fuse(flatList, {
-			keys: ["itemName"],
-			threshold: 0.4,
+		// LEVEL 1 → search item name
+		if (!itemName) {
+			keys = ["itemName"];
+		}
+
+		// LEVEL 2 → search requester name
+		if (itemName && !userId) {
+			keys = ["name"];
+		}
+
+		// LEVEL 3 → search requester name
+		if (itemName && userId) {
+			keys = ["name"];
+		}
+
+		const fuse = new Fuse(list, {
+			keys,
+			threshold: 0.35,
 		});
 
 		return fuse.search(search).map((r) => r.item);
@@ -363,24 +387,48 @@ export default function AdminItemUsage() {
 		return [];
 	}, [usageData, itemName, userId]);
 
+	const searchFilteredData = useMemo(() => {
+		if (!searchValue) return normalizedData;
+
+		return applyFuse(normalizedData, searchValue);
+	}, [normalizedData, searchValue, itemName, userId]);
+
+	// const sortedData = useMemo(() => {
+	// 	const list = [...normalizedData];
+	// 	// const list = [...searchFilteredData];
+
+	// 	return list.sort((a, b) => {
+	// 		let aVal = a[sortKey];
+	// 		let bVal = b[sortKey];
+
+	// 		// Numeric sorting
+	// 		if (["total", "quantity", "date"].includes(sortKey)) {
+	// 			aVal = Number(aVal);
+	// 			bVal = Number(bVal);
+	// 			return sortDir === "asc" ? aVal - bVal : bVal - aVal;
+	// 		}
+
+	// 		// String sorting
+	// 		return sortDir === "asc" ? String(aVal ?? "").localeCompare(String(bVal ?? "")) : String(bVal ?? "").localeCompare(String(aVal ?? ""));
+	// 	});
+	// }, [normalizedData, sortKey, sortDir]);
+
 	const sortedData = useMemo(() => {
-		const list = [...normalizedData];
+		const list = [...searchFilteredData];
 
 		return list.sort((a, b) => {
 			let aVal = a[sortKey];
 			let bVal = b[sortKey];
 
-			// Numeric sorting
 			if (["total", "quantity", "date"].includes(sortKey)) {
 				aVal = Number(aVal);
 				bVal = Number(bVal);
 				return sortDir === "asc" ? aVal - bVal : bVal - aVal;
 			}
 
-			// String sorting
 			return sortDir === "asc" ? String(aVal ?? "").localeCompare(String(bVal ?? "")) : String(bVal ?? "").localeCompare(String(aVal ?? ""));
 		});
-	}, [normalizedData, sortKey, sortDir]);
+	}, [searchFilteredData, sortKey, sortDir]);
 
 	return (
 		<>
@@ -438,7 +486,16 @@ export default function AdminItemUsage() {
 					{/* Search Input */}
 					<div className="search-filter-wrapper item-usage-filter">
 						<div className="search-filter-container">
-							<input type="text" className="search-filter-input" placeholder={t("search-item-by-name")} value={searchValue} onChange={handleSearchChange} autoComplete="false" />
+							<input
+								type="text"
+								className="search-filter-input"
+								//  placeholder={t("search-item-by-name")}
+
+								placeholder={!itemName ? t("search-item-by-name") : t("search-user-by-name")}
+								value={searchValue}
+								onChange={handleSearchChange}
+								autoComplete="false"
+							/>
 							<button className="search-clear-btn" onClick={clearSearch} disabled={!searchValue}>
 								✕
 							</button>

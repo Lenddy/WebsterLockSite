@@ -37,7 +37,6 @@ export default function GetAllUsers() {
 	const [selectedUser, setSelectedUser] = useState(null);
 
 	// sorting
-
 	const [sortKey, setSortKey] = useState(() => {
 		return localStorage.getItem(STORAGE_KEYS.USERS.SORT_KEY) || "name";
 	});

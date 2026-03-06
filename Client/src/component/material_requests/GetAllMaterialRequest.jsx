@@ -45,7 +45,6 @@ export default function GetAllMaterialRequest() {
 	};
 
 	// Sorting storage keys
-
 	const [sortKey, setSortKey] = useState(() => {
 		return localStorage.getItem(STORAGE_KEYS.MATERIAL_REQUESTS.SORT_KEY) || "addedDate";
 	});

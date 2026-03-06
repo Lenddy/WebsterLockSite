@@ -19,6 +19,29 @@ export default function AdminGetOneItem() {
 		variables: { id: itemId },
 	});
 
+	const [sortKey, setSortKey] = useState("itemName");
+	const [sortDir, setSortDir] = useState("asc");
+
+	const handleSort = (key) => {
+		if (sortKey === key) {
+			setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+		} else {
+			setSortKey(key);
+			setSortDir("asc");
+		}
+	};
+
+	const sortedItems = useMemo(() => {
+		const list = [...filteredItems];
+
+		return list.sort((a, b) => {
+			const aVal = a.itemName?.toLowerCase() || "";
+			const bVal = b.itemName?.toLowerCase() || "";
+
+			return sortDir === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+		});
+	}, [filteredItems, sortDir]);
+
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 
@@ -124,7 +147,8 @@ export default function AdminGetOneItem() {
 		const val = e.target.value;
 		setSearchValue(val);
 		const filtered = applyFuse(itemGroup?.itemsList || [], val);
-		setFilteredItems(sortByItemName(filtered));
+		// setFilteredItems(sortByItemName(filtered));
+		setFilteredItems(filtered);
 	};
 
 	const clearSearch = () => {
@@ -142,6 +166,9 @@ export default function AdminGetOneItem() {
 			{/* <h2>Brand: {itemGroup.brand}</h2> */}
 
 			<div className="search-filter-wrapper">
+				<div className="component-title">
+					<h2>{itemGroup?.brand}</h2>
+				</div>
 				<div className="search-filter-container">
 					<input type="text" className="search-filter-input" placeholder={t("search-items-by-name")} value={searchValue} onChange={handleSearchChange} autoComplete="off" />
 					<button className="search-clear-btn" onClick={clearSearch} disabled={!searchValue}>
@@ -151,40 +178,43 @@ export default function AdminGetOneItem() {
 			</div>
 
 			<div className="table-wrapper">
-				<div className="table-title">
-					<h2>{itemGroup?.brand}</h2>
-				</div>
-
-				<table>
-					<thead>
-						<tr>
-							{logUser?.role == "headAdmin" && <th>ID</th>}
-							<th>{t("item-name")}</th>
-							<th>{t("action")}</th>
-						</tr>
-					</thead>
-
-					<tbody>
-						{filteredItems.map((it) => (
-							<tr key={it.id}>
-								{logUser?.role == "headAdmin" && <td>{it.id}</td>}
-
-								<td>{it.itemName}</td>
-								<td>
-									<div className="table-action-wrapper">
-										<Link to={`/admin/material/item/${itemId}/update`}>
-											<span className="table-action first">{t("update")}</span>
-										</Link>
-
-										<Link to={`/admin/material/item/${itemId}/update`}>
-											<span className="table-action last">{t("delete")}</span>
-										</Link>
-									</div>
-								</td>
+				<div className="table-title">{/* <h2>{itemGroup?.brand}</h2> */}</div>
+				<div className="table-scroll">
+					<table>
+						<thead>
+							<tr>
+								{logUser?.role == "headAdmin" && <th>ID</th>}
+								{/* <th>{t("item-name")}</th> */}
+								<th onClick={() => handleSort("itemName")} className="clickable-th">
+									{t("item-name")} {sortDir === "asc" ? "▾" : "▴"}
+								</th>
+								<th>{t("action")}</th>
 							</tr>
-						))}
-					</tbody>
-				</table>
+						</thead>
+
+						<tbody>
+							{sortedItems.map((it) => (
+								<tr key={it.id}>
+									{logUser?.role == "headAdmin" && <td>{it.id}</td>}
+
+									<td>{it.itemName}</td>
+
+									<td>
+										<div className="table-action-wrapper">
+											<Link to={`/admin/material/item/${itemId}/update`}>
+												<span className="table-action first">{t("update")}</span>
+											</Link>
+
+											<Link to={`/admin/material/item/${itemId}/update`}>
+												<span className="table-action last">{t("delete")}</span>
+											</Link>
+										</div>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
 			</div>
 		</div>
 	);

@@ -11,6 +11,7 @@ dayjs.extend(isBetween);
 import { useMaterialRequests } from "../../../context/MaterialRequestContext";
 import { useAuth } from "../../../context/AuthContext";
 import { can } from "../../utilities/can";
+import { STORAGE_KEYS } from "../../utilities/activeTabs";
 
 export default function AdminItemUsage() {
 	const { userToken, setPageLoading, setWsDisconnected } = useAuth(); // get token from context
@@ -23,8 +24,16 @@ export default function AdminItemUsage() {
 	const [customStart, setCustomStart] = useState(""); // YYYY-MM-DD
 	const [customEnd, setCustomEnd] = useState(""); // YYYY-MM-DD
 	const [searchValue, setSearchValue] = useState("");
-	const [sortKey, setSortKey] = useState("name");
-	const [sortDir, setSortDir] = useState("asc");
+	// const [sortKey, setSortKey] = useState("name");
+	// const [sortDir, setSortDir] = useState("asc");
+	// sorting
+	const [sortKey, setSortKey] = useState(() => {
+		return localStorage.getItem(STORAGE_KEYS.ITEMS_USAGE.SORT_KEY) || "name";
+	});
+
+	const [sortDir, setSortDir] = useState(() => {
+		return localStorage.getItem(STORAGE_KEYS.ITEMS_USAGE.SORT_DIR) || "asc";
+	});
 	// const { itemName, userId } = useParams();
 	// console.log({ itemName, userId });
 
@@ -70,6 +79,10 @@ export default function AdminItemUsage() {
 		}
 	}, [allMRequests]);
 
+	useEffect(() => {
+		localStorage.setItem(STORAGE_KEYS.ITEMS_USAGE.SORT_KEY, sortKey);
+		localStorage.setItem(STORAGE_KEYS.ITEMS_USAGE.SORT_DIR, sortDir);
+	}, [sortKey, sortDir]);
 	//  Live subscription updates
 	// useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
 	// 	onData: ({ data: subscriptionData }) => {
@@ -485,6 +498,7 @@ export default function AdminItemUsage() {
 
 					{/* Search Input */}
 					<div className="search-filter-wrapper item-usage-filter">
+						<div className="component-title">{/* <h2>{t("users")}</h2> */}</div>
 						<div className="search-filter-container">
 							<input
 								type="text"

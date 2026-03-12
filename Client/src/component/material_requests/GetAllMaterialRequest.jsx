@@ -110,6 +110,8 @@ export default function GetAllMaterialRequest() {
 
 	const { requests: mRequests, loading, error } = useMaterialRequests();
 
+	console.log("this is the request", mRequests);
+
 	const [searchValue, setSearchValue] = useState("");
 
 	const { t } = useTranslation();
@@ -263,7 +265,8 @@ export default function GetAllMaterialRequest() {
 												<td>
 													<p className={`${request?.approvalStatus?.isApproved === null ? "waiting-approval" : request?.approvalStatus?.isApproved === true ? "approved" : "denied"}`}>{request?.approvalStatus?.isApproved === null ? t("waiting-for-approval") : request?.approvalStatus?.isApproved === true ? t("Approved") : t("Denied")}</p>
 												</td>
-												<td>{request?.description}</td>
+												{/* <td>{request?.description}</td> */}
+												<td>{request?.items[0]?.itemDescription}</td>
 
 												{/* <td>{dayjs(Number(request?.addedDate)).format("YYYY-MM-DD")}</td> */}
 

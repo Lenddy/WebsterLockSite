@@ -763,6 +763,7 @@ export default function AdminUpdateMultipleUsers() {
 											<div>
 												<button
 													type="button"
+													className="permission-show-btn"
 													onClick={() =>
 														setRows((prev) => {
 															const newRows = [...prev];

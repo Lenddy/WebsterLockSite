@@ -10,6 +10,7 @@ import Modal from "../../Modal";
 import { useTranslation } from "react-i18next";
 import { useItemGroups } from "../../../context/ItemGroupContext";
 import { can } from "../../utilities/can";
+import { STORAGE_KEYS } from "../../utilities/activeTabs";
 
 export default function AdminGetAllItems() {
 	const { userToken, setPageLoading } = useAuth(); // get token from context
@@ -20,8 +21,15 @@ export default function AdminGetAllItems() {
 	const [isOpen, setIsOpen] = useState(false);
 	const [selectedItem, setSelectedItem] = useState(null);
 	const [searchValue, setSearchValue] = useState("");
-	const [sortKey, setSortKey] = useState("name");
-	const [sortDir, setSortDir] = useState("asc");
+
+	// sorting
+	const [sortKey, setSortKey] = useState(() => {
+		return localStorage.getItem(STORAGE_KEYS.ITEMS.SORT_KEY) || "brand";
+	});
+
+	const [sortDir, setSortDir] = useState(() => {
+		return localStorage.getItem(STORAGE_KEYS.ITEMS.SORT_DIR) || "asc";
+	});
 
 	// const { error, loading, data, refetch } = useQuery(get_all_item_groups, { fetchPolicy: "cache-and-network" });
 	// { fetchPolicy: "cache-and-network" }
@@ -42,17 +50,35 @@ export default function AdminGetAllItems() {
 		}
 	}, [userToken]);
 
+	// const canUserReview = useMemo(() => {
+	// 	if (!decodedUser) return false;
+
+	// 	const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+
+	// 	const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+	// 	// const isOwner = decodedUser.userId === userId;
+
+	// 	// can(decodedUser,"items:read:any")
+	// 	return hasRole;
+	// }, [decodedUser]);
+
 	const canUserReview = useMemo(() => {
 		if (!decodedUser) return false;
 
 		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
 
-		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// can(decodedUser,"items:read:any")
 		// const isOwner = decodedUser.userId === userId;
 
-		// can(decodedUser,"items:read:any")
-		return hasRole;
+		// return hasRole;
+		return can(decodedUser, "items:read:any");
 	}, [decodedUser]);
+
+	useEffect(() => {
+		localStorage.setItem(STORAGE_KEYS.ITEMS.SORT_KEY, sortKey);
+		localStorage.setItem(STORAGE_KEYS.ITEMS.SORT_DIR, sortDir);
+	}, [sortKey, sortDir]);
 
 	useEffect(() => {
 		if (!canUserReview) {
@@ -229,9 +255,14 @@ export default function AdminGetAllItems() {
 											</td>
 											<td>
 												<div>
-													<Link to={`/admin/material/item/${ig?.id}/update`}>
-														<span className="table-action first">{t("update")}</span>
-													</Link>
+													{can(decodedUser, "items:update:any") ? (
+														<Link to={`/admin/material/item/${ig?.id}/update`}>
+															<span className="table-action first">{t("update")}</span>
+														</Link>
+													) : (
+														"N/A"
+													)}
+
 													{/* Uncomment for delete modal */}
 													{/* <span className="table-action last" onClick={() => { setSelectedItem(ig); setIsOpen(true); }}>Delete</span> */}
 												</div>

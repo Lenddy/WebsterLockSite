@@ -481,6 +481,7 @@ export default function AdminRegisterMultipleUsers() {
 										{can(decodedUser, "users:create:any") && can(decodedUser, "role:change:any") && row.role !== "" && row.role !== "headAdmin" && (
 											<div>
 												<button
+													className="permission-show-btn"
 													type="button"
 													onClick={() =>
 														setRows((prev) => {

@@ -40,6 +40,7 @@ export default function GetAllUsers() {
 	const [sortKey, setSortKey] = useState(() => {
 		return localStorage.getItem(STORAGE_KEYS.USERS.SORT_KEY) || "name";
 	});
+
 	const [sortDir, setSortDir] = useState(() => {
 		return localStorage.getItem(STORAGE_KEYS.USERS.SORT_DIR) || "asc";
 	});
@@ -103,7 +104,7 @@ export default function GetAllUsers() {
 		// const isOwner = decodedUser.userId === userId;
 
 		// return hasRole;
-		return can(decodedUser, "items:read:any");
+		return can(decodedUser, "users:read:any");
 	}, [decodedUser]);
 
 	useEffect(() => {

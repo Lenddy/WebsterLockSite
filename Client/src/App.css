@@ -820,6 +820,8 @@
 	border: none;
 	font-size: 18px;
 	cursor: pointer;
+	/* background-color: red; */
+	/* height: 10%; */
 }
 
 .modal-content {
@@ -1475,6 +1477,17 @@
 	text-align: center;
 	border: 1px solid var(--black);
 	color: var(--black);
+}
+
+.permission-show-btn {
+	background-color: var(--slate-dark-gray);
+	border-radius: 10px;
+	border: 1px solid var(--black);
+	/* width: 300px; */
+}
+
+.permission-show-btn:hover {
+	cursor: pointer;
 }
 
 /* * for the center bottom  */

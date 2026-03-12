@@ -458,9 +458,9 @@ const userResolver = {
 					throw new ApolloError("User not found", "USER_NOT_FOUND");
 				}
 
-				if (user.role === targetUser.role && !can(user, "peers:update:any", { targetRole: targetUser.role })) {
-					throw new ApolloError("You cant update Users with the same role as you");
-				}
+				// if (user.role === targetUser.role && !can(user, "peers:update:any", { targetRole: targetUser.role })) {
+				// 	throw new ApolloError("You cant update Users with the same role as you");
+				// }
 
 				// --------------------
 				// Email update

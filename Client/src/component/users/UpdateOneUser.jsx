@@ -8,6 +8,7 @@ import { jwtDecode } from "jwt-decode";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
+import { can } from "../utilities/can";
 
 export default function UpdateOneUser() {
 	// user
@@ -111,8 +112,8 @@ export default function UpdateOneUser() {
 			employeeNum: decodedUser?.employeeNum || "",
 			department: decodedUser?.department || "",
 			// newRole: user?.role || "",
-			title: decodedUser?.job?.title || "",
-			description: decodedUser?.job?.description || "",
+			// title: decodedUser?.job?.title || "",
+			// description: decodedUser?.job?.description || "",
 			// newPermissions: { ... }
 		}); // or your initial requests state
 		// setSelectedGroups([]);
@@ -246,12 +247,12 @@ export default function UpdateOneUser() {
 
 							<div className="form-row-top-left">
 								<label htmlFor="employeeNum">{t("employee-number")}</label>
-								<input type="text" name="employeeNum" value={info.employeeNum} onChange={SubmissionInfo} disabled={blockInput} />
+								<input type="text" name="employeeNum" value={info.employeeNum} onChange={SubmissionInfo} disabled={blockInput || !can(decodedUser, "users:update:any")} />
 							</div>
 
 							<div className="form-row-top-right">
 								<label htmlFor="department">{t("department")}</label>
-								<input type="text" name="department" value={info.department} onChange={SubmissionInfo} disabled={blockInput} />
+								<input type="text" name="department" value={info.department} onChange={SubmissionInfo} disabled={blockInput || !can(decodedUser, "users:update:any")} />
 							</div>
 						</div>
 

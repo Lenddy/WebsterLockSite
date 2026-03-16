@@ -9,6 +9,7 @@ import { useAuth } from "../../context/AuthContext"; // import your context
 import { useTranslation } from "react-i18next";
 import i18n from "../../../i18n";
 import { toast } from "react-toastify";
+import { can } from "../utilities/can";
 
 // import NavBar from "../NavBar";
 
@@ -85,11 +86,44 @@ export default function LogIn({ screenWidth }) {
 				// console.log("Decoded token:", decoded);
 
 				// Redirect based on role
-				if (["headAdmin", "admin", "subAdmin"].includes(decoded.role)) {
+
+				//TODO - //! make sure that you are able to redirect correctly users
+
+				// i would like that if a users is an admin and
+
+				// if(!can(decoded, "requests:read:any")){
+				// 	navigate(`/user/${decoded.userId}`);
+				// }
+
+				// if(!can(decoded, "requests:read:any")){
+				// 	navigate(`/user/${decoded.userId}`);
+				// }
+
+				// if(!can(decoded, "requests:read:any")){
+				// 	navigate(`/user/${decoded.userId}`);
+				// }
+
+				if (
+					// ["headAdmin", "admin", "subAdmin"].includes(decoded.role)
+					// ["headAdmin", "admin", "subAdmin"].includes(decoded.role)
+					can(decoded, "requests:read:any")
+				) {
 					navigate("/material/request/all");
 				} else {
-					navigate("/material/request/request");
+					console.log("this is the", decoded);
+					console.log("this is the can requests:read:own", can(decoded, "requests:read:own", { ownerId: decoded.userId }));
+					if (can(decoded, "requests:read:own", { ownerId: decoded.userId })) {
+						navigate("/material/request/request");
+					} else {
+						navigate(`/user/${decoded.userId}`);
+					}
 				}
+				// else if (can(decoded, "requests:read:own")) {
+				// 	navigate("/material/request/request");
+				// }
+				// else {
+				// 	navigate(`/user/${decoded.userId}`);
+				// }
 			}
 		} catch (err) {
 			console.error("Mutation error:", err);

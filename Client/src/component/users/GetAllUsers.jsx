@@ -13,6 +13,7 @@ import { useUsers } from "../../context/UsersContext";
 import { roleRank } from "../utilities/role.config";
 import { STORAGE_KEYS } from "../utilities/activeTabs";
 import { can } from "../utilities/can";
+import { toast } from "react-toastify";
 
 export default function GetAllUsers() {
 	const { userToken, setPageLoading } = useAuth(); // Get current user token from context
@@ -109,9 +110,10 @@ export default function GetAllUsers() {
 
 	useEffect(() => {
 		if (!canUserReview) {
+			toast.warn(t("you-dont-have-permission-to-view-other-users"));
 			navigate("/material/request/all", { replace: true });
 		}
-	}, [canUserReview, navigate]);
+	}, [canUserReview, navigate, t]);
 
 	// Decode token once from context
 	useEffect(() => {

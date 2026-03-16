@@ -53,10 +53,11 @@ export default function AdminUpdateMultipleUsers() {
 
 		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
 
-		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
 		// const isOwner = decodedUser.userId === userId;
 
-		return hasRole;
+		// return hasRole;
+		return can(decodedUser, "users:update:any");
 	}, [decodedUser]);
 
 	useEffect(() => {

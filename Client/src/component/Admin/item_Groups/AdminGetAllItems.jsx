@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { useItemGroups } from "../../../context/ItemGroupContext";
 import { can } from "../../utilities/can";
 import { STORAGE_KEYS } from "../../utilities/activeTabs";
+import { toast } from "react-toastify";
 
 export default function AdminGetAllItems() {
 	const { userToken, setPageLoading } = useAuth(); // get token from context
@@ -82,6 +83,7 @@ export default function AdminGetAllItems() {
 
 	useEffect(() => {
 		if (!canUserReview) {
+			toast.warn(t("you-dont-have-permission-to-view-items"));
 			navigate("/material/request/all", { replace: true });
 		}
 	}, [canUserReview, navigate]);

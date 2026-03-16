@@ -11,6 +11,7 @@ import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { scopeDisplayName } from "../utilities/role.config";
+import { can } from "../utilities/can";
 // import { useUsers } from "../../../context/UsersContext";
 
 export default function GetOneUser() {
@@ -32,6 +33,8 @@ export default function GetOneUser() {
 
 	//REVIEW - you get a lot of alerts and also  a warning that the navigate  should be put inside of a use effect  find a way to  prevent this errors or just simply redirect  with out alert
 
+	// can(decoded, "requests:read:own")
+
 	const decodedUser = useMemo(() => {
 		if (!userToken) return null;
 		try {
@@ -51,6 +54,8 @@ export default function GetOneUser() {
 		const isOwner = decodedUser.userId === userId;
 
 		return hasRole || isOwner;
+		// can(decodedUser, "user:read,any") ||
+		// return can(decodedUser, "user:read:own", { ownerId: userId });
 	}, [decodedUser, userId]);
 
 	useEffect(() => {

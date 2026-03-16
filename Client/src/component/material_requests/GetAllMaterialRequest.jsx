@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useQuery, useSubscription, gql } from "@apollo/client";
 import { get_all_material_requests } from "../../../graphQL/queries/queries";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MATERIAL_REQUEST_CHANGE_SUBSCRIPTION } from "../../../graphQL/subscriptions/subscriptions";
 import Fuse from "fuse.js";
 import dayjs from "dayjs";
@@ -10,9 +10,11 @@ import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
 import { useMaterialRequests } from "../../../src/context/MaterialRequestContext";
 import { STORAGE_KEYS } from "../utilities/activeTabs";
+import { can } from "../utilities/can";
 
 export default function GetAllMaterialRequest() {
 	const { userToken, setPageLoading } = useAuth();
+	const navigate = useNavigate();
 
 	const [activeTab, setActiveTab] = useState(() => {
 		const savedTab = localStorage.getItem(STORAGE_KEYS.MATERIAL_REQUESTS.ACTIVE_TAB);
@@ -24,6 +26,36 @@ export default function GetAllMaterialRequest() {
 
 		return "waiting";
 	});
+
+	const decodedUser = useMemo(() => {
+		if (!userToken) return null;
+		try {
+			return JSON.parse(atob(userToken.split(".")[1])); // simple JWT decode
+		} catch (err) {
+			console.error("Invalid token", err);
+			return null;
+		}
+	}, [userToken]);
+
+	const canUserReview = useMemo(() => {
+		if (!decodedUser) return false;
+
+		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+
+		// const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// can(decodedUser,"items:read:any")
+		// const isOwner = decodedUser.userId === userId;
+
+		// return hasRole;
+		// return can(decodedUser, "items:read:any");
+		return can(decodedUser, "requests:read:any") || can(decodedUser, "requests:read:own", { ownerId: decodedUser.userId });
+	}, [decodedUser]);
+
+	useEffect(() => {
+		if (!canUserReview) {
+			navigate(`/user/${decodedUser.userId}`, { replace: true });
+		}
+	}, [canUserReview, navigate, decodedUser]);
 
 	useEffect(() => {}, [activeTab]);
 

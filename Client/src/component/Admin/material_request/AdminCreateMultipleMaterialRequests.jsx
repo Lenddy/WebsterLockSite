@@ -88,9 +88,10 @@ export default function AdminCreateMultipleMaterialRequests() {
 
 	useEffect(() => {
 		if (!canUserReview) {
+			toast.warn(t("you-dont-have-permission-to-make-material-requests-as-and-admin"));
 			navigate("/material/request/all", { replace: true });
 		}
-	}, [canUserReview, navigate]);
+	}, [canUserReview, navigate, t]);
 
 	// Add a new request (with one blank row)
 	const addRequest = () => {

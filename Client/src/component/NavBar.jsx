@@ -250,7 +250,7 @@ export default function NavBar({ children, screenWidth }) {
 									<div className="nav-link-container-dropdown-link">
 										{m.links.map((link) => {
 											const access = getAccess(link);
-
+											//! come here
 											const isCurrentRoute = location.pathname === link.path;
 											const disabled = !access.enabled || isCurrentRoute;
 
@@ -319,9 +319,23 @@ export default function NavBar({ children, screenWidth }) {
 
 								{m.links.map((link) => {
 									const access = getAccess(link);
+									//! come here
+
+									const isCurrentRoute = location.pathname === link.path;
+									const disabled = !access.enabled || isCurrentRoute;
 
 									return (
-										<Link key={link.path} to={access.enabled ? link.path : ""} className={!access.enabled ? "nav-bar-link-disabled" : location.pathname === link.path ? "nav-bar-link-active" : ""}>
+										<Link
+											key={link.path}
+											//  to={access.enabled ? link.path : ""}
+											to={link.path}
+											onClick={(e) => {
+												if (disabled) {
+													e.preventDefault();
+												}
+											}}
+											//  className={!access.enabled ? "nav-bar-link-disabled" : location.pathname === link.path ? "nav-bar-link-active" : ""}
+											className={disabled ? "nav-bar-link-disabled" : location.pathname === link.path ? "nav-bar-link-active" : ""}>
 											{link.name}
 										</Link>
 									);

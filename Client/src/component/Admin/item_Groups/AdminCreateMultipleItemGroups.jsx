@@ -56,9 +56,10 @@ export default function AdminCreateMultipleItemsGroups() {
 
 	useEffect(() => {
 		if (!canUserReview) {
+			toast.warn(t("you-dont-have-permission-to-add-new-items-groups"));
 			navigate("/material/request/all", { replace: true });
 		}
-	}, [canUserReview, navigate]);
+	}, [canUserReview, navigate, t]);
 
 	// const { loading, data, error, refetch } = useQuery(get_all_users);
 	// const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);

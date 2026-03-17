@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useItemGroups } from "../../context/ItemGroupContext";
 import { colorOptions, sideOptions, sizeOptions } from "../utilities/color-side-size";
+import { can } from "../utilities/can";
 
 // import FixedSizeList from "react-window";
 
@@ -64,6 +65,30 @@ export default function CreateOneMaterialRequest() {
 			}
 		}
 	}, [userToken, authLoading]);
+
+	const canUserReview = useMemo(() => {
+		const decodedUser = jwtDecode(userToken);
+		if (!decodedUser) return false;
+
+		// const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+
+		// const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const isOwner = decodedUser.userId === userId;
+
+		// return hasRole || isOwner;
+		// can(decodedUser, "user:read,any") ||
+		// console.log()
+
+		return can(decodedUser, "requests:create:own");
+		//
+	}, [userToken]);
+
+	useEffect(() => {
+		if (!canUserReview) {
+			toast.warn(t("you-dont-have-permission-to-make-material-requests"));
+			navigate("/material/request/all", { replace: true });
+		}
+	}, [canUserReview, navigate, t]);
 
 	// useEffect(() => {
 	// 	// if (iGData) setItemGroups(iGData?.getAllItemGroups || []);

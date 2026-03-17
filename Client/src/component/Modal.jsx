@@ -106,6 +106,7 @@ const Modal = ({ isOpen, onClose, data, setIsOpen, setSelectedUser, onConFirm, l
 						</div>
 					)}
 
+					{/* !this one */}
 					{/* User Object */}
 					{content?.type === "User" && (
 						<div className="modal-content-header">
@@ -206,19 +207,24 @@ const Modal = ({ isOpen, onClose, data, setIsOpen, setSelectedUser, onConFirm, l
 									</div>
 								</div>
 							)}
-
+							{/*//! this is what you need to change*/}
 							{content.value.permissions && (
 								<div className="modal-content-bottom-info">
 									<h4>{t("permissions")}:</h4>
 									<div className="modal-content-bottom-info-wrapper">
 										<div>
 											<h4>{t("user-actions")}:</h4>
+											you got to make this redable(just copy and past the ones from the get one users not the modal but the permission container )
 											<ul>
-												{Object.entries(content.value.permissions)
+												{/* {Object.entries(content.value.permissions)
 													.filter(([k, v]) => v === true && k.includes("Users"))
 													.map(([k]) => (
 														<li key={k}>{formatKey(k)}</li>
-													))}
+													))} */}
+
+												{content.value.permissions.map((p) => {
+													return <li key={p}>{p}</li>;
+												})}
 											</ul>
 										</div>
 										<div>

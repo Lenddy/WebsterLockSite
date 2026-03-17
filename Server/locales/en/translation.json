@@ -320,5 +320,13 @@
 	"edit-permissions": "Edit Permission",
 	"you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page": "You dont have the necessary permission to view or perform the necessary actions on this page.",
 	"your-account-has-been-deleted": "Your Account has been deleted you are being redirected to the log in screen",
-	"search-user-by-name": "Search user by name"
+	"search-user-by-name": "Search user by name",
+
+	"you-dont-have-permission-to-add-new-items-groups": "You don't have permission to add new item groups.",
+	"you-dont-have-permission-to-view-items": "You don't have permission to view items.",
+	"you-dont-have-permission-to-view-item-usage": "You don't have permission to view item usage.",
+	"you-dont-have-permission-to-make-material-requests-as-and-admin": "You don't have permission to make material requests as an admin.",
+	"you-dont-have-permission-to-make-material-requests": "You don't have permission to make material requests.",
+	"you-dont-have-permission-to-view-other-users": "You don't have permission to view other users.",
+	"you-dont-have-permission-to-view-this-users": "You don't have permission to view this user."
 }

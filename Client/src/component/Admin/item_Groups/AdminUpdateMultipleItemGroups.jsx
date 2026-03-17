@@ -75,9 +75,10 @@ export default function AdminUpdateMultipleItemsGroups() {
 
 	useEffect(() => {
 		if (!canUserReview) {
+			toast.warn(t("you-dont-have-permission-to-add-new-items-groups"));
 			navigate("/material/request/all", { replace: true });
 		}
-	}, [canUserReview, navigate]);
+	}, [canUserReview, navigate, t]);
 
 	//  Handle when all item groups are fetched (no param mode)
 	useEffect(() => {

@@ -12,6 +12,7 @@ import { useMaterialRequests } from "../../../context/MaterialRequestContext";
 import { useAuth } from "../../../context/AuthContext";
 import { can } from "../../utilities/can";
 import { STORAGE_KEYS } from "../../utilities/activeTabs";
+import { toast } from "react-toastify";
 
 export default function AdminItemUsage() {
 	const { userToken, setPageLoading, setWsDisconnected } = useAuth(); // get token from context
@@ -68,9 +69,10 @@ export default function AdminItemUsage() {
 
 	useEffect(() => {
 		if (!canUserReview) {
+			toast.warn(t("you-dont-have-permission-to-view-item-usage"));
 			navigate("/material/request/all", { replace: true });
 		}
-	}, [canUserReview, navigate]);
+	}, [canUserReview, navigate, t]);
 
 	useEffect(() => {
 		if (allMRequests) {

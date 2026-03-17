@@ -48,18 +48,22 @@ export default function GetOneUser() {
 	const canUserReview = useMemo(() => {
 		if (!decodedUser || !userId) return false;
 
-		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
+		// const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
 
-		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
-		const isOwner = decodedUser.userId === userId;
+		// const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
+		// const isOwner = decodedUser.userId === userId;
 
-		return hasRole || isOwner;
+		// return hasRole || isOwner;
 		// can(decodedUser, "user:read,any") ||
-		// return can(decodedUser, "user:read:own", { ownerId: userId });
+		// console.log()
+
+		return can(decodedUser, "users:read:any") || can(decodedUser, "users:read:own", { ownerId: userId });
+		//
 	}, [decodedUser, userId]);
 
 	useEffect(() => {
 		if (!canUserReview) {
+			toast.warn(t("you-dont-have-permission-to-view-this-users"));
 			navigate("/material/request/all", { replace: true });
 		}
 	}, [canUserReview, navigate]);

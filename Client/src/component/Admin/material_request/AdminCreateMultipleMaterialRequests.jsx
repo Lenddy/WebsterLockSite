@@ -19,6 +19,7 @@ import { useAuth } from "../../../context/AuthContext";
 import { toast } from "react-toastify";
 import { can } from "../../utilities/can";
 import { colorOptions, sideOptions, sizeOptions } from "../../utilities/color-side-size";
+import VirtualizedMenuList from "../../utilities/VirtualizedMenuList";
 
 export default function AdminCreateMultipleMaterialRequests() {
 	const { userToken, pageLoading, loading: userLoading } = useAuth();
@@ -405,44 +406,44 @@ export default function AdminCreateMultipleMaterialRequests() {
 			});
 	};
 
-	function VirtualizedMenuList({ options, children, maxHeight }) {
-		// console.log("maxHeight", maxHeight);
-		// console.log("children", children);
-		// console.log("children data", children[0]?.props?.data);
-		// // console.log("children data", children[0].props.data);
-		// console.log("options", options);
-		const childrenArray = React.Children.toArray(children || []);
-		// console.log("children array", childrenArray);
+	// function VirtualizedMenuList({ options, children, maxHeight }) {
+	// 	// console.log("maxHeight", maxHeight);
+	// 	// console.log("children", children);
+	// 	// console.log("children data", children[0]?.props?.data);
+	// 	// // console.log("children data", children[0].props.data);
+	// 	// console.log("options", options);
+	// 	const childrenArray = React.Children.toArray(children || []);
+	// 	// console.log("children array", childrenArray);
 
-		const rowHeight = useDynamicRowHeight({
-			defaultRowHeight: 50,
-		});
+	// 	const rowHeight = useDynamicRowHeight({
+	// 		defaultRowHeight: 50,
+	// 	});
 
-		if (!childrenArray.length) {
-			// console.log("children array is null ");
-			return null;
-		}
+	// 	if (!childrenArray.length) {
+	// 		// console.log("children array is null ");
+	// 		return null;
+	// 	}
 
-		// console.log("rendering the list ");
-		return (
-			<List
-				style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
-				rowCount={children.length || 0}
-				rowHeight={rowHeight} //old 35
-				rowProps={{}}
-				// rowComponent={({ index, style }) => {
-				// 	const item = children[index];
-				// 	// return <div style={style}>{item ? item.props.data.value : "none"}</div>;
-				// 	return <div style={style}>{item}</div>;
-				// }}
-				rowComponent={({ index, style, rowProps }) => {
-					const item = children[index];
-					// ?.props?.data?.label
-					return <div style={{ ...style, display: "flex", borderBottom: " dashed 1px black" }}>{item}</div>;
-				}}
-			/>
-		);
-	}
+	// 	// console.log("rendering the list ");
+	// 	return (
+	// 		<List
+	// 			style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
+	// 			rowCount={children.length || 0}
+	// 			rowHeight={rowHeight} //old 35
+	// 			rowProps={{}}
+	// 			// rowComponent={({ index, style }) => {
+	// 			// 	const item = children[index];
+	// 			// 	// return <div style={style}>{item ? item.props.data.value : "none"}</div>;
+	// 			// 	return <div style={style}>{item}</div>;
+	// 			// }}
+	// 			rowComponent={({ index, style, rowProps }) => {
+	// 				const item = children[index];
+	// 				// ?.props?.data?.label
+	// 				return <div style={{ ...style, display: "flex", borderBottom: " dashed 1px black" }}>{item}</div>;
+	// 			}}
+	// 		/>
+	// 	);
+	// }
 
 	// const filteredAllItems = useMemo(() => {
 	// 	if (!debouncedSearch) {
@@ -509,6 +510,9 @@ export default function AdminCreateMultipleMaterialRequests() {
 										}
 										filterOption={customUserFilter}
 										placeholder={loading ? t("loading") : t("select-requester")}
+										components={{
+											MenuList: VirtualizedMenuList,
+										}}
 										isClearable
 										isSearchable
 										isDisabled={loading || blockInput}
@@ -580,6 +584,9 @@ export default function AdminCreateMultipleMaterialRequests() {
 												isClearable
 												isSearchable
 												isDisabled={iGLoading || blockInput}
+												components={{
+													MenuList: VirtualizedMenuList,
+												}}
 												styles={{
 													control: (base) => ({
 														...base,
@@ -615,6 +622,9 @@ export default function AdminCreateMultipleMaterialRequests() {
 													onChange={(val) => handleItemChange(reqIdx, rowIdx, "item", val)}
 													placeholder={isItemsReady ? t("select-item") : t("loading-items")}
 													isDisabled={!isItemsReady || blockInput}
+													components={{
+														MenuList: VirtualizedMenuList,
+													}}
 													// onInputChange={(val, meta) => {
 													// 	// console.log("InputChange value:", val, "action:", meta.action);
 													// 	if (meta.action === "input-change") {
@@ -648,7 +658,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 															handleItemChange(reqIdx, rowIdx, "search", "");
 														}
 													}}
-													components={{ MenuList: VirtualizedMenuList }}
 													styles={{
 														control: (base) => ({
 															...base,
@@ -683,6 +692,9 @@ export default function AdminCreateMultipleMaterialRequests() {
 																onChange={(val) => handleItemChange(reqIdx, rowIdx, "color", val?.value || null)}
 																placeholder={t("select-color")}
 																isDisabled={loading || blockInput}
+																components={{
+																	MenuList: VirtualizedMenuList,
+																}}
 																styles={{
 																	control: (base) => ({
 																		...base,
@@ -719,6 +731,9 @@ export default function AdminCreateMultipleMaterialRequests() {
 																isClearable
 																isSearchable
 																isDisabled={loading || blockInput}
+																components={{
+																	MenuList: VirtualizedMenuList,
+																}}
 																styles={{
 																	control: (base) => ({
 																		...base,
@@ -749,6 +764,9 @@ export default function AdminCreateMultipleMaterialRequests() {
 																isClearable
 																isSearchable
 																isDisabled={loading || blockInput}
+																components={{
+																	MenuList: VirtualizedMenuList,
+																}}
 																styles={{
 																	control: (base) => ({
 																		...base,

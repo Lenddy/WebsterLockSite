@@ -12,6 +12,8 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { scopeDisplayName } from "../utilities/role.config";
 import { can } from "../utilities/can";
+import { groupPermissions } from "../utilities/groupPermissions";
+
 // import { useUsers } from "../../../context/UsersContext";
 
 export default function GetOneUser() {
@@ -204,18 +206,6 @@ export default function GetOneUser() {
 												email
 												role
 												permissions
-												# {
-												# 	canEditUsers
-												# 	canViewUsers
-												# 	canDeleteUsers
-												# 	canChangeRole
-												# 	canEditSelf
-												# 	canViewSelf
-												# 	canViewAllUsers
-												# 	canNotBeDeleted
-												# 	canNotBeUpdated
-												# 	canRegisterUser
-												# }
 
 												employeeNum
 												department

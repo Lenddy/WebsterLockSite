@@ -18,10 +18,28 @@ import { toast } from "react-toastify";
 import { useItemGroups } from "../../context/ItemGroupContext";
 import { colorOptions, sideOptions, sizeOptions } from "../utilities/color-side-size";
 import { can } from "../utilities/can";
-
+import VirtualizedMenuList from "../utilities/VirtualizedMenuList";
 // import FixedSizeList from "react-window";
 
 // import {FixedSizeList} from "react-window"
+
+// import { Virtuoso } from "react-virtuoso";
+
+// const VirtualizedMenuList = (props) => {
+// 	const { children, maxHeight } = props;
+
+// 	const items = Array.isArray(children) ? children : [];
+
+// 	if (!items.length) {
+// 		return <div style={{ padding: 10, textAlign: "center" }}>No results found</div>;
+// 	}
+
+// 	return (
+// 		<div style={{ height: maxHeight }}>
+// 			<Virtuoso style={{ height: maxHeight }} totalCount={items.length} itemContent={(index) => <div>{items[index]}</div>} />
+// 		</div>
+// 	);
+// };
 
 export default function CreateOneMaterialRequest() {
 	const { userToken, loading: authLoading } = useAuth(); //  use context instead of prop
@@ -70,16 +88,7 @@ export default function CreateOneMaterialRequest() {
 		const decodedUser = jwtDecode(userToken);
 		if (!decodedUser) return false;
 
-		// const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
-
-		// const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
-		// const isOwner = decodedUser.userId === userId;
-
-		// return hasRole || isOwner;
-		// can(decodedUser, "user:read,any") ||
-		// console.log()
-
-		return can(decodedUser, "requests:create:own");
+		return can(decodedUser, "requests:create:own", { ownerId: decodedUser.userId });
 		//
 	}, [userToken]);
 
@@ -245,51 +254,51 @@ export default function CreateOneMaterialRequest() {
 
 	const isFormValid = rows?.every((r) => r?.item && r?.quantity !== "" && Number(r?.quantity) > 0);
 
-	function VirtualizedMenuList({ options, children, maxHeight }) {
-		// console.log("maxHeight", maxHeight);
-		// console.log("children", children);
-		// console.log("children data", children[0]?.props?.data);
-		// // console.log("children data", children[0].props.data);
-		// console.log("options", options);
-		const rowHeight = useDynamicRowHeight({
-			defaultRowHeight: 50,
-		});
-		const itemCount = children.length;
+	// function VirtualizedMenuList({ options, children, maxHeight }) {
+	// 	// console.log("maxHeight", maxHeight);
+	// 	// console.log("children", children);
+	// 	// console.log("children data", children[0]?.props?.data);
+	// 	// // console.log("children data", children[0].props.data);
+	// 	// console.log("options", options);
+	// 	const rowHeight = useDynamicRowHeight({
+	// 		defaultRowHeight: 50,
+	// 	});
+	// 	const itemCount = children.length;
 
-		if (itemCount === 0) {
-			return <div style={{ padding: "10px", textAlign: "center", color: "#777" }}>No results found</div>;
-		}
+	// 	if (itemCount === 0) {
+	// 		return <div style={{ padding: "10px", textAlign: "center", color: "#777" }}>No results found</div>;
+	// 	}
 
-		// const childrenArray = React.Children.toArray(children || []);
-		// console.log("children array", childrenArray);
+	// 	// const childrenArray = React.Children.toArray(children || []);
+	// 	// console.log("children array", childrenArray);
 
-		// if (!childrenArray.length || childrenArray.length === 0) {
-		// 	// console.log("children array is null ");
-		// 	// return null;
-		// 	return <div style={{ padding: "10px", textAlign: "center", color: "#777" }}>No results found</div>;
-		// }
+	// 	// if (!childrenArray.length || childrenArray.length === 0) {
+	// 	// 	// console.log("children array is null ");
+	// 	// 	// return null;
+	// 	// 	return <div style={{ padding: "10px", textAlign: "center", color: "#777" }}>No results found</div>;
+	// 	// }
 
-		// console.log("rendering the list ");
-		return (
-			<List
-				style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
-				// rowCount={children?.length || 0}
-				rowCount={children.length || 0}
-				rowHeight={rowHeight} //old 35
-				rowProps={{}}
-				// rowComponent={({ index, style }) => {
-				// 	const item = children[index];
-				// 	// return <div style={style}>{item ? item.props.data.value : "none"}</div>;
-				// 	return <div style={style}>{item}</div>;
-				// }}
-				rowComponent={({ index, style, rowProps }) => {
-					const item = children[index];
-					// ?.props?.data?.label
-					return <div style={{ ...style, display: "flex", borderBottom: " dashed 1px black" }}>{item}</div>;
-				}}
-			/>
-		);
-	}
+	// 	// console.log("rendering the list ");
+	// 	return (
+	// 		<List
+	// 			style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
+	// 			// rowCount={children?.length || 0}
+	// 			rowCount={children.length || 0}
+	// 			rowHeight={rowHeight} //old 35
+	// 			rowProps={{}}
+	// 			// rowComponent={({ index, style }) => {
+	// 			// 	const item = children[index];
+	// 			// 	// return <div style={style}>{item ? item.props.data.value : "none"}</div>;
+	// 			// 	return <div style={style}>{item}</div>;
+	// 			// }}
+	// 			rowComponent={({ index, style, rowProps }) => {
+	// 				const item = children[index];
+	// 				// ?.props?.data?.label
+	// 				return <div style={{ ...style, display: "flex", borderBottom: " dashed 1px black" }}>{item}</div>;
+	// 			}}
+	// 		/>
+	// 	);
+	// }
 
 	const customFilter = (option, inputValue) => {
 		if (!inputValue) return true;
@@ -371,6 +380,9 @@ export default function CreateOneMaterialRequest() {
 									<Select
 										options={brands}
 										value={row.brand}
+										components={{
+											MenuList: VirtualizedMenuList,
+										}}
 										onChange={(val) => handleRowChange(idx, "brand", val)}
 										placeholder={t("select-brand")}
 										isClearable
@@ -409,6 +421,9 @@ export default function CreateOneMaterialRequest() {
 											onChange={(val) => handleRowChange(idx, "item", val)}
 											placeholder={isItemsReady ? t("select-item") : t("loading-items")}
 											isDisabled={!isItemsReady || blockInput}
+											components={{
+												MenuList: VirtualizedMenuList,
+											}}
 											// onInputChange={(val, meta) => {
 											// 	// console.log("InputChange value:", val, "action:", meta.action);
 											// 	if (meta.action === "input-change") {
@@ -439,7 +454,7 @@ export default function CreateOneMaterialRequest() {
 											filterOption={() => true}
 											isClearable
 											isSearchable
-											components={{ MenuList: VirtualizedMenuList }}
+											// components={{ MenuList: VirtualizedMenuList }}
 											styles={{
 												control: (base) => ({
 													...base,
@@ -504,6 +519,9 @@ export default function CreateOneMaterialRequest() {
 														onChange={(val) => {
 															(handleRowChange(idx, "side", val?.value || null), setShowDoorHanding(true));
 														}}
+														components={{
+															MenuList: VirtualizedMenuList,
+														}}
 														placeholder={t("select-side")}
 														isClearable
 														isSearchable
@@ -534,6 +552,9 @@ export default function CreateOneMaterialRequest() {
 														isClearable
 														isSearchable
 														isDisabled={blockInput}
+														components={{
+															MenuList: VirtualizedMenuList,
+														}}
 														styles={{
 															control: (base) => ({
 																...base,

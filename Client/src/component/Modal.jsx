@@ -5,6 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../context/AuthContext";
 import doorHanding from "../assets/doorHanding.jpg";
 import { useTranslation } from "react-i18next";
+import { scopeDisplayName } from "./utilities/role.config";
 
 // const Modal = ({ isOpen, onClose, onConFirm, data, loading, setIsOpen }) => {
 const Modal = ({ isOpen, onClose, data, setIsOpen, setSelectedUser, onConFirm, loading }) => {
@@ -210,31 +211,14 @@ const Modal = ({ isOpen, onClose, data, setIsOpen, setSelectedUser, onConFirm, l
 							{/*//! this is what you need to change*/}
 							{content.value.permissions && (
 								<div className="modal-content-bottom-info">
-									<h4>{t("permissions")}:</h4>
+									{/* <h4>{t("permissions")}:</h4> */}
 									<div className="modal-content-bottom-info-wrapper">
-										<div>
+										<div className="testing">
 											<h4>{t("user-actions")}:</h4>
-											you got to make this redable(just copy and past the ones from the get one users not the modal but the permission container )
 											<ul>
-												{/* {Object.entries(content.value.permissions)
-													.filter(([k, v]) => v === true && k.includes("Users"))
-													.map(([k]) => (
-														<li key={k}>{formatKey(k)}</li>
-													))} */}
-
 												{content.value.permissions.map((p) => {
-													return <li key={p}>{p}</li>;
+													return <li key={p}>{scopeDisplayName(p, t)}</li>;
 												})}
-											</ul>
-										</div>
-										<div>
-											<h4>{t("self-actions")}:</h4>
-											<ul>
-												{Object.entries(content.value.permissions)
-													.filter(([k, v]) => v === true && k.includes("Self"))
-													.map(([k]) => (
-														<li key={k}>{formatKey(k)}</li>
-													))}
 											</ul>
 										</div>
 									</div>

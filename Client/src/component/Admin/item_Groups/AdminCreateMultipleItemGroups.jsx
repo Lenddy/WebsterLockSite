@@ -8,6 +8,7 @@ import { useAuth } from "../../../context/AuthContext";
 import { toast } from "react-toastify";
 import { roleRank } from "../../utilities/role.config";
 import { can } from "../../utilities/can";
+import VirtualizedMenuList from "../../utilities/VirtualizedMenuList";
 
 export default function AdminCreateMultipleItemsGroups() {
 	const { userToken, setPageLoading } = useAuth(); // get token from context
@@ -17,6 +18,7 @@ export default function AdminCreateMultipleItemsGroups() {
 	const [blockInput, setBlockInput] = useState(false);
 
 	const [message, setMessage] = useState("");
+
 	const [itemGroups, setItemGroups] = useState([
 		{
 			brand: "",
@@ -33,23 +35,19 @@ export default function AdminCreateMultipleItemsGroups() {
 
 	const decodedUser = useMemo(() => {
 		if (!userToken) return null;
-		try {
-			return JSON.parse(atob(userToken.split(".")[1])); // simple JWT decode
-		} catch (err) {
-			console.error("Invalid token", err);
-			return null;
-		}
+		return jwtDecode(userToken);
+		// try {
+		// 	return JSON.parse(atob(userToken.split(".")[1])); // simple JWT decode
+		// } catch (err) {
+		// 	console.error("Invalid token", err);
+		// 	return null;
+		// }
 	}, [userToken]);
 
 	const canUserReview = useMemo(() => {
 		if (!decodedUser) return false;
 
 		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
-
-		// const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
-		// const hasRole = roleRank >= 3 && can(decodedUser, "items:create:any");
-		// const isOwner = decodedUser.userId === userId;
-
 		// return hasRole;
 		return roleRank[role] >= 3 && can(decodedUser, "items:create:any");
 	}, [decodedUser]);
@@ -61,8 +59,6 @@ export default function AdminCreateMultipleItemsGroups() {
 		}
 	}, [canUserReview, navigate, t]);
 
-	// const { loading, data, error, refetch } = useQuery(get_all_users);
-	// const { data: iGData, loading: iGLoading, error: iGError } = useQuery(get_all_item_groups);
 	const [createNewItemGroups] = useMutation(create_multiple_itemGroups);
 
 	// Add a new request (with one blank row)
@@ -150,16 +146,12 @@ export default function AdminCreateMultipleItemsGroups() {
 					onClick={() => {
 						resetForm();
 						setBlockInput(false);
-						// console.log("has submitted before", hasSubmitted);
 						setHasSubmitted(false);
-						// console.log("has submitted after", hasSubmitted);
 						closeToast();
 					}}>
 					{t("add-more-items")}
 				</button>
 			</div>
-
-			{/* <p style={{ marginTop: "8px", fontSize: "12px", color: "#999" }}>{t("duplicate-request")}</p> */}
 		</div>
 	);
 
@@ -180,28 +172,10 @@ export default function AdminCreateMultipleItemsGroups() {
 			})),
 		}));
 
-		// console.log("this is the input that are send  ", input);
-
 		const mutationPromise = createNewItemGroups({
 			variables: { input },
-			// onCompleted: (res) => {
-			// 	// console.log("Mutation success:", res.createMultipleItemGroups);
-			// 	// newMr =
-			// 	// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
-			// 	toast.success(t("Item-groups-added-successfully"));
-			// 	setMessage("New Item Groups have been added");
-			// },
-			// onError: (err) => {
-			// 	// console.warn("Mutation success:", err);
-			// 	// newMr =
-			// 	// navigate(`/material/request/${res?.createOneMaterialRequest?.id}`);
-			// 	setMessage("error:", err);
-			// 	toast.success(t("Item-groups-added-successfully"));
-			// },
 		});
-		// } catch (err) {
-		// 	console.error("Submit error:", err);
-		// }
+
 		toast.promise(mutationPromise, {
 			pending: t("adding-items"),
 
@@ -218,7 +192,7 @@ export default function AdminCreateMultipleItemsGroups() {
 					if (err?.graphQLErrors?.length) {
 						return err.graphQLErrors.map((e) => e.message).join(", ");
 					}
-					// come here
+
 					if (err?.networkError) return t("network-error-try-again");
 					return t("something-went-wrong");
 				},

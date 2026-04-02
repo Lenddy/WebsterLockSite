@@ -12,6 +12,7 @@ import { useItemGroups } from "../../../context/ItemGroupContext";
 import { can } from "../../utilities/can";
 import { STORAGE_KEYS } from "../../utilities/activeTabs";
 import { toast } from "react-toastify";
+import { TableVirtuoso } from "react-virtuoso";
 
 export default function AdminGetAllItems() {
 	const { userToken, setPageLoading } = useAuth(); // get token from context
@@ -207,73 +208,65 @@ export default function AdminGetAllItems() {
 						</div> */}
 
 						<div className="table-title">{/* <h2>{t("items")}</h2> */}</div>
-						<div className="table-scroll">
-							<table>
-								<thead>
-									{/* <tr>
-										{logUser?.role == "headAdmin" && <th>ID</th>}
-										<th>{t("brand")}</th>
-										<th>{t("item-amount")}</th>
-										<th>{t("some-items")}</th>
-										<th>{t("action")}</th>
-									</tr> */}
+						{/* <div className="table-scroll"> */}
+						<TableVirtuoso
+							className="Table-Virtuoso"
+							style={{ borderRadius: "10px" }}
+							data={sortedItems} // HEADER
+							fixedHeaderContent={() => (
+								<tr>
+									{logUser?.role === "headAdmin" && <th>ID</th>}
 
-									{/* <thead> */}
-									<tr>
-										{logUser?.role == "headAdmin" && <th>ID</th>}
+									<th onClick={() => handleSort("brand")} className="clickable-th">
+										{t("brand")} {sortKey === "brand" && (sortDir === "asc" ? "▾" : "▴")}
+									</th>
 
-										<th onClick={() => handleSort("brand")} className="clickable-th">
-											{t("brand")} {sortKey === "brand" && (sortDir === "asc" ? "▾" : "▴")}
-										</th>
+									<th onClick={() => handleSort("itemAmount")} className="clickable-th">
+										{t("item-amount")} {sortKey === "itemAmount" && (sortDir === "asc" ? "▾" : "▴")}
+									</th>
 
-										<th onClick={() => handleSort("itemAmount")} className="clickable-th">
-											{t("item-amount")} {sortKey === "itemAmount" && (sortDir === "asc" ? "▾" : "▴")}
-										</th>
+									<th>{t("some-items")}</th>
+									<th>{t("action")}</th>
+								</tr>
+							)}
+							// ROWS -/ td
+							itemContent={(index, ig) => (
+								<>
+									{logUser?.role == "headAdmin" && (
+										<td>
+											<Link to={`/admin/material/item/${ig?.id}`}>{ig?.id}</Link>
+										</td>
+									)}
+									<td>
+										<Link to={`/admin/material/item/${ig?.id}`}>{ig?.brand}</Link>
+									</td>
+									<td>{ig?.itemsList?.length}</td>
+									<td>
+										{ig?.itemsList?.slice(0, 3).map((item, idx, arr) => (
+											<span key={item.id}>
+												{item.itemName}
+												{idx < arr.length - 1 ? ", " : ""}
+											</span>
+										))}
+									</td>
 
-										<th>{t("some-items")}</th>
-										<th>{t("action")}</th>
-									</tr>
-									{/* </thead> */}
-								</thead>
-								<tbody>
-									{sortedItems.map((ig) => (
-										<tr key={ig.id}>
-											{logUser?.role == "headAdmin" && (
-												<td>
-													<Link to={`/admin/material/item/${ig?.id}`}>{ig?.id}</Link>
-												</td>
+									<td>
+										<div>
+											{can(decodedUser, "items:update:any") ? (
+												<Link to={`/admin/material/item/${ig?.id}/update`}>
+													<span className="table-action first">{t("update")}</span>
+												</Link>
+											) : (
+												"N/A"
 											)}
-											<td>
-												<Link to={`/admin/material/item/${ig?.id}`}>{ig?.brand}</Link>
-											</td>
-											<td>{ig?.itemsList?.length}</td>
-											<td>
-												{ig?.itemsList?.slice(0, 3).map((item, idx, arr) => (
-													<span key={item.id}>
-														{item.itemName}
-														{idx < arr.length - 1 ? ", " : ""}
-													</span>
-												))}
-											</td>
-											<td>
-												<div>
-													{can(decodedUser, "items:update:any") ? (
-														<Link to={`/admin/material/item/${ig?.id}/update`}>
-															<span className="table-action first">{t("update")}</span>
-														</Link>
-													) : (
-														"N/A"
-													)}
+										</div>
+										{/* : ({"N/A"}) : ({"N/A"}) */}
+									</td>
+								</>
+							)}
+						/>
 
-													{/* Uncomment for delete modal */}
-													{/* <span className="table-action last" onClick={() => { setSelectedItem(ig); setIsOpen(true); }}>Delete</span> */}
-												</div>
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
+						{/* </div> */}
 					</div>
 					{/* <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} data={selectedItem} userToken={userToken} /> */}
 				</div>
@@ -282,3 +275,69 @@ export default function AdminGetAllItems() {
 		</>
 	);
 }
+
+// 					<table>
+// 						<thead>
+// 							{/* <tr>
+// 	{logUser?.role == "headAdmin" && <th>ID</th>}
+// 	<th>{t("brand")}</th>
+// 	<th>{t("item-amount")}</th>
+// 	<th>{t("some-items")}</th>
+// 	<th>{t("action")}</th>
+// </tr> */}
+
+// 							{/* <thead> */}
+// 							<tr>
+// 								{logUser?.role == "headAdmin" && <th>ID</th>}
+
+// 								<th onClick={() => handleSort("brand")} className="clickable-th">
+// 									{t("brand")} {sortKey === "brand" && (sortDir === "asc" ? "▾" : "▴")}
+// 								</th>
+
+// 								<th onClick={() => handleSort("itemAmount")} className="clickable-th">
+// 									{t("item-amount")} {sortKey === "itemAmount" && (sortDir === "asc" ? "▾" : "▴")}
+// 								</th>
+
+// 								<th>{t("some-items")}</th>
+// 								<th>{t("action")}</th>
+// 							</tr>
+// 							{/* </thead> */}
+// 						</thead>
+// 						<tbody>
+// 							{sortedItems.map((ig) => (
+// 								<tr key={ig.id}>
+// 									{logUser?.role == "headAdmin" && (
+// 										<td>
+// 											<Link to={`/admin/material/item/${ig?.id}`}>{ig?.id}</Link>
+// 										</td>
+// 									)}
+// 									<td>
+// 										<Link to={`/admin/material/item/${ig?.id}`}>{ig?.brand}</Link>
+// 									</td>
+// 									<td>{ig?.itemsList?.length}</td>
+// 									<td>
+// 										{ig?.itemsList?.slice(0, 3).map((item, idx, arr) => (
+// 											<span key={item.id}>
+// 												{item.itemName}
+// 												{idx < arr.length - 1 ? ", " : ""}
+// 											</span>
+// 										))}
+// 									</td>
+// 									<td>
+// 										<div>
+// 											{can(decodedUser, "items:update:any") ? (
+// 												<Link to={`/admin/material/item/${ig?.id}/update`}>
+// 													<span className="table-action first">{t("update")}</span>
+// 												</Link>
+// 											) : (
+// 												"N/A"
+// 											)}
+
+// 											{/* Uncomment for delete modal */}
+// 											{/* <span className="table-action last" onClick={() => { setSelectedItem(ig); setIsOpen(true); }}>Delete</span> */}
+// 										</div>
+// 									</td>
+// 								</tr>
+// 							))}
+// 						</tbody>
+// 					</table>

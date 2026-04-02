@@ -12,24 +12,10 @@ export const useApolloClientInstance = () => useContext(ApolloClientContext);
 
 export default function ApolloWrapper({ children }) {
 	const { userToken, pageLoading, loading } = useAuth();
-	// console.log("loading ?", loading);
-
-	// Wait for userToken before creating client
-	// if (loading) {
-	// 	console.log("from apolloProvider");
-	// 	console.log("loading userToken at ", new Date(), "\n", loading);
-	// 	return <div>Loading...</div>;
-	// }
-
-	// if(
-
-	//     userToken && !loading
-	// )
 
 	const client = useMemo(() => {
-		// console.log("🚀 Creating Apollo Client with userToken at :", new Date(), "\n", userToken);
-
 		// ---- AUTH LINK ----
+		// Sets up authentication by adding the JWT token to request headers
 		const authLink = setContext((_, { headers }) => ({
 			headers: {
 				...headers,
@@ -38,14 +24,17 @@ export default function ApolloWrapper({ children }) {
 		}));
 
 		// ---- HTTP LINK ----
+		// Configures the HTTP link for regular GraphQL queries and mutations
 		const httpLink = new HttpLink({
 			uri: import.meta.env.VITE_API_URL,
 		});
 
 		// ---- WS LINK (SUBSCRIPTIONS) ----
+		// Configures the WebSocket link for GraphQL subscriptions (real-time updates)
 		const wsLink = new GraphQLWsLink(
 			createClient({
 				url: import.meta.env.VITE_WS_URL,
+				// Passes the JWT token in WebSocket connection params for authentication
 				connectionParams: () => ({
 					authorization: userToken ? `Bearer ${userToken}` : "",
 				}),
@@ -53,6 +42,7 @@ export default function ApolloWrapper({ children }) {
 		);
 
 		// ---- ERROR LINK ----
+		// Handles and logs GraphQL and network errors
 		const errorLink = onError(({ graphQLErrors, networkError }) => {
 			if (graphQLErrors) {
 				graphQLErrors.forEach(({ message }) => {
@@ -65,34 +55,32 @@ export default function ApolloWrapper({ children }) {
 		});
 
 		// ---- SPLIT LINK (HTTP vs WS) ----
+		// Routes requests: subscriptions use WebSocket, queries/mutations use HTTP with auth and error handling
 		const splitLink = split(
 			({ query }) => {
+				// Define which operation is a subscription
 				const def = getMainDefinition(query);
 				return def.kind === "OperationDefinition" && def.operation === "subscription";
 			},
-			wsLink,
-			errorLink.concat(authLink.concat(httpLink))
+			wsLink, // Use WebSocket for subscriptions
+			errorLink.concat(authLink.concat(httpLink)) // Use HTTP with error and auth handling for queries/mutations
 		);
 
 		// ---- FINAL CLIENT ----
+		// Creates the Apollo Client with the configured links and cache
 		return new ApolloClient({
 			link: splitLink,
+			// Configure cache with custom merge strategies for specific types
 			cache: new InMemoryCache({
 				typePolicies: {
-					//
-					// User: {
-					// 	fields: {
-					// 		permissions: {
-					// 			merge: false,
-					// 		},
-					// 	},
-					// },
-
+					// UserSnapshot: Uses userId as the unique identifier
 					UserSnapshot: { keyFields: ["userId"] },
 
+					// MaterialRequest: Custom merge strategies for nested data
 					MaterialRequest: {
 						keyFields: ["id"],
 						fields: {
+							// Merge approval status objects, combining existing and new data
 							approvalStatus: {
 								merge(existing = {}, incoming) {
 									return {
@@ -105,28 +93,32 @@ export default function ApolloWrapper({ children }) {
 									};
 								},
 							},
+							// Merge items array: updates existing items and removes deleted ones
 							items: {
 								merge(existing = [], incoming = [], { readField }) {
 									// If no incoming data, keep existing
 									if (!incoming || incoming.length === 0) return existing;
 
+									// Create map of existing items by id
 									const map = new Map();
-
 									existing.forEach((item) => {
 										const id = readField("id", item) || item.id;
 										if (id) map.set(id, item);
 									});
 
+									// Merge incoming items into map
 									incoming.forEach((item) => {
 										const id = readField("id", item) || item.id;
 										if (id) map.set(id, { ...map.get(id), ...item });
 									});
 
+									// Remove items not in incoming (deleted items)
 									const incomingIds = new Set(incoming.map((item) => readField("id", item) || item.id));
 									for (const id of map.keys()) {
 										if (!incomingIds.has(id)) map.delete(id);
 									}
 
+									// Return merged items in incoming order
 									return incoming.map((item) => {
 										const id = readField("id", item) || item.id;
 										return map.get(id);
@@ -136,12 +128,15 @@ export default function ApolloWrapper({ children }) {
 						},
 					},
 
+					// MaterialRequestItem: Uses id as the unique identifier
 					MaterialRequestItem: { keyFields: ["id"] },
 
+					// ItemGroup: Merges itemsList arrays with custom merge logic
 					ItemGroup: {
 						fields: {
 							itemsList: {
 								merge(existing = [], incoming, { mergeObjects }) {
+									// Merge each incoming item with corresponding existing item
 									return incoming.map((item, index) => (mergeObjects ? mergeObjects(existing[index], item) : item));
 								},
 							},
@@ -150,7 +145,7 @@ export default function ApolloWrapper({ children }) {
 				},
 			}),
 		});
-	}, [userToken]);
+	}, [userToken]); // Re-create client when userToken changes
 
 	return (
 		<ApolloClientContext.Provider value={client}>

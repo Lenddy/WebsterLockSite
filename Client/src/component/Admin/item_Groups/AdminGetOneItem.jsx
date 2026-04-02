@@ -7,6 +7,9 @@ import { ITEM_GROUP_CHANGE_SUBSCRIPTION } from "../../../../graphQL/subscription
 import Fuse from "fuse.js";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../context/AuthContext"; // use context
+import { TableVirtuoso } from "react-virtuoso";
+import { toast } from "react-toastify";
+import { can } from "../../utilities/can";
 
 export default function AdminGetOneItem() {
 	const { userToken, setPageLoading, setWsDisconnected } = useAuth(); // get token from context
@@ -57,17 +60,12 @@ export default function AdminGetOneItem() {
 
 	const canUserReview = useMemo(() => {
 		if (!decodedUser) return false;
-
-		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
-
-		const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
-		// const isOwner = decodedUser.userId === userId;
-
-		return hasRole;
+		return can(decodedUser, "items:read:any");
 	}, [decodedUser]);
 
 	useEffect(() => {
 		if (!canUserReview) {
+			toast.warn(t("you-dont-have-permission-to-view-item"));
 			navigate("/material/request/all", { replace: true });
 		}
 	}, [canUserReview, navigate]);
@@ -179,43 +177,83 @@ export default function AdminGetOneItem() {
 
 			<div className="table-wrapper">
 				<div className="table-title">{/* <h2>{itemGroup?.brand}</h2> */}</div>
-				<div className="table-scroll">
-					<table>
-						<thead>
-							<tr>
-								{logUser?.role == "headAdmin" && <th>ID</th>}
-								{/* <th>{t("item-name")}</th> */}
-								<th onClick={() => handleSort("itemName")} className="clickable-th">
-									{t("item-name")} {sortDir === "asc" ? "▾" : "▴"}
-								</th>
-								<th>{t("action")}</th>
-							</tr>
-						</thead>
+				{/* <div className="table-scroll"> */}
+				<TableVirtuoso
+					className="Table-Virtuoso"
+					data={sortedItems} // HEADER
+					fixedHeaderContent={() => (
+						<tr>
+							{logUser?.role == "headAdmin" && <th>ID</th>}
+							{/* <th>{t("item-name")}</th> */}
+							<th onClick={() => handleSort("itemName")} className="clickable-th">
+								{t("item-name")} {sortDir === "asc" ? "▾" : "▴"}
+							</th>
+							<th>{t("action")}</th>
+						</tr>
+					)}
+					// ROWS -/ td
+					itemContent={(index, it) => (
+						<>
+							{logUser?.role == "headAdmin" && <td>{it.id}</td>}
 
-						<tbody>
-							{sortedItems.map((it) => (
-								<tr key={it.id}>
-									{logUser?.role == "headAdmin" && <td>{it.id}</td>}
+							<td>{it.itemName}</td>
 
-									<td>{it.itemName}</td>
-
-									<td>
-										<div className="table-action-wrapper">
+							<td>
+								<div className="table-action-wrapper">
+									{can(decodedUser, "items:update:any") ? (
+										<>
 											<Link to={`/admin/material/item/${itemId}/update`}>
 												<span className="table-action first">{t("update")}</span>
 											</Link>
-
 											<Link to={`/admin/material/item/${itemId}/update`}>
 												<span className="table-action last">{t("delete")}</span>
 											</Link>
-										</div>
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
+										</>
+									) : (
+										"N/A"
+									)}
+								</div>
+							</td>
+						</>
+					)}
+				/>
 			</div>
+			{/* </div> */}
 		</div>
 	);
 }
+
+// <table>
+// 						<thead>
+// 							<tr>
+// 								{logUser?.role == "headAdmin" && <th>ID</th>}
+// 								{/* <th>{t("item-name")}</th> */}
+// 								<th onClick={() => handleSort("itemName")} className="clickable-th">
+// 									{t("item-name")} {sortDir === "asc" ? "▾" : "▴"}
+// 								</th>
+// 								<th>{t("action")}</th>
+// 							</tr>
+// 						</thead>
+
+// 						<tbody>
+// 							{sortedItems.map((it) => (
+// 								<tr key={it.id}>
+// 									{logUser?.role == "headAdmin" && <td>{it.id}</td>}
+
+// 									<td>{it.itemName}</td>
+
+// 									<td>
+// 										<div className="table-action-wrapper">
+// 											<Link to={`/admin/material/item/${itemId}/update`}>
+// 												<span className="table-action first">{t("update")}</span>
+// 											</Link>
+
+// 											<Link to={`/admin/material/item/${itemId}/update`}>
+// 												<span className="table-action last">{t("delete")}</span>
+// 											</Link>
+// 										</div>
+// 									</td>
+// 								</tr>
+// 							))}
+// 						</tbody>
+// 					</table>

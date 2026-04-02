@@ -14,22 +14,14 @@ import { roleRank } from "../utilities/role.config";
 import { STORAGE_KEYS } from "../utilities/activeTabs";
 import { can } from "../utilities/can";
 import { toast } from "react-toastify";
+import { List, useDynamicRowHeight } from "react-window";
+import { useDebounce } from "use-debounce";
+import { TableVirtuoso } from "react-virtuoso";
 
 export default function GetAllUsers() {
 	const { userToken, setPageLoading } = useAuth(); // Get current user token from context
 	const [logUser, setLogUser] = useState(null);
 	const { users, loading, error } = useUsers();
-
-	// const {
-	// 	error: testError,
-	// 	loading: loadingTest,
-	// 	data: dataTest,
-	// 	refetch: refetchTest,
-	// } = useQuery(get_all_users, {
-	// 	fetchPolicy: "cache-and-network",
-	// });
-
-	// console.log("test data ", dataTest);
 
 	// const [users, setUsers] = useState([]);
 	const [filteredUsers, setFilteredUsers] = useState([]);
@@ -100,10 +92,6 @@ export default function GetAllUsers() {
 
 		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
 
-		// const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
-		// can(decodedUser,"items:read:any")
-		// const isOwner = decodedUser.userId === userId;
-
 		// return hasRole;
 		return can(decodedUser, "users:read:any");
 	}, [decodedUser]);
@@ -125,21 +113,6 @@ export default function GetAllUsers() {
 			}
 		}
 	}, [userToken]);
-
-	// Initialize users and filtered users
-	// !!!!! old
-	// useEffect(() => {
-	// 	setPageLoading(loading);
-	// 	setFilteredUsers(users);
-
-	// 	// if (data) {
-	// 	// 	console.log(data.getAllUsers);
-	// 	// 	setUsers(data.getAllUsers);
-	// 	// 	setFilteredUsers(data.getAllUsers);
-	// 	// }
-
-	// 	// data, loading, setPageLoading
-	// }, [loading, setPageLoading, users]);
 
 	useEffect(() => {
 		setPageLoading(loading);
@@ -199,37 +172,6 @@ export default function GetAllUsers() {
 		return false;
 	};
 
-	// this needs to change (and also use the peers:delete:any , in the back end )
-
-	// const canDeleteUser = (logUser, targetUser) => {
-	// 	if (!logUser || !targetUser) return false;
-
-	// 	const isSelf = String(logUser.userId) === String(targetUser.id);
-	// 	const logRank = roleRank[logUser.role] ?? 0;
-	// 	const targetRank = roleRank[targetUser.role] ?? 0;
-
-	// 	if (isSelf) {
-	// 		return can(logUser, "users:delete:own");
-	// 	}
-
-	// 	const canAny = can(logUser, "users:delete:any");
-	// 	const canPeer = can(logUser, "peers:update:any", { targetRole: targetUser?.role });
-	// 	// const canDelete = can(logUser, "users:delete:any");
-
-	// 	if (!canAny && !canPeer) return false;
-
-	// 	if (logRank > targetRank) return canAny;
-
-	// 	if (logRank === targetRank && !canAny && !canPeer) return canAny && canPeer;
-
-	// 	return false;
-	// };
-
-	// console.log("this is the log users", jwtDecode(userToken));
-	// console.log("can delete self", can(jwtDecode(userToken), "users:delete:own"));
-	// console.log("can delete any", can(jwtDecode(userToken), "users:delete:any"));
-	// console.log("can delete peers", can(jwtDecode(userToken), "peers:delete:any"));
-
 	const canDeleteUser = (logUser, targetUser) => {
 		if (!logUser || !targetUser) return false;
 
@@ -261,6 +203,8 @@ export default function GetAllUsers() {
 		setSelectedUser(null);
 	};
 
+	// import { TableVirtuoso } from "react-virtuoso";
+
 	return (
 		<>
 			{loading ? (
@@ -284,94 +228,93 @@ export default function GetAllUsers() {
 					</div>
 
 					<div className="table-wrapper">
-						<div className="table-title">{/* <h2>{t("users")}</h2> */}</div>
-						<div className="table-scroll">
-							<table>
-								<thead>
-									<tr>
-										{logUser?.role == "headAdmin" && <th>ID</th>}
+						{/* <div className="table-scroll"> */}
 
-										<th onClick={() => handleSort("employeeNum")} className={`clickable-th ${sortKey === "employeeNum" ? "active-sort" : ""}`}>
-											# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
-										</th>
+						<TableVirtuoso
+							// style={{ height: "99%", width: "100%", borderRadius: "10px" }}
+							className="Table-Virtuoso"
+							data={filteredUsers} // HEADER
+							// components={{
+							// 	Table: (props) => <table {...props} style={{ tableLayout: "fixed", width: "90%" }} />,
+							// }}
+							fixedHeaderContent={() => (
+								<tr>
+									{logUser?.role === "headAdmin" && <th>ID</th>}
 
-										<th
-											onClick={() => handleSort("name")}
-											//  className="clickable-th"
-											className={`clickable-th ${sortKey === "name" ? "active-sort" : ""}`}>
-											{t("name")} {sortKey === "name" && (sortDir === "asc" ? "▾" : "▴")}
-										</th>
+									<th onClick={() => handleSort("employeeNum")} className={`clickable-th ${sortKey === "employeeNum" ? "active-sort" : ""}`}>
+										# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
+									</th>
 
-										<th
-											onClick={() => handleSort("email")}
-											// className="clickable-th"
-											className={`clickable-th ${sortKey === "email" ? "active-sort" : ""}`}>
-											{t("email")} {sortKey === "email" && (sortDir === "asc" ? "▾" : "▴")}
-										</th>
+									<th onClick={() => handleSort("name")} className={`clickable-th ${sortKey === "name" ? "active-sort" : ""}`}>
+										{t("name")} {sortKey === "name" && (sortDir === "asc" ? "▾" : "▴")}
+									</th>
 
-										<th>{t("role")}</th>
-										<th>{t("department")}</th>
-										<th>{t("action")}</th>
-									</tr>
-								</thead>
+									<th onClick={() => handleSort("email")} className={`clickable-th ${sortKey === "email" ? "active-sort" : ""}`}>
+										{t("email")} {sortKey === "email" && (sortDir === "asc" ? "▾" : "▴")}
+									</th>
 
-								<tbody>
-									{filteredUsers.map((user) => (
-										<tr key={user.id}>
-											{logUser?.role == "headAdmin" && (
-												<td>
-													<Link to={`/user/${user?.id}`}>{user?.id}</Link>
-												</td>
-											)}
+									<th>{t("role")}</th>
+									<th>{t("department")}</th>
+									<th>{t("action")}</th>
+								</tr>
+							)}
+							// ROWS -/ td
+							itemContent={(index, user) => (
+								<>
+									{logUser?.role === "headAdmin" && (
+										<td>
+											<Link to={`/user/${user?.id}`}>{user?.id}</Link>
+										</td>
+									)}
 
-											<td>{user.employeeNum ? <Link to={`/user/${user?.id}`}>{user?.employeeNum}</Link> : "N/A"}</td>
+									<td>{user.employeeNum ? <Link to={`/user/${user?.id}`}>{user.employeeNum}</Link> : "N/A"}</td>
 
-											<td>
-												<Link to={`/user/${user?.id}`}>{user?.name}</Link>
-											</td>
-											<td>
-												<Link to={`/user/${user?.id}`}>{user?.email}</Link>
-											</td>
-											<td>{user?.role}</td>
+									<td>
+										<Link to={`/user/${user?.id}`}>{user.name}</Link>
+									</td>
 
-											<td>{user?.department ? user?.department : "N/A"}</td>
-											<td>
-												{logUser ? (
-													canEditUser(logUser, user) || canDeleteUser(logUser, user) ? (
-														<div className="table-action-wrapper">
-															{canEditUser(logUser, user) && (
-																<Link to={`/admin/user/${user.id}/update`}>
-																	<span className="table-action first">{t("update")}</span>
-																</Link>
-															)}
+									<td>
+										<Link to={`/user/${user?.id}`}>{user.email}</Link>
+									</td>
 
-															{canDeleteUser(logUser, user) && (
-																<span
-																	className="table-action last"
-																	onClick={() => {
-																		setSelectedUser(user);
-																		setIsOpen(true);
-																	}}>
-																	{t("delete")}
-																</span>
-															)}
-														</div>
-													) : (
-														"N/A"
-													)
-												) : (
-													"N/A"
-												)}
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
+									<td>{user?.role}</td>
+
+									<td>{user?.department || "N/A"}</td>
+
+									<td>
+										{logUser ? (
+											canEditUser(logUser, user) || canDeleteUser(logUser, user) ? (
+												<div className="table-action-wrapper">
+													{canEditUser(logUser, user) && (
+														<Link to={`/admin/user/${user.id}/update`}>
+															<span className="table-action first">{t("update")}</span>
+														</Link>
+													)}
+
+													{canDeleteUser(logUser, user) && (
+														<span
+															className="table-action last"
+															onClick={() => {
+																setSelectedUser(user);
+																setIsOpen(true);
+															}}>
+															{t("delete")}
+														</span>
+													)}
+												</div>
+											) : (
+												"N/A"
+											)
+										) : (
+											"N/A"
+										)}
+									</td>
+								</>
+							)}
+						/>
+						{/* </div> */}
 					</div>
-					{/*  onClose={() => setIsOpen(false)} */}
-					{/* //NOTE - i lost connection to then subs when i use the new code to close the modal after deletion  if i go back tot he old code it works normaly but the modal does not close  so figure out how to close the modal with out  breaking the subs  */}
-					{/* <Modal isOpen={isOpen} onClose={closeModal} data={selectedUser} setIsOpen={setIsOpen} /> */}
+
 					<Modal isOpen={isOpen} onClose={closeModal} data={selectedUser} setIsOpen={setIsOpen} setSelectedUser={setSelectedUser} />
 				</div>
 			)}
@@ -379,3 +322,90 @@ export default function GetAllUsers() {
 		</>
 	);
 }
+
+// <div className="table-wrapper">
+// 	<div className="table-title">{/* <h2>{t("users")}</h2> */}</div>
+// 	<div className="table-scroll">
+// 		<table>
+// 			<thead>
+// 				<tr>
+// 					{logUser?.role == "headAdmin" && <th>ID</th>}
+
+// 					<th onClick={() => handleSort("employeeNum")} className={`clickable-th ${sortKey === "employeeNum" ? "active-sort" : ""}`}>
+// 						# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
+// 					</th>
+
+// 					<th
+// 						onClick={() => handleSort("name")}
+// 						//  className="clickable-th"
+// 						className={`clickable-th ${sortKey === "name" ? "active-sort" : ""}`}>
+// 						{t("name")} {sortKey === "name" && (sortDir === "asc" ? "▾" : "▴")}
+// 					</th>
+
+// 					<th
+// 						onClick={() => handleSort("email")}
+// 						// className="clickable-th"
+// 						className={`clickable-th ${sortKey === "email" ? "active-sort" : ""}`}>
+// 						{t("email")} {sortKey === "email" && (sortDir === "asc" ? "▾" : "▴")}
+// 					</th>
+
+// 					<th>{t("role")}</th>
+// 					<th>{t("department")}</th>
+// 					<th>{t("action")}</th>
+// 				</tr>
+// 			</thead>
+
+// 			<tbody>
+// 				{filteredUsers.map((user) => (
+// 					<tr key={user.id}>
+// 						{logUser?.role == "headAdmin" && (
+// 							<td>
+// 								<Link to={`/user/${user?.id}`}>{user?.id}</Link>
+// 							</td>
+// 						)}
+
+// 						<td>{user.employeeNum ? <Link to={`/user/${user?.id}`}>{user?.employeeNum}</Link> : "N/A"}</td>
+
+// 						<td>
+// 							<Link to={`/user/${user?.id}`}>{user?.name}</Link>
+// 						</td>
+// 						<td>
+// 							<Link to={`/user/${user?.id}`}>{user?.email}</Link>
+// 						</td>
+// 						<td>{user?.role}</td>
+
+// 						<td>{user?.department ? user?.department : "N/A"}</td>
+// 						<td>
+// 							{logUser ? (
+// 								canEditUser(logUser, user) || canDeleteUser(logUser, user) ? (
+// 									<div className="table-action-wrapper">
+// 										{canEditUser(logUser, user) && (
+// 											<Link to={`/admin/user/${user.id}/update`}>
+// 												<span className="table-action first">{t("update")}</span>
+// 											</Link>
+// 										)}
+
+// 										{canDeleteUser(logUser, user) && (
+// 											<span
+// 												className="table-action last"
+// 												onClick={() => {
+// 													setSelectedUser(user);
+// 													setIsOpen(true);
+// 												}}>
+// 												{t("delete")}
+// 											</span>
+// 										)}
+// 									</div>
+// 								) : (
+// 									"N/A"
+// 								)
+// 							) : (
+// 								"N/A"
+// 							)}
+// 						</td>
+// 					</tr>
+// 				))}
+// 			</tbody>
+// 		</table>
+// 	</div>
+// </div>

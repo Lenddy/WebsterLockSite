@@ -13,6 +13,7 @@ import { useAuth } from "../../../context/AuthContext";
 import { can } from "../../utilities/can";
 import { STORAGE_KEYS } from "../../utilities/activeTabs";
 import { toast } from "react-toastify";
+import { TableVirtuoso } from "react-virtuoso";
 
 export default function AdminItemUsage() {
 	const { userToken, setPageLoading, setWsDisconnected } = useAuth(); // get token from context
@@ -246,6 +247,8 @@ export default function AdminItemUsage() {
 
 	const isItemView = !!itemName && !userId;
 	const isUserView = !!itemName && !!userId;
+	console.log("this is the isItemView data", isItemView);
+	console.log("this is the isUserView data ", isUserView);
 
 	// Combine filters and search
 	const finalUsage = useMemo(() => {
@@ -445,6 +448,8 @@ export default function AdminItemUsage() {
 		});
 	}, [searchFilteredData, sortKey, sortDir]);
 
+	console.log("this is the sortedData data", sortedData);
+
 	return (
 		<>
 			{loading ? (
@@ -520,87 +525,98 @@ export default function AdminItemUsage() {
 
 					{/* Results Table */}
 					<div className="table-wrapper">
-						<div className="table-scroll">
-							<table>
-								<thead>
-									<tr>
-										{!itemName && (
-											<>
-												<th onClick={() => handleSort("itemName")} className="clickable-th">
-													{t("item-name")} {sortKey === "itemName" && (sortDir === "asc" ? "▾" : "▴")}
-												</th>
-												<th onClick={() => handleSort("total")} className="clickable-th">
-													{t("total-used")} {sortKey === "total" && (sortDir === "asc" ? "▾" : "▴")}
-												</th>
-											</>
-										)}
+						{/* <div className="table-scroll"> */}
 
-										{/* LEVEL 2 */}
-										{isItemView && (
-											<>
-												<th onClick={() => handleSort("name")} className="clickable-th">
-													{t("name")} {sortKey === "name" && (sortDir === "asc" ? "▾" : "▴")}
-												</th>
-												<th onClick={() => handleSort("total")} className="clickable-th">
-													{t("total-used")} {sortKey === "total" && (sortDir === "asc" ? "▾" : "▴")}
-												</th>
-											</>
-										)}
+						<TableVirtuoso
+							// style={{ height: "500px" }}
+							data={sortedData}
+							className="Table-Virtuoso"
+							// HEADER
+							fixedHeaderContent={() => (
+								<tr>
+									{/* <th>Name</th>
+									<th>Total</th>
+									{isUserView && <th>Date</th>} */}
 
-										{/* LEVEL 3 */}
-										{isUserView && (
-											<>
-												<th>{t("name")}</th>
-												<th onClick={() => handleSort("quantity")} className="clickable-th">
-													{t("quantity")} {sortKey === "quantity" && (sortDir === "asc" ? "▾" : "▴")}
-												</th>
-												<th onClick={() => handleSort("date")} className="clickable-th">
-													{t("date")} {sortKey === "date" && (sortDir === "asc" ? "▾" : "▴")}
-												</th>
-											</>
-										)}
+									{!itemName && (
+										<>
+											<th onClick={() => handleSort("itemName")} className="clickable-th">
+												{t("item-name")} {sortKey === "itemName" && (sortDir === "asc" ? "▾" : "▴")}
+											</th>
+											<th onClick={() => handleSort("total")} className="clickable-th">
+												{t("total-used")} {sortKey === "total" && (sortDir === "asc" ? "▾" : "▴")}
+											</th>
+										</>
+									)}
 
-										{/* </tr>
-										</thead> */}
-									</tr>
-								</thead>
+									{/* LEVEL 2 */}
+									{isItemView && (
+										<>
+											<th onClick={() => handleSort("name")} className="clickable-th">
+												{t("name")} {sortKey === "name" && (sortDir === "asc" ? "▾" : "▴")}
+											</th>
+											<th onClick={() => handleSort("total")} className="clickable-th">
+												{t("total-used")} {sortKey === "total" && (sortDir === "asc" ? "▾" : "▴")}
+											</th>
+										</>
+									)}
 
-								<tbody>
-									{/* LEVEL 1 → Items */}
-									{!itemName &&
-										sortedData.map((row) => (
-											<tr key={row.itemName}>
-												<td>
-													<Link to={`/admin/material/item/usage/${encodeURIComponent(row.itemName)}`}>{row.itemName}</Link>
-												</td>
-												<td>{row.total}</td>
-											</tr>
-										))}
+									{/* LEVEL 3 */}
+									{isUserView && (
+										<>
+											<th>{t("name")}</th>
+											<th onClick={() => handleSort("quantity")} className="clickable-th">
+												{t("quantity")} {sortKey === "quantity" && (sortDir === "asc" ? "▾" : "▴")}
+											</th>
+											<th onClick={() => handleSort("date")} className="clickable-th">
+												{t("date")} {sortKey === "date" && (sortDir === "asc" ? "▾" : "▴")}
+											</th>
+										</>
+									)}
+								</tr>
+							)}
+							// ROWS
+							itemContent={(index, row) => {
+								// LEVEL 1 → Items
+								if (!itemName) {
+									return (
+										<>
+											<td>
+												<Link to={`/admin/material/item/usage/${encodeURIComponent(row.itemName)}`}>{row.itemName}</Link>
+											</td>
+											<td>{row.total}</td>
+										</>
+									);
+								}
 
-									{/* LEVEL 2 → Users for that item */}
-									{isItemView &&
-										sortedData.map((row) => (
-											<tr key={row.userId}>
-												<td>
-													<Link to={`/admin/material/item/usage/${encodeURIComponent(itemName)}/${row.userId}`}>{row.name}</Link>
-												</td>
-												<td>{row.total}</td>
-											</tr>
-										))}
+								// LEVEL 2 → Users
+								if (isItemView) {
+									return (
+										<>
+											<td>
+												<Link to={`/admin/material/item/usage/${encodeURIComponent(itemName)}/${row.userId}`}>{row.name}</Link>
+											</td>
+											<td>{row.total}</td>
+										</>
+									);
+								}
 
-									{/* LEVEL 3 → Individual entries */}
-									{isUserView &&
-										sortedData.map((row, index) => (
-											<tr key={index}>
-												<td>{row.name}</td>
-												<td>{row.quantity}</td>
-												<td>{dayjs(row.date).format("YYYY-MM-DD")}</td>
-											</tr>
-										))}
-								</tbody>
-							</table>
-						</div>
+								// LEVEL 3 → Entries
+								if (isUserView) {
+									return (
+										<>
+											<td>{row.name}</td>
+											<td>{row.quantity}</td>
+											<td>{dayjs(row.date).format("YYYY-MM-DD")}</td>
+										</>
+									);
+								}
+
+								return null;
+							}}
+						/>
 					</div>
+					{/* </div> */}
 				</div>
 			)}
 
@@ -608,6 +624,174 @@ export default function AdminItemUsage() {
 		</>
 	);
 }
+
+// 			<table>
+// 				<thead>
+// 					<tr>
+// 						{!itemName && (
+// 							<>
+// 								<th onClick={() => handleSort("itemName")} className="clickable-th">
+// 									{t("item-name")} {sortKey === "itemName" && (sortDir === "asc" ? "▾" : "▴")}
+// 								</th>
+// 								<th onClick={() => handleSort("total")} className="clickable-th">
+// 									{t("total-used")} {sortKey === "total" && (sortDir === "asc" ? "▾" : "▴")}
+// 								</th>
+// 							</>
+// 						)}
+
+// 						{/* LEVEL 2 */}
+// 						{isItemView && (
+// 							<>
+// 								<th onClick={() => handleSort("name")} className="clickable-th">
+// 									{t("name")} {sortKey === "name" && (sortDir === "asc" ? "▾" : "▴")}
+// 								</th>
+// 								<th onClick={() => handleSort("total")} className="clickable-th">
+// 									{t("total-used")} {sortKey === "total" && (sortDir === "asc" ? "▾" : "▴")}
+// 								</th>
+// 							</>
+// 						)}
+
+// 						{/* LEVEL 3 */}
+// 						{isUserView && (
+// 							<>
+// 								<th>{t("name")}</th>
+// 								<th onClick={() => handleSort("quantity")} className="clickable-th">
+// 									{t("quantity")} {sortKey === "quantity" && (sortDir === "asc" ? "▾" : "▴")}
+// 								</th>
+// 								<th onClick={() => handleSort("date")} className="clickable-th">
+// 									{t("date")} {sortKey === "date" && (sortDir === "asc" ? "▾" : "▴")}
+// 								</th>
+// 							</>
+// 						)}
+
+// 						{/* </tr>
+// </thead> */}
+// 					</tr>
+// 				</thead>
+
+// 				<tbody>
+// 					{/* LEVEL 1 → Items */}
+// 					{!itemName &&
+// 						sortedData.map((row) => (
+// 							<tr key={row.itemName}>
+// 								<td>
+// 									<Link to={`/admin/material/item/usage/${encodeURIComponent(row.itemName)}`}>{row.itemName}</Link>
+// 								</td>
+// 								<td>{row.total}</td>
+// 							</tr>
+// 						))}
+
+// 					{/* LEVEL 2 → Users for that item */}
+// 					{isItemView &&
+// 						sortedData.map((row) => (
+// 							<tr key={row.userId}>
+// 								<td>
+// 									<Link to={`/admin/material/item/usage/${encodeURIComponent(itemName)}/${row.userId}`}>{row.name}</Link>
+// 								</td>
+// 								<td>{row.total}</td>
+// 							</tr>
+// 						))}
+
+// 					{/* LEVEL 3 → Individual entries */}
+// 					{isUserView &&
+// 						sortedData.map((row, index) => (
+// 							<tr key={index}>
+// 								<td>{row.name}</td>
+// 								<td>{row.quantity}</td>
+// 								<td>{dayjs(row.date).format("YYYY-MM-DD")}</td>
+// 							</tr>
+// 						))}
+// 				</tbody>
+// 			</table>
+
+// {/* <TableVirtuoso
+// 							style={{ height: "99%", width: "100%", borderRadius: "10px" }}
+// 							// className="Table-Virtuoso"
+// 							data={sortedData} // HEADER
+// 							fixedHeaderContent={() => (
+// 								<tr>
+// 									{!itemName && (
+// 										<>
+// 											<th onClick={() => handleSort("itemName")} className="clickable-th">
+// 												{t("item-name")} {sortKey === "itemName" && (sortDir === "asc" ? "▾" : "▴")}
+// 											</th>
+// 											<th onClick={() => handleSort("total")} className="clickable-th">
+// 												{t("total-used")} {sortKey === "total" && (sortDir === "asc" ? "▾" : "▴")}
+// 											</th>
+// 										</>
+// 									)}
+// 									// {/* LEVEL 2 */}
+// 									{isItemView && (
+// 										<>
+// 											<th onClick={() => handleSort("name")} className="clickable-th">
+// 												{t("name")} {sortKey === "name" && (sortDir === "asc" ? "▾" : "▴")}
+// 											</th>
+// 											<th onClick={() => handleSort("total")} className="clickable-th">
+// 												{t("total-used")} {sortKey === "total" && (sortDir === "asc" ? "▾" : "▴")}
+// 											</th>
+// 										</>
+// 									)}
+// 									{/* LEVEL 3 */}
+// 									{isUserView && (
+// 										<>
+// 											<th>{t("name")}</th>
+// 											<th onClick={() => handleSort("quantity")} className="clickable-th">
+// 												{t("quantity")} {sortKey === "quantity" && (sortDir === "asc" ? "▾" : "▴")}
+// 											</th>
+// 											<th onClick={() => handleSort("date")} className="clickable-th">
+// 												{t("date")} {sortKey === "date" && (sortDir === "asc" ? "▾" : "▴")}
+// 											</th>
+// 										</>
+// 									)}
+// 									{/* </tr>
+// 										</thead> */}
+// 								</tr>
+// 							)}
+// 							// ROWS -/ td
+// 							itemContent={(index, info) => (
+// 								<>
+// 									{/* LEVEL 1 → Items */}
+// 									{!info.itemName &&
+// 										sortedData.map((info) => (
+// 											<tr key={info.itemName}>
+// 												<td>
+// 													<Link to={`/admin/material/item/usage/${encodeURIComponent(row.itemName)}`}>{info.itemName}</Link>
+// 												</td>
+// 												<td>{info.total}</td>
+// 											</tr>
+// 										))}
+// 									// {/* LEVEL 2 → Users for that item */}
+// 									{info.isItemView &&
+// 										sortedData.map((row) => (
+// 											<tr key={row.userId}>
+// 												<td>
+// 													<Link to={`/admin/material/item/usage/${encodeURIComponent(itemName)}/${row.userId}`}>{row.name}</Link>
+// 												</td>
+// 												<td>{row.total}</td>
+// 											</tr>
+// 										))}
+// 									{/* LEVEL 3 → Individual entries */}
+// 									{info.isUserView &&
+// 										sortedData.map((row, index) => (
+// 											<tr key={index}>
+// 												<td>{row.name}</td>
+// 												<td>{row.quantity}</td>
+// 												<td>{dayjs(row.date).format("YYYY-MM-DD")}</td>
+// 											</tr>
+// 										))}
+// 								</>
+// 							)}
+// 						/> */}
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 // Object.entries(usageData).map(([name, total]) => (
 //   <tr key={name}>
@@ -619,3 +803,82 @@ export default function AdminItemUsage() {
 //     <td>{total}</td>
 //   </tr>
 // ))
+
+// <table>
+// 	<thead>
+// 		<tr>
+// 			{!itemName && (
+// 				<>
+// 					<th onClick={() => handleSort("itemName")} className="clickable-th">
+// 						{t("item-name")} {sortKey === "itemName" && (sortDir === "asc" ? "▾" : "▴")}
+// 					</th>
+// 					<th onClick={() => handleSort("total")} className="clickable-th">
+// 						{t("total-used")} {sortKey === "total" && (sortDir === "asc" ? "▾" : "▴")}
+// 					</th>
+// 				</>
+// 			)}
+
+// 			{/* LEVEL 2 */}
+// 			{isItemView && (
+// 				<>
+// 					<th onClick={() => handleSort("name")} className="clickable-th">
+// 						{t("name")} {sortKey === "name" && (sortDir === "asc" ? "▾" : "▴")}
+// 					</th>
+// 					<th onClick={() => handleSort("total")} className="clickable-th">
+// 						{t("total-used")} {sortKey === "total" && (sortDir === "asc" ? "▾" : "▴")}
+// 					</th>
+// 				</>
+// 			)}
+
+// 			{/* LEVEL 3 */}
+// 			{isUserView && (
+// 				<>
+// 					<th>{t("name")}</th>
+// 					<th onClick={() => handleSort("quantity")} className="clickable-th">
+// 						{t("quantity")} {sortKey === "quantity" && (sortDir === "asc" ? "▾" : "▴")}
+// 					</th>
+// 					<th onClick={() => handleSort("date")} className="clickable-th">
+// 						{t("date")} {sortKey === "date" && (sortDir === "asc" ? "▾" : "▴")}
+// 					</th>
+// 				</>
+// 			)}
+
+// 			{/* </tr>
+// 			</thead> */}
+// 		</tr>
+// 	</thead>
+
+// 	<tbody>
+// 		{/* LEVEL 1 → Items */}
+// 		{!itemName &&
+// 			sortedData.map((row) => (
+// 				<tr key={row.itemName}>
+// 					<td>
+// 						<Link to={`/admin/material/item/usage/${encodeURIComponent(row.itemName)}`}>{row.itemName}</Link>
+// 					</td>
+// 					<td>{row.total}</td>
+// 				</tr>
+// 			))}
+
+// 		{/* LEVEL 2 → Users for that item */}
+// 		{isItemView &&
+// 			sortedData.map((row) => (
+// 				<tr key={row.userId}>
+// 					<td>
+// 						<Link to={`/admin/material/item/usage/${encodeURIComponent(itemName)}/${row.userId}`}>{row.name}</Link>
+// 					</td>
+// 					<td>{row.total}</td>
+// 				</tr>
+// 			))}
+
+// 		{/* LEVEL 3 → Individual entries */}
+// 		{isUserView &&
+// 			sortedData.map((row, index) => (
+// 				<tr key={index}>
+// 					<td>{row.name}</td>
+// 					<td>{row.quantity}</td>
+// 					<td>{dayjs(row.date).format("YYYY-MM-DD")}</td>
+// 				</tr>
+// 			))}
+// 	</tbody>
+// </table>

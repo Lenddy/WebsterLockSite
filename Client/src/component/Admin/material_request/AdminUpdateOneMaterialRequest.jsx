@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import { useItemGroups } from "../../../context/ItemGroupContext";
+import VirtualizedMenuList from "../../utilities/VirtualizedMenuList";
 
 function AdminUpdateOneMaterialRequest() {
 	const { userToken, loading: authLoading, setWsDisconnected } = useAuth();
@@ -62,9 +63,9 @@ function AdminUpdateOneMaterialRequest() {
 		// }
 	);
 
-	console.log("this is the mr data", mRData.getOneMaterialRequest.approvalStatus.isApproved);
+	// console.log("this is the mr data", mRData.getOneMaterialRequest.approvalStatus.isApproved);
 
-	console.log("this is the mr data", mRData.getOneMaterialRequest.requester.userId);
+	// console.log("this is the mr data", mRData.getOneMaterialRequest.requester.userId);
 
 	// TODO find out why the delete one material request is not working
 	const deleteRequest = async (e) => {
@@ -182,30 +183,30 @@ function AdminUpdateOneMaterialRequest() {
 		[itemGroups]
 	);
 
-	function VirtualizedMenuList({ options, children, maxHeight }) {
-		const childrenArray = React.Children.toArray(children || []);
-		const rowHeight = useDynamicRowHeight({
-			defaultRowHeight: 50,
-		});
+	// function VirtualizedMenuList({ options, children, maxHeight }) {
+	// 	const childrenArray = React.Children.toArray(children || []);
+	// 	const rowHeight = useDynamicRowHeight({
+	// 		defaultRowHeight: 50,
+	// 	});
 
-		if (!childrenArray.length) {
-			return null;
-		}
+	// 	if (!childrenArray.length) {
+	// 		return null;
+	// 	}
 
-		return (
-			<List
-				style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
-				rowCount={children.length || 0}
-				rowHeight={rowHeight} //old 35
-				rowProps={{}}
-				rowComponent={({ index, style, rowProps }) => {
-					const item = children[index];
-					// ?.props?.data?.label
-					return <div style={{ ...style, display: "flex", borderBottom: " dashed 1px black" }}>{item}</div>;
-				}}
-			/>
-		);
-	}
+	// 	return (
+	// 		<List
+	// 			style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
+	// 			rowCount={children.length || 0}
+	// 			rowHeight={rowHeight} //old 35
+	// 			rowProps={{}}
+	// 			rowComponent={({ index, style, rowProps }) => {
+	// 				const item = children[index];
+	// 				// ?.props?.data?.label
+	// 				return <div style={{ ...style, display: "flex", borderBottom: " dashed 1px black" }}>{item}</div>;
+	// 			}}
+	// 		/>
+	// 	);
+	// }
 
 	const filteredAllItems = useMemo(() => {
 		console.log(" debouncedSearch:", debouncedSearch);
@@ -594,6 +595,9 @@ function AdminUpdateOneMaterialRequest() {
 										classNamePrefix={"update-form-row-select"}
 										options={brands}
 										value={row.brand}
+										components={{
+											MenuList: VirtualizedMenuList,
+										}}
 										onChange={(val) => handleRowChange(idx, "brand", val)}
 										placeholder={t("filter-brand")}
 										isClearable
@@ -658,7 +662,9 @@ function AdminUpdateOneMaterialRequest() {
 											filterOption={() => true}
 											isClearable
 											isSearchable
-											components={{ MenuList: VirtualizedMenuList }}
+											components={{
+												MenuList: VirtualizedMenuList,
+											}}
 											styles={{
 												control: (base) => ({
 													...base,

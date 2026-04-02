@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { useMaterialRequests } from "../../../src/context/MaterialRequestContext";
 import { STORAGE_KEYS } from "../utilities/activeTabs";
 import { can } from "../utilities/can";
+import { TableVirtuoso } from "react-virtuoso";
 
 export default function GetAllMaterialRequest() {
 	const { userToken, setPageLoading } = useAuth();
@@ -253,89 +254,164 @@ export default function GetAllMaterialRequest() {
 							</div>
 						</div>
 
-						<div className="table-scroll">
-							<table>
-								<thead>
-									<tr>
-										{jwtDecode(userToken)?.role == "headAdmin" && <th>ID</th>}
+						{/* <div className="table-scroll"> */}
+						<TableVirtuoso
+							style={{
+								height: "95%",
+								// backgroundColor: "green",
+							}}
+							className="Table-Virtuoso"
+							data={filteredMRequests} // HEADER
+							fixedHeaderContent={() => (
+								<tr>
+									{jwtDecode(userToken)?.role == "headAdmin" && <th>ID</th>}
 
-										<th onClick={() => handleSort("employeeNum")} className={`clickable-th ${sortKey === "employeeNum" ? "active-sort" : ""}`}>
-											# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
-										</th>
+									<th onClick={() => handleSort("employeeNum")} className={`clickable-th ${sortKey === "employeeNum" ? "active-sort" : ""}`}>
+										# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
+									</th>
 
-										<th onClick={() => handleSort("requesterName")} className={`clickable-th ${sortKey === "requesterName" ? "active-sort" : ""}`}>
-											{t("requestors-name")} {sortKey === "requesterName" && (sortDir === "asc" ? "▾" : "▴")}
-										</th>
+									<th onClick={() => handleSort("requesterName")} className={`clickable-th ${sortKey === "requesterName" ? "active-sort" : ""}`}>
+										{t("requestors-name")} {sortKey === "requesterName" && (sortDir === "asc" ? "▾" : "▴")}
+									</th>
 
-										<th onClick={() => handleSort("addedDate")} className={`clickable-th ${sortKey === "addedDate" ? "active-sort" : ""}`}>
-											{t("requested-date")} {sortKey === "addedDate" && (sortDir === "asc" ? "▾" : "▴")}
-										</th>
+									<th onClick={() => handleSort("addedDate")} className={`clickable-th ${sortKey === "addedDate" ? "active-sort" : ""}`}>
+										{t("requested-date")} {sortKey === "addedDate" && (sortDir === "asc" ? "▾" : "▴")}
+									</th>
 
-										<th>{t("approval")}</th>
-										<th>{t("description")}</th>
+									<th>{t("approval")}</th>
+									<th>{t("description")}</th>
 
-										<th>{t("action")}</th>
-									</tr>
-								</thead>
-								<tbody>
-									{filteredMRequests.length !== 0 ? (
-										filteredMRequests.map((request) => (
-											<tr key={request?.id}>
-												{jwtDecode(userToken)?.role == "headAdmin" && (
-													<td>
-														<Link to={`/material/request/${request?.id}`}>{request?.id}</Link>
-													</td>
-												)}
-												<td>
-													<Link to={`/material/request/${request?.id}`}>{request?.requester?.employeeNum ? request?.requester?.employeeNum : "N/A"}</Link>
-												</td>
-												<td>
-													<Link to={`/material/request/${request?.id}`}>{request?.requester?.name}</Link>
-												</td>
-												<td>{formatDate(request?.addedDate)}</td>
-
-												<td>
-													<p className={`${request?.approvalStatus?.isApproved === null ? "waiting-approval" : request?.approvalStatus?.isApproved === true ? "approved" : "denied"}`}>{request?.approvalStatus?.isApproved === null ? t("waiting-for-approval") : request?.approvalStatus?.isApproved === true ? t("Approved") : t("Denied")}</p>
-												</td>
-												{/* <td>{request?.description}</td> */}
-												<td>{request?.items[0]?.itemDescription}</td>
-
-												{/* <td>{dayjs(Number(request?.addedDate)).format("YYYY-MM-DD")}</td> */}
-
-												{/* <td>{request?.items?.length}</td> */}
-												<td>
-													<div className="table-action-wrapper">
-														{canReview() ? (
-															<Link to={`/material/request/${request?.id}/update`}>
-																<span className="table-action first">{t("review")}</span>
-															</Link>
-														) : request?.approvalStatus?.isApproved === null ? (
-															<Link to={`/material/request/${request?.id}/update`}>
-																<span className="table-action first">{t("update request")}</span>
-															</Link>
-														) : (
-															<Link to={`/material/request/${request?.id}`}>
-																<span className="table-action second">{t("view")}</span>
-															</Link>
-														)}
-													</div>
-												</td>
-											</tr>
-										))
-									) : (
-										<tr>
-											<td colSpan={7} style={{ textAlign: "center" }}>
-												<h1>N/A</h1>
-											</td>
-										</tr>
+									<th>{t("action")}</th>
+								</tr>
+							)}
+							// ROWS -/ td
+							itemContent={(index, request) => (
+								<>
+									{jwtDecode(userToken)?.role == "headAdmin" && (
+										<td>
+											<Link to={`/material/request/${request?.id}`}>{request?.id}</Link>
+										</td>
 									)}
-								</tbody>
-							</table>
-						</div>
+									<td>
+										<Link to={`/material/request/${request?.id}`}>{request?.requester?.employeeNum ? request?.requester?.employeeNum : "N/A"}</Link>
+									</td>
+									<td>
+										<Link to={`/material/request/${request?.id}`}>{request?.requester?.name}</Link>
+									</td>
+									<td>{formatDate(request?.addedDate)}</td>
+
+									<td>
+										<p className={`${request?.approvalStatus?.isApproved === null ? "waiting-approval" : request?.approvalStatus?.isApproved === true ? "approved" : "denied"}`}>{request?.approvalStatus?.isApproved === null ? t("waiting-for-approval") : request?.approvalStatus?.isApproved === true ? t("Approved") : t("Denied")}</p>
+									</td>
+									{/* <td>{request?.description}</td> */}
+									<td>{request?.items[0]?.itemDescription}</td>
+
+									{/* <td>{dayjs(Number(request?.addedDate)).format("YYYY-MM-DD")}</td> */}
+
+									{/* <td>{request?.items?.length}</td> */}
+									<td>
+										<div className="table-action-wrapper">
+											{canReview() ? (
+												<Link to={`/material/request/${request?.id}/update`}>
+													<span className="table-action first">{t("review")}</span>
+												</Link>
+											) : request?.approvalStatus?.isApproved === null ? (
+												<Link to={`/material/request/${request?.id}/update`}>
+													<span className="table-action first">{t("update request")}</span>
+												</Link>
+											) : (
+												<Link to={`/material/request/${request?.id}`}>
+													<span className="table-action second">{t("view")}</span>
+												</Link>
+											)}
+										</div>
+									</td>
+								</>
+							)}
+						/>
 					</div>
+					{/* </div> */}
 				</div>
 			)}
 			{error && <p style={{ color: "red" }}>{error.message}</p>}
 		</>
 	);
 }
+
+// <table>
+// 	<thead>
+// 		<tr>
+// 			{jwtDecode(userToken)?.role == "headAdmin" && <th>ID</th>}
+
+// 			<th onClick={() => handleSort("employeeNum")} className={`clickable-th ${sortKey === "employeeNum" ? "active-sort" : ""}`}>
+// 				# {sortKey === "employeeNum" && (sortDir === "asc" ? "▾" : "▴")}
+// 			</th>
+
+// 			<th onClick={() => handleSort("requesterName")} className={`clickable-th ${sortKey === "requesterName" ? "active-sort" : ""}`}>
+// 				{t("requestors-name")} {sortKey === "requesterName" && (sortDir === "asc" ? "▾" : "▴")}
+// 			</th>
+
+// 			<th onClick={() => handleSort("addedDate")} className={`clickable-th ${sortKey === "addedDate" ? "active-sort" : ""}`}>
+// 				{t("requested-date")} {sortKey === "addedDate" && (sortDir === "asc" ? "▾" : "▴")}
+// 			</th>
+
+// 			<th>{t("approval")}</th>
+// 			<th>{t("description")}</th>
+
+// 			<th>{t("action")}</th>
+// 		</tr>
+// 	</thead>
+// 	<tbody>
+// 		{filteredMRequests.length !== 0 ? (
+// 			filteredMRequests.map((request) => (
+// 				<tr key={request?.id}>
+// 					{jwtDecode(userToken)?.role == "headAdmin" && (
+// 						<td>
+// 							<Link to={`/material/request/${request?.id}`}>{request?.id}</Link>
+// 						</td>
+// 					)}
+// 					<td>
+// 						<Link to={`/material/request/${request?.id}`}>{request?.requester?.employeeNum ? request?.requester?.employeeNum : "N/A"}</Link>
+// 					</td>
+// 					<td>
+// 						<Link to={`/material/request/${request?.id}`}>{request?.requester?.name}</Link>
+// 					</td>
+// 					<td>{formatDate(request?.addedDate)}</td>
+
+// 					<td>
+// 						<p className={`${request?.approvalStatus?.isApproved === null ? "waiting-approval" : request?.approvalStatus?.isApproved === true ? "approved" : "denied"}`}>{request?.approvalStatus?.isApproved === null ? t("waiting-for-approval") : request?.approvalStatus?.isApproved === true ? t("Approved") : t("Denied")}</p>
+// 					</td>
+// 					{/* <td>{request?.description}</td> */}
+// 					<td>{request?.items[0]?.itemDescription}</td>
+
+// 					{/* <td>{dayjs(Number(request?.addedDate)).format("YYYY-MM-DD")}</td> */}
+
+// 					{/* <td>{request?.items?.length}</td> */}
+// 					<td>
+// 						<div className="table-action-wrapper">
+// 							{canReview() ? (
+// 								<Link to={`/material/request/${request?.id}/update`}>
+// 									<span className="table-action first">{t("review")}</span>
+// 								</Link>
+// 							) : request?.approvalStatus?.isApproved === null ? (
+// 								<Link to={`/material/request/${request?.id}/update`}>
+// 									<span className="table-action first">{t("update request")}</span>
+// 								</Link>
+// 							) : (
+// 								<Link to={`/material/request/${request?.id}`}>
+// 									<span className="table-action second">{t("view")}</span>
+// 								</Link>
+// 							)}
+// 						</div>
+// 					</td>
+// 				</tr>
+// 			))
+// 		) : (
+// 			<tr>
+// 				<td colSpan={7} style={{ textAlign: "center" }}>
+// 					<h1>N/A</h1>
+// 				</td>
+// 			</tr>
+// 		)}
+// 	</tbody>
+// </table>

@@ -8,7 +8,42 @@ import { can } from "../component/utilities/can";
 
 const ItemGroupsContext = createContext();
 
+/**
+ * ItemGroupsProvider Component
+ * 
+ * A context provider that manages item groups data with real-time synchronization.
+ * Handles authentication, data fetching, and subscription-based updates.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child components to wrap with the provider
+ * 
+ * @returns {JSX.Element} Provider component wrapping children with ItemGroupsContext
+ * 
+ * @description
+ * This provider:
+ * - Waits for user authentication before fetching data
+ * - Fetches all item groups via GraphQL query with cache-and-network strategy
+ * - Maintains real-time synchronization via WebSocket subscription
+ * - Handles CRUD operations (create, update, delete) on item groups
+ * - Keeps local state and Apollo cache in sync
+ * - Sorts item groups alphabetically by brand name
+ * - Detects WebSocket disconnections and notifies parent context
+ * 
+ * @context ItemGroupsContext
+ * @contextValue {Object} value
+ * @contextValue {Array<Object>} value.items - Sorted array of item group objects
+ * @contextValue {boolean} value.loading - Loading state (auth or query loading)
+ * @contextValue {Error|null} value.error - GraphQL query error if any
+ * 
+ * @example
+ * // Usage in app
+ * <ItemGroupsProvider>
+ *   <YourComponent />
+ * </ItemGroupsProvider>
+ */
 export function ItemGroupsProvider({ children }) {
+
 	const { loading: authLoading, userToken, setWsDisconnected } = useAuth(); // wait for token
 	const [items, setItems] = useState([]);
 

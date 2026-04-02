@@ -15,7 +15,7 @@ import { can } from "../utilities/can";
 
 export default function LogIn({ screenWidth }) {
 	const { setUserToken, userToken } = useAuth(); //  get setter from context
-	const [info, setInfo] = useState({});
+	const [info, setInfo] = useState({}); //stores the info to be send to the back end
 	const [blockInput, setBlockInput] = useState({});
 	const navigate = useNavigate();
 	const [logInUser, { data, loading, error }] = useMutation(log_In_user);
@@ -47,12 +47,12 @@ export default function LogIn({ screenWidth }) {
 		if (name.length > 0 && value.length > 0) setBlockInput(false);
 	};
 
+	// submiting information for user to log in
 	const submit = async (e) => {
 		e.preventDefault();
 
-		//REVIEW - me the bank end send  error messages that are appropriate for the  users  (send info that the users and other devs can understand (one for the uses and the other for the devs ))
-
 		try {
+			// grabbing variables that are to be submited so the users can log in
 			const { data } = await logInUser({
 				variables: {
 					input: {
@@ -61,103 +61,50 @@ export default function LogIn({ screenWidth }) {
 					},
 				},
 			});
-
+			// garbing the users token
 			const token = data?.loginUser?.token;
+
 			if (token) {
 				// Check if a token already exists
 				const existingToken = localStorage.getItem("userToken");
 				if (existingToken) {
-					// console.log("removing old token from log in ", new Date());
 					// Automatically log out the previous user
 					localStorage.removeItem("userToken");
 					setUserToken(null); // reset context
 
-					// Notify user
+					// Notify user that the previous users was log out
 					toast.warn(t("previous-session-was-logged-out-to-allow-this-login"), { autoClose: 5000 });
 				}
 
 				// Save new token
-				// console.log("adding new token from log in ", new Date());
 				localStorage.setItem("userToken", token);
 				setUserToken(token);
 
 				// Decode quickly to check role
 				const decoded = jwtDecode(token);
-				// console.log("Decoded token:", decoded);
 
-				// Redirect based on role
-
-				//TODO - //! make sure that you are able to redirect correctly users
-
-				// i would like that if a users is an admin and
-
-				// if(!can(decoded, "requests:read:any")){
-				// 	navigate(`/user/${decoded.userId}`);
-				// }
-
-				// if(!can(decoded, "requests:read:any")){
-				// 	navigate(`/user/${decoded.userId}`);
-				// }
-
-				// if(!can(decoded, "requests:read:any")){
-				// 	navigate(`/user/${decoded.userId}`);
-				// }
-
-				if (
-					// ["headAdmin", "admin", "subAdmin"].includes(decoded.role)
-					// ["headAdmin", "admin", "subAdmin"].includes(decoded.role)
-					can(decoded, "requests:read:any")
-				) {
+				// if user can read any material request they will go to see all the request
+				if (can(decoded, "requests:read:any")) {
 					navigate("/material/request/all");
 				} else {
-					console.log("this is the", decoded);
-					console.log("this is the can requests:read:own", can(decoded, "requests:read:own", { ownerId: decoded.userId }));
+					// if user can read only their own material request they go to the mane a new material request
 					if (can(decoded, "requests:read:own", { ownerId: decoded.userId })) {
 						navigate("/material/request/request");
+						// if user cant read any or own  material request they will go to the user profile  route
 					} else {
 						navigate(`/user/${decoded.userId}`);
 					}
 				}
-				// else if (can(decoded, "requests:read:own")) {
-				// 	navigate("/material/request/request");
-				// }
-				// else {
-				// 	navigate(`/user/${decoded.userId}`);
-				// }
 			}
 		} catch (err) {
 			console.error("Mutation error:", err);
 		}
-
-		// 	const token = data?.loginUser?.token;
-		// 	if (token) {
-		// 		localStorage.setItem("userToken", token);
-
-		// 		// Decode without verifying (for quick redirect only)
-		// 		const decoded = jwtDecode(token);
-		// 		console.log("Decoded token:", decoded);
-
-		// 		// Redirect based on role
-		// 		if (decoded.role !== "user" && decoded.role !== "noRole" && decoded.role !== "technician") {
-		// 			navigate("/user/all");
-		// 		} else {
-		// 			navigate("/material/request/request");
-		// 		}
-		// 	}
-		// } catch (err) {
-		// 	console.error("Mutation error:", err);
-		// }
 	};
-
-	// console.log("testing stop logs on production");
 
 	return (
 		<div>
 			<div className="language-btn-container">
-				{/* <h1>{t("welcome")}</h1>
-				<h1>{t("left")}</h1>
-				<h1>{t("right")}</h1> */}
-
+				{/* loops over the language obj to renders btn  */}
 				{languages.map((language) => (
 					<button className="language-btn" onClick={() => i18n.changeLanguage(language.code)} key={language.code}>
 						{language.name}
@@ -166,13 +113,15 @@ export default function LogIn({ screenWidth }) {
 			</div>
 
 			<div className="log-in-container">
+				{/* render a btn that takes uses to see all request ,make a new request or to see their profile */}
 				{userToken && (
 					<div className="back-home">
 						<p>
 							{jwtDecode(userToken).name} {t("user-is-log-in")}{" "}
 						</p>
 
-						<Link to={`${["headAdmin", "admin", "subAdmin"].includes(jwtDecode(userToken).role) ? "/material/request/all" : "/material/request/request"}`}>
+						<Link to={`${can(jwtDecode(userToken), "requests:read:any") ? "/material/request/all" : can(jwtDecode(userToken), "requests:read:own") ? "/material/request/request" : "/material/request/request"}`}>
+							{/* to={`${["headAdmin", "admin", "subAdmin"].includes(jwtDecode(userToken).role) ? "/material/request/all" : "/material/request/request"}`}> */}
 							<button className="">
 								{" "}
 								{t("home")} {"->"}

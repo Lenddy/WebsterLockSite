@@ -19,6 +19,26 @@ import { can } from "../../utilities/can";
 import { ALL_PERMISSIONS, PERMISSION_DEPENDENCIES, PERMISSION_HIERARCHY, ROLE_PERMISSIONS, roleRank, scopeDisplayName } from "../../utilities/role.config";
 
 // import { useApolloClient } from "@apollo/client";
+import VirtualizedMenuList from "../../utilities/VirtualizedMenuList";
+("");
+
+// import { Virtuoso } from "react-virtuoso";
+
+// const VirtualizedMenuList = (props) => {
+// 	const { children, maxHeight } = props;
+
+// 	const items = Array.isArray(children) ? children : [];
+
+// 	if (!items.length) {
+// 		return <div style={{ padding: 10, textAlign: "center" }}>No results found</div>;
+// 	}
+
+// 	return (
+// 		<div style={{ height: maxHeight }}>
+// 			<Virtuoso style={{ height: maxHeight }} totalCount={items.length} itemContent={(index) => <div>{items[index]}</div>} />
+// 		</div>
+// 	);
+// };
 
 export default function AdminUpdateMultipleUsers() {
 	const { userToken, pageLoading, loading: userLoading } = useAuth();
@@ -53,9 +73,6 @@ export default function AdminUpdateMultipleUsers() {
 
 		const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
 
-		// const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
-		// const isOwner = decodedUser.userId === userId;
-
 		// return hasRole;
 		return can(decodedUser, "users:update:any");
 	}, [decodedUser]);
@@ -66,14 +83,6 @@ export default function AdminUpdateMultipleUsers() {
 			navigate("/material/request/all", { replace: true });
 		}
 	}, [canUserReview, navigate]);
-
-	// if (!canUserReview || !can(decodedUserCanView, "users:create:any")) {
-	// 			toast.warn(t("you-dont-have-the-necessary-permission-to-view-or-perform-the-necessary-actions-on-this-page"), {
-	// 				// autoClose: false,
-	// 			});
-	// 			navigate("/material/request/all", { replace: true });
-	// 		}
-	// 	}, [canUserReview, navigate, decodedUserCanView]);
 
 	const [rows, setRows] = useState([
 		{
@@ -102,18 +111,11 @@ export default function AdminUpdateMultipleUsers() {
 			lastRowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
 		}
 
-		// if (loading) {
-		// 	console.log("loading");
-		// }
 		if (users) {
-			// console.log("all user on the update many", data.getAllUsers);
-			// console.log("all user on the update many", data.getAllUsers[0].employeeNum);
-			// setUsers(data.getAllUsers);
-
 			// Auto-select user from params if found
 			if (userId) {
 				const selectedUser = users?.find((u) => u?.id === userId);
-				// console.log("this is the selected userId", selectedUser);
+
 				if (selectedUser) {
 					setRows((prev) => {
 						const newRows = [...prev];
@@ -128,30 +130,20 @@ export default function AdminUpdateMultipleUsers() {
 							// prefill existing role + permissions
 							newRole: selectedUser.role || [],
 							newPermissions: [...selectedUser.permissions],
-
-							// [
-							// 	// ...newRows[0].newPermissions, // keep defaults
-							// 	...selectedUser.permissions, // overwrite with actual perms
-							// ],
 						};
-						// setSuccess({ success: false });
 						return newRows;
 					});
 				}
 			}
 		}
-
-		// if (error) {
-		// 	console.log("there was an error", error);
-		// }
-		// , data,
 	}, [loading, error, userId, location, users]);
 
 	const [adminChangeMultipleUserProfiles, { loading: updateLoading, error: updateError }] = useMutation(admin_update_multiple_users);
 
 	// inside your component
 	const userOptions = users.map((u) => ({
-		label: `${u?.employeeNum !== null ? u?.employeeNum : ""} ${u.name} - ${u.email}`,
+		// label: `${u?.employeeNum !== null ? u?.employeeNum : ""} ${u.name} - ${u.email}`,
+		label: `${u?.employeeNum ?? ""} ${u.name} - ${u.email}`,
 		value: u.id,
 		email: u.email,
 		name: u.name,
@@ -170,23 +162,6 @@ export default function AdminUpdateMultipleUsers() {
 		// Keep options that fuzzy-match the search term
 		return fuse.search(inputValue).some((r) => r.item.value === option.value);
 	};
-
-	//  Handle input changes
-	// const handleRowChange = (index, e) => {
-	// 	const { name, value, type, checked } = e.target;
-
-	// 	setRows((prev) => {
-	// 		const newRows = [...prev];
-	// 		if (type === "checkbox") {
-	// 			newRows[index].newPermissions[name] = checked;
-	// 		} else {
-	// 			newRows[index][name] = value;
-	// 		}
-	// 		return newRows;
-	// 	});
-	// 	// setSuccess({ success: false });
-	// 	setSuccess(null);
-	// };
 
 	// Permission and role related functions
 	const getPermissionBase = (perm) => {
@@ -448,26 +423,6 @@ export default function AdminUpdateMultipleUsers() {
 			variables: {
 				inputs,
 			},
-
-			// onCompleted: (res) => {
-			// 	console.log("Mutation success:", res);
-
-			// 	setSuccess({ success: true, update: "Update has been completed" });
-			// 	t("users-have-been-updated");
-			// 	//ANCHOR - try to update the  users token  here if they match the id  start hare adminChangeMultipleUserProfiles.id and token
-			// 	//TODO yo need to find a new way to update the users toke like using the subs to trigger  like you did before the auth update
-			// 	console.log(res?.adminChangeMultipleUserProfiles?.id === logUser.id);
-			// 	console.log("updated token", res?.adminChangeMultipleUserProfiles?.token);
-
-			// 	// if (res?.adminChangeMultipleUserProfiles?.id === logUser.id) {
-
-			// 	// res?.adminChangeMultipleUserProfiles.map((u) => (u.id === logUser.id ? localStorage.setItem("userToken", u.token) : null));
-
-			// 	// }
-			// },
-			// onError: (errRes) => {
-			// 	// console.log("Mutation error:", errRes);
-			// },
 		});
 
 		toast.promise(mutationPromise, {
@@ -502,10 +457,6 @@ export default function AdminUpdateMultipleUsers() {
 			.catch(() => {
 				setHasSubmitted(false);
 			});
-		// console.log(" Users updated");
-		// } catch (err) {
-		// 	console.error(" Error updating users:", err);
-		// }
 	};
 
 	const isNonAdminRole = (role) => role === "user" || role === "noRole";
@@ -557,6 +508,67 @@ export default function AdminUpdateMultipleUsers() {
 
 	// console.log("this is groupedPermissions from the update multiple ", groupedPermissions);
 
+	// ! this is the old select
+	// <Select
+	// 	className="form-row-top-select"
+	// 	filterOption={customFilter}
+	// 	classNamePrefix="update-form-row-select"
+	// 	options={userOptions}
+	// 	value={userOptions.find((opt) => opt.value === row?.id) || null}
+	// 	onChange={(selected) => {
+	// 		if (row?.locked) return; // Prevent changes if locked
+	// 		setRows((prev) => {
+	// 			const newRows = [...prev];
+	// 			const updatedRow = { ...newRows[index] };
+
+	// 			if (selected) {
+	// 				const selectedUser = users.find((u) => u.id === selected.value);
+	// 				// console.log("this is the selectedUser", selectedUser);
+	// 				if (selectedUser) {
+	// 					updatedRow.id = selectedUser.id;
+	// 					updatedRow.previousEmail = selectedUser.email || "";
+	// 					updatedRow.employeeNum = selectedUser.employeeNum || "";
+	// 					updatedRow.department = selectedUser.department || "";
+	// 					updatedRow.name = selectedUser.name || "";
+	// 					updatedRow.newRole = selectedUser.role || "";
+	// 					updatedRow.newPermissions = [...selectedUser.permissions];
+	// 				}
+	// 			} else {
+	// 				// If cleared, reset to empty
+	// 				updatedRow.id = "";
+	// 				updatedRow.previousEmail = "";
+	// 				updatedRow.employeeNum = "";
+	// 				updatedRow.department = "";
+	// 				updatedRow.name = "";
+	// 				updatedRow.title = "";
+	// 				updatedRow.description = "";
+	// 				updatedRow.newRole = "";
+	// 				updatedRow.newPermissions = [];
+	// 			}
+
+	// 			newRows[index] = updatedRow;
+	// 			return newRows;
+	// 		});
+	// 	}}
+	// 	placeholder={loading ? t("loading") : t("Select-user-by-name-email")}
+	// 	isClearable={!row?.locked} //  Don't allow clearing if locked
+	// 	isSearchable={!row?.locked} //  Disable search if locked
+	// 	isDisabled={row?.locked || loading || blockInput} //  Disable Select if locked
+	// 	styles={{
+	// 		control: (base) => ({
+	// 			...base,
+	// 			borderRadius: "12px",
+	// 			borderColor: row?.locked ? "gray" : "blue", // show visually locked
+	// 			backgroundColor: row?.locked ? "#f5f5f5" : "white",
+	// 		}),
+	// 		option: (base, state) => ({
+	// 			...base,
+	// 			backgroundColor: state.isFocused ? "lightblue" : "white",
+	// 			color: "black",
+	// 		}),
+	// 	}}
+	// />
+
 	return (
 		// out side container
 		<div className="update-container">
@@ -582,19 +594,23 @@ export default function AdminUpdateMultipleUsers() {
 
 									<Select
 										className="form-row-top-select"
-										filterOption={customFilter}
 										classNamePrefix="update-form-row-select"
+										components={{
+											MenuList: VirtualizedMenuList,
+										}}
+										filterOption={customFilter}
 										options={userOptions}
 										value={userOptions.find((opt) => opt.value === row?.id) || null}
 										onChange={(selected) => {
-											if (row?.locked) return; // Prevent changes if locked
+											if (row?.locked) return;
+
 											setRows((prev) => {
 												const newRows = [...prev];
 												const updatedRow = { ...newRows[index] };
 
 												if (selected) {
 													const selectedUser = users.find((u) => u.id === selected.value);
-													// console.log("this is the selectedUser", selectedUser);
+
 													if (selectedUser) {
 														updatedRow.id = selectedUser.id;
 														updatedRow.previousEmail = selectedUser.email || "";
@@ -605,7 +621,6 @@ export default function AdminUpdateMultipleUsers() {
 														updatedRow.newPermissions = [...selectedUser.permissions];
 													}
 												} else {
-													// If cleared, reset to empty
 													updatedRow.id = "";
 													updatedRow.previousEmail = "";
 													updatedRow.employeeNum = "";
@@ -622,14 +637,14 @@ export default function AdminUpdateMultipleUsers() {
 											});
 										}}
 										placeholder={loading ? t("loading") : t("Select-user-by-name-email")}
-										isClearable={!row?.locked} //  Don't allow clearing if locked
-										isSearchable={!row?.locked} //  Disable search if locked
-										isDisabled={row?.locked || loading || blockInput} //  Disable Select if locked
+										isClearable={!row?.locked}
+										isSearchable={!row?.locked}
+										isDisabled={row?.locked || loading || blockInput}
 										styles={{
 											control: (base) => ({
 												...base,
 												borderRadius: "12px",
-												borderColor: row?.locked ? "gray" : "blue", // show visually locked
+												borderColor: row?.locked ? "gray" : "blue",
 												backgroundColor: row?.locked ? "#f5f5f5" : "white",
 											}),
 											option: (base, state) => ({

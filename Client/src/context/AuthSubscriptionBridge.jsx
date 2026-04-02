@@ -9,124 +9,86 @@ import { useApolloClientInstance } from "../context/ApolloWrapper";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export default function AuthSubscriptionBridge() {
+	// Destructure auth context values
 	const { userToken, setUserToken, setWsDisconnected } = useAuth();
 
+	// Extract user ID from JWT token
 	const currentUserId = userToken ? jwtDecode(userToken).userId : null;
+
+	// Get translation function for i18n
 	const { t } = useTranslation();
 
+	// Get Apollo Client instance for disposal if needed
 	const client = useApolloClientInstance();
 
+	// Get current location and navigation function
 	const location = useLocation();
 	const navigate = useNavigate();
 
-	// useEffect(() => {
-	//   if (!currentUser) return;
-
-	//   const hasAccess = checkRouteAccess(location.pathname, currentUser.permissions);
-
-	//   if (!hasAccess) {
-	//     navigate("/unauthorized", { replace: true });
-	//   }
-	// }, [location.pathname, currentUser]);
-
-	// Listen for USER_CHANGE_SUBSCRIPTION (same event you use everywhere else)
+	// Subscribe to user change events from server
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
 		onData: ({ data: subscriptionData }) => {
-			// console.log(" [AuthContext] Subscription data:", subscriptionData);
-
+			// Extract the change event from subscription data
 			const changeEvent = subscriptionData?.data?.onUserChange;
 			if (!changeEvent) return;
 
+			// Destructure event details
 			const { eventType, changeType, change, changes, updateBy } = changeEvent;
 
-			// Normalize into array for consistency
+			// Normalize changes into an array for consistent iteration
 			const changesArray = changeType === "multiple" && Array.isArray(changes) ? changes : change ? [change] : [];
 
 			if (!changesArray.length) return;
 
-			// for (const updatedUser of changesArray) {
-			// 	if (eventType !== "updated") continue; // only handle updates
-
-			// 	const newToken = updatedUser?.token;
-			// 	const updatedUserId = updatedUser?.id;
-
-			// 	//  Only update if the changed user is the logged-in one
-			// 	if (currentUserId && updatedUserId === currentUserId && newToken) {
-			// 		// console.log(" [AuthContext] Token updated via PubSub — refreshing context...");
-			// 		setUserToken(newToken);
-			// 		// console.log("updateBy", updateBy);
-			// 		if (updateBy !== currentUserId) {
-			// 			// toast.update("User profile has been updated (from the context)");
-			// 			alert(t("user-profile-has-been-updated"));
-			// 		}
-
-			// 		// Optional: toast or banner
-			// 		// showToast("Your session was refreshed after profile update");
-			// 	}
-
-			// 	// if (currentUserId && updatedUserId === currentUserId && newToken) {
-			// 	// 	setUserToken(newToken);
-
-			// 	// 	//  Force WebSocket reconnection
-			// 	// 	try {
-			// 	// 		// wsLink.client?.dispose();
-			// 	// 		wsClient.dispose();
-			// 	// 	} catch (e) {
-			// 	// 		console.warn("WS reconnect error:", e);
-			// 	// 	}
-			// 	// }
-			// }
+			// Process each changed user
 			for (const updatedUser of changesArray) {
 				const updatedUserId = updatedUser?.id;
 
-				// Only care about current logged-in user
+				// Only handle changes for the currently logged-in user
 				if (!currentUserId || updatedUserId !== currentUserId) continue;
 
-				// If user was updated → refresh token
+				// If user was updated → refresh the auth token
 				if (eventType === "updated") {
 					const newToken = updatedUser?.token;
 
 					if (newToken) {
+						// Update token in context and storage
 						setUserToken(newToken);
 						localStorage.setItem("token", newToken);
 
+						// Notify user if updated by someone else
 						if (updateBy !== currentUserId) {
 							alert(t("user-profile-has-been-updated"));
 						}
 					}
 				}
 
-				// If user was deleted → FORCE LOGOUT
+				// If user was deleted → force logout
 				if (eventType === "deleted") {
 					alert(t("your-account-has-been-deleted"));
 
-					// Clear React state
+					// Clear token from context and storage
 					setUserToken(null);
-
-					// Remove token from browser
-					// localStorage.removeItem("token");
 					sessionStorage.removeItem("token");
-
-					//clear everything in local storage
 					localStorage.clear();
 
-					// disconnect websocket
+					// Dispose WebSocket connection
 					try {
 						client?.dispose?.();
 					} catch (e) {
 						console.warn("WS dispose error:", e);
 					}
 
-					// Redirect to login
+					// Redirect to login page
 					window.location.href = "/login";
-
 					return;
 				}
 			}
 		},
 
+		// Handle subscription errors
 		onError: (err) => {
-			// console.error("Subscription error:", err);
+			// Flag WebSocket as disconnected if connection was lost
 			if (err?.message?.includes("Socket closed") || err?.networkError) {
 				setWsDisconnected(true);
 			}

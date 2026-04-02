@@ -26,10 +26,6 @@ export default function NavBar({ children, screenWidth }) {
 	const containerRef = useRef(null);
 	const location = useLocation();
 
-	// const { users, loading, error } = useUsers();
-	// const { requests: mRequests, loading:mRequestsLoading, error:mRequestsError } = useMaterialRequests();
-	// const { items, loading:itemLoading, error:itemError } = useItemGroups();
-
 	const { t } = useTranslation();
 
 	const languages = [
@@ -47,11 +43,13 @@ export default function NavBar({ children, screenWidth }) {
 
 	// Decode token once available
 	useEffect(() => {
+		// checks if there is a token
 		if (!userToken) {
 			setDecodedUser(null);
 			return;
 		}
 		try {
+			// decodes the token and sets it to a state variable
 			setDecodedUser(jwtDecode(userToken));
 		} catch (err) {
 			console.error("Failed to decode token:", err);
@@ -59,19 +57,21 @@ export default function NavBar({ children, screenWidth }) {
 		}
 	}, [userToken]);
 
-	// Close on outside click
+	// closes the gear menu when you click out side if it is open
 	useEffect(() => {
+		// takes a click even that closes the gear menu
 		function handleClickOutside(e) {
 			if (containerRef.current && !containerRef.current.contains(e.target)) {
 				setConfigOpen(false); // CLOSE ONLY if clicked outside
 			}
 		}
 
+		// removes
 		document.addEventListener("mousedown", handleClickOutside);
 		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, []);
 
-	// Keyboard support
+	// closes the gear menu if the Escape key is press
 	useEffect(() => {
 		const handleKey = (e) => {
 			if (!configOpen) return;
@@ -81,12 +81,13 @@ export default function NavBar({ children, screenWidth }) {
 			}
 		};
 
+		// removes the event listener for the key press
 		document.addEventListener("keydown", handleKey);
 		return () => document.removeEventListener("keydown", handleKey);
 	}, [configOpen]);
 
+	// setting varialbe for easy access to info about the user
 	const role = decodedUser?.role;
-	// const isAdmin = useMemo(() => ["headAdmin", "admin", "subAdmin"].includes(role), [role]);
 	const isAdmin = useMemo(() => roleRank[role] >= 3, [role]);
 
 	// Choose which user query to run; skip until decodedUser is present.
@@ -97,12 +98,14 @@ export default function NavBar({ children, screenWidth }) {
 		skip: shouldUseAllUsers || !decodedUser,
 		variables: { id: decodedUser?.userId },
 	});
+
 	const usersRefetch = shouldUseAllUsers ? allUsersRefetch : oneUserRefetch;
 
 	// Other queries (skipped until decodedUser to avoid unnecessary loads)
 	const { refetch: mRRefetch } = useQuery(get_all_material_requests, { skip: !decodedUser });
 	const { refetch: iGRefetch } = useQuery(get_all_item_groups, { skip: !decodedUser });
 
+	// stores all the that are available routes
 	const menuItems = useMemo(
 		() => [
 			{
@@ -172,19 +175,14 @@ export default function NavBar({ children, screenWidth }) {
 		[decodedUser?.role, t]
 	);
 
+	// decides if a user gets accesses to a routes base on if they have permission or not
 	const getAccess = (link) => {
+		// makes sure that link.permission is an array
 		const permissions = Array.isArray(link.permission) ? link.permission : [link.permission];
-
+		// checks if the users has
 		const hasPermission = permissions.some((perm) => can(decodedUser, perm, { ownerId: decodedUser.userId }));
 
-		// console.log("NAV CHECK", {
-		// 	user: decodedUser?.role,
-		// 	link: link.path,
-		// 	permissions,
-		// 	userPerms: decodedUser?.permissions,
-		// 	result: hasPermission,
-		// });
-
+		// if the users has permission it allows them to go to the route
 		return {
 			visible: true,
 			enabled: hasPermission,
@@ -193,31 +191,25 @@ export default function NavBar({ children, screenWidth }) {
 
 	const closeMenu = () => setMobileOpen(false);
 
+	// logs the users out
 	const handleLogout = () => {
+		// asks the user if they are sure that they want to log out
 		const confirmLogout = window.confirm(t("are-you-sure-you-want-to-log-out"));
-
+		// clears the token if they confirm that they want to log out
 		if (confirmLogout) {
-			// window.location.reload();
 			setUserToken(null);
-			// navigate("/");
 		}
+		// does nothing if they chose to stay sing in
 		if (!confirmLogout) return;
-
-		//   localStorage.removeItem("token");
-		//   navigate("/login");
 	};
 
-	// const handleLogout = () => {
-	// 	setUserToken(null);
-	// 	window.location.reload();
-	// };
-
+	///makes sure that the users token is in local storage  or loading
 	if (authLoading) return null;
 	if (!decodedUser) return null; // ProtectedRoutes will redirect
 
-	// Map the current location to the correct refetch function
+	// Refetch data base on where the user is on the app
 	const currentRefetch = (() => {
-		// helper: does this menu contain the current route?
+		//
 		const matchesMenu = (m) => m?.links?.some((p) => location?.pathname?.includes(p?.path));
 
 		if (matchesMenu(menuItems[0])) return usersRefetch;
@@ -230,13 +222,7 @@ export default function NavBar({ children, screenWidth }) {
 		<div className="content-container">
 			<div className="nav-container">
 				<div className="nav-logo">
-					<Link
-						to={
-							// isAdmin ?
-							menuItems[1]?.links[0]?.path
-							//  :
-							//  menuItems[0]?.links[1]?.path
-						}>
+					<Link to={menuItems[1]?.links[0]?.path}>
 						<img src={Logo} alt="logo" />
 					</Link>
 				</div>
@@ -244,13 +230,15 @@ export default function NavBar({ children, screenWidth }) {
 				{screenWidth > 768 ? (
 					<>
 						<ul className="nav-link-container desktop">
+							{/* renders  the dropdown  of routes from menuitem*/}
 							{menuItems.map((m) => (
 								<li className="nav-link-container-dropdown" key={m.title}>
 									<span className="nav-link-container-dropdown-title">{m.title} ▾</span>
 									<div className="nav-link-container-dropdown-link">
+										{/* gets the links and  makes sure if the users is able to access them or not  */}
 										{m.links.map((link) => {
 											const access = getAccess(link);
-											//! come here
+
 											const isCurrentRoute = location.pathname === link.path;
 											const disabled = !access.enabled || isCurrentRoute;
 
@@ -284,6 +272,7 @@ export default function NavBar({ children, screenWidth }) {
 									</span>
 
 									<div className="nav-link-container-dropdown-link-config" onClick={(e) => e.stopPropagation()}>
+										{/* renders the language btns in  */}
 										{languages.map((language) => (
 											<Link onClick={() => i18n.changeLanguage(language.code)} key={language.code} className={localStorage.getItem("i18nextLng") === language.code ? "nav-bar-link-disabled" : ""}>
 												{language.name}
@@ -303,12 +292,14 @@ export default function NavBar({ children, screenWidth }) {
 						</div>
 					</>
 				) : (
+					// opens the burger menu
 					<Burger className="nav-burger-menu" onClick={() => setMobileOpen(true)} />
 				)}
 			</div>
-
+			{/* adds an overlay if the screen is smaller than 769 pixels */}
 			{mobileOpen && <div className="overlay" onClick={closeMenu} />}
 
+			{/* changes the navbar if the screen is smaller than or === 768px  and it renders the same info from the previous nav bar*/}
 			{screenWidth <= 768 && (
 				<div className={`nav-burger-menu-content-container ${mobileOpen ? "open" : ""}`}>
 					<X className="nav-burger-menu-close-btn" onClick={closeMenu} />
@@ -319,7 +310,6 @@ export default function NavBar({ children, screenWidth }) {
 
 								{m.links.map((link) => {
 									const access = getAccess(link);
-									//! come here
 
 									const isCurrentRoute = location.pathname === link.path;
 									const disabled = !access.enabled || isCurrentRoute;
@@ -368,6 +358,7 @@ export default function NavBar({ children, screenWidth }) {
 				</div>
 			)}
 
+			{/* wrapper for all the components so that nav bar can be show in every child componen */}
 			<div className="site-content">
 				{!pageLoading && currentRefetch && <RefetchButton refetch={currentRefetch} />}
 				{children}

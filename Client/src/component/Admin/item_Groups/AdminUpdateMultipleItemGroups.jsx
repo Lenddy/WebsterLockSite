@@ -11,6 +11,7 @@ import { useAuth } from "../../../context/AuthContext";
 import { toast } from "react-toastify";
 import { roleRank } from "../../utilities/role.config";
 import { can } from "../../utilities/can";
+import VirtualizedMenuList from "../../utilities/VirtualizedMenuList";
 
 export default function AdminUpdateMultipleItemsGroups() {
 	const { userToken, setPageLoading } = useAuth(); // get token from context
@@ -406,6 +407,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 									isSearchable
 									onChange={(selected) => handleSelectGroup(gIdx, selected)}
 									isDisabled={!!itemId || loadingAll || loadingOne || blockInput} //  disable dropdown if loaded from param
+									components={{ MenuList: VirtualizedMenuList }}
 									styles={{
 										control: (base, state) => ({
 											...base,

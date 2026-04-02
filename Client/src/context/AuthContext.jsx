@@ -5,23 +5,25 @@ import { jwtDecode } from "jwt-decode";
 import { USER_CHANGE_SUBSCRIPTION } from "../../graphQL/subscriptions/subscriptions"; // adjust import path
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 // import { wsClient } from "../../graphQL/apolloClient";
 // import { wsClient } from "../../graphQL/apolloClient";
 // import i18n from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-	// console.log("started auth context at", new Date());
+	// State management for authentication
 	const [userToken, setUserToken] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [pageLoading, setPageLoading] = useState(false);
 	const currentRoutePath = location.pathname;
 	const [wsDisconnected, setWsDisconnected] = useState(false);
 
+	// Get translation function from i18n
 	const { t } = useTranslation();
 
+	// Handle WebSocket disconnection - show error toast notification
 	useEffect(() => {
 		if (!wsDisconnected) return;
 
@@ -57,18 +59,16 @@ export const AuthProvider = ({ children }) => {
 		);
 	}, [wsDisconnected]);
 
-	// Load token from localStorage on mount
+	// Load token from localStorage on component mount
 	useEffect(() => {
 		const storedToken = localStorage.getItem("userToken");
 		if (storedToken) {
 			setUserToken(storedToken);
-			// console.log(" ", userToken);
 		}
 		setLoading(false);
 	}, []);
 
-	// console.log("this is the token ", userToken);
-	// Keep localStorage synced
+	// Sync userToken changes to localStorage
 	useEffect(() => {
 		if (userToken) {
 			localStorage.setItem("userToken", userToken);
@@ -77,14 +77,10 @@ export const AuthProvider = ({ children }) => {
 		}
 	}, [userToken]);
 
+	// Persist token to localStorage and optionally reconnect WebSocket with new token
 	useEffect(() => {
 		if (userToken) {
 			localStorage.setItem("userToken", userToken);
-
-			// 🔥 Force WS reconnection with new token
-			// try {
-			// 	wsClient.dispose();
-			// } catch {}
 		} else {
 			localStorage.removeItem("userToken");
 		}

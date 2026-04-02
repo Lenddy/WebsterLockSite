@@ -25,9 +25,11 @@ export default function AdminCreateMultipleMaterialRequests() {
 	const { userToken, pageLoading, loading: userLoading } = useAuth();
 	const { users, loading, error } = useUsers();
 	const { items: itemGroups, loading: iGLoading, error: iGError } = useItemGroups();
+	const today = dayjs().format("YYYY-MM-DD");
 	const [requests, setRequests] = useState([
 		{
-			addedDate: "",
+			// addedDate: "",
+			addedDate: today,
 			description: "",
 			items: [
 				{
@@ -94,12 +96,14 @@ export default function AdminCreateMultipleMaterialRequests() {
 		}
 	}, [canUserReview, navigate, t]);
 
+	// come here
 	// Add a new request (with one blank row)
 	const addRequest = () => {
 		setRequests([
 			...requests,
 			{
-				addedDate: "",
+				// addedDate: "",
+				addedDate: today,
 				description: "",
 				items: [
 					{
@@ -187,28 +191,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 			permissions: [...user.permissions],
 		},
 	}));
-
-	// const colorOptions = [
-	// 	{ value: "605/US3 - Bright Brass", label: "605/US3 - Bright Brass", hex: "#FFD700" }, // brass-ish
-	// 	{ value: "612/US10 - Satin Bronze", label: "612/US10 - Satin Bronze", hex: "#B08D57" },
-	// 	{ value: "619/US15 - Satin Nickel", label: "619/US15 - Satin Nickel", hex: "#AFAFAF" },
-	// 	{ value: "625/US26 - Bright Chrome", label: "625/US26 - Bright Chrome", hex: "#E5E4E2" },
-	// 	{ value: "626/US26D - Satin Chrome", label: "626/US26D - Satin Chrome", hex: "#C0C0C0" },
-	// 	{ value: "630/US32D - Satin Stainless Steel", label: "630/US32D - Satin Stainless Steel", hex: "#D6D6D6" },
-	// 	{ value: "622/ - Black", label: "622/ - Black", hex: "#000000" },
-	// 	{ value: "689/ - Aluminum", label: "689/ - Aluminum", hex: "#A9A9A9" },
-	// ];
-
-	// const sideOptions = [
-	// 	{ value: "Left Hand", label: "Left Hand" },
-	// 	{ value: "Right Hand", label: "Right Hand" },
-	// ];
-
-	// const sizeOptions = [
-	// 	{ value: "Small", label: "Small" },
-	// 	{ value: "Medium", label: "Medium" },
-	// 	{ value: "Large", label: "Large" },
-	// ];
 
 	const brands = [...new Set(itemGroups?.map((g) => g.brand))]?.map((b) => ({
 		label: b,
@@ -366,8 +348,6 @@ export default function AdminCreateMultipleMaterialRequests() {
 			})),
 			requester: r.requester,
 		}));
-
-		// console.log("this is the input that are send  ", inputs);
 
 		const mutationPromise = createNewMaterialRequests({
 			variables: { inputs },
@@ -541,7 +521,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 										type="date"
 										disabled={loading || blockInput}
 										// value={req.date || null}
-										value={requests[reqIdx]?.addedDate ?? ""}
+										value={requests[reqIdx]?.addedDate ?? today}
 										onChange={(e) => {
 											(handleRequestChange(reqIdx, "addedDate", e.target.value), console.log("initial date", e.target.value, "formatted Date", dayjs(e.target.value).toISOString()));
 										}}
@@ -625,32 +605,15 @@ export default function AdminCreateMultipleMaterialRequests() {
 													components={{
 														MenuList: VirtualizedMenuList,
 													}}
-													// onInputChange={(val, meta) => {
-													// 	// console.log("InputChange value:", val, "action:", meta.action);
-													// 	if (meta.action === "input-change") {
-													// 		setSearchValue(val);
-													// 	}
-													// }}
-													// onInputChange={(val) => setSearchValue(val)} // update debouncedSearch via useDebounce
 													filterOption={() => true}
 													isClearable
 													isSearchable
-													// 													onBlur={() => setSearchValue("")}
-													// onMenuClose={() => setSearchValue("")}
-
-													// inputValue={searchValue}
 													inputValue={row.search}
 													onMenuClose={
 														() => handleItemChange(reqIdx, rowIdx, "search", "")
 														// setSearchValue("")
 													}
 													onInputChange={(val, meta) => {
-														// if (meta.action === "input-change") {
-														// 	setSearchValue(val);
-														// }
-														// if (meta.action === "menu-close") {
-														// 	setSearchValue("");
-														// }
 														if (meta.action === "input-change") {
 															handleItemChange(reqIdx, rowIdx, "search", val);
 														}

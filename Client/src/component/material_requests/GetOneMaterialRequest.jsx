@@ -21,12 +21,12 @@ export default function GetOneMaterialRequest() {
 
 	const [rows, setRows] = useState([]);
 	// const [itemGroups, setItemGroups] = useState([]);
-	const [mRequest, setMRequest] = useState({});
+	const [mRequest, setMRequest] = useState();
 
 	const { t } = useTranslation();
 
 	const { data, loading, error } = useQuery(get_one_material_request, { variables: { id: requestId } });
-	// console.log("material data", data);
+	console.log("material data", data);
 
 	const { data: iGData } = useQuery(get_all_item_groups);
 	const { items: itemGroups, loading: iGLoading, error: iGError } = useItemGroups();
@@ -41,23 +41,6 @@ export default function GetOneMaterialRequest() {
 			return null;
 		}
 	}, [userToken]);
-
-	// const canUserReview = useMemo(() => {
-	// 	if (!decodedUser || !data?.requester?.userId) return false;
-
-	// 	const role = typeof decodedUser.role === "string" ? decodedUser.role : decodedUser.role?.role;
-
-	// 	const hasRole = ["headAdmin", "admin", "subAdmin"].includes(role);
-	// 	const isOwner = decodedUser.userId === data.requester.userId;
-
-	// 	return hasRole || isOwner;
-	// }, [decodedUser, data?.requester?.userId]);
-
-	// useEffect(() => {
-	// 	if (!canUserReview) {
-	// 		navigate("/material/request/all", { replace: true });
-	// 	}
-	// }, [canUserReview, navigate]);
 
 	// Options
 	const colorOptions = [
@@ -98,11 +81,13 @@ export default function GetOneMaterialRequest() {
 	// 	if (iGData) setItemGroups(iGData.getAllItemGroups || []);
 	// }, [iGData]);
 
+	//! you have to add the description to the  mrequest not the rows
+
 	// Load material request and map rows
 	useEffect(() => {
 		if (data && allItems.length > 0) {
 			const req = data.getOneMaterialRequest;
-			setMRequest({ mrId: req.id, requester: req.requester });
+			setMRequest({ description: req.description, mrId: req.id, requester: req.requester });
 
 			setRows(
 				req.items.map((item) => {
@@ -113,6 +98,7 @@ export default function GetOneMaterialRequest() {
 
 					return {
 						id: item.id,
+						description: item.description,
 						quantity: item.quantity,
 						item: matchedItem || { label: item.itemName, value: item.itemName },
 						itemDescription: item.itemDescription || "",
@@ -146,7 +132,7 @@ export default function GetOneMaterialRequest() {
 				const targetChange = changesArray.find((c) => c.id === requestId);
 				if (targetChange) {
 					if (eventType === "updated" && Array.isArray(targetChange.items)) {
-						//
+						setMRequest({ description: targetChange.description });
 
 						setRows(
 							targetChange.items.map((item) => {
@@ -157,6 +143,7 @@ export default function GetOneMaterialRequest() {
 
 								return {
 									id: item.id,
+									description: item.description,
 									quantity: item.quantity,
 									item: matchedItem || { label: item.itemName, value: item.itemName },
 									itemDescription: item.itemDescription ?? "",
@@ -196,6 +183,8 @@ export default function GetOneMaterialRequest() {
 		const role = typeof token?.role === "string" ? token?.role : token?.role?.role;
 		return ["headAdmin", "admin", "subAdmin"].includes(role);
 	};
+
+	console.log("this is the m requests ", mRequest);
 
 	if (authLoading || loading) return <h1>Loading...</h1>;
 
@@ -318,10 +307,15 @@ export default function GetOneMaterialRequest() {
 											</div>
 										</div>
 
-										<div className="form-row-center-container-material-request-wrapper-bottom">
-											<label>{t("description")}</label>
-											<textarea value={row.itemDescription} disabled />
-										</div>
+										{idx === 0 && (
+											<div className="form-row-center-container-material-request-wrapper-bottom">
+												<label>{t("description")}</label>
+												{/* <textarea value={row.description} disabled placeholder={mRequest.description} /> */}
+												<textarea value={mRequest.description} disabled placeholder={mRequest.description} />
+											</div>
+										)}
+
+										<div>{mRequest.addedDate}</div>
 									</div>
 								</div>
 							))}

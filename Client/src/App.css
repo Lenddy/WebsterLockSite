@@ -1909,7 +1909,25 @@ textarea:disabled {
 	flex-direction: column;
 }
 
-.form-row-material-request-item-filter {
+/* .eclipse {
+	white-space: nowrap;
+	width: 60px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	background-color: red;
+} */
+
+.eclipse {
+	display: block;
+	width: 200px;
+	/* height: 100%; */
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.form-row-material-request-item-filter,
+.form-row-material-request-job-description {
 	width: 100%;
 	display: flex;
 	flex-direction: column;

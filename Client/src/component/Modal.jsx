@@ -168,12 +168,13 @@ const Modal = ({ isOpen, onClose, data, setIsOpen, setSelectedUser, onConFirm, l
 											<label>{t("size")}</label> <p>{row?.size?.value || "N/A"}</p>
 										</div>
 									</div>
-
-									<div className="modal-content-item-info-bottom">
-										<div>
-											<label>{t("description")}</label> <p>{row?.itemDescription || "N/A"}</p>
+									{idx === 0 && (
+										<div className="modal-content-item-info-bottom">
+											<div>
+												<label>{t("description")}</label> <p>{row?.description || "N/A"}</p>
+											</div>
 										</div>
-									</div>
+									)}
 								</div>
 							</div>
 						))}

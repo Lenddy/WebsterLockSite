@@ -101,7 +101,8 @@ const materialRequestResolvers = {
 	// Mutation resolvers
 	Mutation: {
 		createOneMaterialRequest: async (_, { input: { description, items } }, { user }) => {
-			console.log("this is the users context ", user);
+			// console.log("this is the users context ", user);
+			console.log("this is the description of the job ", description);
 			if (!user) {
 				throw new ApolloError("Unauthorized: no user context given.");
 			}
@@ -168,6 +169,8 @@ const materialRequestResolvers = {
 						size: item.size ?? null,
 					})),
 				};
+
+				console.log(payload);
 
 				// console.log("the id that is send ", payload.id);
 
@@ -427,6 +430,7 @@ const materialRequestResolvers = {
 		updateOneMaterialRequest: async (_, { input: { id, description, items, approvalStatus, comment, requesterId } }, { user, pubsub }) => {
 			console.log("users id ", user?.userId);
 			console.log("requesters info", requesterId);
+			console.log("this is the description", description);
 
 			try {
 				if (!user) throw new ApolloError("Unauthorized: No user context.");
@@ -459,7 +463,7 @@ const materialRequestResolvers = {
 				// ===============================
 				//  DESCRIPTION UPDATE
 				// ===============================
-				if (description) {
+				if (description !== undefined || description !== null) {
 					target.description = description;
 					shouldSave = true;
 				}

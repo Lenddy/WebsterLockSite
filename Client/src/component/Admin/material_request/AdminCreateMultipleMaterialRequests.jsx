@@ -556,6 +556,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 										</h3>
 
 										<div className="form-row-material-request-item-filter">
+											<label> {t("filter-by-brand")}</label>
 											<Select
 												options={brands}
 												value={row.brand}
@@ -751,12 +752,12 @@ export default function AdminCreateMultipleMaterialRequests() {
 												</div>
 											)}
 
-											{row.showDescription && (
+											{row.showDescription && rowIdx === 0 && (
 												<div className="form-row-center-container-material-request-wrapper-bottom">
 													<label htmlFor="">{t("description")}</label>
-
 													{/* Item description */}
-													<textarea type="text" disabled={loading || blockInput} value={row.itemDescription} onChange={(e) => handleItemChange(reqIdx, rowIdx, "itemDescription", e.target.value)} placeholder={t("description-for-the-item")} cols={40} rows={10} />
+													{/* handleRequestChange(reqIdx, "addedDate", e.target.value), */}
+													<textarea type="text" disabled={loading || blockInput} value={row.description} onChange={(e) => handleRequestChange(reqIdx, "description", e.target.value)} placeholder={t("description-for-the-item")} cols={40} rows={10} />
 												</div>
 											)}
 
@@ -766,9 +767,11 @@ export default function AdminCreateMultipleMaterialRequests() {
 													{row.showOptional ? t("hide-optional-fields") : t("show-optional-fields")}
 												</span>
 
-												<span className="show-fields-btn" type="button" onClick={() => toggleItemField(reqIdx, rowIdx, "showDescription")}>
-													{row.showDescription ? t("hide-description") : t("show-description")}
-												</span>
+												{rowIdx === 0 && (
+													<span className="show-fields-btn" type="button" onClick={() => toggleItemField(reqIdx, rowIdx, "showDescription")}>
+														{row.showDescription ? t("hide-description") : t("show-description")}
+													</span>
+												)}
 											</div>
 										</div>
 

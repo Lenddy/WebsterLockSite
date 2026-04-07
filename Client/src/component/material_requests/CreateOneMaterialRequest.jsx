@@ -19,31 +19,10 @@ import { useItemGroups } from "../../context/ItemGroupContext";
 import { colorOptions, sideOptions, sizeOptions } from "../utilities/color-side-size";
 import { can } from "../utilities/can";
 import VirtualizedMenuList from "../utilities/VirtualizedMenuList";
-// import FixedSizeList from "react-window";
-
-// import {FixedSizeList} from "react-window"
-
-// import { Virtuoso } from "react-virtuoso";
-
-// const VirtualizedMenuList = (props) => {
-// 	const { children, maxHeight } = props;
-
-// 	const items = Array.isArray(children) ? children : [];
-
-// 	if (!items.length) {
-// 		return <div style={{ padding: 10, textAlign: "center" }}>No results found</div>;
-// 	}
-
-// 	return (
-// 		<div style={{ height: maxHeight }}>
-// 			<Virtuoso style={{ height: maxHeight }} totalCount={items.length} itemContent={(index) => <div>{items[index]}</div>} />
-// 		</div>
-// 	);
-// };
 
 export default function CreateOneMaterialRequest() {
 	const { userToken, loading: authLoading } = useAuth(); //  use context instead of prop
-	const [rows, setRows] = useState([{ brand: "", search: "", item: "", quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
+	const [rows, setRows] = useState([{ brand: "", search: "", item: "", quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false, description: "" }]);
 
 	const { items: itemGroups, loading: iGLoading, error: iGError } = useItemGroups();
 	// const { items, loading: iGLoading, error: iGError } = useItemGroups();
@@ -211,6 +190,7 @@ export default function CreateOneMaterialRequest() {
 				size: r?.size || null,
 				itemDescription: r?.itemDescription || null,
 			})),
+			description: rows[0].description || null,
 		};
 
 		const mutationPromise = NewMaterialRequest({
@@ -374,35 +354,42 @@ export default function CreateOneMaterialRequest() {
 								<h3 className="form-row-count">
 									{t("material-request-row")} {idx + 1}
 								</h3>
-
-								<div className="form-row-material-request-item-filter">
-									<label> {t("filter-by-brand")}</label>
-									<Select
-										options={brands}
-										value={row.brand}
-										components={{
-											MenuList: VirtualizedMenuList,
-										}}
-										onChange={(val) => handleRowChange(idx, "brand", val)}
-										placeholder={t("select-brand")}
-										isClearable
-										isSearchable
-										isDisabled={blockInput}
-										styles={{
-											control: (base) => ({
-												...base,
-												borderRadius: "12px",
-												borderColor: "blue",
-												width: "200px",
-												height: "50px",
-											}),
-											option: (base, state) => ({
-												...base,
-												backgroundColor: state.isFocused ? "lightblue" : "white",
-												color: "black",
-											}),
-										}}
-									/>{" "}
+								<div>
+									<div className="form-row-material-request-item-filter">
+										<label> {t("filter-by-brand")}</label>
+										<Select
+											options={brands}
+											value={row.brand}
+											components={{
+												MenuList: VirtualizedMenuList,
+											}}
+											onChange={(val) => handleRowChange(idx, "brand", val)}
+											placeholder={t("select-brand")}
+											isClearable
+											isSearchable
+											isDisabled={blockInput}
+											styles={{
+												control: (base) => ({
+													...base,
+													borderRadius: "12px",
+													borderColor: "blue",
+													width: "200px",
+													height: "50px",
+												}),
+												option: (base, state) => ({
+													...base,
+													backgroundColor: state.isFocused ? "lightblue" : "white",
+													color: "black",
+												}),
+											}}
+										/>{" "}
+										{/* {idx === 0 && (
+											<div className="form-row-material-request-job-description">
+												<label htmlFor="">Job description</label>
+												<input type="text" name="description" onChange={(e) => handleRowChange(0, "description", e.target.value)} />
+											</div>
+										)} */}
+									</div>
 								</div>
 
 								<div className="form-row-top-container material-request">
@@ -573,10 +560,18 @@ export default function CreateOneMaterialRequest() {
 										</div>
 									)}
 
-									{row.showDescription && (
+									{row.showDescription && idx === 0 && (
 										<div className="form-row-center-container-material-request-wrapper-bottom">
 											<label>{t("description")}</label>
-											<textarea value={row.itemDescription} disabled={blockInput} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder={t("description-for-the-item")} cols={40} rows={10} />
+											<textarea
+												value={row.description}
+												disabled={blockInput}
+												// onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)}
+												onChange={(e) => handleRowChange(idx, "description", e.target.value)}
+												placeholder={t("description-for-the-item")}
+												cols={40}
+												rows={10}
+											/>
 										</div>
 									)}
 
@@ -584,10 +579,11 @@ export default function CreateOneMaterialRequest() {
 										<span className="show-fields-btn" type="button" onClick={() => toggleItemField(idx, "showOptional")}>
 											{row.showOptional ? t("hide-optional-fields") : t("show-optional-fields")}
 										</span>
-
-										<span className="show-fields-btn" type="button" onClick={() => toggleItemField(idx, "showDescription")}>
-											{row.itemDescription ? (row.showDescription ? t("hide-description") : t("show-description")) : t("add description")}
-										</span>
+										{idx === 0 && (
+											<span className="show-fields-btn" type="button" onClick={() => toggleItemField(idx, "showDescription")}>
+												{row.description === null || row.description === undefined || row.description === "" ? t("add description") : row.showDescription == true ? t("hide-description") : t("show-description")}
+											</span>
+										)}
 									</div>
 								</div>
 

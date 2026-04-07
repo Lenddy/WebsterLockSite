@@ -304,7 +304,11 @@ export default function GetAllMaterialRequest() {
 										<p className={`${request?.approvalStatus?.isApproved === null ? "waiting-approval" : request?.approvalStatus?.isApproved === true ? "approved" : "denied"}`}>{request?.approvalStatus?.isApproved === null ? t("waiting-for-approval") : request?.approvalStatus?.isApproved === true ? t("Approved") : t("Denied")}</p>
 									</td>
 									{/* <td>{request?.description}</td> */}
-									<td>{request?.items[0]?.itemDescription}</td>
+									<td>
+										{/* {request?.description} */}
+
+										<div className="eclipse">{request?.description}</div>
+									</td>
 
 									{/* <td>{dayjs(Number(request?.addedDate)).format("YYYY-MM-DD")}</td> */}
 

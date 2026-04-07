@@ -10,6 +10,8 @@ import { jwtDecode } from "jwt-decode";
 import Select from "react-select";
 import Fuse from "fuse.js";
 import Modal from "../../Modal";
+import { colorOptions, sideOptions, sizeOptions } from "../../utilities/color-side-size";
+
 import { useAuth } from "../../../context/AuthContext";
 // import client from "../../../../graphQL/apolloClient";
 import client from "../../../context/ApolloWrapper";
@@ -33,7 +35,7 @@ function AdminUpdateOneMaterialRequest() {
 	const [toastOpen, setToastOpen] = useState(false);
 	const [blockInput, setBlockInput] = useState(false);
 
-	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false }]);
+	const [rows, setRows] = useState([{ brand: null, item: null, quantity: "", itemDescription: "", color: null, side: null, size: null, showOptional: false, showDescription: false, description: "" }]);
 
 	const [isOpen, setIsOpen] = useState(false);
 	const [mRequest, setMRequest] = useState();
@@ -63,11 +65,8 @@ function AdminUpdateOneMaterialRequest() {
 		// }
 	);
 
-	// console.log("this is the mr data", mRData.getOneMaterialRequest.approvalStatus.isApproved);
+	console.log("this is the data", mRData);
 
-	// console.log("this is the mr data", mRData.getOneMaterialRequest.requester.userId);
-
-	// TODO find out why the delete one material request is not working
 	const deleteRequest = async (e) => {
 		// console.log("deleting request");
 		// console.log(e);
@@ -130,29 +129,6 @@ function AdminUpdateOneMaterialRequest() {
 			});
 	};
 
-	// ----- Color / Side / Size options -----
-	const colorOptions = [
-		{ value: "605/US3 - Bright Brass", label: "605/US3 - Bright Brass", hex: "#FFD700" },
-		{ value: "612/US10 - Satin Bronze", label: "612/US10 - Satin Bronze", hex: "#B08D57" },
-		{ value: "619/US15 - Satin Nickel", label: "619/US15 - Satin Nickel", hex: "#AFAFAF" },
-		{ value: "625/US26 - Bright Chrome", label: "625/US26 - Bright Chrome", hex: "#E5E4E2" },
-		{ value: "626/US26D - Satin Chrome", label: "626/US26D - Satin Chrome", hex: "#C0C0C0" },
-		{ value: "630/US32D - Satin Stainless Steel", label: "630/US32D - Satin Stainless Steel", hex: "#D6D6D6" },
-		{ value: "622/ - Black", label: "622/ - Black", hex: "#000000" },
-		{ value: "689/ - Aluminum", label: "689/ - Aluminum", hex: "#A9A9A9" },
-	];
-
-	const sideOptions = [
-		{ value: "Left Hand", label: "Left Hand" },
-		{ value: "Right Hand", label: "Right Hand" },
-	];
-
-	const sizeOptions = [
-		{ value: "Small", label: "Small" },
-		{ value: "Medium", label: "Medium" },
-		{ value: "Large", label: "Large" },
-	];
-
 	// ----- Memoized items + brands -----
 	const allItems = useMemo(
 		() =>
@@ -182,31 +158,6 @@ function AdminUpdateOneMaterialRequest() {
 			})),
 		[itemGroups]
 	);
-
-	// function VirtualizedMenuList({ options, children, maxHeight }) {
-	// 	const childrenArray = React.Children.toArray(children || []);
-	// 	const rowHeight = useDynamicRowHeight({
-	// 		defaultRowHeight: 50,
-	// 	});
-
-	// 	if (!childrenArray.length) {
-	// 		return null;
-	// 	}
-
-	// 	return (
-	// 		<List
-	// 			style={{ height: 300, width: "100%", color: "black", textAlign: "center" }}
-	// 			rowCount={children.length || 0}
-	// 			rowHeight={rowHeight} //old 35
-	// 			rowProps={{}}
-	// 			rowComponent={({ index, style, rowProps }) => {
-	// 				const item = children[index];
-	// 				// ?.props?.data?.label
-	// 				return <div style={{ ...style, display: "flex", borderBottom: " dashed 1px black" }}>{item}</div>;
-	// 			}}
-	// 		/>
-	// 	);
-	// }
 
 	const filteredAllItems = useMemo(() => {
 		console.log(" debouncedSearch:", debouncedSearch);
@@ -272,7 +223,7 @@ function AdminUpdateOneMaterialRequest() {
 						const matchedSize = sizeOptions.find((i) => i.value === item.size);
 
 						const hasOptional = item.color || item.side || item.size;
-						const hasDescription = item.itemDescription && item.itemDescription.trim() !== "";
+						const hasDescription = req.description && req.description.trim() !== "";
 
 						return {
 							id: item.id,
@@ -284,6 +235,7 @@ function AdminUpdateOneMaterialRequest() {
 							size: matchedSize || { label: item.size, value: item.size },
 							showOptional: !!hasOptional,
 							showDescription: !!hasDescription,
+							description: req.description,
 						};
 					})
 				);
@@ -291,6 +243,7 @@ function AdminUpdateOneMaterialRequest() {
 		}
 	}, [mRData, allItems]);
 
+	console.log("this is the first row", rows[0]);
 	// NOTE - i see the update twice because the old update is still in place the form reset did not take effect so the old request  was still there there for if a new requests is send it has the new item that was added, updated or deleted still there  that why
 
 	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
@@ -330,6 +283,8 @@ function AdminUpdateOneMaterialRequest() {
 									color: matchedColor || null,
 									side: matchedSide || null,
 									size: matchedSize || null,
+									description: targetChange.description,
+									showDescription: targetChange.description ? true : false,
 								};
 							})
 						);
@@ -479,6 +434,7 @@ function AdminUpdateOneMaterialRequest() {
 		const requestersID = mRequest?.requester?.userId;
 		const input = {
 			id: requestId,
+			description: rows[0].description || "",
 			items: rows.map((r) => ({
 				id: r.id,
 				quantity: parseInt(r.quantity),
@@ -801,11 +757,11 @@ function AdminUpdateOneMaterialRequest() {
 										</div>
 									)}
 
-									{row.showDescription && (
+									{row.showDescription && idx === 0 && (
 										<div className="form-row-center-container-material-request-wrapper-bottom">
 											<label htmlFor="">{t("description")}</label>
 
-											<textarea type="text" value={row.itemDescription} onChange={(e) => handleRowChange(idx, "itemDescription", e.target.value)} placeholder={mRLoading ? t("loading") : t("item-description")} disabled={blockInput || mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
+											<textarea type="text" value={row.description} onChange={(e) => handleRowChange(idx, "description", e.target.value)} placeholder={mRLoading ? t("loading") : t("item-description")} disabled={blockInput || mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
 										</div>
 									)}
 
@@ -820,14 +776,17 @@ function AdminUpdateOneMaterialRequest() {
 											{row.showOptional ? t("hide-optional-fields") : t("show-optional-fields")}
 										</span>
 										{/* here for update */}
-										<span
-											className="show-fields-btn"
-											// type="button"
-											onClick={() => {
-												toggleItemField(idx, "showDescription");
-											}}>
-											{row.showDescription ? t("hide-description") : t("show-description")}
-										</span>
+
+										{idx === 0 && (
+											<span
+												className="show-fields-btn"
+												// type="button"
+												onClick={() => {
+													toggleItemField(idx, "showDescription");
+												}}>
+												{row.showDescription ? t("hide-description") : t("show-description")}
+											</span>
+										)}
 									</div>
 								</div>
 

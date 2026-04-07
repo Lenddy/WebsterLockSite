@@ -1,0 +1,16 @@
+.item-container {
+	display: grid;
+	background-color: red;
+	width: 99%;
+	height: 500px;
+	grid-template-columns: 200px;
+	/* align-items: center; */
+}
+
+.item-container div:nth-child(odd) {
+	background-color: darkblue;
+}
+
+.item-container div:nth-child(even) {
+	background-color: green;
+}

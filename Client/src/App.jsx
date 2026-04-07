@@ -33,6 +33,7 @@ import CreateOneMaterialRequest from "./component/material_requests/CreateOneMat
 // import NavBar from "./component/NavBar";
 
 import NotFound from "./component/NotFound";
+import Items from "./component/Admin/item_Groups/Items";
 
 function App() {
 	// console.log(window.location.hostname);
@@ -95,6 +96,7 @@ function App() {
 					<Route path="/admin/material/item/usage/:itemName?/:userId?" element={<GetOneItemUsage />} />
 					{/* <Route path="/test" element={<Test />} /> */}
 					<Route path="*" element={<NotFound to="/404" replace />} />
+					<Route path="/new/feature" element={<Items />} />
 				</Route>
 			</Routes>
 		</div>

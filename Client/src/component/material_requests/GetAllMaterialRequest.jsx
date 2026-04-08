@@ -217,9 +217,6 @@ export default function GetAllMaterialRequest() {
 							</button>
 						</div>
 					</div>
-					<div>
-						<h1>testing change </h1>
-					</div>
 
 					{/* Tabs */}
 

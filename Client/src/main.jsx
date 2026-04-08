@@ -14,6 +14,7 @@ import { UsersProvider } from "./context/UsersContext";
 import { ItemGroupsProvider } from "./context/ItemGroupContext";
 import { MaterialRequestsProvider } from "./context/MaterialRequestContext.jsx";
 import "../i18n.js";
+import i18n from "../i18n";
 import AuthSubscriptionBridge from "./context/AuthSubscriptionBridge.jsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -22,12 +23,46 @@ import { registerSW } from "virtual:pwa-register";
 
 console.log("waiting for update");
 
+// const updateSW = registerSW({
+// 	onNeedRefresh() {
+// 		console.log("New version available → forcing update...");
+
+// 		updateSW(true);
+// 	},
+// 	onOfflineReady() {
+// 		console.log("App ready for offline use");
+// 	},
+// });
+
 const updateSW = registerSW({
 	onNeedRefresh() {
-		console.log("New version available → forcing update...");
+		toast.info(
+			({ closeToast }) => (
+				<div>
+					<p>
+						{i18n.t("new-version-available")}
+						<br />
+						{i18n.t("please-refresh-to-update")}
+					</p>
 
-		updateSW(true);
+					<button
+						onClick={() => {
+							closeToast();
+							updateSW(true);
+						}}
+						style={{ marginTop: "8px" }}>
+						Refresh
+					</button>
+				</div>
+			),
+			{
+				autoClose: false,
+				closeOnClick: false,
+				draggable: false,
+			}
+		);
 	},
+
 	onOfflineReady() {
 		console.log("App ready for offline use");
 	},

@@ -36,6 +36,7 @@ import NotFound from "./component/NotFound";
 import Items from "./component/Admin/item_Groups/Items";
 
 function App() {
+	// console.log("this is a test to see if the service workers update");
 	// console.log(window.location.hostname);
 	const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 

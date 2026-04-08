@@ -18,6 +18,21 @@ import AuthSubscriptionBridge from "./context/AuthSubscriptionBridge.jsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import { registerSW } from "virtual:pwa-register";
+
+console.log("waiting for update");
+
+const updateSW = registerSW({
+	onNeedRefresh() {
+		console.log("New version available → forcing update...");
+
+		updateSW(true);
+	},
+	onOfflineReady() {
+		console.log("App ready for offline use");
+	},
+});
+
 const isBrave = (navigator.brave && navigator.brave.isBrave()) || false;
 if (isBrave) {
 	//REVIEW use translations

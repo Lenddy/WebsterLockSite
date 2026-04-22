@@ -1,16 +1,52 @@
-.item-container {
-	display: grid;
-	background-color: red;
-	width: 99%;
-	height: 500px;
-	grid-template-columns: 200px;
-	/* align-items: center; */
+.virtuoso-grid {
+	/* background-color: red; */
+	height: 100%;
+	border-radius: 10px;
 }
 
-.item-container div:nth-child(odd) {
-	background-color: darkblue;
+.virtuoso-item-container {
+	/* background-color: green; */
+	/* width: 99%;*/
+	/* height: 800px;*/
+	/* width: "100%"*/
+	/* style={{ }} */
 }
 
-.item-container div:nth-child(even) {
-	background-color: green;
+.virtuoso-scroller {
+	/* background-color: yellow; */
+}
+
+.virtuoso-grid-list {
+	/* background-color: red; */
+	gap: 5px;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-around;
+	align-items: center;
+	width: 100%;
+	height: 100px;
+}
+
+.virtuoso-grid-item {
+	border: solid white 1px;
+	height: 300px;
+	width: 30%;
+	/* max-width: 500px; */
+	min-width: 200px;
+
+	display: flex;
+	justify-content: space-evenly;
+	align-items: center;
+	/* flex-direction: row; */
+	background-color: white;
+}
+
+.virtuoso-grid-item-content {
+	display: flex;
+	background-color: blue;
+	width: 100%;
+	height: 100%;
+	justify-content: space-around;
+	align-items: center;
+	flex-direction: column;
 }

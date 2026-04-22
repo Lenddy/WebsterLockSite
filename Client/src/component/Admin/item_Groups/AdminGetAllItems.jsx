@@ -13,6 +13,8 @@ import { can } from "../../utilities/can";
 import { STORAGE_KEYS } from "../../utilities/activeTabs";
 import { toast } from "react-toastify";
 import { TableVirtuoso } from "react-virtuoso";
+import { VirtuosoGrid } from "react-virtuoso";
+import { forwardRef } from "react";
 
 export default function AdminGetAllItems() {
 	const { userToken, setPageLoading } = useAuth(); // get token from context
@@ -209,6 +211,7 @@ export default function AdminGetAllItems() {
 
 						<div className="table-title">{/* <h2>{t("items")}</h2> */}</div>
 						{/* <div className="table-scroll"> */}
+
 						<TableVirtuoso
 							className="Table-Virtuoso"
 							style={{ borderRadius: "10px" }}
@@ -229,6 +232,21 @@ export default function AdminGetAllItems() {
 									<th>{t("action")}</th>
 								</tr>
 							)}
+							components={{
+								TableRow: ({ item, ...props }) => {
+									const index = props["data-index"]; //  key part
+									const isEven = index % 2 === 0;
+
+									return (
+										<tr
+											{...props}
+											style={{
+												backgroundColor: isEven ? "rgb(54,64,74)" : "rgb(109, 129, 150)",
+											}}
+										/>
+									);
+								},
+							}}
 							// ROWS -/ td
 							itemContent={(index, ig) => (
 								<>
@@ -260,11 +278,80 @@ export default function AdminGetAllItems() {
 												"N/A"
 											)}
 										</div>
-										{/* : ({"N/A"}) : ({"N/A"}) */}
 									</td>
 								</>
 							)}
 						/>
+
+						{/* <VirtuosoGrid
+							className="virtuoso-grid"
+							data={sortedItems}
+							components={{
+								List: forwardRef(({ style, children, ...props }, ref) => (
+									<div ref={ref} {...props} className="virtuoso-grid-list" style={style}>
+										{children}
+									</div>
+								)),
+
+								Item: ({ children, ...props }) => (
+									<div {...props} className="virtuoso-grid-item">
+										{children}
+									</div>
+								),
+							}}
+							itemContent={(index, ig) => {
+								const isEven = index % 2 === 0;
+
+								return (
+									<div
+										className="virtuoso-grid-item-content"
+										style={{
+											backgroundColor: isEven ? "rgb(54,64,74)" : "rgb(109,129,150)",
+										}}>
+
+										<div>hello</div>
+
+										ID
+										{logUser?.role === "headAdmin" && (
+											<p>
+												<Link to={`/admin/material/item/${ig?.id}`}>{ig?.id}</Link>
+											</p>
+										)}
+
+										Brand
+										<h3>
+											<Link to={`/admin/material/item/${ig?.id}`}>{ig?.brand}</Link>
+										</h3>
+
+										Count
+										<p>
+											{t("item-amount")}: {ig?.itemsList?.length}
+										</p>
+
+										Items preview
+										<p>
+											{ig?.itemsList?.slice(0, 3).map((item, idx, arr) => (
+												<span key={item.id}>
+													{item.itemName} ,
+													{idx < arr.length - 1 ? ", " : ""}
+												</span>
+											))}
+										</p>
+
+										Action
+										<div>
+											{can(decodedUser, "items:update:any") ? (
+												<Link to={`/admin/material/item/${ig?.id}/update`}>
+													<span className="table-action first">{t("update")}</span>
+												</Link>
+											) : (
+												"N/A"
+											)}
+										</div>
+									</div>
+								);
+							}}
+						/> */}
 
 						{/* </div> */}
 					</div>

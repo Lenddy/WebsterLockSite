@@ -22,24 +22,6 @@ import { ALL_PERMISSIONS, PERMISSION_DEPENDENCIES, PERMISSION_HIERARCHY, ROLE_PE
 import VirtualizedMenuList from "../../utilities/VirtualizedMenuList";
 ("");
 
-// import { Virtuoso } from "react-virtuoso";
-
-// const VirtualizedMenuList = (props) => {
-// 	const { children, maxHeight } = props;
-
-// 	const items = Array.isArray(children) ? children : [];
-
-// 	if (!items.length) {
-// 		return <div style={{ padding: 10, textAlign: "center" }}>No results found</div>;
-// 	}
-
-// 	return (
-// 		<div style={{ height: maxHeight }}>
-// 			<Virtuoso style={{ height: maxHeight }} totalCount={items.length} itemContent={(index) => <div>{items[index]}</div>} />
-// 		</div>
-// 	);
-// };
-
 export default function AdminUpdateMultipleUsers() {
 	const { userToken, pageLoading, loading: userLoading } = useAuth();
 	const { users, loading, error } = useUsers();
@@ -387,7 +369,7 @@ export default function AdminUpdateMultipleUsers() {
 		};
 	});
 
-	console.log("this is the input", inputs);
+	// console.log("this is the input", inputs);
 
 	// Submit
 	const submit = async (e) => {
@@ -569,6 +551,8 @@ export default function AdminUpdateMultipleUsers() {
 	// 	}}
 	// />
 
+	console.log("this is the rows", rows);
+
 	return (
 		// out side container
 		<div className="update-container">
@@ -654,12 +638,13 @@ export default function AdminUpdateMultipleUsers() {
 											}),
 										}}
 									/>
+									{row.id == "" && <p className="error-message">{t("user-is-required")}</p>}
 								</div>
 
 								{/* right side of the top container */}
 								<div className="form-row-top-right">
 									<label>{t("previous-email")}:</label>
-									<input type="text" name="previousEmail" value={row?.previousEmail} onChange={(e) => handleRowChange(index, e)} disabled={loading || blockInput} placeholder={t("Previous Email")} />
+									<input type="text" name="previousEmail" value={row?.previousEmail} onChange={(e) => handleRowChange(index, e)} disabled={loading || blockInput || row?.id} placeholder={t("Previous Email")} />
 								</div>
 
 								{/* you got to find a why to allow some sub admins to allow to edit departments and numbers (not a priority)  */}
@@ -705,6 +690,8 @@ export default function AdminUpdateMultipleUsers() {
 										<div>
 											<label>{t("new name")}:</label>
 											<input type="text" name="name" value={row?.name} onChange={(e) => handleRowChange(index, e)} disabled={blockInput} placeholder={t("new name")} />
+
+											{row.id && row.name == "" && <p className="error-message">{t("name-is-required")}</p>}
 										</div>
 
 										<div>
@@ -729,12 +716,14 @@ export default function AdminUpdateMultipleUsers() {
 										<div>
 											<label>{t("new-password")}:</label>
 											<div className="update-form-input">
-												<input type={show ? "text" : "password"} name="newPassword" value={row?.newPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-password")} disabled={blockInput} />
+												<input type={show ? "text" : "password"} name="newPassword" value={row?.newPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-password")} disabled={blockInput || (row.previousPassword == "" && logUser.role !== "headAdmin")} />
 
 												<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
 													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 												</span>
 											</div>
+
+											{logUser.role !== "headAdmin" && row.previousPassword !== "" && row.newPassword == "" && <p className="error-message">{t("new-password-is-required")}</p>}
 										</div>
 
 										<div>
@@ -745,6 +734,14 @@ export default function AdminUpdateMultipleUsers() {
 													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 												</span>
 											</div>
+
+											{row.previousPassword !== "" && row.confirmNewPassword == "" && <p className="error-message">{t("confirm-password-is-required")}</p>}
+
+											{row.previousPassword !== "" && row.confirmNewPassword !== "" && row.confirmNewPassword !== row.newPassword && <p className="error-message">{t("confirm-password-does-not-match")}</p>}
+
+											{logUser.role === "headAdmin" && row.newPassword && row.confirmNewPassword == "" && <p className="error-message">{t("confirm-password-is-required")}</p>}
+
+											{logUser.role === "headAdmin" && row.confirmNewPassword !== "" && row.confirmNewPassword !== row.newPassword && <p className="error-message">{t("confirm-password-does-not-match")}</p>}
 										</div>
 									</div>
 								</div>

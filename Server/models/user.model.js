@@ -43,7 +43,7 @@ const UserSchema = new Schema(
 		password: {
 			type: String,
 			required: true,
-			minLength: 3, // Minimum length validation
+			minLength: 5, // Minimum length validation
 		},
 
 		department: {

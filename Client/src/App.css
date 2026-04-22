@@ -60,31 +60,32 @@
 	align-items: center;
 	/* height: 100px; */
 	margin-top: 10px;
+	/* background-color: red; */
 }
 
-/* 	.language-btn {
-	border: none;
+.language-btn {
+	/* border: none;
 	color: var(--black);
 	background-color: var(--blue);
 	text-align: center;
 	text-decoration: none;
 	display: inline-block;
-	font-size: clamp(1.063rem, 0.5rem + 3vw, 1.875rem);
 	transition-duration: 0.4s;
-	height: clamp(1.875rem, 0.469rem + 7.5vw, 4.688rem);
-	width: clamp(9.375rem, 6.25rem + 16.67vw, 15.625rem);
 	font-weight: 600;
 	text-shadow: 4px 4px var(--yellow);
 	box-shadow: 5px 8px var(--red);
-	border-radius: 5px;
+	border-radius: 5px; \
+	font-size: clamp(1.063rem, 0.5rem + 3vw, 1.875rem);
+	height: clamp(1.875rem, 0.469rem + 7.5vw, 4.688rem);
+	width: clamp(9.375rem, 6.25rem + 16.67vw, 15.625rem);*/
 }
 
 .language-btn:hover {
-	background-color: var(--red);
+	/* background-color: var(--red);
 	text-shadow: 4px 4px var(--white);
 	box-shadow: 5px 8px var(--white);
-	cursor: pointer;
-} */
+	cursor: pointer; */
+}
 
 /* .log-in-outer-container{
 
@@ -92,6 +93,7 @@
 
 .back-home {
 	color: var(--red);
+	font-size: clamp(0.813rem, 0.762rem + 0.25vw, 1rem);
 }
 
 /* ! log in form*/
@@ -146,9 +148,45 @@
 	align-items: center;
 	justify-content: center;
 	font-size: clamp(1.063rem, 0.5rem + 3vw, 1.875rem);
+
 	font-weight: 600;
 	text-shadow: 4px 4px var(--red);
 	min-height: 80px;
+}
+
+.log-in-email-container {
+	display: flex;
+	flex-direction: column;
+	/* font: 100; */
+	justify-content: center;
+	align-items: center;
+	gap: 10px;
+}
+
+.log-in-password-container {
+	display: flex;
+	flex-direction: column;
+	/* font: 100; */
+	justify-content: center;
+	align-items: center;
+	gap: 10px;
+}
+
+.password-container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.log-in-show-hide-container {
+	width: clamp(0.938rem, 5vw, 2.813rem);
+	height: clamp(0.938rem, 5vw, 2.813rem);
+}
+
+.error-message {
+	color: var(--red);
+	text-shadow: none;
+	font-size: clamp(0.875rem, 0.757rem + 0.59vw, 1.125rem);
 }
 
 .log-in-form-input {
@@ -169,7 +207,6 @@
 .log-in-show-hide {
 	width: clamp(0.938rem, 5vw, 2.813rem);
 	height: clamp(0.938rem, 5vw, 2.813rem);
-
 	padding: 0px;
 	border-radius: 50px;
 }
@@ -2052,6 +2089,11 @@ textarea:disabled {
 	flex-wrap: wrap;
 	flex-direction: column;
 	min-height: 60px;
+}
+
+.item-group-item-field-container {
+	width: 95%;
+	/* background-color: blue; */
 }
 
 .form-row-center.item-group input {

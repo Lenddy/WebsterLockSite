@@ -460,14 +460,13 @@ export default function AdminItemUsage() {
 				<div className="list-get-all-content item-usage-container">
 					{/* Filter Buttons */}
 					<div>
-						<div className="filter-btn-container">
+						{/* <div className="filter-btn-container">
 							{["All", "Today", "Week", "Month", "Year"].map((f) => (
 								<button key={f} className={`filter-btn ${filter === f ? "selected-filter" : ""}`} disabled={filter === f} onClick={() => setFilter(f)}>
-									{/* {f} */}
 									{translateFilterKey(f)}
 								</button>
 							))}
-						</div>
+						</div> */}
 
 						{/* Custom Date Filters */}
 						<div className="date-custom-filter-container">

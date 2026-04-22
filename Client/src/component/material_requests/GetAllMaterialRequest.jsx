@@ -234,21 +234,21 @@ export default function GetAllMaterialRequest() {
 										// className={`tab-btn ${activeTab === "approved" ? "active" : ""}`}
 										className={`filter-btn ${activeTab === "approved" ? "selected-filter" : ""}`}
 										onClick={() => setActiveTab("approved")}>
-										Approved
+										{t("Approved")}
 									</button>
 
 									<button
 										//  className={`     tab-btn  ${activeTab === "waiting" ? "active" : ""}`}
 										className={`filter-btn  ${activeTab === "waiting" ? "selected-filter" : ""}`}
 										onClick={() => setActiveTab("waiting")}>
-										Waiting
+										{t("Waiting")}
 									</button>
 
 									<button
 										// className={`tab-btn ${activeTab === "all" ? "active" : ""}`}
 										className={`filter-btn ${activeTab === "denied" ? "selected-filter" : ""}`}
 										onClick={() => setActiveTab("denied")}>
-										Denied
+										{t("Denied")}
 									</button>
 								</div>
 							</div>
@@ -284,6 +284,21 @@ export default function GetAllMaterialRequest() {
 									<th>{t("action")}</th>
 								</tr>
 							)}
+							components={{
+								TableRow: ({ item, ...props }) => {
+									const index = props["data-index"]; //  key part
+									const isEven = index % 2 === 0;
+
+									return (
+										<tr
+											{...props}
+											style={{
+												backgroundColor: isEven ? "rgb(54,64,74)" : "rgb(109, 129, 150)",
+											}}
+										/>
+									);
+								},
+							}}
 							// ROWS -/ td
 							itemContent={(index, request) => (
 								<>

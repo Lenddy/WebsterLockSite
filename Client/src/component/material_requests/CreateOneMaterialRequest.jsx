@@ -396,6 +396,7 @@ export default function CreateOneMaterialRequest() {
 									<div className="form-row-top-left material-request">
 										<label>{t("quantity")}</label>
 										<input type="number" value={row.quantity} disabled={blockInput} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} placeholder={t("qty")} />
+										{row.quantity == "" && <p className="error-message">{t("quantity-is-requiered")}</p>}
 									</div>
 
 									<div className="form-row-top-right material-request">
@@ -455,6 +456,8 @@ export default function CreateOneMaterialRequest() {
 												}),
 											}}
 										/>
+										{row.item == "" && <p className="error-message">{t("item-is-requiered")}</p>}
+										{row.item == null && <p className="error-message">{t("item-is-requiered")}</p>}
 									</div>
 								</div>
 

@@ -46,6 +46,7 @@ export default function AdminRegisterMultipleUsers() {
 			permissions: [],
 			editPermission: false,
 		},
+		// 78,
 	]);
 
 	const decodedUser = userToken ? jwtDecode(userToken) : null;
@@ -67,7 +68,7 @@ export default function AdminRegisterMultipleUsers() {
 	// Validation helpers
 	const requiredFieldsFilled = rows.every((r) => r.name && r.email && r.password && r.confirmPassword && r.role);
 
-	const emailList = rows.map((r) => r.email.trim().toLowerCase()).filter(Boolean);
+	const emailList = rows.map((r) => r?.email?.trim()?.toLowerCase())?.filter(Boolean);
 	const duplicates = emailList.filter((e, i) => emailList.indexOf(e) !== i);
 	const hasDuplicates = duplicates.length > 0;
 
@@ -375,16 +376,6 @@ export default function AdminRegisterMultipleUsers() {
 	// Show nothing if token isn't loaded
 	if (!decodedUser) return null;
 
-	// console.log("this are the rows", rows);
-
-	// TODO - FIX THE BTN THAT SHOW THE EXTRA PERMISSIONS
-
-	console.log("this are the rows", roleRank[decodedUser.role]);
-	console.log("this are the rows", roleRank[decodedUser.role] >= 3);
-
-	console.log("this are the rows", can(decodedUser, "peers:update:any"));
-	console.log("this are the rows", decodedUser);
-
 	return (
 		<div className="register-container">
 			<form className="register-form" onSubmit={submit}>
@@ -401,11 +392,14 @@ export default function AdminRegisterMultipleUsers() {
 								<div className="form-row-top-left">
 									<label htmlFor="name">{t("name")}:</label>
 									<input type="text" name="name" onChange={(e) => handleRowChange(index, e)} placeholder={t("name")} disabled={blockInput} value={row.name || ""} />
+									{/* {rows[index].name === "" && <p>this a test</p>} */}
+									{row.name == "" && <p className="error-message">{t("name-is-requiered")}</p>}
 								</div>
 
 								<div className="form-row-top-right">
 									<label htmlFor="email">{t("email")}:</label>
 									<input type="text" name="email" onChange={(e) => handleRowChange(index, e)} placeholder={t("email")} disabled={blockInput} value={row.email || ""} />
+									{row.email == "" && <p className="error-message"> {t("email-is-requiered")}</p>}
 								</div>
 
 								<div className="form-row-top-left">
@@ -430,16 +424,19 @@ export default function AdminRegisterMultipleUsers() {
 													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 												</span>
 											</div>
+											{row.password == "" && <p className="error-message">{t("password-is-requiered")}</p>}
 										</div>
 
 										<div>
 											<label>{t("confirm-password")}:</label>
 											<div className="update-form-input">
-												<input type={show ? "text" : "password"} name="confirmPassword" value={row.confirmPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("confirm-password")} disabled={blockInput} />
+												<input type={show ? "text" : "password"} name="confirmPassword" value={row.confirmPassword} onChange={(e) => handleRowChange(index, e)} placeholder={t("confirm-password")} disabled={blockInput || rows[index].password == ""} style={rows[index].password == "" ? { opacity: 0.8 } : null} />
 												<span className="update-form-show-hide" type="button" onClick={() => setShow(!show)}>
 													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 												</span>
 											</div>
+
+											{row.confirmPassword == "" ? <p className="error-message">{t("confirm-Password-is-requiered")} </p> : row.confirmPassword != row.password ? <p className="error-message">{t("Confirm-Password does-not-match")}</p> : null}
 										</div>
 									</div>
 								</div>
@@ -467,6 +464,7 @@ export default function AdminRegisterMultipleUsers() {
 												<option value="user">{t("user")}</option>
 												<option value="noRole">{t("no-role")}</option>
 											</select>
+											{row.role == "" && <p className="error-message">{t("role-is-requiere")}</p>}
 										</div>
 
 										{row.role && ROLE_PERMISSIONS[row.role] && <p style={{ color: "red" }}>{t(ROLE_PERMISSIONS[row.role].descriptionKey)}</p>}

@@ -511,6 +511,8 @@ export default function AdminCreateMultipleMaterialRequests() {
 											}),
 										}}
 									/>{" "}
+									{req?.requester?.userId == "" && <p className="error-message">{t("user-is-requiered")} </p>}
+									{req?.requester == null && <p className="error-message">{t("user-is-requiered")} </p>}
 								</div>
 
 								<div className="form-row-top-left material-request">
@@ -526,6 +528,9 @@ export default function AdminCreateMultipleMaterialRequests() {
 											(handleRequestChange(reqIdx, "addedDate", e.target.value), console.log("initial date", e.target.value, "formatted Date", dayjs(e.target.value).toISOString()));
 										}}
 									/>
+
+									{req?.addedDate == null && <p className="error-message">{t("date-is-requiered")}</p>}
+									{req?.addedDate == "" && <p className="error-message">{t("date-is-requiered")}</p>}
 								</div>
 							</div>
 
@@ -590,6 +595,10 @@ export default function AdminCreateMultipleMaterialRequests() {
 												<label htmlFor="">{t("quantity")}</label>
 												{/* Quantity */}
 												<input type="number" disabled={loading || blockInput} value={row.quantity} onChange={(e) => handleItemChange(reqIdx, rowIdx, "quantity", e.target.value)} placeholder={t("qty")} min={0} />
+												{/* <p>test</p> */}
+
+												{/* {requests[reqIdx]?.items[rowIdx]?.quantity == "" && <p className="error-message">Quantity is requiere 2</p>} */}
+												{row.quantity == "" && <p className="error-message">{t("quantity-is-requiered")}</p>}
 											</div>
 
 											<div className="form-row-top-right material-request">
@@ -635,6 +644,10 @@ export default function AdminCreateMultipleMaterialRequests() {
 														}),
 													}}
 												/>
+												{/* <p>test</p> */}
+												{/* {requests[reqIdx]?.items?.quantity == "" && <p className="error-message">Quantity is requiere</p>} */}
+												{row.item == "" && <p className="error-message">{t("item-is-requiered")}</p>}
+												{row.item == null && <p className="error-message">{t("item-is-requiered")}</p>}
 											</div>
 										</div>
 

@@ -15,7 +15,7 @@ import { can } from "../utilities/can";
 
 export default function LogIn({ screenWidth }) {
 	const { setUserToken, userToken } = useAuth(); //  get setter from context
-	const [info, setInfo] = useState({}); //stores the info to be send to the back end
+	const [info, setInfo] = useState({ email: "", password: "" }); //stores the info to be send to the back end
 	const [blockInput, setBlockInput] = useState({});
 	const navigate = useNavigate();
 	const [logInUser, { data, loading, error }] = useMutation(log_In_user);
@@ -47,6 +47,7 @@ export default function LogIn({ screenWidth }) {
 		if (name.length > 0 && value.length > 0) setBlockInput(false);
 	};
 
+	console.log("this is the info from the log in ", info);
 	// submiting information for user to log in
 	const submit = async (e) => {
 		e.preventDefault();
@@ -117,13 +118,12 @@ export default function LogIn({ screenWidth }) {
 				{userToken && (
 					<div className="back-home">
 						<p>
-							{jwtDecode(userToken).name} {t("user-is-log-in")}{" "}
+							{t("user")} {jwtDecode(userToken).name} {t("user-is-log-in")}
 						</p>
 
 						<Link to={`${can(jwtDecode(userToken), "requests:read:any") ? "/material/request/all" : can(jwtDecode(userToken), "requests:read:own") ? "/material/request/request" : "/material/request/request"}`}>
 							{/* to={`${["headAdmin", "admin", "subAdmin"].includes(jwtDecode(userToken).role) ? "/material/request/all" : "/material/request/request"}`}> */}
 							<button className="">
-								{" "}
 								{t("home")} {"->"}
 							</button>
 							{/* Back Home */}
@@ -134,15 +134,25 @@ export default function LogIn({ screenWidth }) {
 				<form onSubmit={submit} className="log-in-form">
 					<h1 className="log-in-tite">{t("log-in")}</h1> {/* LogIn */}
 					<div className="log-in-email-container">
-						<input type="text" name="email" onChange={(e) => SubmissionInfo(e)} placeholder="Email" className="log-in-form-input" />
+						<div>
+							<input type="text" name="email" onChange={(e) => SubmissionInfo(e)} placeholder="Email" className="log-in-form-input" />
+						</div>
+						<div className="error-message">{info.email <= 0 && <p>{t("email-is-required")}</p>}</div>
 					</div>
 					<div className="log-in-password-container">
-						<input type={show === true ? "text" : "password"} name="password" onChange={(e) => SubmissionInfo(e)} className="log-in-form-input log-in-password" style={screenWidth <= 340 && screenWidth >= 320 ? { width: "230px" } : screenWidth <= 319 ? { width: "220px" } : {}} placeholder={t("password")} autoComplete="off" />
-						{/* "Password" */}
+						<div className="password-container">
+							<input type={show === true ? "text" : "password"} name="password" onChange={(e) => SubmissionInfo(e)} className="log-in-form-input log-in-password" style={screenWidth <= 340 && screenWidth >= 320 ? { width: "230px" } : screenWidth <= 319 ? { width: "220px" } : {}} placeholder={t("password")} autoComplete="off" />
+							{/* "Password" */}
+							<div className="log-in-show-hide-container">
+								<span className="log-in-show-hide" type="button" onClick={() => setShow(!show)}>
+									{show === false ? <CloseEye className="eye" /> : <Eye className="eye" />}
+								</span>
+							</div>
+						</div>
 
-						<span className="log-in-show-hide" type="button" onClick={() => setShow(!show)}>
-							{show === false ? <CloseEye className="eye" /> : <Eye className="eye" />}
-						</span>
+						<div>
+							<div className="error-message">{info.email <= 0 && <p>{t("password-is-required")}</p>}</div>
+						</div>
 					</div>
 					<button className={`form-submission-btn ${blockInput ? "disable-btn" : ""}`} type="submit" disabled={loading || blockInput}>
 						{loading ? t("logging-in") : t("log-in")}

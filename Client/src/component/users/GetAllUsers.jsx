@@ -203,8 +203,6 @@ export default function GetAllUsers() {
 		setSelectedUser(null);
 	};
 
-	// import { TableVirtuoso } from "react-virtuoso";
-
 	return (
 		<>
 			{loading ? (
@@ -237,6 +235,23 @@ export default function GetAllUsers() {
 							// components={{
 							// 	Table: (props) => <table {...props} style={{ tableLayout: "fixed", width: "90%" }} />,
 							// }}
+
+							// ROWS -/ td
+							components={{
+								TableRow: ({ item, ...props }) => {
+									const index = props["data-index"]; //  key part
+									const isEven = index % 2 === 0;
+
+									return (
+										<tr
+											{...props}
+											style={{
+												backgroundColor: isEven ? "rgb(54,64,74)" : "rgb(109, 129, 150)",
+											}}
+										/>
+									);
+								},
+							}}
 							fixedHeaderContent={() => (
 								<tr>
 									{logUser?.role === "headAdmin" && <th>ID</th>}
@@ -260,6 +275,8 @@ export default function GetAllUsers() {
 							)}
 							// ROWS -/ td
 							itemContent={(index, user) => (
+								// const isEven = index % 2 === 0;
+
 								<>
 									{logUser?.role === "headAdmin" && (
 										<td>

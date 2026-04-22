@@ -48,7 +48,7 @@ const httpLink = new HttpLink({
 const authLink = setContext((_, { headers }) => {
 	// const token = localStorage.getItem("UserToken"); // fresh every request
 	// console.log("token in  apollo client", token);
-	console.log("setting token ad context", new Date(), "\n", token);
+	// console.log("setting token ad context", new Date(), "\n", token);
 	return {
 		headers: {
 			...headers,

@@ -130,8 +130,8 @@ const startServer = async () => {
 	// Start server
 	const PORT = process.env.PORT || 4000;
 	httpServer.listen(PORT, () => {
-		console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
-		console.log(`📡 Subscriptions ready at ws://localhost:${PORT}/graphql`);
+		console.log(`Server ready at http://localhost:${PORT}/graphql`);
+		console.log(`Subscriptions ready at ws://localhost:${PORT}/graphql`);
 	});
 	app.listen(3005);
 };

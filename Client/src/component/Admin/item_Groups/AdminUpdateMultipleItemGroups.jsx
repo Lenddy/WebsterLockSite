@@ -200,61 +200,6 @@ export default function AdminUpdateMultipleItemsGroups() {
 		setSelectedGroups((prev) => prev.filter((_, idx) => idx !== groupIdx));
 	};
 
-	// const submit = async (e) => {
-	// 	e.preventDefault();
-
-	// 	if (!changesMade) {
-	// 		toast.success(t("no-changes-made"));
-	// 		return;
-	// 	}
-
-	// 	const input = selectedGroups
-	// 		.filter((g) => g.id)
-	// 		.map((g) => {
-	// 			const groupPayload = { id: g.id };
-	// 			if (g.brandAction?.toBeUpdated) {
-	// 				groupPayload.brand = g.brand;
-	// 				groupPayload.brandNameUpdate = true;
-	// 			}
-
-	// 			const changedItems = g.itemsList
-	// 				.filter((item) => item.action?.toBeAdded || item.action?.toBeUpdated || item.action?.toBeDeleted)
-	// 				.map((item) => {
-	// 					const payload = { action: {} };
-	// 					if (item.id) payload.id = item.id;
-	// 					if (item.itemName && (item.action?.toBeAdded || item.action?.toBeUpdated)) {
-	// 						payload.itemName = item.itemName;
-	// 					}
-	// 					if (item.action?.toBeAdded) payload.action.toBeAdded = true;
-	// 					if (item.action?.toBeUpdated) payload.action.toBeUpdated = true;
-	// 					if (item.action?.toBeDeleted) payload.action.toBeDeleted = true;
-	// 					return payload;
-	// 				});
-
-	// 			if (changedItems.length > 0) groupPayload.itemsList = changedItems;
-	// 			return groupPayload;
-	// 		})
-	// 		.filter((g) => g.brand || g.brandNameUpdate || g.itemsList);
-
-	// 	if (input.length === 0) {
-	// 		alert(t("no-real-changes-to-submit"));
-	// 		return;
-	// 	}
-
-	// 	console.log("Submitting:", input);
-
-	// 	await updateItemGroups({
-	// 		variables: { input },
-	// 		onCompleted: (res) => {
-	// 			alert(t("item-groups-have-been-updated-successfully"));
-	// 			// ("Item Groups have been Updated successfully!");
-	// 			//  console.log("Success:", res)
-	// 		},
-	// 		onError: (err) => console.error("Error:", err),
-	// 	});
-	// };
-	//
-
 	// todo if theres an id send as a param set the ide to be the selected group
 	const resetForm = () => {
 		setSelectedGroups([{ id: null, brand: "", itemsList: [], brandAction: {} }]);
@@ -426,6 +371,8 @@ export default function AdminUpdateMultipleItemsGroups() {
 										}),
 									}}
 								/>
+
+								{group?.id == null && <p className="error-message">{t("brand-name-is-requiered")}</p>}
 							</div>
 
 							<div className="update-form-row">
@@ -434,6 +381,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 										<div className="form-row-top-right material-request">
 											<label>{t("brand")}:</label>
 											<input type="text" value={group.brand} onChange={(e) => handleBrandChange(gIdx, e.target.value)} placeholder={t("brand-name")} disabled={blockInput} />
+											{group.brand == "" && <p className="error-message">{t("brand-name-is-requiered")}</p>}
 										</div>
 									)}
 								</div>
@@ -458,7 +406,10 @@ export default function AdminUpdateMultipleItemsGroups() {
 													) : (
 														<>
 															{/* <div> */}
-															<input type="text" value={item.itemName} onChange={(e) => handleItemChange(gIdx, idx, e.target.value)} placeholder={t("items-name")} />
+															<div className="item-group-item-field-container">
+																<input type="text" value={item.itemName} onChange={(e) => handleItemChange(gIdx, idx, e.target.value)} placeholder={t("items-name")} />
+																{item.itemName == "" && <p className="error-message">{t("item-name-is-requiered")}</p>}
+															</div>
 															{/* </div> */}
 
 															{/* <div> */}

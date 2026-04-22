@@ -321,26 +321,6 @@ const userResolver = {
 					/*|--------------------------------------------------------------------------
 					| Final permissions = role defaults + extras (extras override)
 					|--------------------------------------------------------------------------*/
-					// const permissionMap = Object.create(null);
-
-					// // 1) Load role defaults first
-					// for (const perm of ROLE_PERMISSIONS[role]) {
-					// 	const [resource, action] = perm.split(":", 2);
-					// 	if (!resource || !action) continue;
-
-					// 	permissionMap[`${resource}:${action}`] = perm;
-					// }
-
-					// // 2) Extras override role defaults
-					// for (const perm of extraPermissions) {
-					// 	const [resource, action] = perm.split(":", 2);
-					// 	if (!resource || !action) continue;
-
-					// 	permissionMap[`${resource}:${action}`] = perm;
-					// }
-
-					// const finalPermissions = Object.values(permissionMap);
-
 					const finalPermissions = mergePermissions(ROLE_PERMISSIONS[role], extraPermissions);
 
 					const newUser = new User({

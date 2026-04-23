@@ -228,7 +228,7 @@ export default function AdminCreateMultipleItemsGroups() {
 									<div className="form-row-top-right material-request">
 										<label>{t("brand-name")}</label>
 										<input type="text" value={ig?.brand} disabled={blockInput} onChange={(e) => handleItemGroupChange(igIdx, "brand", e.target.value)} placeholder={t("brand-name")} />
-										{ig.brand == "" && <p className="error-message">{t("brand-name-is-requiered")}</p>}
+										{ig.brand == "" && <p className="error-message">{t("brand-name-is-required")}</p>}
 									</div>
 								</div>
 
@@ -240,7 +240,7 @@ export default function AdminCreateMultipleItemsGroups() {
 											{/* Item Name */}
 											<div className="item-group-item-field-container">
 												<input type="text" value={row?.itemName} disabled={blockInput} onChange={(e) => handleItemChange(igIdx, rowIdx, "itemName", e.target.value)} placeholder={t("item-name")} />
-												{row.itemName == "" && <p className="error-message">{t("item-name-is-requiered")}</p>}
+												{row.itemName == "" && <p className="error-message">{t("item-name-is-required")}</p>}
 											</div>
 
 											{/* Remove item */}

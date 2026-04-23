@@ -291,8 +291,6 @@ export default function AdminUpdateMultipleItemsGroups() {
 			return;
 		}
 
-		// console.log("Submitting:", input);
-
 		const mutationPromise = updateItemGroups({
 			variables: { input },
 		});
@@ -320,6 +318,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 				autoClose: false,
 			},
 		});
+
 		mutationPromise
 			.then(() => {
 				setHasSubmitted(true);
@@ -335,6 +334,11 @@ export default function AdminUpdateMultipleItemsGroups() {
 
 	if (isLoading) return <p>{t("loading")}</p>;
 	if (hasError) return <p>{t("error-loading-data")}</p>;
+
+	const canAddMore = selectedGroups.every((ig) => ig.brand && ig.itemsList.every((i) => i.itemName));
+	const canSubmit = canAddMore;
+
+	console.log("this is the selected group", selectedGroups);
 
 	return (
 		<div className="update-container">
@@ -372,7 +376,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 									}}
 								/>
 
-								{group?.id == null && <p className="error-message">{t("brand-name-is-requiered")}</p>}
+								{group?.id == null && <p className="error-message">{t("brand-name-is-required")}</p>}
 							</div>
 
 							<div className="update-form-row">
@@ -381,7 +385,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 										<div className="form-row-top-right material-request">
 											<label>{t("brand")}:</label>
 											<input type="text" value={group.brand} onChange={(e) => handleBrandChange(gIdx, e.target.value)} placeholder={t("brand-name")} disabled={blockInput} />
-											{group.brand == "" && <p className="error-message">{t("brand-name-is-requiered")}</p>}
+											{group.brand == "" && <p className="error-message">{t("brand-name-is-required")}</p>}
 										</div>
 									)}
 								</div>
@@ -408,7 +412,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 															{/* <div> */}
 															<div className="item-group-item-field-container">
 																<input type="text" value={item.itemName} onChange={(e) => handleItemChange(gIdx, idx, e.target.value)} placeholder={t("items-name")} />
-																{item.itemName == "" && <p className="error-message">{t("item-name-is-requiered")}</p>}
+																{item.itemName == "" && <p className="error-message">{t("item-name-is-required")}</p>}
 															</div>
 															{/* </div> */}
 
@@ -453,7 +457,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 					)}
 
 					<div>
-						<button type="submit" className="form-submit-btn" disabled={!changesMade}>
+						<button type="submit" className="form-submit-btn" disabled={!changesMade || !canSubmit}>
 							{t("update")}
 						</button>
 					</div>

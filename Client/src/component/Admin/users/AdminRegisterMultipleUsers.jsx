@@ -393,13 +393,13 @@ export default function AdminRegisterMultipleUsers() {
 									<label htmlFor="name">{t("name")}:</label>
 									<input type="text" name="name" onChange={(e) => handleRowChange(index, e)} placeholder={t("name")} disabled={blockInput} value={row.name || ""} />
 									{/* {rows[index].name === "" && <p>this a test</p>} */}
-									{row.name == "" && <p className="error-message">{t("name-is-requiered")}</p>}
+									{row.name == "" && <p className="error-message">{t("name-is-required")}</p>}
 								</div>
 
 								<div className="form-row-top-right">
 									<label htmlFor="email">{t("email")}:</label>
 									<input type="text" name="email" onChange={(e) => handleRowChange(index, e)} placeholder={t("email")} disabled={blockInput} value={row.email || ""} />
-									{row.email == "" && <p className="error-message"> {t("email-is-requiered")}</p>}
+									{row.email == "" && <p className="error-message"> {t("email-is-required")}</p>}
 								</div>
 
 								<div className="form-row-top-left">
@@ -424,7 +424,7 @@ export default function AdminRegisterMultipleUsers() {
 													{show === false ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 												</span>
 											</div>
-											{row.password == "" && <p className="error-message">{t("password-is-requiered")}</p>}
+											{row.password == "" && <p className="error-message">{t("password-is-required")}</p>}
 										</div>
 
 										<div>
@@ -436,7 +436,7 @@ export default function AdminRegisterMultipleUsers() {
 												</span>
 											</div>
 
-											{row.confirmPassword == "" ? <p className="error-message">{t("confirm-Password-is-requiered")} </p> : row.confirmPassword != row.password ? <p className="error-message">{t("Confirm-Password does-not-match")}</p> : null}
+											{row.confirmPassword == "" ? <p className="error-message">{t("confirm-password-is-required")} </p> : row.confirmPassword != row.password ? <p className="error-message">{t("confirm-password-does-not-match")}</p> : null}
 										</div>
 									</div>
 								</div>

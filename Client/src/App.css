@@ -1701,6 +1701,11 @@
 	/* width: 200px; */
 }
 
+.update-form-input {
+	display: flex;
+	flex-direction: column;
+}
+
 .update-form-input input {
 	width: calc(90% - 35px);
 }
@@ -1897,6 +1902,16 @@ textarea:disabled {
 	pointer-events: none;
 	opacity: 0.5;
 	cursor: not-allowed;
+}
+
+.update-user-input-container {
+	/* background-color: red; */
+	display: flex;
+	/* flex-direction: column; */
+	flex-wrap: wrap;
+
+	width: 80%;
+	/*height: 100px; */
 }
 
 .update-form-show-hide {

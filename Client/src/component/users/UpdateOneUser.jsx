@@ -262,12 +262,12 @@ export default function UpdateOneUser() {
 								<div className="form-row-center-left-wrapper">
 									<div>
 										<label htmlFor="name">{t("new-name")}</label>
-										<input type="text" name="name" value={info.name} onChange={SubmissionInfo} disabled={blockInput} />
+										<input type="text" name="name" placeholder="New" value={info.name} onChange={SubmissionInfo} disabled={blockInput} placeholder="New name" />
 									</div>
 
 									<div>
 										<label htmlFor="newEmail">{t("new-email")}</label>
-										<input type="text" name="newEmail" value={info.newEmail} onChange={SubmissionInfo} disabled={blockInput} />
+										<input type="text" name="newEmail" placeholder="New email" value={info.newEmail} onChange={SubmissionInfo} disabled={blockInput} />
 									</div>
 
 									<div>
@@ -283,26 +283,36 @@ export default function UpdateOneUser() {
 									<div>
 										<label>{t("new-password")}</label>
 										<div className="update-form-input">
+											{/* <div className="update-user-input-container"> */}
 											<input type={show ? "text" : "password"} name="newPassword" value={info.newPassword} onChange={SubmissionInfo} disabled={blockInput} />
 											<span className="update-form-show-hide" onClick={() => setShow(!show)}>
 												{show ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 											</span>
+											{/* </div> */}
 										</div>
+
+										{info.previousPassword !== "" && info.newPassword == "" && <p className="error-message">{t("new-password-is-required")}</p>}
 									</div>
 
 									<div>
 										<label>{t("confirm-password")}</label>
 										<div className="update-form-input">
+											{/* <div className="update-user-input-container"> */}
 											<input type={show ? "text" : "password"} name="confirmNewPassword" value={info.confirmNewPassword} onChange={SubmissionInfo} disabled={blockInput} />
+
 											<span className="update-form-show-hide" onClick={() => setShow(!show)}>
 												{show ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 											</span>
 										</div>
+										{/* </div> */}
+										{info.newPassword !== "" && info.confirmNewPassword == "" && <p className="error-message">{t("confirm-password-is-required")}</p>}
+
+										{info.confirmNewPassword !== "" && info.confirmNewPassword !== info.newPassword && <p className="error-message">{t("confirm-password-does-not-match")}</p>}
 									</div>
 								</div>
 							</div>
 
-							<div className="form-row-center-right">
+							{/* <div className="form-row-center-right">
 								<div className="form-row-center-right-wrapper">
 									<div>
 										<label htmlFor="title">{t("job-title")}</label>
@@ -313,68 +323,13 @@ export default function UpdateOneUser() {
 										<label>{t("new-job-description")}</label>
 										<textarea name="description" value={info.description} onChange={SubmissionInfo} placeholder={t("new-job-description")} disabled={blockInput}></textarea>
 									</div>
-
-									{/* <div>
-										<label>New Role:</label>
-										<select name="newRole" value={info.newRole} onChange={SubmissionInfo}>
-											<option value="" disabled>
-												Select Role
-											</option>
-											<option value="admin">Admin</option>
-											<option value="subAdmin">Sub Admin</option>
-											<option value="technician">Technician</option>
-											<option value="user">User</option>
-											<option value="noRole">No Role</option>
-										</select>
-									</div> */}
 								</div>
-							</div>
+							</div> */}
 						</div>
-
-						{/* Permissions Section */}
-						{/* <div className="form-row-center-bottom">
-							<div className="permissions-grid">
-								<div>
-									<label>User Permissions</label>
-									<ul className="permissions-list">
-										{Object.keys(info.newPermissions)
-											.filter((key) => key.includes("Users") || key.includes("Role"))
-											.map((key) => (
-												<li key={key}>
-													<label>
-														{formatKey(key)}
-														<input type="checkbox" name={key} checked={info.newPermissions[key]} onChange={SubmissionInfo} />
-													</label>
-												</li>
-											))}
-									</ul>
-								</div>
-
-								<div>
-									<label>Self Permissions</label>
-									<ul className="permissions-list">
-										{Object.keys(info.newPermissions)
-											.filter((key) => key.includes("Self"))
-											.map((key) => (
-												<li key={key}>
-													<label>
-														{formatKey(key)}
-														<input type="checkbox" name={key} checked={info.newPermissions[key]} onChange={SubmissionInfo} />
-													</label>
-												</li>
-											))}
-									</ul>
-								</div>
-							</div>
-						</div> */}
 					</div>
 				</div>
 
 				<div className="validation"></div>
-
-				{/* <button type="submit" disabled={updateLoading}>
-					{updateLoading ? "Updating..." : "Update"}
-				</button> */}
 
 				<div className="form-action-btn">
 					<button className="form-submit-btn" type="submit" disabled={updateLoading}>

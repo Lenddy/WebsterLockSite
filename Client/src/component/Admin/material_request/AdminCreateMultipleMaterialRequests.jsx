@@ -511,8 +511,8 @@ export default function AdminCreateMultipleMaterialRequests() {
 											}),
 										}}
 									/>{" "}
-									{req?.requester?.userId == "" && <p className="error-message">{t("user-is-requiered")} </p>}
-									{req?.requester == null && <p className="error-message">{t("user-is-requiered")} </p>}
+									{req?.requester?.userId == "" && <p className="error-message">{t("user-is-required")} </p>}
+									{req?.requester == null && <p className="error-message">{t("user-is-required")} </p>}
 								</div>
 
 								<div className="form-row-top-left material-request">
@@ -529,8 +529,8 @@ export default function AdminCreateMultipleMaterialRequests() {
 										}}
 									/>
 
-									{req?.addedDate == null && <p className="error-message">{t("date-is-requiered")}</p>}
-									{req?.addedDate == "" && <p className="error-message">{t("date-is-requiered")}</p>}
+									{req?.addedDate == null && <p className="error-message">{t("date-is-required")}</p>}
+									{req?.addedDate == "" && <p className="error-message">{t("date-is-required")}</p>}
 								</div>
 							</div>
 
@@ -598,7 +598,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 												{/* <p>test</p> */}
 
 												{/* {requests[reqIdx]?.items[rowIdx]?.quantity == "" && <p className="error-message">Quantity is requiere 2</p>} */}
-												{row.quantity == "" && <p className="error-message">{t("quantity-is-requiered")}</p>}
+												{row.quantity == "" && <p className="error-message">{t("quantity-is-required")}</p>}
 											</div>
 
 											<div className="form-row-top-right material-request">

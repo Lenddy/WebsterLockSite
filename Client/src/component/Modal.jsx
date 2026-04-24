@@ -84,7 +84,7 @@ const Modal = ({ isOpen, onClose, data, setIsOpen, setSelectedUser, onConFirm, l
 					)}
 
 					{/* Material Request New */}
-					{location.pathname === `/material/request/request` && logUser && (
+					{location.pathname === `/material/request` && logUser && (
 						<div className="modal-content-header">
 							<div className="modal-content-top-info-title-wrapper">
 								<div>
@@ -131,7 +131,7 @@ const Modal = ({ isOpen, onClose, data, setIsOpen, setSelectedUser, onConFirm, l
 				<div className="modal-content">
 					{/* Material Request Rows */}
 
-					{(location.pathname === `/material/request/request`) & (data.showDoorHanding == true) ? (
+					{(location.pathname === `/material/request`) & (data.showDoorHanding == true) ? (
 						<>
 							<img className="door-handing" src={doorHanding} alt="logo" />
 
@@ -141,7 +141,7 @@ const Modal = ({ isOpen, onClose, data, setIsOpen, setSelectedUser, onConFirm, l
 						</>
 					) : null}
 
-					{(location.pathname === `/material/request/${data?.mRequest?.mrId}/update` || location.pathname === `/material/request/request`) &&
+					{(location.pathname === `/material/request/${data?.mRequest?.mrId}/update` || location.pathname === `/material/request`) &&
 						data?.rows?.map((row, idx) => (
 							<div className="modal-content-info-wrapper" key={idx}>
 								<p>
@@ -232,7 +232,7 @@ const Modal = ({ isOpen, onClose, data, setIsOpen, setSelectedUser, onConFirm, l
 				<div className="modal-bottom">
 					<div className="model-bottom-wrapper">
 						{/* Material Request Confirm/Cancel */}
-						{(location.pathname === `/material/request/${data?.mRequest?.mrId}/update` || location.pathname === `/material/request/request`) && (
+						{(location.pathname === `/material/request/${data?.mRequest?.mrId}/update` || location.pathname === `/material/request`) && (
 							<>
 								<div className={`model-btn-view ${loading ? "disabled" : ""}`} onClick={onConFirm}>
 									<span>{t("confirm")}</span>

@@ -73,9 +73,8 @@ export default ({ mode }) => {
 				workbox: {
 					//  Cache static assets like JS/CSS
 					// globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
-					globPatterns: ["**/*.{js,css,ico,png,svg}"],
+					globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
 					navigateFallback: "/index.html",
-
 					//  Handle API calls at runtime (GraphQL endpoint)
 					runtimeCaching: [
 						{

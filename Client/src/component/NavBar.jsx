@@ -140,7 +140,7 @@ export default function NavBar({ children, screenWidth }) {
 					},
 					{
 						name: t("request-material"),
-						path: roleRank[decodedUser?.role] >= 3 ? "/admin/material/request" : "/material/request/request",
+						path: roleRank[decodedUser?.role] >= 3 ? "/admin/material/request" : "/material/request",
 						permission: ["requests:create:any", "requests:create:own"],
 					},
 				],

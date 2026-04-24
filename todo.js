@@ -42,7 +42,7 @@
 // [x] Add toast notifications globally
 
 //TODO 🧭 Routing Improvements
-// [ ] Create index route for /material/request/request
+// [ ] Create index route for /material/request
 //   - [ ] CreateOneMaterialRequest component
 // [x] Fix pattern conflicts between:
 //   - [x] /material/request/all

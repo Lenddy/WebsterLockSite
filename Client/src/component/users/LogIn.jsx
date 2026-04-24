@@ -90,7 +90,7 @@ export default function LogIn({ screenWidth }) {
 				} else {
 					// if user can read only their own material request they go to the mane a new material request
 					if (can(decoded, "requests:read:own", { ownerId: decoded.userId })) {
-						navigate("/material/request/request");
+						navigate("/material/request");
 						// if user cant read any or own  material request they will go to the user profile  route
 					} else {
 						navigate(`/user/${decoded.userId}`);
@@ -121,8 +121,8 @@ export default function LogIn({ screenWidth }) {
 							{t("user")} {jwtDecode(userToken).name} {t("user-is-log-in")}
 						</p>
 
-						<Link to={`${can(jwtDecode(userToken), "requests:read:any") ? "/material/request/all" : can(jwtDecode(userToken), "requests:read:own") ? "/material/request/request" : "/material/request/request"}`}>
-							{/* to={`${["headAdmin", "admin", "subAdmin"].includes(jwtDecode(userToken).role) ? "/material/request/all" : "/material/request/request"}`}> */}
+						<Link to={`${can(jwtDecode(userToken), "requests:read:any") ? "/material/request/all" : can(jwtDecode(userToken), "requests:read:own") ? "/material/request" : "/material/request"}`}>
+							{/* to={`${["headAdmin", "admin", "subAdmin"].includes(jwtDecode(userToken).role) ? "/material/request/all" : "/material/request"}`}> */}
 							<button className="">
 								{t("home")} {"->"}
 							</button>

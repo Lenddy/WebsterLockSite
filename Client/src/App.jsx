@@ -35,6 +35,8 @@ import CreateOneMaterialRequest from "./component/material_requests/CreateOneMat
 import NotFound from "./component/NotFound";
 import Items from "./component/Admin/item_Groups/Items";
 
+import { Navigate } from "react-router-dom";
+
 function App() {
 	// console.log("this is a test to see if the service workers update");
 	// console.log(window.location.hostname);
@@ -90,8 +92,9 @@ function App() {
 					<Route path="/material/request/all" element={<GetAllMaterialRequest />} />
 					//LINK - /material/request/:requestId/update?
 					<Route path="/material/request/:requestId/update?" element={<GetOneMaterialRequest />} />
-					//LINK - /material/request/request
-					<Route path="/material/request/request" element={<CreateOneMaterialRequest />} />
+					//LINK - /material/request
+					<Route path="/material/request" element={<CreateOneMaterialRequest />} />
+					<Route path="/material/request/request" element={<Navigate to="/material/request" replace />} />
 					//LINK - /admin/material/item/usage/:name
 					{/* is this even in use ?  */}
 					<Route path="/admin/material/item/usage/:itemName?/:userId?" element={<GetOneItemUsage />} />

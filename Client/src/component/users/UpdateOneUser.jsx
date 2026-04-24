@@ -9,6 +9,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { can } from "../utilities/can";
+import { isValidEmail } from "../utilities/emailValidator";
 
 export default function UpdateOneUser() {
 	// user
@@ -49,6 +50,24 @@ export default function UpdateOneUser() {
 		description: decodedUser?.job?.description || "",
 		// newPermissions: { ... }
 	});
+
+	const canSubmit = () => {
+		const { previousPassword, newPassword, confirmNewPassword } = info;
+
+		// if any password field is touched, validate all three
+		const anyTouched = previousPassword !== "" || newPassword !== "" || confirmNewPassword !== "";
+
+		if (!anyTouched) return true; // no password change attempted, allow submit
+
+		if (previousPassword === "") return false; // prev required if any field touched
+		if (newPassword.length < 5) return false; // must be 5+ chars
+		if (confirmNewPassword !== newPassword) return false; // must match
+
+		return true;
+	};
+
+	console.log(canSubmit());
+
 	const { t } = useTranslation();
 	const [updateUserProfile, { loading: updateLoading, error: updateError }] = useMutation(update_One_user);
 
@@ -111,12 +130,7 @@ export default function UpdateOneUser() {
 			confirmNewPassword: "",
 			employeeNum: decodedUser?.employeeNum || "",
 			department: decodedUser?.department || "",
-			// newRole: user?.role || "",
-			// title: decodedUser?.job?.title || "",
-			// description: decodedUser?.job?.description || "",
-			// newPermissions: { ... }
 		}); // or your initial requests state
-		// setSelectedGroups([]);
 		setHasSubmitted(false);
 		setFormReset(true);
 	};
@@ -139,9 +153,7 @@ export default function UpdateOneUser() {
 					onClick={() => {
 						resetForm();
 						setBlockInput(false);
-						// console.log("has submitted before", hasSubmitted);
 						setHasSubmitted(false);
-						// console.log("has submitted after", hasSubmitted);
 						closeToast();
 					}}>
 					{t("make-another-update")}
@@ -243,6 +255,7 @@ export default function UpdateOneUser() {
 							<div className="form-row-top-right">
 								<label htmlFor="previousEmail">{t("previous-email")}</label>
 								<input type="text" name="previousEmail" placeholder={decodedUser?.email} disabled />
+								{!isValidEmail(info.previousEmail) && info.previousEmail.length > 0 && <p className="error-message">{t("must-be-a-valid-email")}</p>}
 							</div>
 
 							<div className="form-row-top-left">
@@ -268,6 +281,8 @@ export default function UpdateOneUser() {
 									<div>
 										<label htmlFor="newEmail">{t("new-email")}</label>
 										<input type="text" name="newEmail" placeholder="New email" value={info.newEmail} onChange={SubmissionInfo} disabled={blockInput} />
+
+										{!isValidEmail(info.newEmail) && info.newEmail.length > 0 && <p className="error-message">{t("must-be-a-valid-email")}</p>}
 									</div>
 
 									<div>
@@ -283,22 +298,23 @@ export default function UpdateOneUser() {
 									<div>
 										<label>{t("new-password")}</label>
 										<div className="update-form-input">
-											{/* <div className="update-user-input-container"> */}
-											<input type={show ? "text" : "password"} name="newPassword" value={info.newPassword} onChange={SubmissionInfo} disabled={blockInput} />
+											y
+											<input type={show ? "text" : "password"} name="newPassword" value={info.newPassword} onChange={SubmissionInfo} disabled={blockInput} placeholder={t("new-password")} />
 											<span className="update-form-show-hide" onClick={() => setShow(!show)}>
 												{show ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
 											</span>
-											{/* </div> */}
 										</div>
 
 										{info.previousPassword !== "" && info.newPassword == "" && <p className="error-message">{t("new-password-is-required")}</p>}
+
+										{info.newPassword.length > 0 && info.newPassword.length < 5 && <p className="error-message">{t("password-must-be-at least-5-characters")}</p>}
 									</div>
 
 									<div>
 										<label>{t("confirm-password")}</label>
 										<div className="update-form-input">
 											{/* <div className="update-user-input-container"> */}
-											<input type={show ? "text" : "password"} name="confirmNewPassword" value={info.confirmNewPassword} onChange={SubmissionInfo} disabled={blockInput} />
+											<input type={show ? "text" : "password"} name="confirmNewPassword" value={info.confirmNewPassword} onChange={SubmissionInfo} disabled={blockInput} placeholder={t("confirm-password")} />
 
 											<span className="update-form-show-hide" onClick={() => setShow(!show)}>
 												{show ? <CloseEye className="update-eye" /> : <Eye className="update-eye" />}
@@ -311,20 +327,6 @@ export default function UpdateOneUser() {
 									</div>
 								</div>
 							</div>
-
-							{/* <div className="form-row-center-right">
-								<div className="form-row-center-right-wrapper">
-									<div>
-										<label htmlFor="title">{t("job-title")}</label>
-										<input type="text" name="title" value={info.title} onChange={SubmissionInfo} placeholder={decodedUser?.job?.title} disabled={blockInput} />
-									</div>
-
-									<div>
-										<label>{t("new-job-description")}</label>
-										<textarea name="description" value={info.description} onChange={SubmissionInfo} placeholder={t("new-job-description")} disabled={blockInput}></textarea>
-									</div>
-								</div>
-							</div> */}
 						</div>
 					</div>
 				</div>
@@ -332,7 +334,7 @@ export default function UpdateOneUser() {
 				<div className="validation"></div>
 
 				<div className="form-action-btn">
-					<button className="form-submit-btn" type="submit" disabled={updateLoading}>
+					<button className="form-submit-btn" type="submit" disabled={updateLoading || !canSubmit()}>
 						{/* || isFormInvalid */}
 						{updateLoading ? t("updating") : t("update-users")}
 					</button>

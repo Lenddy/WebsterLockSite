@@ -347,5 +347,6 @@
 	"brand-name-is-required": "brand name is required",
 	"item-name-is-required": "Item name is required",
 	"new-password-is-required": "New password is requiere",
-	"confirm-password-is-required": "Confirm password is required"
+	"confirm-password-is-required": "Confirm password is required",
+	"password-must-be-at least-5-characters": "Password must be at least 5 characters long"
 }

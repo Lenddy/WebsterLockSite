@@ -646,8 +646,8 @@ export default function AdminCreateMultipleMaterialRequests() {
 												/>
 												{/* <p>test</p> */}
 												{/* {requests[reqIdx]?.items?.quantity == "" && <p className="error-message">Quantity is requiere</p>} */}
-												{row.item == "" && <p className="error-message">{t("item-is-requiered")}</p>}
-												{row.item == null && <p className="error-message">{t("item-is-requiered")}</p>}
+												{row.item == "" && <p className="error-message">{t("item-is-required")}</p>}
+												{row.item == null && <p className="error-message">{t("item-is-required")}</p>}
 											</div>
 										</div>
 

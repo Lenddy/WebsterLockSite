@@ -22,6 +22,8 @@ import { ALL_PERMISSIONS, PERMISSION_DEPENDENCIES, PERMISSION_HIERARCHY, ROLE_PE
 import VirtualizedMenuList from "../../utilities/VirtualizedMenuList";
 ("");
 
+import { isValidEmail } from "../../utilities/emailValidator";
+
 export default function AdminUpdateMultipleUsers() {
 	const { userToken, pageLoading, loading: userLoading } = useAuth();
 	const { users, loading, error } = useUsers();
@@ -243,33 +245,32 @@ export default function AdminUpdateMultipleUsers() {
 		setSuccess(null);
 	};
 
-	// Validation
 	const hasEmptyRequiredFields = rows.some((row) => {
-		// 1. ID always required
 		if (!row?.id) return true;
 
-		// 2. Email change rule
+		const isHeadAdmin = logUser.role === "headAdmin";
+
+		// Password validation
+		const anyPasswordTouched = row.previousPassword !== "" || row.newPassword !== "" || row.confirmNewPassword !== "";
+		if (anyPasswordTouched) {
+			if (!isHeadAdmin && row.previousPassword === "") return true;
+			if (row.newPassword.length < 5) return true;
+			if (row.confirmNewPassword !== row.newPassword) return true;
+		}
+
+		// Email format validation
+		if (row.newEmail && !isValidEmail(row.newEmail)) return true; // newEmail must be valid format
+		if (row.previousEmail && !isValidEmail(row.previousEmail)) return true; // previousEmail too
+
+		// Email change rule
 		if (row?.newEmail && !row.previousEmail) return true;
 
-		// 3. Password change rules
-		if (row?.newPassword) {
-			if (!row?.confirmNewPassword) return true;
+		// No changes made
+		const noChangesMade = !row.newEmail && !row.newPassword && !row.confirmNewPassword && !row.newRole && !row.newPermissions?.length && !row.name && !row.title && !row.description;
 
-			// Only require previousPassword if not headAdmin
-			if (logUser.role !== "headAdmin" && !row?.previousPassword) return true;
-		}
+		if (row?.id && noChangesMade) return true;
 
-		// 4. If ID is selected but *no other field is changed*
-		const noChangesMade = !row.newEmail && !row.newPassword && !row?.confirmNewPassword && !row?.role && !row?.newPermissions && !row?.name && !row?.title && !row?.description;
-
-		if (row?.id && noChangesMade) {
-			// console.warn(" Row has an ID but no other fields were changed.");
-			return true;
-		}
-		// setSuccess({ success: false });
-		// setSuccess(null);
-
-		return false; // valid row
+		return false;
 	});
 
 	const hasDuplicateEmails = (() => {
@@ -487,72 +488,7 @@ export default function AdminUpdateMultipleUsers() {
 	};
 
 	const groupedPermissions = useMemo(() => groupPermissions(ALL_PERMISSIONS), []);
-
-	// console.log("this is groupedPermissions from the update multiple ", groupedPermissions);
-
-	// ! this is the old select
-	// <Select
-	// 	className="form-row-top-select"
-	// 	filterOption={customFilter}
-	// 	classNamePrefix="update-form-row-select"
-	// 	options={userOptions}
-	// 	value={userOptions.find((opt) => opt.value === row?.id) || null}
-	// 	onChange={(selected) => {
-	// 		if (row?.locked) return; // Prevent changes if locked
-	// 		setRows((prev) => {
-	// 			const newRows = [...prev];
-	// 			const updatedRow = { ...newRows[index] };
-
-	// 			if (selected) {
-	// 				const selectedUser = users.find((u) => u.id === selected.value);
-	// 				// console.log("this is the selectedUser", selectedUser);
-	// 				if (selectedUser) {
-	// 					updatedRow.id = selectedUser.id;
-	// 					updatedRow.previousEmail = selectedUser.email || "";
-	// 					updatedRow.employeeNum = selectedUser.employeeNum || "";
-	// 					updatedRow.department = selectedUser.department || "";
-	// 					updatedRow.name = selectedUser.name || "";
-	// 					updatedRow.newRole = selectedUser.role || "";
-	// 					updatedRow.newPermissions = [...selectedUser.permissions];
-	// 				}
-	// 			} else {
-	// 				// If cleared, reset to empty
-	// 				updatedRow.id = "";
-	// 				updatedRow.previousEmail = "";
-	// 				updatedRow.employeeNum = "";
-	// 				updatedRow.department = "";
-	// 				updatedRow.name = "";
-	// 				updatedRow.title = "";
-	// 				updatedRow.description = "";
-	// 				updatedRow.newRole = "";
-	// 				updatedRow.newPermissions = [];
-	// 			}
-
-	// 			newRows[index] = updatedRow;
-	// 			return newRows;
-	// 		});
-	// 	}}
-	// 	placeholder={loading ? t("loading") : t("Select-user-by-name-email")}
-	// 	isClearable={!row?.locked} //  Don't allow clearing if locked
-	// 	isSearchable={!row?.locked} //  Disable search if locked
-	// 	isDisabled={row?.locked || loading || blockInput} //  Disable Select if locked
-	// 	styles={{
-	// 		control: (base) => ({
-	// 			...base,
-	// 			borderRadius: "12px",
-	// 			borderColor: row?.locked ? "gray" : "blue", // show visually locked
-	// 			backgroundColor: row?.locked ? "#f5f5f5" : "white",
-	// 		}),
-	// 		option: (base, state) => ({
-	// 			...base,
-	// 			backgroundColor: state.isFocused ? "lightblue" : "white",
-	// 			color: "black",
-	// 		}),
-	// 	}}
-	// />
-
-	console.log("this is the rows", rows);
-
+	console.log("this are the rows", rows);
 	return (
 		// out side container
 		<div className="update-container">
@@ -645,6 +581,8 @@ export default function AdminUpdateMultipleUsers() {
 								<div className="form-row-top-right">
 									<label>{t("previous-email")}:</label>
 									<input type="text" name="previousEmail" value={row?.previousEmail} onChange={(e) => handleRowChange(index, e)} disabled={loading || blockInput || row?.id} placeholder={t("Previous Email")} />
+
+									{row.id && !isValidEmail(row.previousEmail) && row.previousEmail.length > 0 && <p className="error-message">{t("must-be-a-valid-email")}</p>}
 								</div>
 
 								{/* you got to find a why to allow some sub admins to allow to edit departments and numbers (not a priority)  */}
@@ -697,6 +635,7 @@ export default function AdminUpdateMultipleUsers() {
 										<div>
 											<label>{t("new-email")}:</label>
 											<input type="email" name="newEmail" value={row?.newEmail} disabled={blockInput} onChange={(e) => handleRowChange(index, e)} placeholder={t("new-email")} />
+											{row.id && !isValidEmail(row.newEmail) && row.newEmail.length > 0 && <p className="error-message">{t("must-be-a-valid-email")}</p>}
 										</div>
 
 										{/* <div className="form-row-center-left-bottom"> */}
@@ -724,6 +663,8 @@ export default function AdminUpdateMultipleUsers() {
 											</div>
 
 											{logUser.role !== "headAdmin" && row.previousPassword !== "" && row.newPassword == "" && <p className="error-message">{t("new-password-is-required")}</p>}
+
+											{row.newPassword.length > 0 && row.newPassword.length < 5 && <p className="error-message">{t("password-must-be-at least-5-characters")}</p>}
 										</div>
 
 										<div>

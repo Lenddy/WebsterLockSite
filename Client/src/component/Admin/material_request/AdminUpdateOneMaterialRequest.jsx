@@ -582,6 +582,7 @@ function AdminUpdateOneMaterialRequest() {
 										{/* Quantity input */}
 										<label htmlFor="">{t("quantity")}</label>
 										<input type="number" value={row.quantity} onChange={(e) => handleRowChange(idx, "quantity", e.target.value)} min={1} placeholder={mRLoading ? t("loading") : t("qty")} disabled={blockInput || mRLoading ? true : row?.action?.toBeDeleted ? true : false} />
+										{row.quantity == "" && <p className="error-message">{t("quantity-is-required")}</p>}
 									</div>
 
 									<div className="form-row-top-right  material-request">
@@ -634,6 +635,8 @@ function AdminUpdateOneMaterialRequest() {
 												}),
 											}}
 										/>
+										{row.item == "" && <p className="error-message">{t("item-is-required")}</p>}
+										{row.item == null && <p className="error-message">{t("item-is-required")}</p>}
 									</div>
 								</div>
 

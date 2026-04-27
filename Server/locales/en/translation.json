@@ -341,12 +341,13 @@
 	"user-is-required": "User is required",
 	"date-is-required": "Date is required",
 	"quantity-is-required": "Quantity is required",
-	"item-is-required": "items is required",
+	"item-is-required": "Items is required",
 	"Confirm-Password does-not-match": "Confirm password does not match",
 	"role-is-requiere": "Role is required",
 	"brand-name-is-required": "brand name is required",
 	"item-name-is-required": "Item name is required",
 	"new-password-is-required": "New password is requiere",
 	"confirm-password-is-required": "Confirm password is required",
-	"password-must-be-at least-5-characters": "Password must be at least 5 characters long"
+	"password-must-be-at least-5-characters": "Password must be at least 5 characters long",
+	"must-be-a-valid-email": "Must be a valid email"
 }

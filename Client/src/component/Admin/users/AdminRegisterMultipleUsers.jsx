@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { can } from "../../utilities/can";
 import { ROLE_PERMISSIONS, ALL_PERMISSIONS, scopeDisplayName, roleRank, PERMISSION_DEPENDENCIES, PERMISSION_HIERARCHY } from "../../utilities/role.config";
+import { isValidEmail } from "../../utilities/emailValidator";
 
 export default function AdminRegisterMultipleUsers() {
 	const { userToken } = useAuth(); // get token from context
@@ -400,6 +401,7 @@ export default function AdminRegisterMultipleUsers() {
 									<label htmlFor="email">{t("email")}:</label>
 									<input type="text" name="email" onChange={(e) => handleRowChange(index, e)} placeholder={t("email")} disabled={blockInput} value={row.email || ""} />
 									{row.email == "" && <p className="error-message"> {t("email-is-required")}</p>}
+									{row.email.length > 0 && !isValidEmail(row.email) && <p className="error-message">{t("must-be-a-valid-email")}</p>}
 								</div>
 
 								<div className="form-row-top-left">

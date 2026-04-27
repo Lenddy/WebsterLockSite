@@ -340,12 +340,13 @@
 	"role-is-required": "Rol es requerido",
 	"user-is-required": "Usuario es requerido",
 	"date-is-required": "Fecha es requerida",
-	"item-is-required": "Material es requerida",
+	"item-is-required": "Material es requerido",
 	"quantity-is-required": "Cantidad es requerida",
 	"role-is-requiere": "Rol es requerido",
 	"brand-name-is-required": "Nombre de marca es requerida",
 	"item-name-is-required": "Nombre del material es requerido",
 	"new-password-is-required": "Nueva contraseña es requerida",
 	"confirm-password-is-required": "Confirmar contraseña es requerida",
-	"password-must-be-at least-5-characters": "Contraseña debe de ser por lo menos 5 caracteres de largo"
+	"password-must-be-at least-5-characters": "Contraseña debe de ser por lo menos 5 caracteres de largo",
+	"must-be-a-valid-email": "debe de ser un email valido"
 }

@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import i18n from "../../../i18n";
 import { toast } from "react-toastify";
 import { can } from "../utilities/can";
+import { isValidEmail } from "../utilities/emailValidator";
 
 // import NavBar from "../NavBar";
 
@@ -137,7 +138,10 @@ export default function LogIn({ screenWidth }) {
 						<div>
 							<input type="text" name="email" onChange={(e) => SubmissionInfo(e)} placeholder="Email" className="log-in-form-input" />
 						</div>
-						<div className="error-message">{info.email <= 0 && <p>{t("email-is-required")}</p>}</div>
+						<div className="error-message">
+							{info.email <= 0 && <p>{t("email-is-required")}</p>}
+							{info.email.length > 0 && !isValidEmail(info.email) && <p className="error-message">{t("must-be-a-valid-email")}</p>}
+						</div>
 					</div>
 					<div className="log-in-password-container">
 						<div className="password-container">
@@ -151,7 +155,7 @@ export default function LogIn({ screenWidth }) {
 						</div>
 
 						<div>
-							<div className="error-message">{info.email <= 0 && <p>{t("password-is-required")}</p>}</div>
+							<div className="error-message">{info.password <= 0 && <p>{t("password-is-required")}</p>}</div>
 						</div>
 					</div>
 					<button className={`form-submission-btn ${blockInput ? "disable-btn" : ""}`} type="submit" disabled={loading || blockInput}>

@@ -303,9 +303,9 @@ export default function AdminCreateMultipleMaterialRequests() {
 					onClick={() => {
 						resetForm();
 						setBlockInput(false);
-						console.log("has submitted before", hasSubmitted);
+						// console.log("has submitted before", hasSubmitted);
 						setHasSubmitted(false);
-						console.log("has submitted after", hasSubmitted);
+						// console.log("has submitted after", hasSubmitted);
 						closeToast();
 					}}>
 					{t("make-another-request")}
@@ -517,7 +517,9 @@ export default function AdminCreateMultipleMaterialRequests() {
 										// value={req.date || null}
 										value={requests[reqIdx]?.addedDate ?? today}
 										onChange={(e) => {
-											(handleRequestChange(reqIdx, "addedDate", e.target.value), console.log("initial date", e.target.value, "formatted Date", dayjs(e.target.value).toISOString()));
+											handleRequestChange(reqIdx, "addedDate", e.target.value);
+
+											// console.log("initial date", e.target.value, "formatted Date", dayjs(e.target.value).toISOString())
 										}}
 									/>
 

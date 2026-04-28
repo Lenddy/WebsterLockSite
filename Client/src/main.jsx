@@ -21,7 +21,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { registerSW } from "virtual:pwa-register";
 
-console.log("waiting for update");
+// console.log("waiting for update");
 
 // const updateSW = registerSW({
 // 	onNeedRefresh() {

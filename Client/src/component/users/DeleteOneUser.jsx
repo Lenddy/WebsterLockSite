@@ -38,7 +38,7 @@ export default function DeleteOneUser({ userId, btnActive, setIsOpen, setSelecte
 		}
 	};
 
-	console.log();
+	// console.log();
 
 	// can(jwtDecode(userToken), "users:delete:own") ||
 	// 				(can(jwtDecode(userToken), "users:delete:any")

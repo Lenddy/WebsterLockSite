@@ -65,7 +65,7 @@ function AdminUpdateOneMaterialRequest() {
 		// }
 	);
 
-	console.log("this is the data", mRData);
+	// console.log("this is the data", mRData);
 
 	const deleteRequest = async (e) => {
 		// console.log("deleting request");
@@ -160,11 +160,11 @@ function AdminUpdateOneMaterialRequest() {
 	);
 
 	const filteredAllItems = useMemo(() => {
-		console.log(" debouncedSearch:", debouncedSearch);
-		console.log(" allItems:", allItems);
+		// console.log(" debouncedSearch:", debouncedSearch);
+		// console.log(" allItems:", allItems);
 
 		if (!debouncedSearch) {
-			console.log("➡ Returning all items (no search)");
+			// console.log("➡ Returning all items (no search)");
 			return allItems;
 		}
 
@@ -243,7 +243,7 @@ function AdminUpdateOneMaterialRequest() {
 		}
 	}, [mRData, allItems]);
 
-	console.log("this is the first row", rows[0]);
+	// console.log("this is the first row", rows[0]);
 	// NOTE - i see the update twice because the old update is still in place the form reset did not take effect so the old request  was still there there for if a new requests is send it has the new item that was added, updated or deleted still there  that why
 
 	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
@@ -260,7 +260,7 @@ function AdminUpdateOneMaterialRequest() {
 
 			if (!changesArray.length) return;
 
-			console.log(` Material Request subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
+			// console.log(` Material Request subscription event: ${eventType}, changeType: ${changeType}, count: ${changesArray.length}`);
 
 			if (requestId) {
 				const targetChange = changesArray.find((c) => c.id === requestId);

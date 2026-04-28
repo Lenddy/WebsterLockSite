@@ -338,7 +338,7 @@ export default function AdminUpdateMultipleItemsGroups() {
 	const canAddMore = selectedGroups.every((ig) => ig.brand && ig.itemsList.every((i) => i.itemName));
 	const canSubmit = canAddMore;
 
-	console.log("this is the selected group", selectedGroups);
+	// console.log("this is the selected group", selectedGroups);
 
 	return (
 		<div className="update-container">

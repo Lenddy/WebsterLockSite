@@ -48,7 +48,7 @@ export default function LogIn({ screenWidth }) {
 		if (name.length > 0 && value.length > 0) setBlockInput(false);
 	};
 
-	console.log("this is the info from the log in ", info);
+	// console.log("this is the info from the log in ", info);
 	// submiting information for user to log in
 	const submit = async (e) => {
 		e.preventDefault();

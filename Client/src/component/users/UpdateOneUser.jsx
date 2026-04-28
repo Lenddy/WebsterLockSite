@@ -66,7 +66,7 @@ export default function UpdateOneUser() {
 		return true;
 	};
 
-	console.log(canSubmit());
+	// console.log(canSubmit());
 
 	const { t } = useTranslation();
 	const [updateUserProfile, { loading: updateLoading, error: updateError }] = useMutation(update_One_user);

@@ -57,7 +57,7 @@ export function UsersProvider({ children }) {
 	useSubscription(USER_CHANGE_SUBSCRIPTION, {
 		skip: authLoading || !userToken || !canReview(), // <-- skip subscription until token ready
 		onData: ({ data: subscriptionData, client }) => {
-			console.log("Subscription raw data:", subscriptionData);
+			// console.log("Subscription raw data:", subscriptionData);
 
 			const changeEvent = subscriptionData?.data?.onUserChange;
 			if (!changeEvent) return;

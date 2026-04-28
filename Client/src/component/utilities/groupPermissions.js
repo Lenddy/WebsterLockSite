@@ -3,7 +3,7 @@ export const groupPermissions = (permissions) => {
 
 	permissions.forEach((perm) => {
 		let [resource, action, scope] = perm.split(":");
-		console.log("resource:", resource, "action:", action, "scope:", scope);
+		// console.log("resource:", resource, "action:", action, "scope:", scope);
 		// role permissions belong to users column
 		if (resource === "role" || resource === "peers") {
 			resource = "users";
@@ -28,6 +28,6 @@ export const groupPermissions = (permissions) => {
 		});
 	});
 
-	console.log(result);
+	// console.log(result);
 	return result;
 };

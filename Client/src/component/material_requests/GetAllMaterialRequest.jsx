@@ -143,7 +143,7 @@ export default function GetAllMaterialRequest() {
 
 	const { requests: mRequests, loading, error } = useMaterialRequests();
 
-	console.log("this is the request", mRequests);
+	// console.log("this is the request", mRequests);
 
 	const [searchValue, setSearchValue] = useState("");
 

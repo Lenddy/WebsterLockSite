@@ -348,5 +348,8 @@
 	"new-password-is-required": "Nueva contraseña es requerida",
 	"confirm-password-is-required": "Confirmar contraseña es requerida",
 	"password-must-be-at least-5-characters": "Contraseña debe de ser por lo menos 5 caracteres de largo",
-	"must-be-a-valid-email": "debe de ser un email valido"
+	"must-be-a-valid-email": "debe de ser un email valido",
+	"quantity-must-be-bigger-that-0": "",
+	"hello-there": "Hola que tal",
+	"you-lost": "¿Te has perdido? ¿Necesitas un mapa? ¿Qué tal si te echo una mano? Estas son todas las direcciones a las que puedes ir."
 }

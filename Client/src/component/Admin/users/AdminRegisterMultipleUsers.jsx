@@ -106,7 +106,7 @@ export default function AdminRegisterMultipleUsers() {
 
 		permissions.forEach((perm) => {
 			let [resource, action, scope] = perm.split(":");
-			console.log("resource:", resource, "action:", action, "scope:", scope);
+			// console.log("resource:", resource, "action:", action, "scope:", scope);
 			// role permissions belong to users column
 			if (resource === "role" || resource === "peers") {
 				resource = "users";
@@ -157,7 +157,7 @@ export default function AdminRegisterMultipleUsers() {
 	// Row manipulation functions
 	const handleRowChange = (index, e) => {
 		const { name, value, type, checked } = e.target;
-		console.log("inputs", { name, value, type, checked });
+		// console.log("inputs", { name, value, type, checked });
 
 		setRows((prev) => {
 			const newRows = [...prev];
@@ -279,9 +279,9 @@ export default function AdminRegisterMultipleUsers() {
 					onClick={() => {
 						resetForm();
 						setBlockInput(false);
-						console.log("has submitted before", hasSubmitted);
+						// console.log("has submitted before", hasSubmitted);
 						setHasSubmitted(false);
-						console.log("has submitted after", hasSubmitted);
+						// console.log("has submitted after", hasSubmitted);
 						closeToast();
 					}}>
 					{t("register-more-users")}
@@ -372,7 +372,7 @@ export default function AdminRegisterMultipleUsers() {
 		}
 	}, [rows]);
 
-	console.log("groupedPermissions", groupedPermissions);
+	// console.log("groupedPermissions", groupedPermissions);
 
 	// Show nothing if token isn't loaded
 	if (!decodedUser) return null;

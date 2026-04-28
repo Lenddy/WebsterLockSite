@@ -349,5 +349,8 @@
 	"new-password-is-required": "New password is requiere",
 	"confirm-password-is-required": "Confirm password is required",
 	"password-must-be-at least-5-characters": "Password must be at least 5 characters long",
-	"must-be-a-valid-email": "Must be a valid email"
+	"must-be-a-valid-email": "Must be a valid email",
+	"quantity-must-be-bigger-that-0": "",
+	"hello-there": "Hello there",
+	"you-lost": "You lost need a map? How about i help you out this are all the directions you can go"
 }

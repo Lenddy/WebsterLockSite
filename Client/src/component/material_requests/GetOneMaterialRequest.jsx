@@ -26,7 +26,7 @@ export default function GetOneMaterialRequest() {
 	const { t } = useTranslation();
 
 	const { data, loading, error } = useQuery(get_one_material_request, { variables: { id: requestId } });
-	console.log("material data", data);
+	// console.log("material data", data);
 
 	const { data: iGData } = useQuery(get_all_item_groups);
 	const { items: itemGroups, loading: iGLoading, error: iGError } = useItemGroups();
@@ -184,7 +184,7 @@ export default function GetOneMaterialRequest() {
 		return ["headAdmin", "admin", "subAdmin"].includes(role);
 	};
 
-	console.log("this is the m requests ", mRequest);
+	//console.log("this is the m requests ", mRequest);
 
 	if (authLoading || loading) return <h1>Loading...</h1>;
 

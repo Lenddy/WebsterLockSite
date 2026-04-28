@@ -20,7 +20,7 @@ export default function AdminItemUsage() {
 	// const { error, loading, data } = useQuery(get_all_material_requests);
 	const [mRequests, setMRequests] = useState([]);
 	const { requests: allMRequests, loading, error } = useMaterialRequests();
-	console.log("this is the request", mRequests);
+	// console.log("this is the request", mRequests);
 
 	const [filter, setFilter] = useState("all"); // all | day | week | month | year | custom
 	const [customStart, setCustomStart] = useState(""); // YYYY-MM-DD
@@ -247,8 +247,8 @@ export default function AdminItemUsage() {
 
 	const isItemView = !!itemName && !userId;
 	const isUserView = !!itemName && !!userId;
-	console.log("this is the isItemView data", isItemView);
-	console.log("this is the isUserView data ", isUserView);
+	// console.log("this is the isItemView data", isItemView);
+	// console.log("this is the isUserView data ", isUserView);
 
 	// Combine filters and search
 	const finalUsage = useMemo(() => {
@@ -448,7 +448,7 @@ export default function AdminItemUsage() {
 		});
 	}, [searchFilteredData, sortKey, sortDir]);
 
-	console.log("this is the sortedData data", sortedData);
+	// console.log("this is the sortedData data", sortedData);
 
 	return (
 		<>

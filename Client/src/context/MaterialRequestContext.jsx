@@ -31,7 +31,7 @@ export function MaterialRequestsProvider({ children }) {
 	useSubscription(MATERIAL_REQUEST_CHANGE_SUBSCRIPTION, {
 		skip: authLoading || !userToken, // skip subscription until token ready
 		onData: ({ data: subscriptionData, client }) => {
-			console.log("Subscription raw data:", subscriptionData);
+			// console.log("Subscription raw data:", subscriptionData);
 			const changeEvent = subscriptionData?.data?.onMaterialRequestChange;
 			if (!changeEvent) return;
 

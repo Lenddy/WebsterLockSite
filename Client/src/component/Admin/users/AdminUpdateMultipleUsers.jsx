@@ -488,7 +488,7 @@ export default function AdminUpdateMultipleUsers() {
 	};
 
 	const groupedPermissions = useMemo(() => groupPermissions(ALL_PERMISSIONS), []);
-	console.log("this are the rows", rows);
+	// console.log("this are the rows", rows);
 	return (
 		// out side container
 		<div className="update-container">

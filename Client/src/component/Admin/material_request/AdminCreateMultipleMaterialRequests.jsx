@@ -280,18 +280,10 @@ export default function AdminCreateMultipleMaterialRequests() {
 
 	let canAddMore = requests?.every((r) => r.requester?.userId && r?.addedDate && r?.items?.every((i) => i?.quantity && i?.item?.value));
 
+	const isFormValid = requests?.every((r) => r?.items?.every((i) => i?.item && i?.quantity !== "" && Number(i?.quantity) > 0));
+
 	//  Submit validation
 	const canSubmit = canAddMore; // since it's the same rule for "everything filled"
-
-	// REVIEW -      make the btn works (not brake the page )  and also dont allow a the users to click the submit btn  (see if you can overwrite the state variable on te component settings of the browser)and add the new translation
-
-	//TODO - if a request is made notify the users that is has succeeded/ fail (done )
-
-	//TODO -  if the same requests gets send with not changes dont let the request pass and notify the user that it is a duplicate and it needs to be change (done)
-
-	//TODO - if the users wants to make another request they should not be able to edit their current request nor make another request (not able to edit current request ) until  they click make another request / reload site
-
-	//TODO - if the user wants to see the requests they can navigate to view all requests  when the uses closes the notification or clicks view requests btn
 
 	const SuccessToast = ({ closeToast, resetForm }) => (
 		<div>
@@ -599,6 +591,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 
 												{/* {requests[reqIdx]?.items[rowIdx]?.quantity == "" && <p className="error-message">Quantity is requiere 2</p>} */}
 												{row.quantity == "" && <p className="error-message">{t("quantity-is-required")}</p>}
+												{/* {row.quantity == 0 && <p className="error-message">{t("quantity-must-be-bigger-that-0")}</p>} */}
 											</div>
 
 											<div className="form-row-top-right material-request">
@@ -828,7 +821,7 @@ export default function AdminCreateMultipleMaterialRequests() {
 					</span>
 
 					<div>
-						<button className="form-submit-btn" type="submit" onClick={submit} disabled={!canSubmit}>
+						<button className="form-submit-btn" type="submit" onClick={submit} disabled={!canSubmit || !isFormValid}>
 							{t("request-material")}
 						</button>
 					</div>

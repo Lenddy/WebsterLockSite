@@ -7,6 +7,13 @@ import bcrypt from "bcrypt"; // Bcrypt for password hashing
 import { can } from "../../isAdmin.js";
 import { roleRank } from "../../role.config.js";
 
+// import fs from "fs";
+// import path from "path";
+// import { fileURLToPath } from "url";
+
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+
 // Resolver object for user-related operations
 const itemGroupResolver = {
 	Query: {
@@ -46,7 +53,66 @@ const itemGroupResolver = {
 			}
 		},
 
+		// !for making a json file and a js object file
+		// import fs from "fs";
+		// import path from "path";
+		// import { fileURLToPath } from "url";
+
+		// const __filename = fileURLToPath(import.meta.url);
+		// const __dirname = path.dirname(__filename);
+		// getAllItemGroups: async (_, __, { user }) => {
+		// 	try {
+		// 		if (!user) {
+		// 			throw new ApolloError("Unauthorized: No user token was found.");
+		// 		}
+
+		// 		const canCreateAnyItem = can(user, "items:read:any");
+
+		// 		if (!canCreateAnyItem) {
+		// 			throw new ApolloError("Unauthorized: you are not allowed to view items.");
+		// 		}
+
+		// 		const itemGroup = await ItemGroup.find();
+
+		// 		if (!itemGroup) {
+		// 			throw new ApolloError("Item group not found.");
+		// 		}
+
+		// 		// Shape the data
+		// 		const exportData = itemGroup.map((group) => ({
+		// 			id: group._id.toString(),
+		// 			brand: group.brand,
+		// 			createdAt: group.createdAt,
+		// 			updatedAt: group.updatedAt,
+		// 			itemsList: group.itemsList.map((item) => ({
+		// 				id: item._id?.toString(),
+		// 				itemName: item.itemName,
+		// 				colors: item.colors ?? [],
+		// 				sides: item.sides ?? [],
+		// 				sizes: item.sizes ?? [],
+		// 			})),
+		// 		}));
+
+		// 		const exportDir = path.resolve(__dirname, "../../exports");
+		// 		fs.mkdirSync(exportDir, { recursive: true });
+
+		// 		// File 1: JSON file
+		// 		const jsonPath = path.join(exportDir, "itemGroups.json");
+		// 		fs.writeFileSync(jsonPath, JSON.stringify(exportData, null, 2), "utf-8");
+
+		// 		// File 2: JS object file
+		// 		const jsPath = path.join(exportDir, "itemGroups.js");
+		// 		fs.writeFileSync(jsPath, `const itemGroups = ${JSON.stringify(exportData, null, 2)};\n\nexport default itemGroups;\n`, "utf-8");
+
+		// 		return itemGroup;
+		// 	} catch (error) {
+		// 		console.error("Error fetching all Items groups:", error);
+		// 		throw error;
+		// 	}
+		// },
+
 		// Fetch one ItemGroup by ID
+
 		getOneItemGroup: async (_, { id }, { user }) => {
 			try {
 				if (!user) {

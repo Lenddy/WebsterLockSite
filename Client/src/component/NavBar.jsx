@@ -322,7 +322,10 @@ export default function NavBar({ children, screenWidth }) {
 											onClick={(e) => {
 												if (disabled) {
 													e.preventDefault();
+													// closeMenu;
 												}
+
+												closeMenu();
 											}}
 											//  className={!access.enabled ? "nav-bar-link-disabled" : location.pathname === link.path ? "nav-bar-link-active" : ""}
 											className={disabled ? "nav-bar-link-disabled" : location.pathname === link.path ? "nav-bar-link-active" : ""}>
